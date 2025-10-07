@@ -4,6 +4,7 @@ mod auth;
 mod auth_commands;
 mod commands;
 mod config;
+mod theme_commands;
 
 use anilist::AniListService;
 use auth::AuthState;
@@ -97,6 +98,11 @@ pub fn run() {
             anilist_commands::get_user_by_id,
             anilist_commands::get_user_by_name,
             anilist_commands::search_users,
+            // Theme commands
+            theme_commands::list_themes,
+            theme_commands::get_theme_metadata,
+            theme_commands::save_theme_preference,
+            theme_commands::get_theme_preference,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

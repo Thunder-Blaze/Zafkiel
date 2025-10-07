@@ -1,0 +1,19 @@
+{
+	"id": "pastel-dreams",
+	"name": "Pastel Dreams",
+	"description": "A soft, dreamy theme with gentle pastel colors",
+	"author": "Zafkiel Team",
+	"version": "1.0.0",
+	"colors": {
+		"light": {
+			"primary": "oklch(0.7255 0.1137 306.0381)",
+			"background": "oklch(0.9922 0.0039 306.4046)",
+			"accent": "oklch(0.9529 0.0431 306.4046)"
+		},
+		"dark": {
+			"primary": "oklch(0.8255 0.1137 306.0381)",
+			"background": "oklch(0.1961 0.0314 307.2196)",
+			"accent": "oklch(0.3529 0.0745 306.4046)"
+		}
+	}
+}

@@ -1,0 +1,19 @@
+{
+	"id": "tangerine",
+	"name": "Tangerine",
+	"description": "A vibrant, energetic orange theme with citrus freshness",
+	"author": "Zafkiel Team",
+	"version": "1.0.0",
+	"colors": {
+		"light": {
+			"primary": "oklch(0.6686 0.1961 44.2007)",
+			"background": "oklch(1 0 0)",
+			"accent": "oklch(0.9804 0.0235 44.2007)"
+		},
+		"dark": {
+			"primary": "oklch(0.7686 0.1961 44.2007)",
+			"background": "oklch(0.1412 0.0196 264.5419)",
+			"accent": "oklch(0.3529 0.0824 44.2007)"
+		}
+	}
+}

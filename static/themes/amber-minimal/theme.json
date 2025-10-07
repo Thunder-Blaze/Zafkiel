@@ -1,0 +1,19 @@
+{
+	"id": "amber-minimal",
+	"name": "Amber Minimal",
+	"description": "A warm, minimalist theme with amber accents",
+	"author": "Zafkiel Team",
+	"version": "1.0.0",
+	"colors": {
+		"light": {
+			"primary": "oklch(0.7686 0.1647 70.0804)",
+			"background": "oklch(1 0 0)",
+			"accent": "oklch(0.9869 0.0214 95.2774)"
+		},
+		"dark": {
+			"primary": "oklch(0.7686 0.1647 70.0804)",
+			"background": "oklch(0.1686 0 0)",
+			"accent": "oklch(0.4732 0.1247 46.2007)"
+		}
+	}
+}

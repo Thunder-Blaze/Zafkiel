@@ -1,0 +1,19 @@
+{
+	"id": "mocha-mousse",
+	"name": "Mocha Mousse",
+	"description": "A rich, coffee-inspired brown theme with warm tones",
+	"author": "Zafkiel Team",
+	"version": "1.0.0",
+	"colors": {
+		"light": {
+			"primary": "oklch(0.4706 0.0824 56.6226)",
+			"background": "oklch(1 0 0)",
+			"accent": "oklch(0.9765 0.0098 56.6226)"
+		},
+		"dark": {
+			"primary": "oklch(0.6706 0.0824 56.6226)",
+			"background": "oklch(0.1765 0.0196 56.6226)",
+			"accent": "oklch(0.3176 0.0392 56.6226)"
+		}
+	}
+}

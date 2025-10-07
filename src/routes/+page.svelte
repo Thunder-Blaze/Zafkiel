@@ -15,6 +15,7 @@
 	import { useUiScale } from '$lib/hooks/useUiScale.svelte';
 	import { toast } from 'svelte-sonner';
 	import Icon from '@iconify/svelte';
+	import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
 
 	const uiScale = useUiScale();
 	let sliderValue = $state(uiScale.scale * 100);
@@ -124,19 +125,22 @@
 							</p>
 						{/if}
 					</div>
-					<Button
-						variant="ghost"
-						size="icon"
-						onclick={handleLogout}
-						disabled={isLoggingOut}
-						title="Logout"
-					>
-						{#if isLoggingOut}
-							<Icon icon="solar:refresh-circle-line-duotone" class="h-5 w-5 animate-spin" />
-						{:else}
-							<Icon icon="solar:logout-3-bold" class="h-5 w-5" />
-						{/if}
-					</Button>
+					<div class="flex gap-2">
+						<ThemeSwitcher />
+						<Button
+							variant="ghost"
+							size="icon"
+							onclick={handleLogout}
+							disabled={isLoggingOut}
+							title="Logout"
+						>
+							{#if isLoggingOut}
+								<Icon icon="solar:refresh-circle-line-duotone" class="h-5 w-5 animate-spin" />
+							{:else}
+								<Icon icon="solar:logout-3-bold" class="h-5 w-5" />
+							{/if}
+						</Button>
+					</div>
 				</CardContent>
 			</Card>
 		</div>
@@ -312,11 +316,27 @@
 						<div
 							class="rounded-lg bg-green-500/10 p-3 transition-colors group-hover:bg-green-500/20"
 						>
-							<Icon icon="solar:settings-bold-duotone" class="h-8 w-8 text-green-500" />
+							<Icon icon="solar:document-text-bold-duotone" class="h-8 w-8 text-green-500" />
 						</div>
 						<div class="flex-1">
-							<h3 class="mb-1 font-semibold">Configuration</h3>
-							<p class="text-sm text-muted-foreground">Manage app settings</p>
+							<h3 class="mb-1 font-semibold">Config Demo</h3>
+							<p class="text-sm text-muted-foreground">Test configuration</p>
+						</div>
+					</div>
+				</a>
+			</Card>
+
+			<Card class="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg">
+				<a href="/settings" class="block p-6">
+					<div class="flex items-start gap-4">
+						<div
+							class="rounded-lg bg-orange-500/10 p-3 transition-colors group-hover:bg-orange-500/20"
+						>
+							<Icon icon="solar:settings-bold-duotone" class="h-8 w-8 text-orange-500" />
+						</div>
+						<div class="flex-1">
+							<h3 class="mb-1 font-semibold">Settings</h3>
+							<p class="text-sm text-muted-foreground">Configure your preferences</p>
 						</div>
 					</div>
 				</a>

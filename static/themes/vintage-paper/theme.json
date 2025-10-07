@@ -1,0 +1,19 @@
+{
+	"id": "vintage-paper",
+	"name": "Vintage Paper",
+	"description": "A nostalgic, sepia-toned theme reminiscent of old documents",
+	"author": "Zafkiel Team",
+	"version": "1.0.0",
+	"colors": {
+		"light": {
+			"primary": "oklch(0.5294 0.0941 56.6226)",
+			"background": "oklch(0.9608 0.0196 70.0804)",
+			"accent": "oklch(0.9373 0.0314 56.6226)"
+		},
+		"dark": {
+			"primary": "oklch(0.7294 0.0941 56.6226)",
+			"background": "oklch(0.1569 0.0196 56.6226)",
+			"accent": "oklch(0.2941 0.0431 56.6226)"
+		}
+	}
+}

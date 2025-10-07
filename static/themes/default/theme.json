@@ -1,0 +1,19 @@
+{
+	"id": "default",
+	"name": "Default",
+	"description": "The default Zafkiel theme with clean blue tones",
+	"author": "Zafkiel Team",
+	"version": "1.0.0",
+	"colors": {
+		"light": {
+			"primary": "oklch(0.208 0.042 265.755)",
+			"background": "oklch(1 0 0)",
+			"accent": "oklch(0.968 0.007 247.896)"
+		},
+		"dark": {
+			"primary": "oklch(0.929 0.013 255.508)",
+			"background": "oklch(0.129 0.042 264.695)",
+			"accent": "oklch(0.279 0.041 260.031)"
+		}
+	}
+}

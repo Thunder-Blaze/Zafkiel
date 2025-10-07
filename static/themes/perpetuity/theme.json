@@ -1,0 +1,19 @@
+{
+	"id": "perpetuity",
+	"name": "Perpetuity",
+	"description": "A timeless, elegant theme with balanced neutral tones",
+	"author": "Zafkiel Team",
+	"version": "1.0.0",
+	"colors": {
+		"light": {
+			"primary": "oklch(0.4314 0.0627 264.5313)",
+			"background": "oklch(1 0 0)",
+			"accent": "oklch(0.9686 0.0117 264.5313)"
+		},
+		"dark": {
+			"primary": "oklch(0.7314 0.0627 264.5313)",
+			"background": "oklch(0.1529 0.0196 264.6961)",
+			"accent": "oklch(0.2941 0.0392 264.3637)"
+		}
+	}
+}

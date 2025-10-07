@@ -1,0 +1,19 @@
+{
+	"id": "amethyst-haze",
+	"name": "Amethyst Haze",
+	"description": "A mystical purple-themed design with soft gradients",
+	"author": "Zafkiel Team",
+	"version": "1.0.0",
+	"colors": {
+		"light": {
+			"primary": "oklch(0.5961 0.2108 303.7726)",
+			"background": "oklch(1 0 0)",
+			"accent": "oklch(0.9702 0.0136 306.4046)"
+		},
+		"dark": {
+			"primary": "oklch(0.7882 0.1598 306.0381)",
+			"background": "oklch(0.1686 0.0235 307.2196)",
+			"accent": "oklch(0.3294 0.0941 307.9648)"
+		}
+	}
+}

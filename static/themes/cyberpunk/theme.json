@@ -1,0 +1,19 @@
+{
+	"id": "cyberpunk",
+	"name": "Cyberpunk",
+	"description": "A futuristic neon-inspired theme with vibrant colors",
+	"author": "Zafkiel Team",
+	"version": "1.0.0",
+	"colors": {
+		"light": {
+			"primary": "oklch(0.5961 0.2529 328.3637)",
+			"background": "oklch(1 0 0)",
+			"accent": "oklch(0.9765 0.0157 328.3636)"
+		},
+		"dark": {
+			"primary": "oklch(0.6686 0.2549 328.3637)",
+			"background": "oklch(0.1294 0.0157 265.7551)",
+			"accent": "oklch(0.2941 0.0392 328.3636)"
+		}
+	}
+}

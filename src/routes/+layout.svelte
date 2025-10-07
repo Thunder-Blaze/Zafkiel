@@ -9,6 +9,7 @@
 	import LenisProvider from '$lib/providers/lenis.svelte';
 	import { configStore } from '$lib/stores/config';
 	import { authStore } from '$lib/stores/auth';
+	import { themeStore } from '$lib/stores/theme.svelte';
 	import { useUiScale } from '$lib/hooks/useUiScale.svelte';
 
 	let { children }: { children: any } = $props();
@@ -16,10 +17,19 @@
 	// Initialize UI scale (applies Tauri webview zoom)
 	const uiScale = useUiScale();
 
-	// Initialize config and auth stores on app mount
+	// Initialize config, auth, and theme stores on app mount
 	onMount(async () => {
-		await configStore.init();
-		await authStore.init();
+		try {
+			await configStore.init();
+			await authStore.init();
+			
+			// Initialize theme store in background (non-blocking)
+			themeStore.initialize().catch((error) => {
+				console.warn('Theme store initialization failed, using defaults:', error);
+			});
+		} catch (error) {
+			console.error('Failed to initialize app stores:', error);
+		}
 	});
 </script>
 

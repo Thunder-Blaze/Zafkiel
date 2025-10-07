@@ -1,0 +1,19 @@
+{
+	"id": "midnight",
+	"name": "Midnight",
+	"description": "Deep purple and black tones for night owls",
+	"author": "Zafkiel Team",
+	"version": "1.0.0",
+	"colors": {
+		"light": {
+			"primary": "oklch(0.45 0.16 280)",
+			"background": "oklch(0.98 0.01 280)",
+			"accent": "oklch(0.88 0.06 260)"
+		},
+		"dark": {
+			"primary": "oklch(0.60 0.16 270)",
+			"background": "oklch(0.08 0.03 280)",
+			"accent": "oklch(0.30 0.10 260)"
+		}
+	}
+}
