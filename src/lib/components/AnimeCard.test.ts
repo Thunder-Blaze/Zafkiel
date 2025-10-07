@@ -23,8 +23,7 @@ describe('AnimeCard utilities', () => {
 		format: 'TV',
 		duration: 24,
 		popularity: 50000,
-		favourites: 10000,
-		startDate: '2023-04-01'
+		favourites: 10000
 	};
 
 	it('should have valid anime data structure', () => {
