@@ -234,6 +234,134 @@ When uncertain about implementation details, always refer to:
 6. **Vitest**: https://vitest.dev/guide/
 7. **Playwright**: https://playwright.dev/docs/intro
 8. **Storybook**: https://storybook.js.org/docs
+9. **anilist_moe**: https://docs.rs/anilist_moe/0.2.0/anilist_moe/
+
+## 📡 AniList API Integration
+
+### Backend (Rust + Tauri)
+
+The project uses the **`anilist_moe`** crate (v0.2.0) for AniList API interactions:
+
+```rust
+// Initialize AniList service in src-tauri/src/anilist.rs
+let anilist_service = AniListService::new(None); // Or with token: Some("token")
+app.manage(Arc::new(anilist_service));
+```
+
+**Key Features:**
+- ✅ Type-safe responses - no `serde_json::Value`
+- ✅ Complete API coverage (anime, manga, users, social features)
+- ✅ Async/await with tokio
+- ✅ Authentication support with Bearer tokens
+- ✅ Comprehensive error handling
+- ✅ Built-in pagination support
+- ✅ Rate limiting: 90 requests/minute
+
+**Backend Structure:**
+- `src-tauri/src/anilist.rs`: Service layer wrapping AniListClient
+- `src-tauri/src/anilist_commands.rs`: Tauri commands for frontend communication
+- Token management: Automatically loads encrypted token from config
+
+**Available Endpoints:**
+
+*Anime:*
+- `search_anime(query, page?, perPage?)` - Search anime
+- `get_anime_by_id(id)` - Get anime details
+- `get_trending_anime(page?, perPage?)` - Get trending anime
+- `get_popular_anime(page?, perPage?)` - Get popular anime
+- `get_seasonal_anime(season, year, page?, perPage?)` - Get seasonal anime
+
+*Manga:*
+- `search_manga(query, page?, perPage?)` - Search manga
+- `get_manga_by_id(id)` - Get manga details
+- `get_trending_manga(page?, perPage?)` - Get trending manga
+- `get_popular_manga(page?, perPage?)` - Get popular manga
+
+*Users:*
+- `get_current_user()` - Get authenticated user (requires token)
+- `get_user_by_id(id)` - Get user by ID
+- `get_user_by_name(name)` - Get user by name
+- `search_users(query, page?, perPage?)` - Search users
+
+### Frontend (TypeScript + TanStack Query)
+
+**Type Definitions:** `src/lib/types/anilist.ts`
+- Mirrors Rust types from anilist_moe crate
+- Full type safety for Media, User, and related types
+
+**API Client:** `src/lib/services/anilist.ts`
+```typescript
+import { anilistApi } from '$lib/services/anilist';
+
+// Usage
+const response = await anilistApi.anime.search({ query: 'Steins Gate', page: 1, perPage: 10 });
+```
+
+**TanStack Query Hooks:** `src/lib/hooks/useAnilist.svelte.ts`
+```typescript
+import { useTrendingAnime, useAnimeById, useCurrentUser } from '$lib/hooks/useAnilist.svelte';
+
+// In Svelte component
+const trendingQuery = useTrendingAnime({ page: 1, perPage: 20 });
+// Access: trendingQuery.data, trendingQuery.isLoading, trendingQuery.error
+```
+
+**Caching Strategy:**
+- Anime/Manga details: 30 minutes (stable data)
+- Trending content: 5 minutes (updates frequently)
+- Popular content: 15 minutes
+- Seasonal content: 60 minutes (very stable)
+- User profiles: 30-60 minutes
+- Search results: 10 minutes
+
+**Query Keys Structure:**
+```typescript
+anilistKeys.anime.search({ query, page, perPage })
+anilistKeys.anime.byId(id)
+anilistKeys.anime.trending({ page, perPage })
+anilistKeys.user.current()
+// etc.
+```
+
+**Error Handling:**
+All hooks automatically throw descriptive errors that TanStack Query can catch:
+```typescript
+const query = useAnimeById(123);
+if (query.error) {
+  // Handle error: query.error.message
+}
+```
+
+**Best Practices:**
+1. **Always use hooks instead of direct API calls** - Benefits from caching
+2. **Enable/disable queries conditionally** - Pass `enabled` parameter
+3. **Don't fetch same data multiple times** - TanStack Query deduplicates automatically
+4. **Use query invalidation sparingly** - Trust the staleTime configuration
+5. **Handle loading/error states** - Always check `isLoading` and `error`
+6. **Extract properties when switching queries** - See reactivity pattern below
+
+**TanStack Query + Svelte 5 Reactivity Pattern:**
+```typescript
+// ❌ WRONG - Don't switch between query result objects
+const displayData = $derived(condition ? queryA : queryB);
+// Problem: Svelte can't track nested properties when parent object changes
+
+// ✅ CORRECT - Extract specific properties from the active query
+const data = $derived(condition ? queryA.data : queryB.data);
+const isLoading = $derived(condition ? queryA.isLoading : queryB.isLoading);
+const error = $derived(condition ? queryA.error : queryB.error);
+```
+
+**Authentication:**
+- Token stored encrypted in config at `~/.config/zafkiel/config.ron`
+- Automatically loaded by backend for authenticated requests
+- Use `get_current_user` to verify authentication status
+
+**Rate Limiting:**
+- AniList enforces 90 requests/minute
+- Backend handles rate limit errors gracefully
+- Frontend caching significantly reduces API calls
+- Consider debouncing search inputs
 
 ## ✅ Quality Checklist
 

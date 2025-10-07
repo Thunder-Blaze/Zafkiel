@@ -1,6 +1,9 @@
+mod anilist;
+mod anilist_commands;
 mod commands;
 mod config;
 
+use anilist::AniListService;
 use std::sync::Arc;
 use tauri::Manager;
 
@@ -23,9 +26,14 @@ pub fn run() {
             // Store config loader in app state
             app.manage(Arc::new(config_loader));
 
+            // Initialize AniList service
+            let anilist_service = AniListService::new(None);
+            app.manage(Arc::new(anilist_service));
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            // Config commands
             commands::get_config,
             commands::get_anilist_token,
             commands::set_anilist_token,
@@ -40,6 +48,22 @@ pub fn run() {
             commands::apply_ui_scale,
             commands::open_devtools,
             commands::get_config_path,
+            // Anime commands
+            anilist_commands::search_anime,
+            anilist_commands::get_anime_by_id,
+            anilist_commands::get_trending_anime,
+            anilist_commands::get_popular_anime,
+            anilist_commands::get_seasonal_anime,
+            // Manga commands
+            anilist_commands::search_manga,
+            anilist_commands::get_manga_by_id,
+            anilist_commands::get_trending_manga,
+            anilist_commands::get_popular_manga,
+            // User commands
+            anilist_commands::get_current_user,
+            anilist_commands::get_user_by_id,
+            anilist_commands::get_user_by_name,
+            anilist_commands::search_users,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

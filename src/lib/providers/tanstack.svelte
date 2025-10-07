@@ -2,17 +2,22 @@
 	import { browser } from '$app/environment';
 	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 
-	const queryClient = new QueryClient({
+	// Only create QueryClient in browser
+	const queryClient = browser ? new QueryClient({
 		defaultOptions: {
 			queries: {
-				enabled: browser,
+				enabled: true,
 				staleTime: 1000 * 60 * 5, // 5 minutes
 				refetchOnWindowFocus: false,
 			},
 		},
-	});
+	}) : null;
 
 	let { children } = $props();
 </script>
 
-<QueryClientProvider client={queryClient} {children} />
+{#if browser && queryClient}
+	<QueryClientProvider client={queryClient} {children} />
+{:else}
+	{@render children?.()}
+{/if}

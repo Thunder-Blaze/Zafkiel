@@ -114,6 +114,7 @@
 		<Button href="/demo" variant="default">Go to Demo</Button>
 		<Button href="/dropdown-demo" variant="default">Dropdown Demo</Button>
 		<Button href="/config-demo" variant="outline">Go to Config Demo</Button>
+		<Button href="/anime" variant="outline">Go to Anime</Button>
 		<Button href="/context-menu-demo" variant="outline">Go to Context Menu Demo</Button>
 	</div>
 
