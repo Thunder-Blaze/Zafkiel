@@ -61,9 +61,7 @@ impl Default for AppConfig {
 
 impl Default for AniListConfig {
     fn default() -> Self {
-        Self {
-            access_token: None,
-        }
+        Self { access_token: None }
     }
 }
 

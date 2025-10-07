@@ -147,7 +147,8 @@ impl ConfigLoader {
                     )));
                 }
 
-                let decrypted = encryption::decrypt(encrypted_token, &config.security.encryption_key)?;
+                let decrypted =
+                    encryption::decrypt(encrypted_token, &config.security.encryption_key)?;
                 Ok(Some(decrypted))
             }
             None => Ok(None),

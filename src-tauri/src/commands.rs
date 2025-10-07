@@ -124,10 +124,14 @@ pub fn update_smooth_scroll(enabled: bool, config: State<ConfigState>) -> Config
 
 /// Update UI scale factor and apply webview zoom
 #[tauri::command]
-pub fn update_ui_scale(scale: f32, config: State<ConfigState>, app: tauri::AppHandle) -> ConfigResponse<()> {
+pub fn update_ui_scale(
+    scale: f32,
+    config: State<ConfigState>,
+    app: tauri::AppHandle,
+) -> ConfigResponse<()> {
     // Clamp scale between 0.5 and 2.0
     let clamped_scale = scale.max(0.5).min(2.0);
-    
+
     // Save to config
     match config.update_ui_scale(clamped_scale) {
         Ok(_) => {
@@ -172,7 +176,7 @@ pub fn open_devtools(app: tauri::AppHandle) -> ConfigResponse<()> {
             }
             return ConfigResponse::success(());
         }
-        
+
         #[cfg(not(debug_assertions))]
         {
             // In production, try to toggle devtools if available
