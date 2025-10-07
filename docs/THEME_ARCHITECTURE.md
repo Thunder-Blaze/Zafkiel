@@ -219,6 +219,7 @@ User toggles dark mode switch
 ## Performance Characteristics
 
 ### Initial Load
+
 ```
 App Startup
   ├─ Read config: ~1ms
@@ -230,6 +231,7 @@ App Startup
 ```
 
 ### Theme Switch
+
 ```
 User clicks theme
   ├─ Check if loaded: <1ms
@@ -241,6 +243,7 @@ User clicks theme
 ```
 
 ### Memory Usage
+
 ```
 Per Theme:
   ├─ CSS file: ~5KB
@@ -256,6 +259,7 @@ Only active theme: ~16KB ✅ Minimal!
 ## Key Features Illustrated
 
 ### ✅ On-Demand Loading
+
 ```
 Startup:        [Default] loaded
                 [Ocean]   unloaded
@@ -277,6 +281,7 @@ User switches:  [Default] loaded (can unload)
 ```
 
 ### ✅ Fast Switching
+
 ```
 Before:  <html data-theme="default">
          CSS: :root[data-theme="default"] { --primary: blue; }
@@ -289,6 +294,7 @@ Result: Browser recalculates styles, instant visual change!
 ```
 
 ### ✅ Dark Mode Support
+
 ```
 Light:  <html data-theme="ocean">
         CSS: :root[data-theme="ocean"] { --primary: light-blue; }
@@ -302,6 +308,7 @@ Result: Same theme, different color palette!
 ---
 
 **Legend:**
+
 - `→` Data flow direction
 - `├─` Branch in flow
 - `└─` End of branch

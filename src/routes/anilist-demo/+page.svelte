@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { useTrendingAnime, useSearchAnime } from '$lib/hooks/useAnilist.svelte';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle,
+	} from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import { Skeleton } from '$lib/components/ui/skeleton';
@@ -108,257 +114,263 @@
 
 {#if browser}
 	<div class="container mx-auto space-y-8 p-8">
-	<!-- Debug Info -->
-	<Card class="border-blue-500/50 bg-blue-500/5">
-		<CardHeader>
-			<CardTitle class="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-				<Icon icon="solar:bug-bold" class="size-5" />
-				Debug Info
-			</CardTitle>
-		</CardHeader>
-		<CardContent class="space-y-2 font-mono text-sm">
-			<div class="flex justify-between">
-				<span class="text-muted-foreground">Search Query:</span>
-				<span class="font-semibold">{searchQuery || '(empty)'}</span>
-			</div>
-			<div class="flex justify-between">
-				<span class="text-muted-foreground">Debounced Query:</span>
-				<span class="font-semibold">{debouncedQuery || '(empty)'}</span>
-			</div>
-			<div class="flex justify-between">
-				<span class="text-muted-foreground">Is Searching:</span>
-				<span class="font-semibold">{isSearching}</span>
-			</div>
-			<div class="flex justify-between">
-				<span class="text-muted-foreground">Active Query:</span>
-				<span class="font-semibold">{isSearching ? 'Search' : 'Trending'}</span>
-			</div>
-			<div class="flex justify-between">
-				<span class="text-muted-foreground">Trending Status:</span>
-				<span class="font-semibold">
-					{trendingLoading ? '⏳ Loading' : trendingData ? `✓ ${trendingData.length} items` : '❌ No data'}
-				</span>
-			</div>
-			<div class="flex justify-between">
-				<span class="text-muted-foreground">Search Status:</span>
-				<span class="font-semibold">
-					{!isSearching ? '⏸️ Disabled' : searchLoading ? '⏳ Loading' : searchData ? `✓ ${searchData.length} items` : '❌ No data'}
-				</span>
-			</div>
-			<div class="flex justify-between">
-				<span class="text-muted-foreground">Active - Is Loading:</span>
-				<span class="font-semibold">{isLoading}</span>
-			</div>
-			<div class="flex justify-between">
-				<span class="text-muted-foreground">Active - Is Fetching:</span>
-				<span class="font-semibold">{isFetching}</span>
-			</div>
-			<div class="flex justify-between">
-				<span class="text-muted-foreground">Active - Has Error:</span>
-				<span class="font-semibold">{!!error}</span>
-			</div>
-			<div class="flex justify-between">
-				<span class="text-muted-foreground">Active - Data Count:</span>
-				<span class="font-semibold">{animeData?.length ?? 0}</span>
-			</div>
-			{#if error}
-				<div class="rounded border border-red-500/50 bg-red-500/10 p-2 text-red-600 dark:text-red-400">
-					Error: {error.message}
+		<!-- Debug Info -->
+		<Card class="border-blue-500/50 bg-blue-500/5">
+			<CardHeader>
+				<CardTitle class="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+					<Icon icon="solar:bug-bold" class="size-5" />
+					Debug Info
+				</CardTitle>
+			</CardHeader>
+			<CardContent class="space-y-2 font-mono text-sm">
+				<div class="flex justify-between">
+					<span class="text-muted-foreground">Search Query:</span>
+					<span class="font-semibold">{searchQuery || '(empty)'}</span>
 				</div>
-			{/if}
-		</CardContent>
-	</Card>
+				<div class="flex justify-between">
+					<span class="text-muted-foreground">Debounced Query:</span>
+					<span class="font-semibold">{debouncedQuery || '(empty)'}</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-muted-foreground">Is Searching:</span>
+					<span class="font-semibold">{isSearching}</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-muted-foreground">Active Query:</span>
+					<span class="font-semibold">{isSearching ? 'Search' : 'Trending'}</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-muted-foreground">Trending Status:</span>
+					<span class="font-semibold">
+						{trendingLoading
+							? '⏳ Loading'
+							: trendingData
+								? `✓ ${trendingData.length} items`
+								: '❌ No data'}
+					</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-muted-foreground">Search Status:</span>
+					<span class="font-semibold">
+						{!isSearching
+							? '⏸️ Disabled'
+							: searchLoading
+								? '⏳ Loading'
+								: searchData
+									? `✓ ${searchData.length} items`
+									: '❌ No data'}
+					</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-muted-foreground">Active - Is Loading:</span>
+					<span class="font-semibold">{isLoading}</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-muted-foreground">Active - Is Fetching:</span>
+					<span class="font-semibold">{isFetching}</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-muted-foreground">Active - Has Error:</span>
+					<span class="font-semibold">{!!error}</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-muted-foreground">Active - Data Count:</span>
+					<span class="font-semibold">{animeData?.length ?? 0}</span>
+				</div>
+				{#if error}
+					<div
+						class="rounded border border-red-500/50 bg-red-500/10 p-2 text-red-600 dark:text-red-400"
+					>
+						Error: {error.message}
+					</div>
+				{/if}
+			</CardContent>
+		</Card>
 
-	<div class="space-y-4">
-		<div class="space-y-2">
-			<h1 class="text-4xl font-bold">AniList Demo</h1>
-			<p class="text-muted-foreground">
-				Testing AniList API integration with TanStack Query caching
-			</p>
+		<div class="space-y-4">
+			<div class="space-y-2">
+				<h1 class="text-4xl font-bold">AniList Demo</h1>
+				<p class="text-muted-foreground">
+					Testing AniList API integration with TanStack Query caching
+				</p>
+			</div>
+
+			<!-- Search -->
+			<div class="flex gap-2">
+				<div class="relative flex-1">
+					<Icon
+						icon="solar:magnifer-bold"
+						class="absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground"
+					/>
+					<Input bind:value={searchQuery} placeholder="Search anime..." class="pl-10" />
+				</div>
+				{#if searchQuery}
+					<Button
+						variant="outline"
+						size="icon"
+						onclick={() => {
+							searchQuery = '';
+						}}
+					>
+						<Icon icon="solar:close-circle-bold" class="size-5" />
+					</Button>
+				{/if}
+			</div>
 		</div>
 
-		<!-- Search -->
-		<div class="flex gap-2">
-			<div class="relative flex-1">
-				<Icon
-					icon="solar:magnifer-bold"
-					class="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
-				/>
-				<Input
-					bind:value={searchQuery}
-					placeholder="Search anime..."
-					class="pl-10"
-				/>
-			</div>
-			{#if searchQuery}
-				<Button
-					variant="outline"
-					size="icon"
-					onclick={() => {
-						searchQuery = '';
-					}}
-				>
-					<Icon icon="solar:close-circle-bold" class="size-5" />
-				</Button>
-			{/if}
-		</div>
-	</div>
+		<!-- Results -->
+		<div class="space-y-4">
+			<h2 class="text-2xl font-semibold">
+				{debouncedQuery ? `Search Results for "${debouncedQuery}"` : 'Trending Anime'}
+			</h2>
 
-	<!-- Results -->
-	<div class="space-y-4">
-		<h2 class="text-2xl font-semibold">
-			{debouncedQuery ? `Search Results for "${debouncedQuery}"` : 'Trending Anime'}
-		</h2>
+			{#if isLoading}
+				<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+					{#each Array(12) as _}
+						<Card>
+							<CardContent class="p-0">
+								<Skeleton class="h-64 w-full rounded-t-lg" />
+								<div class="space-y-2 p-4">
+									<Skeleton class="h-4 w-3/4" />
+									<Skeleton class="h-4 w-1/2" />
+								</div>
+							</CardContent>
+						</Card>
+					{/each}
+				</div>
+			{:else if error}
+				<Card class="border-destructive">
+					<CardHeader>
+						<CardTitle class="flex items-center gap-2 text-destructive">
+							<Icon icon="solar:danger-triangle-bold" class="size-5" />
+							Error
+						</CardTitle>
+						<CardDescription>
+							{error.message}
+						</CardDescription>
+					</CardHeader>
+				</Card>
+			{:else if animeData && animeData.length > 0}
+				<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+					{#each animeData as anime}
+						<Card class="group overflow-hidden transition-all hover:shadow-lg">
+							<CardContent class="p-0">
+								<!-- Cover Image -->
+								{#if anime.coverImage?.large}
+									<div class="relative aspect-[2/3] overflow-hidden">
+										<img
+											src={anime.coverImage.large}
+											alt={formatTitle(anime)}
+											class="size-full object-cover transition-transform group-hover:scale-105"
+										/>
+										<!-- Score Badge -->
+										{#if anime.averageScore}
+											<div
+												class="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-background/90 px-2 py-1 text-sm font-semibold backdrop-blur-sm"
+											>
+												<Icon icon="solar:star-bold" class="size-4 text-yellow-500" />
+												{formatScore(anime.averageScore)}
+											</div>
+										{/if}
+									</div>
+								{:else}
+									<div class="flex aspect-[2/3] items-center justify-center bg-muted">
+										<Icon icon="solar:gallery-bold" class="size-12 text-muted-foreground" />
+									</div>
+								{/if}
 
-		{#if isLoading}
-			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-				{#each Array(12) as _}
-					<Card>
-						<CardContent class="p-0">
-							<Skeleton class="h-64 w-full rounded-t-lg" />
-							<div class="space-y-2 p-4">
-								<Skeleton class="h-4 w-3/4" />
-								<Skeleton class="h-4 w-1/2" />
-							</div>
-						</CardContent>
-					</Card>
-				{/each}
-			</div>
-		{:else if error}
-			<Card class="border-destructive">
-				<CardHeader>
-					<CardTitle class="flex items-center gap-2 text-destructive">
-						<Icon icon="solar:danger-triangle-bold" class="size-5" />
-						Error
-					</CardTitle>
-					<CardDescription>
-						{error.message}
-					</CardDescription>
-				</CardHeader>
-			</Card>
-		{:else if animeData && animeData.length > 0}
-			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-				{#each animeData as anime}
-					<Card class="group overflow-hidden transition-all hover:shadow-lg">
-						<CardContent class="p-0">
-							<!-- Cover Image -->
-							{#if anime.coverImage?.large}
-								<div class="relative aspect-[2/3] overflow-hidden">
-									<img
-										src={anime.coverImage.large}
-										alt={formatTitle(anime)}
-										class="size-full object-cover transition-transform group-hover:scale-105"
-									/>
-									<!-- Score Badge -->
-									{#if anime.averageScore}
-										<div
-											class="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-background/90 px-2 py-1 text-sm font-semibold backdrop-blur-sm"
-										>
-											<Icon icon="solar:star-bold" class="size-4 text-yellow-500" />
-											{formatScore(anime.averageScore)}
+								<!-- Info -->
+								<div class="space-y-2 p-4">
+									<h3 class="line-clamp-2 leading-tight font-semibold">
+										{formatTitle(anime)}
+									</h3>
+									<div class="flex items-center gap-2 text-sm text-muted-foreground">
+										{#if anime.format}
+											<span class="capitalize">{anime.format.replace('_', ' ')}</span>
+											<span>•</span>
+										{/if}
+										{#if anime.seasonYear}
+											<span>{anime.seasonYear}</span>
+										{/if}
+										{#if anime.episodes}
+											<span>•</span>
+											<span>{anime.episodes} eps</span>
+										{/if}
+									</div>
+									{#if anime.genres && anime.genres.length > 0}
+										<div class="flex flex-wrap gap-1">
+											{#each anime.genres.slice(0, 3) as genre}
+												<span
+													class="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+												>
+													{genre}
+												</span>
+											{/each}
 										</div>
 									{/if}
 								</div>
-							{:else}
-								<div
-									class="flex aspect-[2/3] items-center justify-center bg-muted"
-								>
-									<Icon icon="solar:gallery-bold" class="size-12 text-muted-foreground" />
-								</div>
-							{/if}
+							</CardContent>
+						</Card>
+					{/each}
+				</div>
+			{:else}
+				<Card>
+					<CardHeader>
+						<CardTitle class="flex items-center gap-2">
+							<Icon icon="solar:inbox-line-bold" class="size-5" />
+							No Results
+						</CardTitle>
+						<CardDescription>
+							{debouncedQuery
+								? `No anime found for "${debouncedQuery}"`
+								: 'No trending anime available'}
+						</CardDescription>
+					</CardHeader>
+				</Card>
+			{/if}
+		</div>
 
-							<!-- Info -->
-							<div class="space-y-2 p-4">
-								<h3 class="line-clamp-2 font-semibold leading-tight">
-									{formatTitle(anime)}
-								</h3>
-								<div class="flex items-center gap-2 text-sm text-muted-foreground">
-									{#if anime.format}
-										<span class="capitalize">{anime.format.replace('_', ' ')}</span>
-										<span>•</span>
-									{/if}
-									{#if anime.seasonYear}
-										<span>{anime.seasonYear}</span>
-									{/if}
-									{#if anime.episodes}
-										<span>•</span>
-										<span>{anime.episodes} eps</span>
-									{/if}
-								</div>
-								{#if anime.genres && anime.genres.length > 0}
-									<div class="flex flex-wrap gap-1">
-										{#each anime.genres.slice(0, 3) as genre}
-											<span
-												class="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
-											>
-												{genre}
-											</span>
-										{/each}
-									</div>
-								{/if}
-							</div>
-						</CardContent>
-					</Card>
-				{/each}
-			</div>
-		{:else}
-			<Card>
-				<CardHeader>
-					<CardTitle class="flex items-center gap-2">
-						<Icon icon="solar:inbox-line-bold" class="size-5" />
-						No Results
-					</CardTitle>
-					<CardDescription>
-						{debouncedQuery
-							? `No anime found for "${debouncedQuery}"`
-							: 'No trending anime available'}
-					</CardDescription>
-				</CardHeader>
-			</Card>
-		{/if}
-	</div>
-
-	<!-- Cache Info -->
-	<Card>
-		<CardHeader>
-			<CardTitle>Cache Information</CardTitle>
-			<CardDescription>
-				TanStack Query automatically caches and deduplicates requests
-			</CardDescription>
-		</CardHeader>
-		<CardContent class="space-y-2">
-			<div class="flex items-center justify-between rounded-lg border p-3">
-				<span class="font-medium">Status:</span>
-				<span class="flex items-center gap-2">
-					{#if isLoading}
-						<Icon icon="solar:refresh-bold" class="size-4 animate-spin" />
-						Loading
-					{:else if isFetching}
-						<Icon icon="solar:refresh-bold" class="size-4 animate-spin text-blue-500" />
-						Refetching
-					{:else if isStale}
-						<Icon icon="solar:clock-circle-bold" class="size-4 text-yellow-500" />
-						Stale
-					{:else}
-						<Icon icon="solar:check-circle-bold" class="size-4 text-green-500" />
-						Fresh
-					{/if}
-				</span>
-			</div>
-			<div class="flex items-center justify-between rounded-lg border p-3">
-				<span class="font-medium">Data Age:</span>
-				<span>
-					{dataUpdatedAt
-						? `${Math.floor((Date.now() - dataUpdatedAt) / 1000)}s ago`
-						: 'Never fetched'}
-				</span>
-			</div>
-			<div class="flex items-center justify-between rounded-lg border p-3">
-				<span class="font-medium">Stale Time:</span>
-				<span>{debouncedQuery ? '10 minutes (search)' : '5 minutes (trending)'}</span>
-			</div>
-		</CardContent>
-	</Card>
+		<!-- Cache Info -->
+		<Card>
+			<CardHeader>
+				<CardTitle>Cache Information</CardTitle>
+				<CardDescription>
+					TanStack Query automatically caches and deduplicates requests
+				</CardDescription>
+			</CardHeader>
+			<CardContent class="space-y-2">
+				<div class="flex items-center justify-between rounded-lg border p-3">
+					<span class="font-medium">Status:</span>
+					<span class="flex items-center gap-2">
+						{#if isLoading}
+							<Icon icon="solar:refresh-bold" class="size-4 animate-spin" />
+							Loading
+						{:else if isFetching}
+							<Icon icon="solar:refresh-bold" class="size-4 animate-spin text-blue-500" />
+							Refetching
+						{:else if isStale}
+							<Icon icon="solar:clock-circle-bold" class="size-4 text-yellow-500" />
+							Stale
+						{:else}
+							<Icon icon="solar:check-circle-bold" class="size-4 text-green-500" />
+							Fresh
+						{/if}
+					</span>
+				</div>
+				<div class="flex items-center justify-between rounded-lg border p-3">
+					<span class="font-medium">Data Age:</span>
+					<span>
+						{dataUpdatedAt
+							? `${Math.floor((Date.now() - dataUpdatedAt) / 1000)}s ago`
+							: 'Never fetched'}
+					</span>
+				</div>
+				<div class="flex items-center justify-between rounded-lg border p-3">
+					<span class="font-medium">Stale Time:</span>
+					<span>{debouncedQuery ? '10 minutes (search)' : '5 minutes (trending)'}</span>
+				</div>
+			</CardContent>
+		</Card>
 	</div>
 {:else}
 	<div class="container mx-auto flex min-h-screen items-center justify-center p-8">

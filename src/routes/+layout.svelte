@@ -22,7 +22,7 @@
 		try {
 			await configStore.init();
 			await authStore.init();
-			
+
 			// Initialize theme store in background (non-blocking)
 			themeStore.initialize().catch((error) => {
 				console.warn('Theme store initialization failed, using defaults:', error);

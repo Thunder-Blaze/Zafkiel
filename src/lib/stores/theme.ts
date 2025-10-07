@@ -65,12 +65,15 @@ class ThemeStore {
 			this._currentTheme = themeManager.getCurrentTheme();
 
 			// Load available themes (non-blocking)
-			themeManager.listThemes().then((themes) => {
-				this._availableThemes = themes;
-			}).catch((error) => {
-				console.warn('Failed to load theme list:', error);
-				this._availableThemes = [];
-			});
+			themeManager
+				.listThemes()
+				.then((themes) => {
+					this._availableThemes = themes;
+				})
+				.catch((error) => {
+					console.warn('Failed to load theme list:', error);
+					this._availableThemes = [];
+				});
 
 			this._initialized = true;
 

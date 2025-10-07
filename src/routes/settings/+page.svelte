@@ -2,7 +2,13 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle,
+	} from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator';
 	import { Label } from '$lib/components/ui/label';
@@ -69,7 +75,7 @@
 
 	async function handleThemeSwitch(themeId: string): Promise<void> {
 		if (switchingTheme || themeStore.currentTheme === themeId) return;
-		
+
 		switchingTheme = true;
 		try {
 			await themeStore.switchTheme(themeId);
@@ -118,16 +124,19 @@
 
 {#if $authLoading}
 	<div class="flex min-h-screen items-center justify-center">
-		<div class="text-center space-y-4">
-			<Icon icon="solar:refresh-circle-line-duotone" class="mx-auto h-12 w-12 animate-spin text-primary" />
+		<div class="space-y-4 text-center">
+			<Icon
+				icon="solar:refresh-circle-line-duotone"
+				class="mx-auto h-12 w-12 animate-spin text-primary"
+			/>
 			<p class="text-muted-foreground">Loading settings...</p>
 		</div>
 	</div>
 {:else if $isAuthenticated}
-	<div class="container mx-auto p-6 max-w-7xl">
+	<div class="container mx-auto max-w-7xl p-6">
 		<!-- Header -->
-		<div class="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-			<div class="flex items-center gap-3 mb-2">
+		<div class="mb-8 animate-in duration-500 fade-in slide-in-from-bottom-4">
+			<div class="mb-2 flex items-center gap-3">
 				<div class="rounded-lg bg-primary/10 p-2">
 					<Icon icon="solar:settings-bold-duotone" class="h-6 w-6 text-primary" />
 				</div>
@@ -138,7 +147,7 @@
 
 		<div class="grid gap-6 lg:grid-cols-[240px_1fr]">
 			<!-- Sidebar Navigation -->
-			<aside class="animate-in fade-in slide-in-from-left-4 duration-500 delay-100">
+			<aside class="animate-in delay-100 duration-500 fade-in slide-in-from-left-4">
 				<Card class="sticky top-6">
 					<CardContent class="p-2">
 						<nav class="flex flex-col gap-1">
@@ -146,9 +155,9 @@
 								<button
 									onclick={() => setActiveSection(section.id)}
 									class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-accent
-										{activeSection === section.id 
-											? 'bg-primary text-primary-foreground shadow-sm' 
-											: 'text-muted-foreground hover:text-foreground'}"
+										{activeSection === section.id
+										? 'bg-primary text-primary-foreground shadow-sm'
+										: 'text-muted-foreground hover:text-foreground'}"
 									style="animation-delay: {(i + 2) * 100}ms"
 								>
 									<Icon icon={section.icon} class="h-4 w-4" />
@@ -164,8 +173,8 @@
 			<main class="space-y-6">
 				<!-- General Settings -->
 				{#if activeSection === 'general'}
-					<div class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-						<Card class="hover:shadow-lg transition-shadow duration-300">
+					<div class="animate-in space-y-6 duration-500 fade-in slide-in-from-right-4">
+						<Card class="transition-shadow duration-300 hover:shadow-lg">
 							<CardHeader>
 								<div class="flex items-center gap-2">
 									<Icon icon="solar:widget-2-bold-duotone" class="h-5 w-5 text-primary" />
@@ -175,9 +184,9 @@
 							</CardHeader>
 							<CardContent class="space-y-6">
 								<!-- Compact Mode -->
-								<div class="flex items-center justify-between group">
+								<div class="group flex items-center justify-between">
 									<div class="space-y-0.5">
-										<Label class="text-base font-medium group-hover:text-primary transition-colors">
+										<Label class="text-base font-medium transition-colors group-hover:text-primary">
 											Compact Mode
 										</Label>
 										<p class="text-sm text-muted-foreground">
@@ -196,9 +205,9 @@
 								<Separator />
 
 								<!-- Animations -->
-								<div class="flex items-center justify-between group">
+								<div class="group flex items-center justify-between">
 									<div class="space-y-0.5">
-										<Label class="text-base font-medium group-hover:text-primary transition-colors">
+										<Label class="text-base font-medium transition-colors group-hover:text-primary">
 											Enable Animations
 										</Label>
 										<p class="text-sm text-muted-foreground">
@@ -209,7 +218,9 @@
 										checked={animationsEnabled}
 										onCheckedChange={(checked) => {
 											animationsEnabled = checked ?? false;
-											toast.success(animationsEnabled ? 'Animations enabled' : 'Animations disabled');
+											toast.success(
+												animationsEnabled ? 'Animations enabled' : 'Animations disabled'
+											);
 										}}
 									/>
 								</div>
@@ -217,9 +228,9 @@
 								<Separator />
 
 								<!-- Notifications -->
-								<div class="flex items-center justify-between group">
+								<div class="group flex items-center justify-between">
 									<div class="space-y-0.5">
-										<Label class="text-base font-medium group-hover:text-primary transition-colors">
+										<Label class="text-base font-medium transition-colors group-hover:text-primary">
 											Notifications
 										</Label>
 										<p class="text-sm text-muted-foreground">
@@ -230,7 +241,9 @@
 										checked={enableNotifications}
 										onCheckedChange={(checked) => {
 											enableNotifications = checked ?? false;
-											toast.success(enableNotifications ? 'Notifications enabled' : 'Notifications disabled');
+											toast.success(
+												enableNotifications ? 'Notifications enabled' : 'Notifications disabled'
+											);
 										}}
 									/>
 								</div>
@@ -241,8 +254,8 @@
 
 				<!-- Appearance Settings -->
 				{#if activeSection === 'appearance'}
-					<div class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-						<Card class="hover:shadow-lg transition-shadow duration-300">
+					<div class="animate-in space-y-6 duration-500 fade-in slide-in-from-right-4">
+						<Card class="transition-shadow duration-300 hover:shadow-lg">
 							<CardHeader>
 								<div class="flex items-center gap-2">
 									<Icon icon="solar:scale-bold-duotone" class="h-5 w-5 text-primary" />
@@ -254,11 +267,13 @@
 								<div class="space-y-4">
 									<div class="flex items-center justify-between">
 										<span class="text-sm font-medium">Current Scale:</span>
-										<span class="text-3xl font-bold tabular-nums bg-primary/10 px-4 py-2 rounded-lg">
+										<span
+											class="rounded-lg bg-primary/10 px-4 py-2 text-3xl font-bold tabular-nums"
+										>
 											{sliderValue.toFixed(0)}%
 										</span>
 									</div>
-									
+
 									<div class="relative">
 										<input
 											type="range"
@@ -267,29 +282,31 @@
 											min="50"
 											max="200"
 											step="5"
-											class="h-3 w-full cursor-pointer appearance-none rounded-full bg-secondary transition-all
+											class="h-3 w-full cursor-pointer appearance-none rounded-full bg-secondary accent-primary
+												transition-all
 												hover:bg-secondary/80
-												accent-primary
-												[&::-webkit-slider-thumb]:appearance-none
+												[&::-moz-range-thumb]:h-6
+												[&::-moz-range-thumb]:w-6
+												[&::-moz-range-thumb]:rounded-full
+												[&::-moz-range-thumb]:border-0
+												[&::-moz-range-thumb]:bg-primary
+												[&::-moz-range-thumb]:shadow-lg
+												[&::-moz-range-thumb]:transition-all
+												[&::-moz-range-thumb]:hover:scale-110
+												[&::-moz-range-thumb]:active:scale-95
 												[&::-webkit-slider-thumb]:h-6
 												[&::-webkit-slider-thumb]:w-6
+												[&::-webkit-slider-thumb]:appearance-none
 												[&::-webkit-slider-thumb]:rounded-full
 												[&::-webkit-slider-thumb]:bg-primary
 												[&::-webkit-slider-thumb]:shadow-lg
 												[&::-webkit-slider-thumb]:transition-all
 												[&::-webkit-slider-thumb]:hover:scale-110
-												[&::-webkit-slider-thumb]:active:scale-95
-												[&::-moz-range-thumb]:h-6
-												[&::-moz-range-thumb]:w-6
-												[&::-moz-range-thumb]:rounded-full
-												[&::-moz-range-thumb]:bg-primary
-												[&::-moz-range-thumb]:border-0
-												[&::-moz-range-thumb]:shadow-lg
-												[&::-moz-range-thumb]:transition-all
-												[&::-moz-range-thumb]:hover:scale-110
-												[&::-moz-range-thumb]:active:scale-95"
+												[&::-webkit-slider-thumb]:active:scale-95"
 										/>
-										<div class="absolute -top-8 left-0 right-0 flex justify-between text-xs text-muted-foreground pointer-events-none">
+										<div
+											class="pointer-events-none absolute -top-8 right-0 left-0 flex justify-between text-xs text-muted-foreground"
+										>
 											<span>50%</span>
 											<span>100%</span>
 											<span>150%</span>
@@ -297,13 +314,16 @@
 										</div>
 									</div>
 
-									<div class="grid grid-cols-2 gap-3 mt-6">
+									<div class="mt-6 grid grid-cols-2 gap-3">
 										<Button
 											onclick={resetScale}
 											variant="outline"
-											class="group hover:border-primary transition-all duration-200"
+											class="group transition-all duration-200 hover:border-primary"
 										>
-											<Icon icon="solar:refresh-bold" class="mr-2 h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
+											<Icon
+												icon="solar:refresh-bold"
+												class="mr-2 h-4 w-4 transition-transform duration-500 group-hover:rotate-180"
+											/>
 											Reset to Default
 										</Button>
 										<Button
@@ -311,7 +331,10 @@
 											variant="secondary"
 											class="group"
 										>
-											<Icon icon="solar:eye-bold" class="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
+											<Icon
+												icon="solar:eye-bold"
+												class="mr-2 h-4 w-4 transition-transform group-hover:scale-110"
+											/>
 											Preview
 										</Button>
 									</div>
@@ -319,7 +342,7 @@
 							</CardContent>
 						</Card>
 
-						<Card class="hover:shadow-lg transition-shadow duration-300">
+						<Card class="transition-shadow duration-300 hover:shadow-lg">
 							<CardHeader>
 								<div class="flex items-center gap-2">
 									<Icon icon="solar:palette-2-bold-duotone" class="h-5 w-5 text-primary" />
@@ -329,19 +352,14 @@
 							</CardHeader>
 							<CardContent class="space-y-6">
 								<!-- Dark Mode Toggle -->
-								<div class="flex items-center justify-between group">
+								<div class="group flex items-center justify-between">
 									<div class="space-y-0.5">
-										<Label class="text-base font-medium group-hover:text-primary transition-colors">
+										<Label class="text-base font-medium transition-colors group-hover:text-primary">
 											Dark Mode
 										</Label>
-										<p class="text-sm text-muted-foreground">
-											Toggle between light and dark mode
-										</p>
+										<p class="text-sm text-muted-foreground">Toggle between light and dark mode</p>
 									</div>
-									<Switch
-										checked={themeStore.isDark}
-										onCheckedChange={toggleDarkMode}
-									/>
+									<Switch checked={themeStore.isDark} onCheckedChange={toggleDarkMode} />
 								</div>
 
 								<Separator />
@@ -349,32 +367,31 @@
 								<!-- Theme Selector -->
 								<div class="space-y-3">
 									<Label class="text-base font-medium">Color Theme</Label>
-									<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+									<div class="grid grid-cols-2 gap-4 md:grid-cols-3">
 										{#each themeStore.availableThemes as theme}
 											{@const isActive = themeStore.currentTheme === theme.id}
 											{@const colors = themeStore.isDark ? theme.colors.dark : theme.colors.light}
-											
+
 											<button
 												onclick={() => handleThemeSwitch(theme.id)}
 												disabled={switchingTheme}
 												class="group relative flex flex-col gap-3 rounded-lg border-2 p-4 transition-all duration-200
-													{isActive 
-														? 'border-primary bg-accent scale-105 shadow-lg' 
-														: 'border-muted hover:border-primary hover:bg-accent hover:scale-105'
-													}
-													{switchingTheme ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
+													{isActive
+													? 'scale-105 border-primary bg-accent shadow-lg'
+													: 'border-muted hover:scale-105 hover:border-primary hover:bg-accent'}
+													{switchingTheme ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 											>
 												<!-- Color Preview -->
-												<div class="flex gap-1.5 h-8">
-													<div 
+												<div class="flex h-8 gap-1.5">
+													<div
 														class="flex-1 rounded transition-transform group-hover:scale-105"
 														style="background: {colors.primary}"
 													></div>
-													<div 
+													<div
 														class="flex-1 rounded transition-transform group-hover:scale-105"
 														style="background: {colors.background}"
 													></div>
-													<div 
+													<div
 														class="flex-1 rounded transition-transform group-hover:scale-105"
 														style="background: {colors.accent}"
 													></div>
@@ -383,12 +400,14 @@
 												<!-- Theme Name -->
 												<div class="text-center">
 													<span class="text-sm font-medium">{theme.name}</span>
-													<p class="text-xs text-muted-foreground mt-1">{theme.description}</p>
+													<p class="mt-1 text-xs text-muted-foreground">{theme.description}</p>
 												</div>
 
 												<!-- Active Indicator -->
 												{#if isActive}
-													<div class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary animate-pulse"></div>
+													<div
+														class="absolute -top-1 -right-1 h-4 w-4 animate-pulse rounded-full bg-primary"
+													></div>
 												{/if}
 											</button>
 										{/each}
@@ -401,8 +420,8 @@
 
 				<!-- Playback Settings -->
 				{#if activeSection === 'playback'}
-					<div class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-						<Card class="hover:shadow-lg transition-shadow duration-300">
+					<div class="animate-in space-y-6 duration-500 fade-in slide-in-from-right-4">
+						<Card class="transition-shadow duration-300 hover:shadow-lg">
 							<CardHeader>
 								<div class="flex items-center gap-2">
 									<Icon icon="solar:play-circle-bold-duotone" class="h-5 w-5 text-primary" />
@@ -412,9 +431,9 @@
 							</CardHeader>
 							<CardContent class="space-y-6">
 								<!-- Auto-play Trailers -->
-								<div class="flex items-center justify-between group">
+								<div class="group flex items-center justify-between">
 									<div class="space-y-0.5">
-										<Label class="text-base font-medium group-hover:text-primary transition-colors">
+										<Label class="text-base font-medium transition-colors group-hover:text-primary">
 											Auto-play Trailers
 										</Label>
 										<p class="text-sm text-muted-foreground">
@@ -439,9 +458,9 @@
 										{#each ['1080p', '720p', '480p', 'Auto'] as quality}
 											<button
 												class="rounded-lg border-2 p-3 text-sm font-medium transition-all duration-200
-													{quality === '1080p' 
-														? 'border-primary bg-primary/10 text-primary scale-105 shadow-md' 
-														: 'border-muted hover:border-primary/50 hover:bg-accent hover:scale-105'}"
+													{quality === '1080p'
+													? 'scale-105 border-primary bg-primary/10 text-primary shadow-md'
+													: 'border-muted hover:scale-105 hover:border-primary/50 hover:bg-accent'}"
 											>
 												{quality}
 											</button>
@@ -455,8 +474,8 @@
 
 				<!-- Privacy Settings -->
 				{#if activeSection === 'privacy'}
-					<div class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-						<Card class="hover:shadow-lg transition-shadow duration-300">
+					<div class="animate-in space-y-6 duration-500 fade-in slide-in-from-right-4">
+						<Card class="transition-shadow duration-300 hover:shadow-lg">
 							<CardHeader>
 								<div class="flex items-center gap-2">
 									<Icon icon="solar:shield-check-bold-duotone" class="h-5 w-5 text-primary" />
@@ -466,9 +485,9 @@
 							</CardHeader>
 							<CardContent class="space-y-6">
 								<!-- Show Spoilers -->
-								<div class="flex items-center justify-between group">
+								<div class="group flex items-center justify-between">
 									<div class="space-y-0.5">
-										<Label class="text-base font-medium group-hover:text-primary transition-colors">
+										<Label class="text-base font-medium transition-colors group-hover:text-primary">
 											Show Spoilers
 										</Label>
 										<p class="text-sm text-muted-foreground">
@@ -479,20 +498,26 @@
 										checked={showSpoilers}
 										onCheckedChange={(checked) => {
 											showSpoilers = checked ?? false;
-											toast.success(showSpoilers ? 'Spoilers will be shown' : 'Spoilers will be hidden');
+											toast.success(
+												showSpoilers ? 'Spoilers will be shown' : 'Spoilers will be hidden'
+											);
 										}}
 									/>
 								</div>
 
 								<Separator />
 
-								<div class="rounded-lg bg-amber-500/10 border border-amber-500/20 p-4">
+								<div class="rounded-lg border border-amber-500/20 bg-amber-500/10 p-4">
 									<div class="flex gap-3">
-										<Icon icon="solar:danger-triangle-bold-duotone" class="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+										<Icon
+											icon="solar:danger-triangle-bold-duotone"
+											class="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500"
+										/>
 										<div class="space-y-2">
 											<p class="text-sm font-medium">Data Collection</p>
 											<p class="text-xs text-muted-foreground">
-												We only collect anonymous usage data to improve the app. Your watch history and preferences are stored locally and encrypted.
+												We only collect anonymous usage data to improve the app. Your watch history
+												and preferences are stored locally and encrypted.
 											</p>
 										</div>
 									</div>
@@ -504,8 +529,8 @@
 
 				<!-- Account Settings -->
 				{#if activeSection === 'account'}
-					<div class="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-						<Card class="hover:shadow-lg transition-shadow duration-300">
+					<div class="animate-in space-y-6 duration-500 fade-in slide-in-from-right-4">
+						<Card class="transition-shadow duration-300 hover:shadow-lg">
 							<CardHeader>
 								<div class="flex items-center gap-2">
 									<Icon icon="solar:user-bold-duotone" class="h-5 w-5 text-primary" />
@@ -516,7 +541,7 @@
 							<CardContent class="space-y-6">
 								{#if $currentUser}
 									<!-- Profile Info -->
-									<div class="flex items-center gap-4 p-4 rounded-lg bg-accent/50 border">
+									<div class="flex items-center gap-4 rounded-lg border bg-accent/50 p-4">
 										{#if $currentUser.avatar?.large}
 											<img
 												src={$currentUser.avatar.large}
@@ -524,15 +549,17 @@
 												class="h-16 w-16 rounded-full object-cover ring-2 ring-primary/20"
 											/>
 										{:else}
-											<div class="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/20">
+											<div
+												class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/20"
+											>
 												<Icon icon="solar:user-bold" class="h-8 w-8 text-primary" />
 											</div>
 										{/if}
 										<div class="flex-1">
-											<p class="font-semibold text-lg">{$currentUser.name}</p>
+											<p class="text-lg font-semibold">{$currentUser.name}</p>
 											<p class="text-sm text-muted-foreground">Connected to AniList</p>
 										</div>
-										<div class="h-3 w-3 rounded-full bg-green-500 animate-pulse"></div>
+										<div class="h-3 w-3 animate-pulse rounded-full bg-green-500"></div>
 									</div>
 
 									<Separator />
@@ -559,24 +586,33 @@
 									<div class="space-y-3">
 										<Button
 											variant="outline"
-											class="w-full group hover:border-primary transition-all duration-200"
+											class="group w-full transition-all duration-200 hover:border-primary"
 											onclick={() => toast.success('Syncing with AniList...')}
 										>
-											<Icon icon="solar:refresh-bold" class="mr-2 h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
+											<Icon
+												icon="solar:refresh-bold"
+												class="mr-2 h-4 w-4 transition-transform duration-500 group-hover:rotate-180"
+											/>
 											Sync with AniList
 										</Button>
 
 										<Button
 											variant="destructive"
-											class="w-full group"
+											class="group w-full"
 											onclick={handleLogout}
 											disabled={isLoggingOut}
 										>
 											{#if isLoggingOut}
-												<Icon icon="solar:refresh-circle-line-duotone" class="mr-2 h-4 w-4 animate-spin" />
+												<Icon
+													icon="solar:refresh-circle-line-duotone"
+													class="mr-2 h-4 w-4 animate-spin"
+												/>
 												Logging out...
 											{:else}
-												<Icon icon="solar:logout-3-bold" class="mr-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+												<Icon
+													icon="solar:logout-3-bold"
+													class="mr-2 h-4 w-4 transition-transform group-hover:translate-x-1"
+												/>
 												Logout
 											{/if}
 										</Button>
@@ -586,7 +622,7 @@
 						</Card>
 
 						<!-- Danger Zone -->
-						<Card class="border-destructive/50 hover:shadow-lg transition-shadow duration-300">
+						<Card class="border-destructive/50 transition-shadow duration-300 hover:shadow-lg">
 							<CardHeader>
 								<div class="flex items-center gap-2">
 									<Icon icon="solar:danger-circle-bold-duotone" class="h-5 w-5 text-destructive" />
@@ -597,19 +633,25 @@
 							<CardContent class="space-y-4">
 								<Button
 									variant="outline"
-									class="w-full border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground group"
+									class="hover:text-destructive-foreground group w-full border-destructive/50 text-destructive hover:bg-destructive"
 									onclick={() => toast.error('This feature is not yet implemented')}
 								>
-									<Icon icon="solar:trash-bin-trash-bold" class="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
+									<Icon
+										icon="solar:trash-bin-trash-bold"
+										class="mr-2 h-4 w-4 transition-transform group-hover:scale-110"
+									/>
 									Clear All Local Data
 								</Button>
 
 								<Button
 									variant="outline"
-									class="w-full border-destructive/50 text-destructive hover:bg-destructive hover:text-destructive-foreground group"
+									class="hover:text-destructive-foreground group w-full border-destructive/50 text-destructive hover:bg-destructive"
 									onclick={() => toast.error('This feature is not yet implemented')}
 								>
-									<Icon icon="solar:user-cross-bold" class="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
+									<Icon
+										icon="solar:user-cross-bold"
+										class="mr-2 h-4 w-4 transition-transform group-hover:scale-110"
+									/>
 									Delete Account
 								</Button>
 							</CardContent>

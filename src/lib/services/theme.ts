@@ -48,7 +48,7 @@ class ThemeManager {
 			console.log('[ThemeManager] Invoking Tauri command: list_themes');
 			const themes = await invoke<ThemeMetadata[]>('list_themes');
 			console.log('[ThemeManager] ✓ Received themes from backend:', themes.length, 'themes');
-			console.log('[ThemeManager] Themes:', themes.map(t => t.id).join(', '));
+			console.log('[ThemeManager] Themes:', themes.map((t) => t.id).join(', '));
 			return themes;
 		} catch (error) {
 			console.error('[ThemeManager] ✗ Failed to list themes:', error);
@@ -116,10 +116,10 @@ class ThemeManager {
 	async switchTheme(themeId: string, isDark: boolean = false): Promise<void> {
 		try {
 			console.log(`[ThemeManager] Switching to theme: ${themeId}, dark: ${isDark}`);
-			
+
 			// Store old theme ID
 			const oldThemeId = this.currentThemeId;
-			
+
 			// Load new theme if not already loaded
 			if (!this.loadedThemes.has(themeId)) {
 				console.log(`[ThemeManager] Loading new theme: ${themeId}`);
@@ -149,7 +149,7 @@ class ThemeManager {
 
 			// Save to config
 			await this.saveThemePreference(themeId);
-			
+
 			console.log(`[ThemeManager] ✓ Successfully switched to ${themeId}`);
 		} catch (error) {
 			console.error(`[ThemeManager] ✗ Failed to switch theme to ${themeId}:`, error);
@@ -202,7 +202,7 @@ class ThemeManager {
 		try {
 			// Save to localStorage for fast synchronous access on page load
 			localStorage.setItem('theme-preference', themeId);
-			
+
 			// Also save to Tauri config for persistence
 			await invoke('save_theme_preference', { themeId });
 		} catch (error) {
@@ -231,7 +231,7 @@ class ThemeManager {
 		try {
 			// Check localStorage first (fast, synchronous)
 			let themeToLoad = localStorage.getItem('theme-preference');
-			
+
 			// Fallback to Tauri config if not in localStorage
 			if (!themeToLoad) {
 				themeToLoad = await this.loadThemePreference();
@@ -241,7 +241,7 @@ class ThemeManager {
 
 			// Set current theme without loading CSS (CSS is already loaded by app.html script)
 			this.currentThemeId = themeToLoad;
-			
+
 			// Apply dark mode class if needed
 			const root = document.documentElement;
 			if (isDark) {
@@ -249,7 +249,7 @@ class ThemeManager {
 			} else {
 				root.classList.remove('dark');
 			}
-			
+
 			// Set data-theme attribute (should already be set by app.html, but ensure it's correct)
 			root.setAttribute('data-theme', themeToLoad);
 

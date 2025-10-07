@@ -9,10 +9,10 @@
 	const availableThemes = $derived(themeStore.availableThemes);
 	const isDark = $derived(themeStore.isDark);
 	const isLoading = $derived(themeStore.isLoading);
-	
+
 	// Local loading state to prevent rapid switching
 	let isSwitching = $state(false);
-	
+
 	// Debug logging
 	$effect(() => {
 		console.log('[ThemeSwitcher] State updated:', {
@@ -20,18 +20,16 @@
 			availableThemesCount: availableThemes.length,
 			isDark,
 			isLoading,
-			isSwitching
+			isSwitching,
 		});
 	});
 
 	// Get current theme metadata
-	const currentThemeData = $derived(
-		availableThemes.find((t) => t.id === currentTheme)
-	);
+	const currentThemeData = $derived(availableThemes.find((t) => t.id === currentTheme));
 
 	async function handleThemeChange(themeId: string) {
 		if (isSwitching || currentTheme === themeId) return;
-		
+
 		isSwitching = true;
 		try {
 			await themeStore.switchTheme(themeId);
@@ -64,7 +62,7 @@
 	<DropdownMenu.Content align="end" class="w-56">
 		<DropdownMenu.Label>Theme</DropdownMenu.Label>
 		<DropdownMenu.Separator />
-		
+
 		<!-- Theme options -->
 		<DropdownMenu.Group>
 			{#if availableThemes.length === 0}
@@ -79,7 +77,7 @@
 						onclick={() => handleThemeChange(theme.id)}
 						class="flex items-center gap-2"
 					>
-						<div class="flex items-center gap-2 flex-1">
+						<div class="flex flex-1 items-center gap-2">
 							<!-- Color preview dots -->
 							<div class="flex gap-0.5">
 								<div
@@ -104,9 +102,9 @@
 				{/each}
 			{/if}
 		</DropdownMenu.Group>
-		
+
 		<DropdownMenu.Separator />
-		
+
 		<!-- Dark mode toggle -->
 		<DropdownMenu.Item onclick={toggleDarkMode} class="flex items-center justify-between">
 			<span class="flex items-center gap-2">
@@ -120,9 +118,9 @@
 				<Icon icon="solar:check-circle-bold" class="h-4 w-4 text-primary" />
 			{/if}
 		</DropdownMenu.Item>
-		
+
 		<DropdownMenu.Separator />
-		
+
 		<!-- Link to full settings -->
 		<DropdownMenu.Item>
 			<a href="/settings" class="flex w-full items-center gap-2">

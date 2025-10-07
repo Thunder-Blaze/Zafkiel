@@ -11,6 +11,7 @@
 5. Toggle **Dark Mode** switch for light/dark variant
 
 **Available Themes:**
+
 - 🔵 **Default** - Clean blue tones (professional)
 - 🌊 **Ocean** - Deep blue/cyan (calming)
 - 🌲 **Forest** - Natural greens (eye-friendly)
@@ -20,6 +21,7 @@
 ### Theme Preview
 
 Each theme card shows 3 color bars representing:
+
 1. **Primary** - Main accent color
 2. **Background** - Page background
 3. **Accent** - Secondary highlights
@@ -33,51 +35,55 @@ Your theme choice is automatically saved and will be restored when you restart t
 ### Creating a New Theme
 
 1. **Create theme directory:**
+
 ```bash
 mkdir static/themes/mytheme
 ```
 
 2. **Create `index.css`:**
+
 ```css
-:root[data-theme="mytheme"] {
-  --background: oklch(0.98 0.01 0);
-  --foreground: oklch(0.15 0.05 0);
-  --primary: oklch(0.55 0.15 270);
-  /* ... add all CSS custom properties */
+:root[data-theme='mytheme'] {
+	--background: oklch(0.98 0.01 0);
+	--foreground: oklch(0.15 0.05 0);
+	--primary: oklch(0.55 0.15 270);
+	/* ... add all CSS custom properties */
 }
 
-.dark[data-theme="mytheme"] {
-  --background: oklch(0.12 0.04 0);
-  --foreground: oklch(0.95 0.01 0);
-  --primary: oklch(0.65 0.14 270);
-  /* ... add all dark mode variables */
+.dark[data-theme='mytheme'] {
+	--background: oklch(0.12 0.04 0);
+	--foreground: oklch(0.95 0.01 0);
+	--primary: oklch(0.65 0.14 270);
+	/* ... add all dark mode variables */
 }
 ```
 
 3. **Create `theme.json`:**
+
 ```json
 {
-  "id": "mytheme",
-  "name": "My Theme",
-  "description": "A beautiful custom theme",
-  "author": "Your Name",
-  "version": "1.0.0",
-  "colors": {
-    "light": {
-      "primary": "oklch(0.55 0.15 270)",
-      "background": "oklch(0.98 0.01 0)",
-      "accent": "oklch(0.88 0.06 250)"
-    },
-    "dark": {
-      "primary": "oklch(0.65 0.14 270)",
-      "background": "oklch(0.12 0.04 0)",
-      "accent": "oklch(0.35 0.08 250)"
-    }
-  }
+	"id": "mytheme",
+	"name": "My Theme",
+	"description": "A beautiful custom theme",
+	"author": "Your Name",
+	"version": "1.0.0",
+	"colors": {
+		"light": {
+			"primary": "oklch(0.55 0.15 270)",
+			"background": "oklch(0.98 0.01 0)",
+			"accent": "oklch(0.88 0.06 250)"
+		},
+		"dark": {
+			"primary": "oklch(0.65 0.14 270)",
+			"background": "oklch(0.12 0.04 0)",
+			"accent": "oklch(0.35 0.08 250)"
+		}
+	}
 }
 ```
 
 4. **Test your theme:**
+
 - Restart the app
 - Open Settings → Appearance
 - Your theme appears automatically!
@@ -201,6 +207,7 @@ oklch(0.55 0.15 270)
 ```
 
 **Tips:**
+
 - Keep lightness consistent within mode (light/dark)
 - Adjust hue for different color families
 - Higher chroma = more saturated
@@ -227,31 +234,34 @@ import { invoke } from '@tauri-apps/api/core';
 
 // Save theme files via backend
 await invoke('create_theme', {
-  themeId: 'auto-generated',
-  css: generatedCss,
-  metadata: {
-    id: 'auto-generated',
-    name: 'Auto Theme',
-    // ...
-  }
+	themeId: 'auto-generated',
+	css: generatedCss,
+	metadata: {
+		id: 'auto-generated',
+		name: 'Auto Theme',
+		// ...
+	},
 });
 ```
 
 ### Debugging
 
 **Theme not appearing?**
+
 1. Check `static/themes/{id}/theme.json` exists
 2. Validate JSON syntax
 3. Check theme ID matches directory name
 4. Restart app to refresh theme list
 
 **Colors not applying?**
+
 1. Verify CSS variable names match exactly
 2. Check `data-theme` attribute is set on `<html>`
 3. Inspect element to see computed styles
 4. Clear browser cache
 
 **Performance issues?**
+
 1. Unload unused themes: `themeManager.unloadInactiveThemes()`
 2. Check for CSS conflicts in DevTools
 3. Limit number of loaded themes
@@ -262,21 +272,21 @@ await invoke('create_theme', {
 
 ```typescript
 class ThemeStore {
-  // Reactive getters
-  get currentTheme(): string
-  get isDark(): boolean
-  get availableThemes(): ThemeMetadata[]
-  get isLoading(): boolean
-  get initialized(): boolean
+	// Reactive getters
+	get currentTheme(): string;
+	get isDark(): boolean;
+	get availableThemes(): ThemeMetadata[];
+	get isLoading(): boolean;
+	get initialized(): boolean;
 
-  // Methods
-  initialize(): Promise<void>
-  switchTheme(themeId: string): Promise<void>
-  toggleDarkMode(): Promise<void>
-  setDarkMode(isDark: boolean): Promise<void>
-  previewTheme(themeId: string): Promise<ThemeMetadata>
-  getTheme(themeId: string): ThemeMetadata | undefined
-  isThemeLoaded(themeId: string): boolean
+	// Methods
+	initialize(): Promise<void>;
+	switchTheme(themeId: string): Promise<void>;
+	toggleDarkMode(): Promise<void>;
+	setDarkMode(isDark: boolean): Promise<void>;
+	previewTheme(themeId: string): Promise<ThemeMetadata>;
+	getTheme(themeId: string): ThemeMetadata | undefined;
+	isThemeLoaded(themeId: string): boolean;
 }
 ```
 
@@ -284,16 +294,16 @@ class ThemeStore {
 
 ```typescript
 class ThemeManager {
-  listThemes(): Promise<ThemeMetadata[]>
-  loadTheme(themeId: string): Promise<ThemeMetadata>
-  unloadTheme(themeId: string): void
-  switchTheme(themeId: string, isDark: boolean): Promise<void>
-  previewTheme(themeId: string): Promise<ThemeMetadata>
-  getCurrentTheme(): string
-  getLoadedThemes(): string[]
-  isThemeLoaded(themeId: string): boolean
-  initialize(isDark: boolean): Promise<void>
-  unloadInactiveThemes(): void
+	listThemes(): Promise<ThemeMetadata[]>;
+	loadTheme(themeId: string): Promise<ThemeMetadata>;
+	unloadTheme(themeId: string): void;
+	switchTheme(themeId: string, isDark: boolean): Promise<void>;
+	previewTheme(themeId: string): Promise<ThemeMetadata>;
+	getCurrentTheme(): string;
+	getLoadedThemes(): string[];
+	isThemeLoaded(themeId: string): boolean;
+	initialize(isDark: boolean): Promise<void>;
+	unloadInactiveThemes(): void;
 }
 ```
 
@@ -310,6 +320,7 @@ get_theme_preference() -> Result<String, String>
 ## Support
 
 For issues or questions:
+
 1. Check `THEME_SYSTEM.md` for detailed documentation
 2. Inspect browser DevTools Console for errors
 3. Check `~/.config/zafkiel/config.ron` for saved theme
