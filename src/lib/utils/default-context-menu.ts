@@ -1,4 +1,5 @@
 import type { ContextMenuItem } from '$lib/stores/context-menu';
+import { ConfigService } from '$lib/services/config';
 
 /**
  * Default context menu items for the application
@@ -46,9 +47,13 @@ export function getDefaultContextMenuItems(): ContextMenuItem[] {
 			label: 'Inspect Element',
 			icon: 'solar:code-bold',
 			shortcut: '⌘⌥I',
-			onClick: () => {
-				// This will be handled by Tauri if in desktop mode
-				// In web mode, this won't do anything
+			onClick: async () => {
+				try {
+					await ConfigService.openDevtools();
+				} catch (error) {
+					console.warn('Failed to open devtools:', error);
+					// Silently fail in browser mode
+				}
 			}
 		}
 	];

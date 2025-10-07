@@ -8,8 +8,12 @@
 	import TanstackProvider from '$lib/providers/tanstack.svelte';
 	import LenisProvider from '$lib/providers/lenis.svelte';
 	import { configStore } from '$lib/stores/config';
+	import { useUiScale } from '$lib/hooks/useUiScale.svelte';
 
-	let { children } = $props();
+	let { children }: { children: any } = $props();
+
+	// Initialize UI scale (applies Tauri webview zoom)
+	const uiScale = useUiScale();
 
 	// Initialize config store on app mount
 	onMount(async () => {
@@ -21,11 +25,14 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
+<!-- Portals at root level - webview zoom scales everything -->
+<ThemedToaster />
+<ContextMenu />
+
+<!-- Main app content -->
 <TanstackProvider>
 	<LenisProvider>
 		<ContextMenuProvider>
-			<ThemedToaster />
-			<ContextMenu />
 			{@render children?.()}
 		</ContextMenuProvider>
 	</LenisProvider>

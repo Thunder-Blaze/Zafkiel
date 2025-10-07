@@ -37,6 +37,8 @@ export interface UiConfig {
 	animations: boolean;
 	/** Enable smooth scrolling */
 	smooth_scroll: boolean;
+	/** UI scale factor (0.5 to 2.0, default 1.0) */
+	ui_scale: number;
 }
 
 /**
@@ -153,6 +155,36 @@ export class ConfigService {
 		const response = await invoke<ConfigResponse<void>>('update_smooth_scroll', { enabled });
 		if (!response.success) {
 			throw new Error(response.error || 'Failed to update smooth scroll');
+		}
+	}
+
+	/**
+	 * Update UI scale factor (0.5 to 2.0) and apply webview zoom
+	 */
+	static async updateUiScale(scale: number): Promise<void> {
+		const response = await invoke<ConfigResponse<void>>('update_ui_scale', { scale });
+		if (!response.success) {
+			throw new Error(response.error || 'Failed to update UI scale');
+		}
+	}
+
+	/**
+	 * Apply UI scale from config (call on app startup)
+	 */
+	static async applyUiScale(): Promise<void> {
+		const response = await invoke<ConfigResponse<void>>('apply_ui_scale');
+		if (!response.success) {
+			throw new Error(response.error || 'Failed to apply UI scale');
+		}
+	}
+
+	/**
+	 * Open developer tools (only works in Tauri desktop app)
+	 */
+	static async openDevtools(): Promise<void> {
+		const response = await invoke<ConfigResponse<void>>('open_devtools');
+		if (!response.success) {
+			throw new Error(response.error || 'Failed to open devtools');
 		}
 	}
 

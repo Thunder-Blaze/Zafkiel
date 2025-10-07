@@ -38,6 +38,15 @@ pub struct UiConfig {
 
     /// Enable smooth scrolling
     pub smooth_scroll: bool,
+
+    /// UI scale factor (0.5 to 2.0, default 1.0)
+    /// Controls the overall size of UI elements via CSS zoom
+    #[serde(default = "default_ui_scale")]
+    pub ui_scale: f32,
+}
+
+fn default_ui_scale() -> f32 {
+    1.0
 }
 
 impl Default for AppConfig {
@@ -73,6 +82,7 @@ impl Default for UiConfig {
             glow_effects: true,
             animations: true,
             smooth_scroll: true,
+            ui_scale: 1.0,
         }
     }
 }

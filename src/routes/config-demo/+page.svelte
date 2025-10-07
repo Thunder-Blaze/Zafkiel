@@ -26,7 +26,7 @@
 			config = value;
 		});
 		const unsubUi = uiConfig.subscribe((value) => {
-			ui = value;
+			ui = value as UiConfig | null;
 		});
 		const unsubAuth = isAuthenticated.subscribe((value) => {
 			authenticated = value;

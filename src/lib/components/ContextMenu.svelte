@@ -91,13 +91,13 @@
 		role="menu"
 		tabindex="-1"
 	>
-		<div class="rounded-lg border bg-popover p-1 text-popover-foreground shadow-lg animate-fade-in">
+		<div class="rounded-lg border bg-popover/95 p-1 text-popover-foreground shadow-2xl shadow-black/20 ring-1 ring-black/5 dark:shadow-black/40 animate-fade-in [-webkit-backdrop-filter:blur(24px)] [backdrop-filter:blur(24px)]">
 			{#each menuState.items as item (item.id)}
 				{#if item.separator}
 					<div class="-mx-1 my-1 h-px bg-border" role="separator"></div>
 				{:else}
 					<button
-						class="relative flex w-full cursor-pointer select-none items-center gap-2 rounded-sm px-3 py-2 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+						class="relative flex w-full cursor-pointer select-none items-center gap-2 rounded-md px-3 py-2 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
 						class:cursor-not-allowed={item.disabled}
 						class:opacity-50={item.disabled}
 						disabled={item.disabled}

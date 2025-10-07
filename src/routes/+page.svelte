@@ -1,11 +1,131 @@
-<h1>Welcome to Zafkiel</h1>
-<br>
-<a href="/demo">Go to Demo</a>
-<br>
-<a href="/config-demo">Go to Config Demo</a>
-<br>
-<a href="/context-menu-demo">Go to Context Menu Demo</a>
+<script lang="ts">
+	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
+	import { useUiScale } from '$lib/hooks/useUiScale.svelte';
+	import { toast } from 'svelte-sonner';
 
-<p>
-Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla qui repudiandae maiores eum fuga iure voluptatum ex laudantium ducimus doloribus, architecto nihil inventore numquam ut accusantium, natus nesciunt non earum esse quaerat incidunt amet voluptatem. Doloremque eveniet ad fuga magni ipsum veritatis quidem aspernatur. Magni reiciendis, esse sint ipsa exercitationem, provident iure totam itaque at architecto est corporis sed laboriosam minima amet ipsam eligendi quae accusantium. Id nemo illum voluptatibus debitis! Expedita accusamus sint, qui rem eos enim non fugiat quas molestias nemo fuga provident ad libero quisquam quidem eum odio? Voluptas hic consequatur corporis nulla animi reprehenderit doloribus aperiam illo veniam, doloremque, a iure saepe placeat. Sunt magni quasi accusantium nostrum delectus ipsam? Dolor velit libero at sequi nihil eos quo quaerat similique veritatis quasi. Quasi, eveniet vitae! Voluptate ut quae necessitatibus odit laborum quasi dolorem soluta impedit quo accusantium modi, quibusdam tenetur labore saepe animi, qui fugit nulla sed ipsum consequuntur perferendis id magnam rerum officia! Praesentium voluptate accusamus autem illo hic ex totam explicabo aspernatur debitis corrupti vitae fugiat nobis reiciendis esse deserunt, doloribus dicta labore quam quis. Quo necessitatibus rerum in ipsum doloremque fuga cumque non! Cum asperiores numquam vel blanditiis dicta, eveniet, molestiae dolor mollitia fuga, nam doloremque atque ab in. Suscipit dolores debitis officiis saepe iste illum perferendis at iusto animi deleniti, voluptatibus aut officia laborum, fuga vero dolorem quaerat, nobis doloremque optio qui odit aliquam eos culpa? Facere a tempore magnam sequi nobis eum dignissimos architecto adipisci atque est molestias nesciunt numquam consequuntur beatae mollitia cupiditate, quibusdam, hic provident, temporibus suscipit ab. Earum iste amet recusandae deserunt, quos, voluptatem numquam neque quae esse ipsam, illum cupiditate quisquam porro at. Ab ipsam molestias dolorum, officia consequuntur iste quam a architecto qui totam nobis nam cum aliquam, accusantium quia dicta laudantium, et beatae? Exercitationem repellendus tempore debitis, asperiores, tenetur cupiditate nemo iure, ducimus rerum voluptates odio! Corrupti cum ipsa molestiae quam sapiente modi, ab suscipit voluptas ipsam perferendis beatae assumenda cumque et adipisci vitae magnam. Vero quod explicabo voluptatem! Dolore similique quisquam sed obcaecati iste architecto minus? Corrupti eligendi distinctio quibusdam ipsa eius nihil recusandae adipisci iusto at doloremque quia totam quo possimus aliquid tempora mollitia alias fuga qui vitae, nisi aperiam assumenda molestiae! Voluptatibus maiores in esse nisi architecto eos fugiat praesentium sint distinctio veritatis natus culpa doloremque id ducimus minus, repellendus odit voluptates quia. Quam expedita id modi est consectetur possimus corporis ullam beatae reprehenderit cum omnis veniam provident ratione fuga porro fugit non laudantium nisi aliquam at nemo animi, perferendis aut. Culpa necessitatibus esse debitis delectus sit, ex praesentium ad laborum, fugiat, fuga beatae adipisci! Commodi sunt saepe deserunt enim amet nemo, quo aliquid accusantium, repudiandae quasi eius vitae nesciunt fugit quae magni sint laboriosam. Iure est ipsa hic dolor ducimus non praesentium! Repellat esse quam est blanditiis perspiciatis quaerat voluptatem, harum optio animi quos placeat, in at magni et possimus ducimus pariatur dolore ut quia praesentium modi enim! Numquam necessitatibus aspernatur porro consectetur ex, repellat minus amet deleniti minima eligendi impedit error doloremque. Necessitatibus consequatur accusantium harum dicta? Repellendus ad eius labore, voluptates nam asperiores facere esse! Enim ipsum dolorem adipisci voluptatem temporibus vitae quia distinctio similique dolores culpa atque maiores hic assumenda maxime, vero at expedita? Laborum illo dolorum qui accusantium. Fuga quae dolorem adipisci voluptas iure perspiciatis fugit ex nesciunt a repellat. Architecto maiores facere consequatur dolores accusamus minima, unde blanditiis rerum ab! Laborum neque adipisci placeat, nemo soluta similique ipsam voluptatem illum expedita iste. Quibusdam possimus facere ut eius et non, quia saepe commodi, alias accusantium eos perspiciatis esse corporis quidem natus cumque ipsam aliquam blanditiis. Quasi mollitia voluptas ea, possimus, tenetur ipsa sed fugit est corrupti quaerat cupiditate amet consequuntur facilis vero veniam hic consectetur harum commodi, quibusdam magni beatae blanditiis illo assumenda! Eos assumenda aperiam ad animi obcaecati perferendis quae porro fugit error ea nam soluta aut iusto, vel quos officia accusantium neque aliquam quam velit dolore dignissimos? Exercitationem, aliquam quisquam, laboriosam enim quam non saepe, quae voluptatibus beatae nostrum voluptatem nemo officia quos ea at delectus neque! A quidem provident tenetur maiores explicabo dicta similique molestiae quos praesentium odit nihil repellat laboriosam laborum saepe itaque ullam, fugiat architecto? Dolores id consectetur, accusantium dolorem cum nostrum, recusandae incidunt veritatis laborum perferendis accusamus assumenda quis voluptatibus aspernatur possimus iure quo totam sint non ad delectus sed? Assumenda, sit in ratione error tempora sunt necessitatibus, aliquam temporibus ea odio exercitationem commodi nisi ab facere doloremque nobis non a praesentium labore vero quo distinctio ipsa rem cum? Est, error, enim at mollitia et aut delectus consequuntur sapiente aspernatur reprehenderit perferendis unde atque. Deserunt omnis provident sit nesciunt nihil tempora dicta quibusdam, temporibus rerum dolorem neque ratione facilis qui maxime tenetur. Culpa quidem, soluta consequuntur debitis, quis ratione rem ullam amet, ipsum tenetur temporibus fuga quo facere a et. Sunt dolorum neque amet nesciunt esse eum laudantium corrupti eaque, quidem totam dolore accusantium itaque adipisci impedit fugit doloremque aspernatur, eos unde! Dolore sequi in accusantium ea ad cum quaerat nam iure. Tempore, sapiente, est necessitatibus nulla aut ullam in illo ratione dicta, libero adipisci optio maiores facilis ipsum fugiat esse nemo. Magnam voluptatibus consequuntur, dicta molestiae facilis fuga voluptatum aut quidem provident animi sint deleniti excepturi nisi laboriosam porro. Aliquam corrupti dicta saepe accusamus numquam praesentium commodi repellendus id facere fugiat, ullam, provident exercitationem? Nisi eum quae fuga sequi ea tempora ipsam, suscipit voluptatum laboriosam ex adipisci repellat nam, cumque laborum, obcaecati sunt! Obcaecati molestias amet accusantium, ipsa totam perspiciatis hic id ex quos ad deserunt laboriosam delectus sint atque repellendus numquam consequuntur minima. In expedita, animi amet repellat laboriosam maxime, explicabo quaerat cum ipsum culpa perferendis laudantium veritatis ab facere? Iste cumque architecto id, vitae suscipit dicta incidunt ipsam quaerat repudiandae praesentium deserunt eaque illum blanditiis nam corporis, molestias necessitatibus? Optio id rerum corrupti, vitae culpa possimus blanditiis sed natus placeat dolore error saepe, ab incidunt similique dignissimos officiis? Facilis minus unde soluta natus consequatur nulla est voluptatibus ipsam dignissimos aut! Cumque officiis nemo molestias architecto quidem est suscipit.
-</p>
+	const uiScale = useUiScale();
+	let sliderValue = $state(uiScale.scale * 100);
+
+	// Update slider when scale changes
+	$effect(() => {
+		sliderValue = uiScale.scale * 100;
+	});
+
+	function handleScaleChange(event: Event): void {
+		const target = event.target as HTMLInputElement;
+		const scale = Number(target.value) / 100;
+		sliderValue = Number(target.value);
+
+		// Debounce the actual config update
+		clearTimeout(scaleUpdateTimeout);
+		scaleUpdateTimeout = setTimeout(async () => {
+			try {
+				await uiScale.setScale(scale);
+				toast.success(`UI Scale set to ${scale.toFixed(2)}x`);
+			} catch (error) {
+				toast.error('Failed to update UI scale');
+			}
+		}, 300);
+	}
+
+	let scaleUpdateTimeout: ReturnType<typeof setTimeout>;
+
+	async function resetScale(): Promise<void> {
+		try {
+			await uiScale.resetScale();
+			toast.success('UI Scale reset to 1.0x');
+		} catch (error) {
+			toast.error('Failed to reset UI scale');
+		}
+	}
+</script>
+
+<div class="container mx-auto p-8">
+	<h1 class="text-4xl font-bold mb-8">Welcome to Zafkiel</h1>
+
+	<div class="grid gap-6 md:grid-cols-2 mb-8">
+		<!-- UI Scale Control -->
+		<Card>
+			<CardHeader>
+				<CardTitle>UI Scale Control</CardTitle>
+				<CardDescription>
+					Adjust the overall size of the UI elements (50% - 200%)
+				</CardDescription>
+			</CardHeader>
+			<CardContent class="space-y-4">
+				<div class="space-y-2">
+					<div class="flex justify-between items-center">
+						<span class="text-sm font-medium">Current Scale:</span>
+						<span class="text-2xl font-bold">{(sliderValue).toFixed(0)}%</span>
+					</div>
+					<input
+						type="range"
+						value={sliderValue}
+						oninput={handleScaleChange}
+						min="50"
+						max="200"
+						step="5"
+						class="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+					/>
+					<div class="flex justify-between text-xs text-muted-foreground">
+						<span>50%</span>
+						<span>100%</span>
+						<span>200%</span>
+					</div>
+				</div>
+				<Button onclick={resetScale} variant="outline" class="w-full">
+					Reset to Default (100%)
+				</Button>
+			</CardContent>
+		</Card>
+
+		<!-- Context Menu Info -->
+		<Card>
+			<CardHeader>
+				<CardTitle>Custom Context Menu</CardTitle>
+				<CardDescription>
+					Right-click anywhere to try the custom context menu
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<ul class="space-y-2 text-sm">
+					<li class="flex items-center gap-2">
+						<span class="text-muted-foreground">•</span>
+						<span>Reload page</span>
+					</li>
+					<li class="flex items-center gap-2">
+						<span class="text-muted-foreground">•</span>
+						<span>Navigate back/forward</span>
+					</li>
+					<li class="flex items-center gap-2">
+						<span class="text-muted-foreground">•</span>
+						<span>Inspect Element (opens devtools)</span>
+					</li>
+				</ul>
+			</CardContent>
+		</Card>
+	</div>
+
+	<!-- Navigation Links -->
+	<div class="flex gap-4 mb-8 flex-wrap">
+		<Button href="/demo" variant="default">Go to Demo</Button>
+		<Button href="/dropdown-demo" variant="default">Dropdown Demo</Button>
+		<Button href="/config-demo" variant="outline">Go to Config Demo</Button>
+		<Button href="/context-menu-demo" variant="outline">Go to Context Menu Demo</Button>
+	</div>
+
+	<!-- Sample Content -->
+	<Card>
+		<CardHeader>
+			<CardTitle>Sample Content</CardTitle>
+			<CardDescription>Scroll to see how the UI scale affects all elements</CardDescription>
+		</CardHeader>
+		<CardContent>
+			<p class="text-sm leading-relaxed">
+				Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla qui repudiandae maiores eum fuga iure voluptatum ex laudantium ducimus doloribus, architecto nihil inventore numquam ut accusantium, natus nesciunt non earum esse quaerat incidunt amet voluptatem. Doloremque eveniet ad fuga magni ipsum veritatis quidem aspernatur. Magni reiciendis, esse sint ipsa exercitationem, provident iure totam itaque at architecto est corporis sed laboriosam minima amet ipsam eligendi quae accusantium. Id nemo illum voluptatibus debitis! Expedita accusamus sint, qui rem eos enim non fugiat quas molestias nemo fuga provident ad libero quisquam quidem eum odio?
+			</p>
+		</CardContent>
+	</Card>
+</div>
+

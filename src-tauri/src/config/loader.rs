@@ -229,6 +229,19 @@ impl ConfigLoader {
         self.save()
     }
 
+    /// Update UI scale factor
+    pub fn update_ui_scale(&self, scale: f32) -> Result<(), ConfigError> {
+        let mut config = self.config.write().map_err(|_| {
+            ConfigError::Deserialization("Failed to acquire write lock".to_string())
+        })?;
+
+        // Clamp scale to reasonable bounds (50% to 200%)
+        let clamped_scale = scale.max(0.5).min(2.0);
+        config.ui.ui_scale = clamped_scale;
+        drop(config);
+        self.save()
+    }
+
     /// Get the config file path for debugging
     pub fn get_config_file_path(&self) -> PathBuf {
         self.config_path.clone()

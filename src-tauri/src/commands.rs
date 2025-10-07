@@ -1,7 +1,7 @@
 use crate::config::{AppConfig, ConfigLoader, UiConfig};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tauri::State;
+use tauri::{Manager, State};
 
 /// Shared state for config loader
 pub type ConfigState = Arc<ConfigLoader>;
@@ -120,6 +120,72 @@ pub fn update_smooth_scroll(enabled: bool, config: State<ConfigState>) -> Config
         Ok(_) => ConfigResponse::success(()),
         Err(e) => ConfigResponse::error(e.to_string()),
     }
+}
+
+/// Update UI scale factor and apply webview zoom
+#[tauri::command]
+pub fn update_ui_scale(scale: f32, config: State<ConfigState>, app: tauri::AppHandle) -> ConfigResponse<()> {
+    // Clamp scale between 0.5 and 2.0
+    let clamped_scale = scale.max(0.5).min(2.0);
+    
+    // Save to config
+    match config.update_ui_scale(clamped_scale) {
+        Ok(_) => {
+            // Apply zoom to webview
+            if let Some(window) = app.get_webview_window("main") {
+                if let Err(e) = window.set_zoom(clamped_scale as f64) {
+                    return ConfigResponse::error(format!("Failed to set zoom: {}", e));
+                }
+            }
+            ConfigResponse::success(())
+        }
+        Err(e) => ConfigResponse::error(e.to_string()),
+    }
+}
+
+/// Set webview zoom level on startup
+#[tauri::command]
+pub fn apply_ui_scale(app: tauri::AppHandle, config: State<ConfigState>) -> ConfigResponse<()> {
+    match config.get_ui_config() {
+        Ok(ui_config) => {
+            if let Some(window) = app.get_webview_window("main") {
+                if let Err(e) = window.set_zoom(ui_config.ui_scale as f64) {
+                    return ConfigResponse::error(format!("Failed to apply zoom: {}", e));
+                }
+            }
+            ConfigResponse::success(())
+        }
+        Err(e) => ConfigResponse::error(e.to_string()),
+    }
+}
+
+/// Open developer tools (only works in debug mode or with devtools enabled)
+#[tauri::command]
+pub fn open_devtools(app: tauri::AppHandle) -> ConfigResponse<()> {
+    if let Some(window) = app.get_webview_window("main") {
+        #[cfg(debug_assertions)]
+        {
+            if window.is_devtools_open() {
+                let _ = window.close_devtools();
+            } else {
+                let _ = window.open_devtools();
+            }
+            return ConfigResponse::success(());
+        }
+        
+        #[cfg(not(debug_assertions))]
+        {
+            // In production, try to toggle devtools if available
+            if window.is_devtools_open() {
+                let _ = window.close_devtools();
+            } else {
+                // Will only work if devtools are enabled in tauri.conf.json
+                let _ = window.open_devtools();
+            }
+            return ConfigResponse::success(());
+        }
+    }
+    ConfigResponse::error("Main window not found".to_string())
 }
 
 /// Get config file path (for debugging)
