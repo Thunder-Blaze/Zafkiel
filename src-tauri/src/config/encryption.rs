@@ -110,7 +110,7 @@ mod tests {
     fn test_key_generation() {
         let key = generate_key();
         assert!(!key.is_empty());
-        
+
         // Verify it's valid base64
         let decoded = BASE64.decode(&key).unwrap();
         assert_eq!(decoded.len(), 32);

@@ -26,7 +26,7 @@ pub fn get_config_path(&self) -> PathBuf {
     } else {
         "config.ron"           // Used in release builds
     };
-    
+
     self.config_dir.join(filename)
 }
 ```
@@ -196,7 +196,7 @@ If you previously had a single `config.ron` file:
    ```bash
    # For development
    mv ~/.config/zafkiel/config.ron ~/.config/zafkiel/config.debug.ron
-   
+
    # For production (if you're an end-user)
    mv ~/.config/zafkiel/config.ron ~/.config/zafkiel/config.ron
    ```

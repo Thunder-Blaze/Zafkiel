@@ -19,7 +19,7 @@ pub fn run() {
       // Initialize config loader
       let config_loader = config::ConfigLoader::new()
         .expect("Failed to initialize config loader");
-      
+
       // Store config loader in app state
       app.manage(Arc::new(config_loader));
 

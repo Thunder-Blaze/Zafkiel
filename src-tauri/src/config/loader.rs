@@ -244,7 +244,7 @@ mod tests {
         // Tests use config.test.ron, so they don't interfere with dev/prod configs
         let loader = ConfigLoader::new().unwrap();
         let config = loader.get_config().unwrap();
-        
+
         // Config may have been modified by other tests, so we just check structure
         assert!(config.ui.theme == "catppuccin" || !config.ui.theme.is_empty());
     }
@@ -277,7 +277,7 @@ mod tests {
     #[test]
     fn test_clear_token() {
         let loader = ConfigLoader::new().unwrap();
-        
+
         loader.set_anilist_token("test_token").unwrap();
         assert!(loader.get_anilist_token().unwrap().is_some());
 

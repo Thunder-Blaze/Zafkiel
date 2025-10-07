@@ -8,7 +8,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Separator } from '$lib/components/ui/separator';
 	import { configStore, uiConfig, isAuthenticated } from '$lib/stores/config';
-	import { ConfigService } from '$lib/services/config';
+	import { ConfigService, type AppConfig, type UiConfig } from '$lib/services/config';
 	import { toast } from 'svelte-sonner';
 
 	let tokenInput = $state('');
@@ -16,15 +16,21 @@
 	let isLoading = $state(false);
 
 	// Reactive state from stores
-	let config = $state(null);
-	let ui = $state($uiConfig);
-	let authenticated = $state($isAuthenticated);
+	let config = $state<AppConfig | null>(null);
+	let ui = $state<UiConfig | null>(null);
+	let authenticated = $state(false);
 
 	// Subscribe to stores
 	$effect(() => {
-		const unsubConfig = configStore.subscribe(value => config = value);
-		const unsubUi = uiConfig.subscribe(value => ui = value);
-		const unsubAuth = isAuthenticated.subscribe(value => authenticated = value);
+		const unsubConfig = configStore.subscribe((value) => {
+			config = value;
+		});
+		const unsubUi = uiConfig.subscribe((value) => {
+			ui = value;
+		});
+		const unsubAuth = isAuthenticated.subscribe((value) => {
+			authenticated = value;
+		});
 
 		return () => {
 			unsubConfig();
@@ -36,7 +42,7 @@
 	onMount(async () => {
 		// Initialize config store
 		await configStore.init();
-		
+
 		// Get config path
 		try {
 			configPath = await ConfigService.getConfigPath();
@@ -183,21 +189,21 @@
 					<Label>Theme</Label>
 					<div class="flex gap-2">
 						<Button
-							variant={ui.theme === 'catppuccin' ? 'default' : 'outline'}
+							variant={ui?.theme === 'catppuccin' ? 'default' : 'outline'}
 							onclick={() => handleThemeChange('catppuccin')}
 							class="flex-1"
 						>
 							Catppuccin
 						</Button>
 						<Button
-							variant={ui.theme === 'dark' ? 'default' : 'outline'}
+							variant={ui?.theme === 'dark' ? 'default' : 'outline'}
 							onclick={() => handleThemeChange('dark')}
 							class="flex-1"
 						>
 							Dark
 						</Button>
 						<Button
-							variant={ui.theme === 'light' ? 'default' : 'outline'}
+							variant={ui?.theme === 'light' ? 'default' : 'outline'}
 							onclick={() => handleThemeChange('light')}
 							class="flex-1"
 						>
@@ -214,7 +220,7 @@
 						<Label for="glow">Glow Effects</Label>
 						<Switch
 							id="glow"
-							checked={ui.glow_effects}
+							checked={ui?.glow_effects ?? false}
 							onCheckedChange={(checked) => configStore.updateGlowEffects(checked)}
 						/>
 					</div>
@@ -223,7 +229,7 @@
 						<Label for="animations">Animations</Label>
 						<Switch
 							id="animations"
-							checked={ui.animations}
+							checked={ui?.animations ?? false}
 							onCheckedChange={(checked) => configStore.updateAnimations(checked)}
 						/>
 					</div>
@@ -232,7 +238,7 @@
 						<Label for="smooth-scroll">Smooth Scroll</Label>
 						<Switch
 							id="smooth-scroll"
-							checked={ui.smooth_scroll}
+							checked={ui?.smooth_scroll ?? false}
 							onCheckedChange={(checked) => configStore.updateSmoothScroll(checked)}
 						/>
 					</div>

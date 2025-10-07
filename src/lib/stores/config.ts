@@ -9,7 +9,7 @@ function createConfigStore() {
 
 	return {
 		subscribe,
-		
+
 		/**
 		 * Initialize the config store by loading from backend
 		 */

@@ -29,13 +29,13 @@ pub struct SecurityConfig {
 pub struct UiConfig {
     /// Theme name (e.g., "catppuccin", "dark", "light")
     pub theme: String,
-    
+
     /// Enable glow effects on UI elements
     pub glow_effects: bool,
-    
+
     /// Enable animations
     pub animations: bool,
-    
+
     /// Enable smooth scrolling
     pub smooth_scroll: bool,
 }
