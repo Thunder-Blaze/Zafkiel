@@ -1,9 +1,12 @@
 mod anilist;
 mod anilist_commands;
+mod auth;
+mod auth_commands;
 mod commands;
 mod config;
 
 use anilist::AniListService;
+use auth::AuthState;
 use std::sync::Arc;
 use tauri::Manager;
 
@@ -11,6 +14,13 @@ use tauri::Manager;
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
+            // Load environment variables from .env file
+            if let Err(e) = dotenvy::dotenv() {
+                log::warn!("[Setup] Failed to load .env file: {}. Make sure .env exists in the project root with ANILIST_CLIENT_ID and ANILIST_CLIENT_SECRET", e);
+            } else {
+                log::info!("[Setup] Successfully loaded .env file");
+            }
+
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()
@@ -23,12 +33,29 @@ pub fn run() {
             let config_loader =
                 config::ConfigLoader::new().expect("Failed to initialize config loader");
 
+            // Load token from config if available
+            let token = config_loader
+                .get_config()
+                .ok()
+                .and_then(|config| config.anilist.access_token);
+
+            if token.is_some() {
+                log::info!("[Setup] Found existing AniList token in config");
+            } else {
+                log::info!("[Setup] No AniList token found, user needs to authenticate");
+            }
+
             // Store config loader in app state
             app.manage(Arc::new(config_loader));
 
-            // Initialize AniList service
-            let anilist_service = AniListService::new(None);
+            // Initialize AniList service with token from config
+            // This maintains a single AniListClient instance in app state
+            let anilist_service = AniListService::new(token);
             app.manage(Arc::new(anilist_service));
+
+            // Initialize auth state for OAuth flow
+            let auth_state = AuthState::new();
+            app.manage(auth_state);
 
             Ok(())
         })
@@ -48,6 +75,12 @@ pub fn run() {
             commands::apply_ui_scale,
             commands::open_devtools,
             commands::get_config_path,
+            // Auth commands
+            auth_commands::start_oauth_flow,
+            auth_commands::open_auth_browser,
+            auth_commands::wait_for_oauth_callback,
+            auth_commands::check_auth_status,
+            auth_commands::logout,
             // Anime commands
             anilist_commands::search_anime,
             anilist_commands::get_anime_by_id,

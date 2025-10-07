@@ -2,14 +2,16 @@ use anilist_moe::{
     client::AniListClient,
     enums::media::MediaSeason,
     errors::AniListError,
-    objects::{media::Media, user::User},
+    objects::{media::Media, responses::ViewerUserData, user::User},
 };
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 /// Wrapper for AniListClient that handles token management
+/// Maintains a single AniListClient instance in app state
 pub struct AniListService {
-    client: Arc<Mutex<AniListClient>>,
+    client: Arc<RwLock<AniListClient>>,
 }
 
 impl AniListService {
@@ -22,18 +24,28 @@ impl AniListService {
         };
 
         Self {
-            client: Arc::new(Mutex::new(client)),
+            client: Arc::new(RwLock::new(client)),
         }
     }
 
-    /// Update the client token
-    pub fn set_token(&self, token: Option<String>) {
-        let mut client = self.client.lock().unwrap();
+    /// Update the client token (async-safe)
+    /// Creates a new client instance with the new token
+    pub async fn update_token(&self, token: Option<String>) -> Result<(), String> {
+        log::info!("[AniListService] Updating token");
+        let mut client = self.client.write().await;
         *client = if let Some(t) = token {
             AniListClient::with_token(&t)
         } else {
             AniListClient::new()
         };
+        log::info!("[AniListService] Token updated successfully");
+        Ok(())
+    }
+
+    /// Get a reference to the client for making requests
+    /// Returns a read guard to prevent cloning
+    async fn client(&self) -> tokio::sync::RwLockReadGuard<'_, AniListClient> {
+        self.client.read().await
     }
 
     /// Search for anime
@@ -49,7 +61,7 @@ impl AniListService {
             page,
             per_page
         );
-        let client = self.client.lock().unwrap().clone();
+        let client = self.client().await;
         let response = client.anime().search_anime(query, page, per_page).await?;
         log::info!("Found {} anime matching '{}'", response.data.page.data.media.len(), query);
         Ok(response.data.page.data.media)
@@ -57,7 +69,7 @@ impl AniListService {
 
     /// Get anime by ID
     pub async fn get_anime_by_id(&self, id: i32) -> Result<Media, AniListError> {
-        let client = self.client.lock().unwrap().clone();
+        let client = self.client().await;
         let response = client.anime().get_anime_by_id(id).await?;
         Ok(response.data.media)
     }
@@ -73,7 +85,7 @@ impl AniListService {
             page,
             per_page
         );
-        let client = self.client.lock().unwrap().clone();
+        let client = self.client().await;
         let response = client.anime().get_trending_anime(page, per_page).await?;
         log::info!("Successfully fetched {} trending anime", response.data.page.data.media.len());
         Ok(response.data.page.data.media)
@@ -85,7 +97,7 @@ impl AniListService {
         page: Option<i32>,
         per_page: Option<i32>,
     ) -> Result<Vec<Media>, AniListError> {
-        let client = self.client.lock().unwrap().clone();
+        let client = self.client().await;
         let response = client.anime().get_popular_anime(page, per_page).await?;
         Ok(response.data.page.data.media)
     }
@@ -100,7 +112,7 @@ impl AniListService {
         per_page: Option<i32>,
     ) -> Result<Vec<Media>, AniListError> {
         // Fallback to popular anime since seasonal isn't directly supported
-        let client = self.client.lock().unwrap().clone();
+        let client = self.client().await;
         let response = client.anime().get_popular_anime(page, per_page).await?;
         Ok(response.data.page.data.media)
     }
@@ -112,14 +124,14 @@ impl AniListService {
         page: Option<i32>,
         per_page: Option<i32>,
     ) -> Result<Vec<Media>, AniListError> {
-        let client = self.client.lock().unwrap().clone();
+        let client = self.client().await;
         let response = client.manga().search_manga(query, page, per_page).await?;
         Ok(response.data.page.data.media)
     }
 
     /// Get manga by ID
     pub async fn get_manga_by_id(&self, id: i32) -> Result<Media, AniListError> {
-        let client = self.client.lock().unwrap().clone();
+        let client = self.client().await;
         let response = client.manga().get_manga_by_id(id).await?;
         Ok(response.data.media)
     }
@@ -130,7 +142,7 @@ impl AniListService {
         page: Option<i32>,
         per_page: Option<i32>,
     ) -> Result<Vec<Media>, AniListError> {
-        let client = self.client.lock().unwrap().clone();
+        let client = self.client().await;
         let response = client.manga().get_trending_manga(page, per_page).await?;
         Ok(response.data.page.data.media)
     }
@@ -141,28 +153,28 @@ impl AniListService {
         page: Option<i32>,
         per_page: Option<i32>,
     ) -> Result<Vec<Media>, AniListError> {
-        let client = self.client.lock().unwrap().clone();
+        let client = self.client().await;
         let response = client.manga().get_popular_manga(page, per_page).await?;
         Ok(response.data.page.data.media)
     }
 
     /// Get current authenticated user
-    pub async fn get_current_user(&self) -> Result<User, AniListError> {
-        let client = self.client.lock().unwrap().clone();
-        let response = client.user().get_current_user().await?;
-        Ok(response.data.user)
+    pub async fn get_current_user(&self) -> Result<ViewerUserData, AniListError> {
+        let client = self.client().await;
+        let response = client.user().fetch_basic().await?;
+        Ok(response.data.viewer)
     }
 
     /// Get user by ID
     pub async fn get_user_by_id(&self, id: i32) -> Result<User, AniListError> {
-        let client = self.client.lock().unwrap().clone();
+        let client = self.client().await;
         let response = client.user().get_by_id(id).await?;
         Ok(response.data.user)
     }
 
     /// Get user by name
     pub async fn get_user_by_name(&self, name: &str) -> Result<User, AniListError> {
-        let client = self.client.lock().unwrap().clone();
+        let client = self.client().await;
         let response = client.user().get_by_name(name).await?;
         Ok(response.data.user)
     }
@@ -174,7 +186,7 @@ impl AniListService {
         page: Option<i32>,
         per_page: Option<i32>,
     ) -> Result<Vec<User>, AniListError> {
-        let client = self.client.lock().unwrap().clone();
+        let client = self.client().await;
         let response = client.user().search(query, page, per_page).await?;
         Ok(response.data.page.data.users)
     }

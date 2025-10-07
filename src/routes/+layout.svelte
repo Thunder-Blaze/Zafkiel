@@ -8,6 +8,7 @@
 	import TanstackProvider from '$lib/providers/tanstack.svelte';
 	import LenisProvider from '$lib/providers/lenis.svelte';
 	import { configStore } from '$lib/stores/config';
+	import { authStore } from '$lib/stores/auth';
 	import { useUiScale } from '$lib/hooks/useUiScale.svelte';
 
 	let { children }: { children: any } = $props();
@@ -15,9 +16,10 @@
 	// Initialize UI scale (applies Tauri webview zoom)
 	const uiScale = useUiScale();
 
-	// Initialize config store on app mount
+	// Initialize config and auth stores on app mount
 	onMount(async () => {
 		await configStore.init();
+		await authStore.init();
 	});
 </script>
 

@@ -81,7 +81,7 @@ AniList GraphQL API
    - Query key factories for cache invalidation
    - Automatic error handling and retry logic
 
-4. **`src/routes/anilist-demo/+page.svelte`** - Demo page
+4. **`src/routes/anime/+page.svelte`** - Demo page
    - Shows trending anime by default
    - Debounced search with reactive state
    - Cache status display
@@ -143,7 +143,7 @@ AniList enforces 90 requests/minute:
 
 ## Testing
 
-Visit `/anilist-demo` to test the integration:
+Visit `/anime` to test the integration:
 - View trending anime
 - Search anime with debounced input
 - Monitor cache status and data freshness

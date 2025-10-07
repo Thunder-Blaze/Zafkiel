@@ -1,38 +1,97 @@
-# sv
+# Zafkiel
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+A modern, cross-platform anime watching application built with SvelteKit and Tauri.
 
-## Creating a project
+## Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+- 🎬 Browse trending and popular anime
+- 🔍 Search anime with AniList integration
+- 👤 Sync your anime list with AniList account
+- ⚡ Smart caching with TanStack Query
+- 🎨 Clean, responsive UI with shadcn-svelte
+- 🔒 Secure OAuth authentication
+- ⚙️ Configurable UI scaling
 
-```sh
-# create a new project in the current directory
-npx sv create
+## Prerequisites
 
-# create a new project in my-app
-npx sv create my-app
+- [Bun](https://bun.sh/) - Fast JavaScript runtime
+- [Rust](https://www.rust-lang.org/) - For Tauri backend
+- [AniList Account](https://anilist.co/signup) - For authentication
+
+## Quick Start
+
+### 1. Install Dependencies
+
+```bash
+bun install
 ```
 
-## Developing
+### 2. Set Up OAuth (Required)
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Create a `.env` file with your AniList OAuth credentials:
 
-```sh
-npm run dev
+```bash
+cp .env.example .env
+```
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+Then follow the [OAuth Setup Guide](docs/OAUTH_SETUP.md) to get your credentials.
+
+### 3. Run Development Server
+
+```bash
+bun dev
+```
+
+The app will open automatically. You'll be prompted to sign in with AniList.
+
+## Documentation
+
+- [OAuth Setup Guide](docs/OAUTH_SETUP.md) - How to set up AniList authentication
+- [AniList Integration](docs/ANILIST_INTEGRATION.md) - API integration details
+- [Authentication Flow](docs/AUTHENTICATION.md) - OAuth implementation
+- [Client Architecture](docs/ANILIST_CLIENT_ARCHITECTURE.md) - Backend architecture
+
+## Tech Stack
+
+- **Frontend**: SvelteKit, TypeScript, TanStack Query, shadcn-svelte
+- **Backend**: Tauri, Rust, anilist_moe
+- **Styling**: Tailwind CSS, Iconify (Solar icons)
+- **Database**: SQLite (via Drizzle ORM)
+
+## Project Structure
+
+```
+zafkiel/
+├── src/                    # Frontend code
+│   ├── lib/
+│   │   ├── components/    # UI components
+│   │   ├── hooks/         # TanStack Query hooks
+│   │   ├── services/      # API clients
+│   │   ├── stores/        # Svelte stores
+│   │   └── types/         # TypeScript types
+│   └── routes/            # SvelteKit pages
+├── src-tauri/             # Backend code
+│   └── src/
+│       ├── anilist.rs     # AniList service
+│       ├── auth.rs        # OAuth logic
+│       └── config/        # Configuration management
+└── docs/                  # Documentation
 ```
 
 ## Building
 
-To create a production version of your app:
+To create a production build:
 
-```sh
-npm run build
+```bash
+bun run build
 ```
 
-You can preview the production build with `npm run preview`.
+This will create a distributable Tauri application in `src-tauri/target/release/`.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## Contributing
+
+Contributions are welcome! Please read the [Copilot Instructions](/.github/copilot-instructions.md) for development guidelines.
+
+## License
+
+[Your License Here]
