@@ -102,10 +102,12 @@
 			<CardContent class="flex flex-wrap gap-4">
 				<DropdownMenu.Root>
 					<DropdownMenu.Trigger>
-						<Button variant="outline">
-							<Icon icon="solar:menu-dots-bold" class="size-4" />
-							Actions
-						</Button>
+						{#snippet child({ props })}
+							<Button variant="outline" {...props}>
+								<Icon icon="solar:menu-dots-bold" class="size-4" />
+								Actions
+							</Button>
+						{/snippet}
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Content class="w-56">
 						<DropdownMenu.Label>My Account</DropdownMenu.Label>

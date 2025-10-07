@@ -167,10 +167,10 @@ All dropdowns now feature premium "glassmorphism" design:
 
 ### Expected Results
 
-✅ **Positioning:** Dropdowns positioned correctly at all scales (50%-200%)  
-✅ **Blur:** Backdrop blur visible in both web and Tauri  
-✅ **Scaling:** All dropdown content scales uniformly with UI  
-✅ **Performance:** No lag, smooth animations  
+✅ **Positioning:** Dropdowns positioned correctly at all scales (50%-200%)
+✅ **Blur:** Backdrop blur visible in both web and Tauri
+✅ **Scaling:** All dropdown content scales uniformly with UI
+✅ **Performance:** No lag, smooth animations
 ✅ **Visual:** Premium glassmorphism effects throughout
 
 ## 🔍 Technical Details
