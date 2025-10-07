@@ -1,22 +1,26 @@
 # UI Scale Implementation - Fixed Approach
 
 ## Problem
+
 The initial implementation had two issues:
+
 1. **Delayed scaling**: Scale was applied after page load (flicker effect)
 2. **Broken dropdown positioning**: Dropdowns appeared at wrong positions when scaled
 
 ## Root Cause
+
 Using CSS `zoom` or `transform` on the root `<html>` or `<body>` element affects the coordinate system for absolutely positioned elements (dropdowns, popovers, tooltips, context menus). These use `position: fixed` with calculated coordinates that don't account for parent transformations.
 
 ## Solution: Wrapper-Based Scaling
 
 ### Architecture
+
 ```
 <body>
   <!-- Portals (outside scaled content) -->
   <ThemedToaster />
   <ContextMenu />
-  
+
   <!-- Scaled wrapper -->
   <div id="app-scale-wrapper" style="transform: scale(var(--ui-scale))">
     <!-- All app content here -->
@@ -25,6 +29,7 @@ Using CSS `zoom` or `transform` on the root `<html>` or `<body>` element affects
 ```
 
 ### Key Benefits
+
 1. **Instant Application**: CSS variable is set immediately, no flicker
 2. **Portal-Safe**: Dropdowns/toasts are rendered outside the scaled wrapper
 3. **Correct Positioning**: Floating UI / Radix UI positioning works correctly
@@ -33,18 +38,21 @@ Using CSS `zoom` or `transform` on the root `<html>` or `<body>` element affects
 ### Implementation Details
 
 **CSS Variable (`--ui-scale`)**
+
 - Set on `:root` element
 - Default value: `1` (100%)
 - Range: `0.5` to `2.0` (50% to 200%)
 - Applied instantly when page loads
 
 **Wrapper Element**
+
 - `transform: scale(var(--ui-scale))`
 - `transform-origin: top left` (prevents centering)
 - `width: calc(100% / var(--ui-scale))` (compensates for scale)
 - `min-height: calc(100vh / var(--ui-scale))` (maintains full height)
 
 **Portals**
+
 - Rendered as siblings to the scaled wrapper
 - Not affected by the scale transformation
 - Maintain correct positioning relative to viewport
@@ -52,14 +60,16 @@ Using CSS `zoom` or `transform` on the root `<html>` or `<body>` element affects
 ### Code Changes
 
 **1. useUiScale.svelte.ts**
+
 ```typescript
 function applyScale(scale: number): void {
-  // Simply set CSS variable - instant!
-  document.documentElement.style.setProperty('--ui-scale', scale.toString());
+	// Simply set CSS variable - instant!
+	document.documentElement.style.setProperty('--ui-scale', scale.toString());
 }
 ```
 
 **2. +layout.svelte**
+
 ```svelte
 <!-- Portals outside scaled content -->
 <ThemedToaster />
@@ -67,19 +77,20 @@ function applyScale(scale: number): void {
 
 <!-- Scaled wrapper -->
 <div id="app-scale-wrapper" style="...">
-  <!-- All app content -->
+	<!-- All app content -->
 </div>
 ```
 
 **3. app.css**
+
 ```css
 :root {
-  --ui-scale: 1; /* Default 100% */
+	--ui-scale: 1; /* Default 100% */
 }
 
 #app-scale-wrapper {
-  /* Applied inline via style attribute */
-  will-change: transform;
+	/* Applied inline via style attribute */
+	will-change: transform;
 }
 ```
 
@@ -109,7 +120,6 @@ function applyScale(scale: number): void {
 
 1. **Fixed positioning inside wrapper**: Any `position: fixed` elements INSIDE the wrapper will be affected by the scale
    - **Solution**: Render them as portals outside the wrapper
-   
 2. **Third-party components**: Some libraries may assume scale = 1
    - **Solution**: Test third-party dropdowns/modals and add portal rendering if needed
 

@@ -63,7 +63,7 @@ function createConfigStore() {
 		 */
 		async updateTheme(theme: string) {
 			await ConfigService.updateTheme(theme);
-			update(config => {
+			update((config) => {
 				if (config) {
 					config.ui.theme = theme;
 				}
@@ -76,7 +76,7 @@ function createConfigStore() {
 		 */
 		async updateGlowEffects(enabled: boolean) {
 			await ConfigService.updateGlowEffects(enabled);
-			update(config => {
+			update((config) => {
 				if (config) {
 					config.ui.glow_effects = enabled;
 				}
@@ -89,7 +89,7 @@ function createConfigStore() {
 		 */
 		async updateAnimations(enabled: boolean) {
 			await ConfigService.updateAnimations(enabled);
-			update(config => {
+			update((config) => {
 				if (config) {
 					config.ui.animations = enabled;
 				}
@@ -102,13 +102,13 @@ function createConfigStore() {
 		 */
 		async updateSmoothScroll(enabled: boolean) {
 			await ConfigService.updateSmoothScroll(enabled);
-			update(config => {
+			update((config) => {
 				if (config) {
 					config.ui.smooth_scroll = enabled;
 				}
 				return config;
 			});
-		}
+		},
 	};
 }
 
@@ -122,12 +122,13 @@ export const configStore = createConfigStore();
  */
 export const uiConfig = derived(
 	configStore,
-	$config => $config?.ui ?? {
-		theme: 'catppuccin',
-		glow_effects: true,
-		animations: true,
-		smooth_scroll: true
-	}
+	($config) =>
+		$config?.ui ?? {
+			theme: 'catppuccin',
+			glow_effects: true,
+			animations: true,
+			smooth_scroll: true,
+		}
 );
 
 /**
@@ -135,25 +136,25 @@ export const uiConfig = derived(
  */
 export const isAuthenticated = derived(
 	configStore,
-	$config => $config?.anilist.access_token !== null
+	($config) => $config?.anilist.access_token !== null
 );
 
 /**
  * Derived store for theme
  */
-export const theme = derived(uiConfig, $uiConfig => $uiConfig.theme);
+export const theme = derived(uiConfig, ($uiConfig) => $uiConfig.theme);
 
 /**
  * Derived store for glow effects setting
  */
-export const glowEffects = derived(uiConfig, $uiConfig => $uiConfig.glow_effects);
+export const glowEffects = derived(uiConfig, ($uiConfig) => $uiConfig.glow_effects);
 
 /**
  * Derived store for animations setting
  */
-export const animations = derived(uiConfig, $uiConfig => $uiConfig.animations);
+export const animations = derived(uiConfig, ($uiConfig) => $uiConfig.animations);
 
 /**
  * Derived store for smooth scroll setting
  */
-export const smoothScroll = derived(uiConfig, $uiConfig => $uiConfig.smooth_scroll);
+export const smoothScroll = derived(uiConfig, ($uiConfig) => $uiConfig.smooth_scroll);

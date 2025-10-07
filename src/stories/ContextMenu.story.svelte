@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle,
+	} from '$lib/components/ui/card';
 	import { useContextMenu } from '$lib/hooks/useContextMenu';
 	import { toast } from 'svelte-sonner';
 
@@ -16,22 +22,22 @@
 			label: 'Option 1',
 			onClick: () => {
 				toast.success('Option 1 clicked!');
-			}
+			},
 		},
 		{
 			id: 'option2',
 			label: 'Option 2',
 			onClick: () => {
 				toast.success('Option 2 clicked!');
-			}
+			},
 		},
 		{
 			id: 'option3',
 			label: 'Option 3',
 			onClick: () => {
 				toast.success('Option 3 clicked!');
-			}
-		}
+			},
+		},
 	];
 
 	// Icons variant
@@ -42,7 +48,7 @@
 			icon: 'solar:copy-bold',
 			onClick: () => {
 				toast.success('Copy clicked!');
-			}
+			},
 		},
 		{
 			id: 'paste',
@@ -50,7 +56,7 @@
 			icon: 'solar:clipboard-bold',
 			onClick: () => {
 				toast.success('Paste clicked!');
-			}
+			},
 		},
 		{
 			id: 'delete',
@@ -58,8 +64,8 @@
 			icon: 'solar:trash-bin-trash-bold',
 			onClick: () => {
 				toast.error('Delete clicked!');
-			}
-		}
+			},
+		},
 	];
 
 	// Shortcuts variant
@@ -71,7 +77,7 @@
 			shortcut: '⌘C',
 			onClick: () => {
 				toast.success('Copy clicked!');
-			}
+			},
 		},
 		{
 			id: 'paste',
@@ -80,7 +86,7 @@
 			shortcut: '⌘V',
 			onClick: () => {
 				toast.success('Paste clicked!');
-			}
+			},
 		},
 		{
 			id: 'cut',
@@ -89,8 +95,8 @@
 			shortcut: '⌘X',
 			onClick: () => {
 				toast.info('Cut clicked!');
-			}
-		}
+			},
+		},
 	];
 
 	// Disabled variant
@@ -101,14 +107,14 @@
 			icon: 'solar:check-circle-bold',
 			onClick: () => {
 				toast.success('Enabled clicked!');
-			}
+			},
 		},
 		{
 			id: 'disabled',
 			label: 'Disabled Item',
 			icon: 'solar:close-circle-bold',
 			disabled: true,
-			onClick: () => {}
+			onClick: () => {},
 		},
 		{
 			id: 'another',
@@ -116,8 +122,8 @@
 			icon: 'solar:star-shine-bold',
 			onClick: () => {
 				toast.success('Another clicked!');
-			}
-		}
+			},
+		},
 	];
 
 	// Complex variant
@@ -129,7 +135,7 @@
 			shortcut: '⌘I',
 			onClick: () => {
 				toast.info('Viewing details...');
-			}
+			},
 		},
 		{
 			id: 'edit',
@@ -138,12 +144,12 @@
 			shortcut: '⌘E',
 			onClick: () => {
 				toast.info('Opening editor...');
-			}
+			},
 		},
 		{
 			id: 'sep1',
 			label: '',
-			separator: true
+			separator: true,
 		},
 		{
 			id: 'share',
@@ -152,19 +158,19 @@
 			shortcut: '⌘S',
 			onClick: () => {
 				toast.info('Opening share dialog...');
-			}
+			},
 		},
 		{
 			id: 'download',
 			label: 'Download',
 			icon: 'solar:download-bold',
 			disabled: true,
-			onClick: () => {}
+			onClick: () => {},
 		},
 		{
 			id: 'sep2',
 			label: '',
-			separator: true
+			separator: true,
 		},
 		{
 			id: 'delete',
@@ -173,8 +179,8 @@
 			shortcut: 'Del',
 			onClick: () => {
 				toast.error('Deleting...');
-			}
-		}
+			},
+		},
 	];
 
 	// Select items based on variant - use a function to make it reactive
@@ -200,19 +206,24 @@
 		icons: 'Context menu with Solar icons from Iconify',
 		shortcuts: 'Context menu with keyboard shortcuts',
 		disabled: 'Context menu with disabled items',
-		complex: 'Complete example with icons, shortcuts, separators, and disabled items'
+		complex: 'Complete example with icons, shortcuts, separators, and disabled items',
 	};
 </script>
 
 <div class="context-menu-story">
-	<Card class="w-[400px]" style="cursor: context-menu;" oncontextmenu={onContextMenu} data-has-context-menu>
+	<Card
+		class="w-[400px]"
+		style="cursor: context-menu;"
+		oncontextmenu={onContextMenu}
+		data-has-context-menu
+	>
 		<CardHeader>
 			<CardTitle>Right-click here</CardTitle>
 			<CardDescription>{descriptions[variant]}</CardDescription>
 		</CardHeader>
 		<CardContent>
-			<div class="p-8 border-2 border-dashed border-muted-foreground/25 rounded-lg text-center">
-				<p class="text-muted-foreground text-sm">
+			<div class="rounded-lg border-2 border-dashed border-muted-foreground/25 p-8 text-center">
+				<p class="text-sm text-muted-foreground">
 					Right-click anywhere in this card to open the context menu
 				</p>
 			</div>

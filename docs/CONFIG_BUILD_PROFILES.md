@@ -38,6 +38,7 @@ pub fn get_config_path(&self) -> PathBuf {
 **When Used**: During test execution (`cargo test`)
 
 **Characteristics**:
+
 - Completely isolated from development and production configs
 - Tests don't interfere with your personal settings
 - Automatically created with minimal defaults
@@ -55,11 +56,13 @@ pub fn get_config_path(&self) -> PathBuf {
 **When Used**: During development
 
 **Activation Methods**:
+
 - `cargo run` (without `--release`)
 - `bun tauri dev`
 - `cargo build` (without `--release`)
 
 **Characteristics**:
+
 - Your personal development settings
 - Persists across development sessions
 - Fully functional with all features enabled
@@ -77,11 +80,13 @@ pub fn get_config_path(&self) -> PathBuf {
 **When Used**: In production builds
 
 **Activation Methods**:
+
 - `cargo build --release`
 - `bun tauri build`
 - Distributed application binaries
 
 **Characteristics**:
+
 - Production user settings
 - Optimized for end-user experience
 - Completely separate from dev/test environments
@@ -92,6 +97,7 @@ pub fn get_config_path(&self) -> PathBuf {
 ## Benefits of This Approach
 
 ### ✅ Test Isolation
+
 ```bash
 # Running tests won't affect your dev config
 cargo test  # Uses config.test.ron
@@ -101,6 +107,7 @@ bun tauri dev  # Uses config.debug.ron
 ```
 
 ### ✅ Development Safety
+
 ```bash
 # Development settings don't leak into production
 bun tauri dev  # Uses config.debug.ron
@@ -108,11 +115,13 @@ bun tauri build  # Uses config.ron
 ```
 
 ### ✅ Clean Testing
+
 - Each test run starts with a known state
 - No cross-contamination between test runs
 - Predictable test behavior
 
 ### ✅ User Privacy
+
 - Production users' settings are never touched during development
 - Developers' personal settings don't ship with the app
 - Clear separation of concerns
@@ -134,21 +143,25 @@ bun tauri build  # Uses config.ron
 ## Verification
 
 Check which config files exist:
+
 ```bash
 ls -la ~/.config/zafkiel/
 ```
 
 View test config:
+
 ```bash
 cat ~/.config/zafkiel/config.test.ron
 ```
 
 View debug config:
+
 ```bash
 cat ~/.config/zafkiel/config.debug.ron
 ```
 
 View production config:
+
 ```bash
 cat ~/.config/zafkiel/config.ron
 ```
@@ -188,11 +201,13 @@ fn release_only_feature() {
 If you previously had a single `config.ron` file:
 
 1. **Backup your config**:
+
    ```bash
    cp ~/.config/zafkiel/config.ron ~/.config/zafkiel/config.ron.backup
    ```
 
 2. **Rename for your environment**:
+
    ```bash
    # For development
    mv ~/.config/zafkiel/config.ron ~/.config/zafkiel/config.debug.ron
@@ -206,32 +221,38 @@ If you previously had a single `config.ron` file:
 ## Best Practices
 
 ### ✅ DO
+
 - Let the system auto-select the config file
 - Use different settings in each environment
 - Trust the compile-time selection
 - Keep test configs minimal
 
 ### ❌ DON'T
+
 - Don't manually copy configs between profiles
 - Don't hardcode config paths in application code
 - Don't share encryption keys between environments
-- Don't commit any config.*.ron files to git
+- Don't commit any config.\*.ron files to git
 
 ## Troubleshooting
 
 ### "My test changes persist in dev mode"
+
 - ✅ This is impossible - they use different files
 - Check you're actually running tests with `cargo test`
 
 ### "Changes in dev mode affect tests"
+
 - ✅ This is impossible - they use different files
 - Check you're actually running dev with `bun tauri dev`
 
 ### "Config file not found"
+
 - ✅ Normal - files are created on first access
 - System automatically creates files with defaults
 
 ### "Wrong theme loading"
+
 - Check which build profile you're running
 - Each profile has its own theme setting
 - Changes in one profile don't affect others

@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle,
+	} from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -104,9 +110,9 @@
 	};
 </script>
 
-<div class="container mx-auto p-8 max-w-6xl">
+<div class="container mx-auto max-w-6xl p-8">
 	<div class="mb-8">
-		<h1 class="text-4xl font-bold mb-2">Config System Demo</h1>
+		<h1 class="mb-2 text-4xl font-bold">Config System Demo</h1>
 		<p class="text-muted-foreground">
 			Test the encrypted config system with AniList token management
 		</p>
@@ -117,9 +123,7 @@
 		<Card>
 			<CardHeader>
 				<CardTitle>AniList Authentication</CardTitle>
-				<CardDescription>
-					Token is encrypted using AES-256-GCM
-				</CardDescription>
+				<CardDescription>Token is encrypted using AES-256-GCM</CardDescription>
 			</CardHeader>
 			<CardContent class="space-y-4">
 				<!-- Status -->
@@ -156,18 +160,10 @@
 						Set Token
 					</Button>
 					{#if authenticated}
-						<Button
-							variant="outline"
-							onclick={handleGetToken}
-							disabled={isLoading}
-						>
+						<Button variant="outline" onclick={handleGetToken} disabled={isLoading}>
 							View Token
 						</Button>
-						<Button
-							variant="destructive"
-							onclick={handleClearToken}
-							disabled={isLoading}
-						>
+						<Button variant="destructive" onclick={handleClearToken} disabled={isLoading}>
 							Clear
 						</Button>
 					{/if}
@@ -179,9 +175,7 @@
 		<Card>
 			<CardHeader>
 				<CardTitle>UI Configuration</CardTitle>
-				<CardDescription>
-					Customize the application appearance
-				</CardDescription>
+				<CardDescription>Customize the application appearance</CardDescription>
 			</CardHeader>
 			<CardContent class="space-y-4">
 				<!-- Theme Selection -->
@@ -250,21 +244,19 @@
 		<Card class="md:col-span-2">
 			<CardHeader>
 				<CardTitle>Configuration Details</CardTitle>
-				<CardDescription>
-					Current configuration state and file location
-				</CardDescription>
+				<CardDescription>Current configuration state and file location</CardDescription>
 			</CardHeader>
 			<CardContent class="space-y-4">
 				<div class="space-y-2">
 					<div class="flex items-start gap-2">
-						<span class="text-sm font-medium min-w-[120px]">Config Path:</span>
-						<code class="text-sm bg-muted px-2 py-1 rounded">{configPath}</code>
+						<span class="min-w-[120px] text-sm font-medium">Config Path:</span>
+						<code class="rounded bg-muted px-2 py-1 text-sm">{configPath}</code>
 					</div>
 
 					<div class="flex items-start gap-2">
-						<span class="text-sm font-medium min-w-[120px]">Encryption Key:</span>
+						<span class="min-w-[120px] text-sm font-medium">Encryption Key:</span>
 						{#if config?.security.encryption_key}
-							<code class="text-sm bg-muted px-2 py-1 rounded">
+							<code class="rounded bg-muted px-2 py-1 text-sm">
 								{config.security.encryption_key.substring(0, 20)}...
 							</code>
 						{:else}
@@ -278,7 +270,7 @@
 				<!-- Raw Config Display -->
 				<div class="space-y-2">
 					<Label>Raw Configuration (RON format)</Label>
-					<pre class="bg-muted p-4 rounded-lg overflow-x-auto text-xs">
+					<pre class="overflow-x-auto rounded-lg bg-muted p-4 text-xs">
 {JSON.stringify(config, null, 2)}
 					</pre>
 				</div>

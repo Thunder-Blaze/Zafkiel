@@ -64,7 +64,7 @@ describe('AnimeCard utilities', () => {
 			COMPLETED: 'bg-green-500',
 			PLAN_TO_WATCH: 'bg-yellow-500',
 			DROPPED: 'bg-red-500',
-			PAUSED: 'bg-orange-500'
+			PAUSED: 'bg-orange-500',
 		};
 
 		const statusLabels = {
@@ -72,7 +72,7 @@ describe('AnimeCard utilities', () => {
 			COMPLETED: 'Completed',
 			PLAN_TO_WATCH: 'Plan to Watch',
 			DROPPED: 'Dropped',
-			PAUSED: 'Paused'
+			PAUSED: 'Paused',
 		};
 
 		expect(statusColors.WATCHING).toBe('bg-blue-500');

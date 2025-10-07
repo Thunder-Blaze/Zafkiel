@@ -1,11 +1,11 @@
 {
 	"useTabs": true,
 	"singleQuote": true,
-    "tabWidth": 2,
-    "semi": true,
+	"tabWidth": 2,
+	"semi": true,
 	"trailingComma": "es5",
 	"printWidth": 100,
-    "arrowParens": "always",
+	"arrowParens": "always",
 	"plugins": ["prettier-plugin-svelte", "prettier-plugin-tailwindcss"],
 	"overrides": [
 		{
@@ -16,5 +16,5 @@
 		}
 	],
 	"tailwindStylesheet": "./src/app.css",
-    "svelteIndentScriptAndStyle": true
+	"svelteIndentScriptAndStyle": true
 }

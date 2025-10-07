@@ -8,12 +8,15 @@
 ## 🔧 Root Cause
 
 ### Positioning Issue
+
 When using CSS `transform: scale()` on a parent container:
+
 - Floating UI uses `getBoundingClientRect()` which returns scaled coordinates
 - Portals inside scaled containers cause miscalculation
 - Reference: https://github.com/floating-ui/floating-ui/issues/1842
 
 ### Blur Issue
+
 Tauri's webview doesn't support standard `backdrop-filter` CSS property without `-webkit-` prefix.
 
 ## ✅ Solutions Implemented
@@ -21,24 +24,27 @@ Tauri's webview doesn't support standard `backdrop-filter` CSS property without 
 ### 1. Dropdown Positioning (The Key Fix)
 
 **Before (Broken):**
+
 ```svelte
 <!-- Portal inside scaled wrapper - breaks Floating UI -->
 <DropdownMenuPrimitive.Portal to="#app-scale-wrapper">
-  <DropdownMenuPrimitive.Content />
+	<DropdownMenuPrimitive.Content />
 </DropdownMenuPrimitive.Portal>
 ```
 
 **After (Fixed):**
+
 ```svelte
 <!-- Portal in default location, scale applied directly -->
 <DropdownMenuPrimitive.Portal>
-  <DropdownMenuPrimitive.Content
-    style="transform: scale(var(--ui-scale)); transform-origin: top left;"
-  />
+	<DropdownMenuPrimitive.Content
+		style="transform: scale(var(--ui-scale)); transform-origin: top left;"
+	/>
 </DropdownMenuPrimitive.Portal>
 ```
 
 **Why this works:**
+
 - Floating UI calculates trigger position correctly (no parent transform interference)
 - We manually scale the dropdown content to match UI scale
 - Transform origin ensures proper scaling from top-left corner
@@ -46,11 +52,13 @@ Tauri's webview doesn't support standard `backdrop-filter` CSS property without 
 ### 2. Backdrop Blur (Tauri Compatibility)
 
 **Before:**
+
 ```css
 backdrop-blur-xl  /* Doesn't work in Tauri */
 ```
 
 **After:**
+
 ```css
 [-webkit-backdrop-filter:blur(24px)]  /* For Tauri */
 [backdrop-filter:blur(24px)]          /* For web browsers */
@@ -132,6 +140,7 @@ All dropdowns now feature premium "glassmorphism" design:
 ### Test the Fix
 
 1. **Start dev server:**
+
    ```bash
    bun run dev
    ```
@@ -162,7 +171,7 @@ All dropdowns now feature premium "glassmorphism" design:
 ✅ **Blur:** Backdrop blur visible in both web and Tauri  
 ✅ **Scaling:** All dropdown content scales uniformly with UI  
 ✅ **Performance:** No lag, smooth animations  
-✅ **Visual:** Premium glassmorphism effects throughout  
+✅ **Visual:** Premium glassmorphism effects throughout
 
 ## 🔍 Technical Details
 
@@ -185,19 +194,19 @@ Our Scale Application:
 
 ### CSS Transform Scale vs Zoom
 
-| Property | Positioning | Browser Support | Used Here |
-|----------|-------------|-----------------|-----------|
-| `zoom` | ❌ Breaks coordinates | ⚠️ Non-standard | ❌ No |
-| `transform: scale()` | ✅ Maintains coordinates | ✅ Full support | ✅ Yes |
+| Property             | Positioning              | Browser Support | Used Here |
+| -------------------- | ------------------------ | --------------- | --------- |
+| `zoom`               | ❌ Breaks coordinates    | ⚠️ Non-standard | ❌ No     |
+| `transform: scale()` | ✅ Maintains coordinates | ✅ Full support | ✅ Yes    |
 
 ### Backdrop Filter Browser Support
 
-| Browser | `-webkit-backdrop-filter` | `backdrop-filter` |
-|---------|---------------------------|-------------------|
-| Tauri (WebView) | ✅ Required | ❌ Not supported |
-| Chrome/Edge | ✅ Works | ✅ Preferred |
-| Safari | ✅ Works | ✅ Preferred |
-| Firefox | ❌ N/A | ✅ Works (103+) |
+| Browser         | `-webkit-backdrop-filter` | `backdrop-filter` |
+| --------------- | ------------------------- | ----------------- |
+| Tauri (WebView) | ✅ Required               | ❌ Not supported  |
+| Chrome/Edge     | ✅ Works                  | ✅ Preferred      |
+| Safari          | ✅ Works                  | ✅ Preferred      |
+| Firefox         | ❌ N/A                    | ✅ Works (103+)   |
 
 Our solution uses both for maximum compatibility.
 

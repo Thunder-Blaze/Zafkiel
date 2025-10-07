@@ -44,6 +44,7 @@ src/lib/
 - **Auto-creation**: Config file and directory are created automatically
 
 This separation ensures that:
+
 - Tests don't interfere with your development configuration
 - Development settings don't affect production deployments
 - Each environment can maintain its own settings independently
@@ -51,6 +52,7 @@ This separation ensures that:
 ### 🎨 Configuration Sections
 
 #### 1. AniList Configuration
+
 ```ron
 anilist: (
     access_token: Some("encrypted_token_here"),
@@ -58,6 +60,7 @@ anilist: (
 ```
 
 #### 2. Security Configuration
+
 ```ron
 security: (
     encryption_key: "base64_encoded_key_here",
@@ -65,6 +68,7 @@ security: (
 ```
 
 #### 3. UI Configuration
+
 ```ron
 ui: (
     theme: "catppuccin",
@@ -120,48 +124,50 @@ await ConfigService.updateAnimations(false);
 
 ```svelte
 <script lang="ts">
-  import { configStore, uiConfig, isAuthenticated } from '$lib/stores/config';
-  import { onMount } from 'svelte';
+	import { configStore, uiConfig, isAuthenticated } from '$lib/stores/config';
+	import { onMount } from 'svelte';
 
-  onMount(async () => {
-    await configStore.init();
-  });
+	onMount(async () => {
+		await configStore.init();
+	});
 
-  // Reactive values
-  $: theme = $uiConfig.theme;
-  $: authenticated = $isAuthenticated;
+	// Reactive values
+	$: theme = $uiConfig.theme;
+	$: authenticated = $isAuthenticated;
 </script>
 
-<button onclick={() => configStore.updateTheme('dark')}>
-  Dark Theme
-</button>
+<button onclick={() => configStore.updateTheme('dark')}> Dark Theme </button>
 
 {#if $isAuthenticated}
-  <p>User is authenticated!</p>
+	<p>User is authenticated!</p>
 {/if}
 ```
 
 ## Encryption Details
 
 ### Algorithm
+
 - **Cipher**: AES-256-GCM (Galois/Counter Mode)
 - **Key Size**: 256 bits (32 bytes)
 - **Nonce Size**: 96 bits (12 bytes)
 - **Authentication**: Built-in authentication tag
 
 ### Key Generation
+
 ```rust
 // Keys are generated using cryptographically secure random number generator
 let key = encryption::generate_key(); // Returns base64-encoded 256-bit key
 ```
 
 ### Encryption Process
+
 1. Generate random nonce (12 bytes)
 2. Encrypt data using AES-256-GCM
 3. Prepend nonce to ciphertext
 4. Base64 encode the result
 
 ### Decryption Process
+
 1. Base64 decode the encrypted data
 2. Extract nonce (first 12 bytes)
 3. Decrypt ciphertext using nonce and key
@@ -176,9 +182,9 @@ All commands return `ConfigResponse<T>`:
 
 ```typescript
 interface ConfigResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
+	success: boolean;
+	data?: T;
+	error?: string;
 }
 ```
 
@@ -199,12 +205,14 @@ interface ConfigResponse<T> {
 ## Testing
 
 ### Run Backend Tests
+
 ```bash
 cd src-tauri
 cargo test
 ```
 
 ### Test Demo Page
+
 ```bash
 bun run dev
 # Navigate to /config-demo
@@ -229,15 +237,19 @@ bun run dev
 ## Troubleshooting
 
 ### Config file not found
+
 The config file is created automatically on first run. If missing, it will be regenerated with default values.
 
 ### Encryption key empty
+
 If the encryption key is empty when trying to decrypt, set a token first - this will auto-generate the key.
 
 ### Invalid encrypted data
+
 This usually means the encryption key has changed. Clear the token and set it again.
 
 ### Permission denied
+
 Ensure the config directory (`~/.config/zafkiel/`) has proper permissions (700).
 
 ## Example Config File

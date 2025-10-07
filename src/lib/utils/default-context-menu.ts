@@ -14,12 +14,12 @@ export function getDefaultContextMenuItems(): ContextMenuItem[] {
 			shortcut: '⌘R',
 			onClick: () => {
 				window.location.reload();
-			}
+			},
 		},
 		{
 			id: 'sep1',
 			label: '',
-			separator: true
+			separator: true,
 		},
 		{
 			id: 'back',
@@ -27,7 +27,7 @@ export function getDefaultContextMenuItems(): ContextMenuItem[] {
 			icon: 'solar:arrow-left-bold',
 			onClick: () => {
 				window.history.back();
-			}
+			},
 		},
 		{
 			id: 'forward',
@@ -35,12 +35,12 @@ export function getDefaultContextMenuItems(): ContextMenuItem[] {
 			icon: 'solar:arrow-right-bold',
 			onClick: () => {
 				window.history.forward();
-			}
+			},
 		},
 		{
 			id: 'sep2',
 			label: '',
-			separator: true
+			separator: true,
 		},
 		{
 			id: 'devtools',
@@ -54,8 +54,8 @@ export function getDefaultContextMenuItems(): ContextMenuItem[] {
 					console.warn('Failed to open devtools:', error);
 					// Silently fail in browser mode
 				}
-			}
-		}
+			},
+		},
 	];
 }
 
@@ -70,7 +70,7 @@ export function initializeGlobalContextMenu() {
 		// Custom handlers will call preventDefault themselves
 		const target = e.target as HTMLElement;
 		const hasCustomHandler = target.closest('[data-has-context-menu]');
-		
+
 		if (!hasCustomHandler) {
 			e.preventDefault();
 		}

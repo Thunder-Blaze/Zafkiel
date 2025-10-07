@@ -26,7 +26,7 @@ function createContextMenuStore() {
 		isOpen: false,
 		x: 0,
 		y: 0,
-		items: []
+		items: [],
 	});
 
 	return {
@@ -40,7 +40,7 @@ function createContextMenuStore() {
 				isOpen: true,
 				x,
 				y,
-				items
+				items,
 			});
 		},
 
@@ -48,9 +48,9 @@ function createContextMenuStore() {
 		 * Close the context menu
 		 */
 		close() {
-			update(state => ({
+			update((state) => ({
 				...state,
-				isOpen: false
+				isOpen: false,
 			}));
 		},
 
@@ -66,7 +66,7 @@ function createContextMenuStore() {
 
 			// Close menu after action
 			this.close();
-		}
+		},
 	};
 }
 

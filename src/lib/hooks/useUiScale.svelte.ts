@@ -12,17 +12,17 @@ export function useUiScale() {
 	$effect(() => {
 		if (typeof window !== 'undefined' && !isInitialized) {
 			isInitialized = true;
-			
+
 			// Apply zoom from config
 			ConfigService.applyUiScale()
 				.then(() => {
 					// Get the current scale value for display
 					return ConfigService.getUiConfig();
 				})
-				.then(config => {
+				.then((config) => {
 					currentScale = config.ui_scale;
 				})
-				.catch(error => {
+				.catch((error) => {
 					console.warn('Failed to apply UI scale on startup:', error);
 				});
 		}
@@ -33,7 +33,7 @@ export function useUiScale() {
 	 */
 	async function setScale(scale: number): Promise<void> {
 		const clampedScale = Math.max(0.5, Math.min(2.0, scale));
-		
+
 		try {
 			// This will update config AND apply zoom via Tauri
 			await ConfigService.updateUiScale(clampedScale);
@@ -56,6 +56,6 @@ export function useUiScale() {
 			return currentScale;
 		},
 		setScale,
-		resetScale
+		resetScale,
 	};
 }

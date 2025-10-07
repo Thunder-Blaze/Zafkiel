@@ -11,6 +11,7 @@ This document describes the custom context menu system and UI scale feature impl
 A fully-featured right-click context menu that works globally throughout the application.
 
 **Key Features:**
+
 - 🎨 **Themed**: Automatically matches app theme (light/dark mode)
 - 🌐 **Global**: Works anywhere in the app with a default menu
 - 🔧 **Customizable**: Easy to add custom menus to specific elements
@@ -19,12 +20,14 @@ A fully-featured right-click context menu that works globally throughout the app
 - 🔍 **Inspect Element**: Opens developer tools (Tauri desktop only)
 
 **Default Context Menu Items:**
+
 - **Reload**: Refresh the current page (⌘R)
 - **Back**: Navigate to previous page
 - **Forward**: Navigate to next page
 - **Inspect Element**: Open devtools (⌘⌥I)
 
 **Technical Implementation:**
+
 - `ContextMenu.svelte`: Main menu component with Solar icon support
 - `ContextMenuProvider.svelte`: Global event handler
 - `context-menu.ts`: Global state management store
@@ -32,26 +35,25 @@ A fully-featured right-click context menu that works globally throughout the app
 - `default-context-menu.ts`: Default menu items
 
 **Usage Example:**
+
 ```svelte
 <script lang="ts">
-  import { useContextMenu } from '$lib/hooks/useContextMenu';
+	import { useContextMenu } from '$lib/hooks/useContextMenu';
 
-  const items = [
-    {
-      id: 'copy',
-      label: 'Copy',
-      icon: 'solar:copy-bold',
-      shortcut: '⌘C',
-      onClick: () => console.log('Copy')
-    }
-  ];
+	const items = [
+		{
+			id: 'copy',
+			label: 'Copy',
+			icon: 'solar:copy-bold',
+			shortcut: '⌘C',
+			onClick: () => console.log('Copy'),
+		},
+	];
 
-  const { onContextMenu } = useContextMenu(items);
+	const { onContextMenu } = useContextMenu(items);
 </script>
 
-<div oncontextmenu={onContextMenu} data-has-context-menu>
-  Right-click me!
-</div>
+<div oncontextmenu={onContextMenu} data-has-context-menu>Right-click me!</div>
 ```
 
 ### 2. UI Scale Feature
@@ -59,12 +61,14 @@ A fully-featured right-click context menu that works globally throughout the app
 A new configuration option to scale the entire UI from 50% to 200%.
 
 **Key Features:**
+
 - 🎚️ **Adjustable Range**: Scale from 50% (smaller) to 200% (larger)
 - 💾 **Persistent**: Saved in config and applied on app start
 - ⚡ **Real-time**: Changes apply immediately
 - 🔄 **Reset Button**: Quick reset to default 100%
 
 **Technical Implementation:**
+
 - **Backend** (`src-tauri/`):
   - Added `ui_scale: f32` field to `UiConfig` struct
   - Created `update_ui_scale()` command in Rust
@@ -77,6 +81,7 @@ A new configuration option to scale the entire UI from 50% to 200%.
   - Integrated into `+layout.svelte` for automatic loading
 
 **Configuration:**
+
 ```ron
 // ~/.config/zafkiel/config.ron
 (
@@ -93,20 +98,21 @@ A new configuration option to scale the entire UI from 50% to 200%.
 ```
 
 **Usage Example:**
+
 ```svelte
 <script lang="ts">
-  import { useUiScale } from '$lib/hooks/useUiScale';
+	import { useUiScale } from '$lib/hooks/useUiScale';
 
-  const uiScale = useUiScale();
+	const uiScale = useUiScale();
 
-  // Read current scale
-  console.log(uiScale.scale); // 1.0 (100%)
+	// Read current scale
+	console.log(uiScale.scale); // 1.0 (100%)
 
-  // Update scale
-  await uiScale.setScale(1.5); // 150%
+	// Update scale
+	await uiScale.setScale(1.5); // 150%
 
-  // Reset to default
-  await uiScale.resetScale(); // 100%
+	// Reset to default
+	await uiScale.resetScale(); // 100%
 </script>
 ```
 
@@ -133,6 +139,7 @@ A new configuration option to scale the entire UI from 50% to 200%.
 ## 🛠️ Tauri Commands Added
 
 ### `open_devtools`
+
 Opens the developer tools window (only works in Tauri desktop app).
 
 ```typescript
@@ -140,11 +147,13 @@ await ConfigService.openDevtools();
 ```
 
 **Behavior:**
+
 - **Debug builds**: Always works
 - **Production builds**: Only works if devtools are enabled in `tauri.conf.json`
 - **Web mode**: Silently fails (no error thrown)
 
 ### `update_ui_scale`
+
 Updates the UI scale factor and saves to config.
 
 ```typescript
@@ -152,17 +161,20 @@ await ConfigService.updateUiScale(1.25); // 125%
 ```
 
 **Parameters:**
+
 - `scale: number` - Scale factor from 0.5 to 2.0 (automatically clamped)
 
 ## 📁 Files Modified/Created
 
 ### New Files:
+
 - `src/lib/hooks/useUiScale.svelte.ts` - UI scale hook
 - `src/lib/utils/default-context-menu.ts` - Default menu items
 - `src/lib/providers/context-menu.svelte` - Global context menu provider
 - `docs/CONTEXT_MENU_FEATURES.md` - This documentation
 
 ### Modified Files:
+
 - `src-tauri/src/config/types.rs` - Added `ui_scale` field
 - `src-tauri/src/config/loader.rs` - Added `update_ui_scale()` method
 - `src-tauri/src/commands.rs` - Added `update_ui_scale()` and `open_devtools()` commands
@@ -181,6 +193,7 @@ await ConfigService.updateUiScale(1.25); // 125%
 All context menu items now use professional icons from the Iconify Solar icon set.
 
 **Examples:**
+
 - `solar:copy-bold` - Copy action
 - `solar:clipboard-bold` - Paste action
 - `solar:trash-bin-trash-bold` - Delete action
@@ -193,6 +206,7 @@ All context menu items now use professional icons from the Iconify Solar icon se
 Browse all icons at: https://icones.js.org/collection/solar
 
 **Icon Format:**
+
 ```typescript
 {
   id: 'copy',
@@ -208,21 +222,21 @@ All new features are fully typed:
 
 ```typescript
 interface UiConfig {
-  theme: string;
-  glow_effects: boolean;
-  animations: boolean;
-  smooth_scroll: boolean;
-  ui_scale: number;  // NEW: 0.5 to 2.0
+	theme: string;
+	glow_effects: boolean;
+	animations: boolean;
+	smooth_scroll: boolean;
+	ui_scale: number; // NEW: 0.5 to 2.0
 }
 
 interface ContextMenuItem {
-  id: string;
-  label: string;
-  icon?: string;  // Supports Iconify icons and HTML
-  shortcut?: string;
-  disabled?: boolean;
-  separator?: boolean;
-  onClick?: () => void | Promise<void>;
+	id: string;
+	label: string;
+	icon?: string; // Supports Iconify icons and HTML
+	shortcut?: string;
+	disabled?: boolean;
+	separator?: boolean;
+	onClick?: () => void | Promise<void>;
 }
 ```
 
@@ -245,6 +259,7 @@ interface ContextMenuItem {
 ## 📝 Future Enhancements
 
 Potential improvements:
+
 - [ ] Custom keyboard shortcut handler integration
 - [ ] Nested/submenu support
 - [ ] Context menu positioning preferences (left/right/top/bottom)

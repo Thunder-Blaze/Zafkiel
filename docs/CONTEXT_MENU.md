@@ -63,21 +63,19 @@ The simplest way to add a context menu is using the `useContextMenu` hook:
 		{
 			id: 'copy',
 			label: 'Copy',
-			onClick: () => console.log('Copy clicked')
+			onClick: () => console.log('Copy clicked'),
 		},
 		{
 			id: 'paste',
 			label: 'Paste',
-			onClick: () => console.log('Paste clicked')
-		}
+			onClick: () => console.log('Paste clicked'),
+		},
 	];
 
 	const { onContextMenu } = useContextMenu(items);
 </script>
 
-<div oncontextmenu={onContextMenu}>
-	Right-click me!
-</div>
+<div oncontextmenu={onContextMenu}>Right-click me!</div>
 ```
 
 ### With Icons
@@ -93,31 +91,30 @@ Add icons from Iconify (recommended) or HTML/emoji icons to your menu items:
 			id: 'copy',
 			label: 'Copy',
 			icon: 'solar:copy-bold', // Iconify Solar icon (recommended)
-			onClick: () => navigator.clipboard.writeText('...')
+			onClick: () => navigator.clipboard.writeText('...'),
 		},
 		{
 			id: 'paste',
 			label: 'Paste',
 			icon: 'solar:clipboard-bold',
-			onClick: () => console.log('Paste')
+			onClick: () => console.log('Paste'),
 		},
 		{
 			id: 'delete',
 			label: 'Delete',
 			icon: 'solar:trash-bin-trash-bold',
-			onClick: () => console.log('Delete')
-		}
+			onClick: () => console.log('Delete'),
+		},
 	];
 
 	const { onContextMenu } = useContextMenu(items);
 </script>
 
-<div oncontextmenu={onContextMenu} data-has-context-menu>
-	Right-click for menu with icons
-</div>
+<div oncontextmenu={onContextMenu} data-has-context-menu>Right-click for menu with icons</div>
 ```
 
 **Icon Types**:
+
 - **Iconify icons** (recommended): Use the format `'iconset:icon-name'`, e.g., `'solar:copy-bold'`
 - **HTML/Emoji**: Use emoji strings or HTML directly, e.g., `'📋'` or `'<svg>...</svg>'`
 
@@ -136,23 +133,21 @@ Display keyboard shortcuts for menu items:
 			label: 'Copy',
 			icon: 'solar:copy-bold',
 			shortcut: '⌘C', // Displayed on the right
-			onClick: () => navigator.clipboard.writeText('...')
+			onClick: () => navigator.clipboard.writeText('...'),
 		},
 		{
 			id: 'paste',
 			label: 'Paste',
 			icon: 'solar:clipboard-bold',
 			shortcut: '⌘V',
-			onClick: () => console.log('Paste')
-		}
+			onClick: () => console.log('Paste'),
+		},
 	];
 
 	const { onContextMenu } = useContextMenu(items);
 </script>
 
-<div oncontextmenu={onContextMenu} data-has-context-menu>
-	Right-click for menu with shortcuts
-</div>
+<div oncontextmenu={onContextMenu} data-has-context-menu>Right-click for menu with shortcuts</div>
 ```
 
 **Note**: Shortcuts are visual only. You need to implement the actual keyboard handlers separately.
@@ -169,14 +164,14 @@ Some items can be disabled based on application state:
 		{
 			id: 'copy',
 			label: 'Copy',
-			onClick: () => console.log('Copy')
+			onClick: () => console.log('Copy'),
 		},
 		{
 			id: 'paste',
 			label: 'Paste',
 			disabled: !canPaste, // Dynamically disabled
-			onClick: () => console.log('Paste')
-		}
+			onClick: () => console.log('Paste'),
+		},
 	]);
 
 	const { onContextMenu } = useContextMenu(items);
@@ -193,23 +188,23 @@ Use separators to group related items:
 		{
 			id: 'copy',
 			label: 'Copy',
-			onClick: () => console.log('Copy')
+			onClick: () => console.log('Copy'),
 		},
 		{
 			id: 'paste',
 			label: 'Paste',
-			onClick: () => console.log('Paste')
+			onClick: () => console.log('Paste'),
 		},
 		{
 			id: 'sep1',
 			label: '',
-			separator: true // This creates a separator line
+			separator: true, // This creates a separator line
 		},
 		{
 			id: 'delete',
 			label: 'Delete',
-			onClick: () => console.log('Delete')
-		}
+			onClick: () => console.log('Delete'),
+		},
 	];
 
 	const { onContextMenu } = useContextMenu(items);
@@ -232,7 +227,7 @@ Create context menus that change based on what was clicked:
 				id: 'copy-text',
 				label: `Copy "${text}"`,
 				icon: 'solar:copy-bold',
-				onClick: () => navigator.clipboard.writeText(text)
+				onClick: () => navigator.clipboard.writeText(text),
 			},
 			{
 				id: 'search',
@@ -240,8 +235,8 @@ Create context menus that change based on what was clicked:
 				icon: 'solar:magnifer-bold',
 				onClick: () => {
 					window.open(`https://google.com/search?q=${encodeURIComponent(text)}`, '_blank');
-				}
-			}
+				},
+			},
 		];
 	});
 </script>
@@ -272,16 +267,17 @@ interface ContextMenuItem {
 Creates a context menu with static items.
 
 **Parameters**:
+
 - `items`: `ContextMenuItem[]` or `() => ContextMenuItem[]` - Menu items or factory function
 
 **Returns**:
+
 - `{ onContextMenu }` - Event handler for `oncontextmenu` event
 
 **Example**:
+
 ```typescript
-const { onContextMenu } = useContextMenu([
-	{ id: 'copy', label: 'Copy', onClick: () => {} }
-]);
+const { onContextMenu } = useContextMenu([{ id: 'copy', label: 'Copy', onClick: () => {} }]);
 ```
 
 ### `useContextMenuDynamic(factory)` Hook
@@ -289,15 +285,18 @@ const { onContextMenu } = useContextMenu([
 Creates a context menu with items based on the clicked element.
 
 **Parameters**:
+
 - `factory`: `(element: HTMLElement) => ContextMenuItem[]` - Function that returns items based on the element
 
 **Returns**:
+
 - `{ onContextMenu }` - Event handler for `oncontextmenu` event
 
 **Example**:
+
 ```typescript
 const { onContextMenu } = useContextMenuDynamic((element) => [
-	{ id: 'info', label: `Info for ${element.id}`, onClick: () => {} }
+	{ id: 'info', label: `Info for ${element.id}`, onClick: () => {} },
 ]);
 ```
 
@@ -306,11 +305,13 @@ const { onContextMenu } = useContextMenuDynamic((element) => [
 Global store for managing context menu state.
 
 **Methods**:
+
 - `open(x, y, items)` - Open menu at coordinates with items
 - `close()` - Close the menu
 - `handleItemClick(item)` - Handle item click (internal)
 
 **State**:
+
 ```typescript
 {
 	isOpen: boolean;
@@ -334,12 +335,12 @@ Global store for managing context menu state.
 			id: 'view',
 			label: 'View Details',
 			icon: 'solar:eye-bold',
-			onClick: () => router.push(`/anime/${anime.id}`)
+			onClick: () => router.push(`/anime/${anime.id}`),
 		},
 		{
 			id: 'sep1',
 			label: '',
-			separator: true
+			separator: true,
 		},
 		{
 			id: 'watching',
@@ -348,7 +349,7 @@ Global store for managing context menu state.
 			onClick: async () => {
 				await updateAnimeStatus(anime.id, 'WATCHING');
 				toast.success('Status updated!');
-			}
+			},
 		},
 		{
 			id: 'completed',
@@ -357,12 +358,12 @@ Global store for managing context menu state.
 			onClick: async () => {
 				await updateAnimeStatus(anime.id, 'COMPLETED');
 				toast.success('Marked as completed!');
-			}
+			},
 		},
 		{
 			id: 'sep2',
 			label: '',
-			separator: true
+			separator: true,
 		},
 		{
 			id: 'favorite',
@@ -371,8 +372,8 @@ Global store for managing context menu state.
 			onClick: async () => {
 				await addToFavorites(anime.id);
 				toast.success('Added to favorites!');
-			}
-		}
+			},
+		},
 	];
 
 	const { onContextMenu } = useContextMenu(() => createAnimeMenu(anime));
@@ -405,7 +406,7 @@ Global store for managing context menu state.
 				shortcut: '⌘C',
 				onClick: async () => {
 					await navigator.clipboard.writeText(text);
-				}
+				},
 			},
 			{
 				id: 'search',
@@ -413,7 +414,7 @@ Global store for managing context menu state.
 				icon: 'solar:magnifer-bold',
 				onClick: () => {
 					window.open(`https://google.com/search?q=${encodeURIComponent(text)}`, '_blank');
-				}
+				},
 			},
 			{
 				id: 'translate',
@@ -421,8 +422,8 @@ Global store for managing context menu state.
 				icon: 'solar:global-bold',
 				onClick: () => {
 					// Open translation service
-				}
-			}
+				},
+			},
 		];
 
 		contextMenuStore.open(e.clientX, e.clientY, items);
@@ -517,11 +518,13 @@ const items = [
 ### Performance Tips
 
 1. **Use `$derived`** for dynamic menu items:
+
    ```typescript
    const items = $derived(createMenuItems(selectedItems));
    ```
 
 2. **Memoize expensive calculations**:
+
    ```typescript
    const items = $derived.by(() => {
    	// Expensive computation
@@ -588,6 +591,7 @@ bun run tauri dev
 ```
 
 Navigate to `/context-menu-demo` to see:
+
 - Simple context menu
 - Anime-specific actions
 - Text selection menu
@@ -630,8 +634,8 @@ const items: ContextMenuItem[] = [
 	{
 		id: 'unique-id', // Required
 		label: 'Label', // Required
-		onClick: () => {} // Required (unless separator)
-	}
+		onClick: () => {}, // Required (unless separator)
+	},
 ];
 ```
 

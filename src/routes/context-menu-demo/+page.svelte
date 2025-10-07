@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle,
+	} from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { useContextMenu } from '$lib/hooks/useContextMenu';
 	import { toast } from 'svelte-sonner';
@@ -13,7 +19,7 @@
 			shortcut: '⌘C',
 			onClick: () => {
 				toast.success('Copy clicked!');
-			}
+			},
 		},
 		{
 			id: 'paste',
@@ -22,12 +28,12 @@
 			shortcut: '⌘V',
 			onClick: () => {
 				toast.success('Paste clicked!');
-			}
+			},
 		},
 		{
 			id: 'sep1',
 			label: '',
-			separator: true
+			separator: true,
 		},
 		{
 			id: 'delete',
@@ -36,8 +42,8 @@
 			shortcut: 'Del',
 			onClick: () => {
 				toast.error('Delete clicked!');
-			}
-		}
+			},
+		},
 	];
 
 	const { onContextMenu: onSimpleContextMenu } = useContextMenu(simpleMenuItems);
@@ -52,7 +58,7 @@
 			icon: 'solar:eye-bold',
 			onClick: () => {
 				toast.info(`Viewing ${selectedAnime}`);
-			}
+			},
 		},
 		{
 			id: 'add-to-list',
@@ -60,12 +66,12 @@
 			icon: 'solar:add-circle-bold',
 			onClick: () => {
 				toast.success(`Added ${selectedAnime} to list`);
-			}
+			},
 		},
 		{
 			id: 'sep1',
 			label: '',
-			separator: true
+			separator: true,
 		},
 		{
 			id: 'watching',
@@ -73,7 +79,7 @@
 			icon: 'solar:play-circle-bold',
 			onClick: () => {
 				toast.success(`${selectedAnime} marked as watching`);
-			}
+			},
 		},
 		{
 			id: 'completed',
@@ -81,7 +87,7 @@
 			icon: 'solar:check-circle-bold',
 			onClick: () => {
 				toast.success(`${selectedAnime} marked as completed`);
-			}
+			},
 		},
 		{
 			id: 'plan',
@@ -89,12 +95,12 @@
 			icon: 'solar:bookmark-bold',
 			onClick: () => {
 				toast.info(`${selectedAnime} added to plan`);
-			}
+			},
 		},
 		{
 			id: 'sep2',
 			label: '',
-			separator: true
+			separator: true,
 		},
 		{
 			id: 'share',
@@ -103,7 +109,7 @@
 			shortcut: '⌘S',
 			onClick: () => {
 				toast.info(`Sharing ${selectedAnime}`);
-			}
+			},
 		},
 		{
 			id: 'favorite',
@@ -111,8 +117,8 @@
 			icon: 'solar:star-bold',
 			onClick: () => {
 				toast.success(`${selectedAnime} added to favorites`);
-			}
-		}
+			},
+		},
 	];
 
 	const { onContextMenu: onAnimeContextMenu } = useContextMenu(animeMenuItems);
@@ -137,7 +143,7 @@
 					onClick: async () => {
 						await navigator.clipboard.writeText(text);
 						toast.success('Copied to clipboard!');
-					}
+					},
 				},
 				{
 					id: 'search',
@@ -146,12 +152,12 @@
 					onClick: () => {
 						window.open(`https://www.google.com/search?q=${encodeURIComponent(text)}`, '_blank');
 						toast.info('Opening search...');
-					}
+					},
 				},
 				{
 					id: 'sep1',
 					label: '',
-					separator: true
+					separator: true,
 				},
 				{
 					id: 'translate',
@@ -159,8 +165,8 @@
 					icon: 'solar:global-bold',
 					onClick: () => {
 						toast.info(`Translating: ${text}`);
-					}
-				}
+					},
+				},
 			];
 
 			// Use context menu hook directly
@@ -179,7 +185,7 @@
 			icon: 'solar:check-circle-bold',
 			onClick: () => {
 				toast.success('Enabled item clicked!');
-			}
+			},
 		},
 		{
 			id: 'disabled',
@@ -188,12 +194,12 @@
 			disabled: true,
 			onClick: () => {
 				toast.error('This should not appear');
-			}
+			},
 		},
 		{
 			id: 'sep1',
 			label: '',
-			separator: true
+			separator: true,
 		},
 		{
 			id: 'another',
@@ -201,16 +207,16 @@
 			icon: 'solar:star-shine-bold',
 			onClick: () => {
 				toast.success('Another enabled clicked!');
-			}
-		}
+			},
+		},
 	];
 
 	const { onContextMenu: onDisabledContextMenu } = useContextMenu(disabledMenuItems);
 </script>
 
-<div class="container mx-auto p-8 max-w-6xl">
+<div class="container mx-auto max-w-6xl p-8">
 	<div class="mb-8">
-		<h1 class="text-4xl font-bold mb-2">Custom Context Menu Demo</h1>
+		<h1 class="mb-2 text-4xl font-bold">Custom Context Menu Demo</h1>
 		<p class="text-muted-foreground">
 			Right-click on any card to see custom context menus in action
 		</p>
@@ -252,7 +258,7 @@
 					<p class="text-sm text-muted-foreground">
 						View details, add to list, change status, share, or favorite this anime.
 					</p>
-					<div class="flex gap-2 flex-wrap">
+					<div class="flex flex-wrap gap-2">
 						<Badge>View</Badge>
 						<Badge>Add to List</Badge>
 						<Badge variant="secondary">Watching</Badge>
@@ -278,9 +284,9 @@
 						and his friends in their fight against giant humanoid creatures called Titans.
 					</p>
 					{#if selectedText}
-						<div class="p-3 bg-muted rounded">
-							<p class="text-xs text-muted-foreground mb-1">Selected:</p>
-							<p class="text-sm font-mono">{selectedText}</p>
+						<div class="rounded bg-muted p-3">
+							<p class="mb-1 text-xs text-muted-foreground">Selected:</p>
+							<p class="font-mono text-sm">{selectedText}</p>
 						</div>
 					{/if}
 					<div class="flex gap-2">
@@ -301,8 +307,8 @@
 			<CardContent>
 				<div class="space-y-4">
 					<p class="text-sm">
-						This context menu includes both enabled and disabled items. Disabled items appear
-						grayed out and cannot be clicked.
+						This context menu includes both enabled and disabled items. Disabled items appear grayed
+						out and cannot be clicked.
 					</p>
 					<div class="flex gap-2">
 						<Badge>Enabled</Badge>
@@ -323,7 +329,7 @@
 		<CardContent>
 			<div class="grid gap-4 md:grid-cols-2">
 				<div class="space-y-2">
-					<h3 class="font-semibold flex items-center gap-2">
+					<h3 class="flex items-center gap-2 font-semibold">
 						<span>🎨</span> Styled with shadcn-svelte
 					</h3>
 					<p class="text-sm text-muted-foreground">
@@ -332,7 +338,7 @@
 				</div>
 
 				<div class="space-y-2">
-					<h3 class="font-semibold flex items-center gap-2">
+					<h3 class="flex items-center gap-2 font-semibold">
 						<span>⚡</span> High Performance
 					</h3>
 					<p class="text-sm text-muted-foreground">
@@ -341,7 +347,7 @@
 				</div>
 
 				<div class="space-y-2">
-					<h3 class="font-semibold flex items-center gap-2">
+					<h3 class="flex items-center gap-2 font-semibold">
 						<span>🔧</span> Highly Customizable
 					</h3>
 					<p class="text-sm text-muted-foreground">
@@ -350,7 +356,7 @@
 				</div>
 
 				<div class="space-y-2">
-					<h3 class="font-semibold flex items-center gap-2">
+					<h3 class="flex items-center gap-2 font-semibold">
 						<span>📱</span> Smart Positioning
 					</h3>
 					<p class="text-sm text-muted-foreground">
@@ -359,21 +365,17 @@
 				</div>
 
 				<div class="space-y-2">
-					<h3 class="font-semibold flex items-center gap-2">
+					<h3 class="flex items-center gap-2 font-semibold">
 						<span>⌨️</span> Keyboard Support
 					</h3>
-					<p class="text-sm text-muted-foreground">
-						Close with Escape key, navigate with keyboard
-					</p>
+					<p class="text-sm text-muted-foreground">Close with Escape key, navigate with keyboard</p>
 				</div>
 
 				<div class="space-y-2">
-					<h3 class="font-semibold flex items-center gap-2">
+					<h3 class="flex items-center gap-2 font-semibold">
 						<span>🎯</span> Easy to Use
 					</h3>
-					<p class="text-sm text-muted-foreground">
-						Simple hook-based API with TypeScript support
-					</p>
+					<p class="text-sm text-muted-foreground">Simple hook-based API with TypeScript support</p>
 				</div>
 			</div>
 		</CardContent>

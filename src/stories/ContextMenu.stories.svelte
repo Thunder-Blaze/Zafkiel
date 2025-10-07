@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Story, Template } from '@storybook/addon-svelte-csf';
 	import ContextMenuStory from './ContextMenu.story.svelte';
-	
+
 	const meta = {
 		title: 'Components/ContextMenu',
 		component: ContextMenuStory,
@@ -11,17 +11,17 @@
 			docs: {
 				description: {
 					component:
-						'A custom right-click context menu component built with shadcn-svelte styling. Supports icons, shortcuts, separators, and disabled states.'
-				}
-			}
+						'A custom right-click context menu component built with shadcn-svelte styling. Supports icons, shortcuts, separators, and disabled states.',
+				},
+			},
 		},
 		argTypes: {
 			variant: {
 				control: 'select',
 				options: ['default', 'icons', 'shortcuts', 'disabled', 'complex'],
-				description: 'The variant of the context menu to display'
-			}
-		}
+				description: 'The variant of the context menu to display',
+			},
+		},
 	};
 </script>
 
@@ -44,5 +44,3 @@
 <Story name="Complex" args={{ variant: 'complex' }}>
 	<ContextMenuStory variant="complex" />
 </Story>
-
-

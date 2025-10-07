@@ -1,7 +1,23 @@
 export type MediaStatus = 'FINISHED' | 'RELEASING' | 'NOT_YET_RELEASED' | 'CANCELLED' | 'HIATUS';
-export type MediaListStatus = 'CURRENT' | 'PLANNING' | 'COMPLETED' | 'DROPPED' | 'PAUSED' | 'REPEATING';
+export type MediaListStatus =
+	| 'CURRENT'
+	| 'PLANNING'
+	| 'COMPLETED'
+	| 'DROPPED'
+	| 'PAUSED'
+	| 'REPEATING';
 export type MediaSeason = 'WINTER' | 'SPRING' | 'SUMMER' | 'FALL';
-export type MediaFormat = 'TV' | 'TV_SHORT' | 'MOVIE' | 'SPECIAL' | 'OVA' | 'ONA' | 'MUSIC' | 'MANGA' | 'NOVEL' | 'ONE_SHOT';
+export type MediaFormat =
+	| 'TV'
+	| 'TV_SHORT'
+	| 'MOVIE'
+	| 'SPECIAL'
+	| 'OVA'
+	| 'ONA'
+	| 'MUSIC'
+	| 'MANGA'
+	| 'NOVEL'
+	| 'ONE_SHOT';
 
 export interface MediaData {
 	id: number;

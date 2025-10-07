@@ -11,7 +11,7 @@
 
 	// Subscribe to smooth scroll config
 	$effect(() => {
-		const unsubscribe = smoothScroll.subscribe(value => {
+		const unsubscribe = smoothScroll.subscribe((value) => {
 			smoothScrollEnabled = value;
 		});
 
@@ -33,7 +33,7 @@
 				syncTouchLerp: 0.075,
 				touchInertiaMultiplier: 35,
 				infinite: false,
-				autoResize: true
+				autoResize: true,
 			});
 
 			function raf(time: number) {

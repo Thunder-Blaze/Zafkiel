@@ -5,6 +5,7 @@ This document provides guidelines for GitHub Copilot when working on the Zafkiel
 ## 🎯 Core Principles
 
 ### Code Quality Standards
+
 - **Simplicity First**: Write simple, concise code that is easy to understand and maintain
 - **Performance Optimized**: Always prioritize performance and efficiency in implementation
 - **Best Practices**: Follow industry best practices for Rust, Svelte, and TypeScript
@@ -13,6 +14,7 @@ This document provides guidelines for GitHub Copilot when working on the Zafkiel
 ### Technology Stack Guidelines
 
 #### Svelte 5 (Runes Mode)
+
 - **Always use Svelte 5's runes mode** - Reference: https://svelte.dev/
 - Use `$state()`, `$derived()`, `$effect()` instead of legacy reactive declarations
 - Prefer composition over inheritance with Svelte 5 patterns
@@ -29,12 +31,14 @@ $: doubled = count * 2;
 ```
 
 #### shadcn-svelte Components
+
 - **Use latest shadcn-svelte documentation** - Reference: https://shadcn-svelte.com/docs
 - Prefer shadcn-svelte components over custom UI components
 - Follow the established design system and component patterns
 - Maintain consistent styling with Tailwind CSS classes
 
 #### TypeScript Best Practices
+
 - Define proper interfaces and types for all data structures
 - Use strict TypeScript configuration
 - Leverage union types, generics, and utility types effectively
@@ -43,23 +47,24 @@ $: doubled = count * 2;
 ```typescript
 // ✅ Good - Proper typing
 interface AnimeData {
-  readonly id: number;
-  readonly title: string;
-  readonly score: number;
-  readonly status: 'WATCHING' | 'COMPLETED' | 'PLAN_TO_WATCH' | 'DROPPED' | 'PAUSED';
+	readonly id: number;
+	readonly title: string;
+	readonly score: number;
+	readonly status: 'WATCHING' | 'COMPLETED' | 'PLAN_TO_WATCH' | 'DROPPED' | 'PAUSED';
 }
 
 function processAnime(anime: AnimeData): Promise<void> {
-  // Implementation
+	// Implementation
 }
 
 // ❌ Avoid - Any types or missing types
 function processAnime(anime: any) {
-  // Implementation
+	// Implementation
 }
 ```
 
 #### Rust (Tauri Backend)
+
 - Follow Rust best practices: ownership, borrowing, and lifetimes
 - Use `Result<T, E>` for error handling
 - Prefer `&str` over `String` when possible
@@ -79,6 +84,7 @@ async fn fetch_anime_data(id: u32) -> Result<AnimeData, String> {
 ## 🧪 Testing Requirements
 
 ### Storybook Stories
+
 - **Always create Storybook stories** for UI components
 - Include multiple variants and edge cases
 - Use realistic mock data in stories
@@ -87,22 +93,23 @@ async fn fetch_anime_data(id: u32) -> Result<AnimeData, String> {
 ```typescript
 // ✅ Good - Comprehensive Storybook story
 export const Default: Story = {
-  args: {
-    anime: mockAnimeData,
-    isLoggedIn: true,
-    onStatusChange: action('status-changed')
-  }
+	args: {
+		anime: mockAnimeData,
+		isLoggedIn: true,
+		onStatusChange: action('status-changed'),
+	},
 };
 
 export const LoadingState: Story = {
-  args: {
-    ...Default.args,
-    isLoading: true
-  }
+	args: {
+		...Default.args,
+		isLoading: true,
+	},
 };
 ```
 
 ### Vitest Unit Tests
+
 - Write unit tests for utility functions and business logic
 - Test error conditions and edge cases
 - Use descriptive test names and organize with `describe` blocks
@@ -110,17 +117,18 @@ export const LoadingState: Story = {
 ```typescript
 // ✅ Good - Comprehensive unit tests
 describe('formatAnimeScore', () => {
-  it('should format score with one decimal place', () => {
-    expect(formatAnimeScore(8.7)).toBe('8.7');
-  });
+	it('should format score with one decimal place', () => {
+		expect(formatAnimeScore(8.7)).toBe('8.7');
+	});
 
-  it('should handle null scores gracefully', () => {
-    expect(formatAnimeScore(null)).toBe('N/A');
-  });
+	it('should handle null scores gracefully', () => {
+		expect(formatAnimeScore(null)).toBe('N/A');
+	});
 });
 ```
 
 ### Playwright E2E Tests
+
 - Create end-to-end tests for critical user flows
 - Test cross-platform compatibility features
 - Include accessibility testing
@@ -128,6 +136,7 @@ describe('formatAnimeScore', () => {
 ## 📝 Code Documentation
 
 ### Comments Guidelines
+
 - **Only comment complex logic** - Simple code should be self-documenting
 - Write concise, meaningful comments that explain "why", not "what"
 - Use JSDoc for public APIs and component interfaces
@@ -143,6 +152,7 @@ counter++;
 ```
 
 ### Function Documentation
+
 ```typescript
 /**
  * Fetches anime data with caching and error handling
@@ -151,13 +161,14 @@ counter++;
  * @returns Promise resolving to anime data or error
  */
 async function fetchAnimeData(id: number, useCache = true): Promise<AnimeData> {
-  // Implementation
+	// Implementation
 }
 ```
 
 ## 🚫 Anti-Patterns to Avoid
 
 ### Hardcoding in Application Code
+
 - **Never hardcode data in production code** - Use configuration files, environment variables, or APIs
 - Only hardcode in Storybook stories and tests for demonstration purposes
 
@@ -170,6 +181,7 @@ const popularAnime = await fetchPopularAnime();
 ```
 
 ### Legacy Patterns
+
 - Avoid Svelte 4 reactive declarations (`$:`)
 - Don't use deprecated shadcn-svelte components
 - Avoid any types in TypeScript
@@ -178,6 +190,7 @@ const popularAnime = await fetchPopularAnime();
 ## 🔧 Project-Specific Guidelines
 
 ### File Structure
+
 - Components in `src/lib/components/`
 - Utilities in `src/lib/utils/`
 - Types in `src/lib/types/`
@@ -185,6 +198,7 @@ const popularAnime = await fetchPopularAnime();
 - Tauri commands in `src-tauri/src/`
 
 ### Naming Conventions
+
 - **Components**: PascalCase (`AnimeCard.svelte`)
 - **Files**: kebab-case (`anime-service.ts`)
 - **Variables**: camelCase (`animeData`)
@@ -192,6 +206,7 @@ const popularAnime = await fetchPopularAnime();
 - **Types**: PascalCase (`AnimeData`)
 
 ### State Management
+
 - Use Svelte 5 runes for local component state
 - Implement stores for global application state
 - Prefer derived state over manual synchronization
@@ -199,11 +214,11 @@ const popularAnime = await fetchPopularAnime();
 ```typescript
 // ✅ Good - Svelte 5 state management
 let animeList = $state<AnimeData[]>([]);
-let filteredAnime = $derived(animeList.filter(anime => anime.score > 8));
+let filteredAnime = $derived(animeList.filter((anime) => anime.score > 8));
 
 $effect(() => {
-  // Side effects when animeList changes
-  saveToLocalStorage(animeList);
+	// Side effects when animeList changes
+	saveToLocalStorage(animeList);
 });
 ```
 

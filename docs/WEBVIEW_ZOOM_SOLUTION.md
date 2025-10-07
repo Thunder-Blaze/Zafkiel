@@ -3,6 +3,7 @@
 ## ✅ Final Solution: Native Webview Zoom
 
 After testing CSS transform scaling, we discovered it doesn't scale **native browser elements** like:
+
 - Default context menus (right-click menus)
 - Browser dialogs and alerts
 - Scrollbars
@@ -22,7 +23,7 @@ After testing CSS transform scaling, we discovered it doesn't scale **native bro
 #[tauri::command]
 pub fn update_ui_scale(scale: f32, config: State<ConfigState>, app: tauri::AppHandle) -> ConfigResponse<()> {
     let clamped_scale = scale.max(0.5).min(2.0);
-    
+
     // Save to config
     match config.update_ui_scale(clamped_scale) {
         Ok(_) => {
@@ -83,42 +84,45 @@ static async applyUiScale(): Promise<void> {
 
 ```typescript
 export function useUiScale() {
-    let currentScale = $state(1.0);
-    let isInitialized = $state(false);
+	let currentScale = $state(1.0);
+	let isInitialized = $state(false);
 
-    // Apply zoom on app startup
-    $effect(() => {
-        if (typeof window !== 'undefined' && !isInitialized) {
-            isInitialized = true;
-            
-            ConfigService.applyUiScale()
-                .then(() => ConfigService.getUiConfig())
-                .then(config => {
-                    currentScale = config.ui_scale;
-                })
-                .catch(error => {
-                    console.warn('Failed to apply UI scale:', error);
-                });
-        }
-    });
+	// Apply zoom on app startup
+	$effect(() => {
+		if (typeof window !== 'undefined' && !isInitialized) {
+			isInitialized = true;
 
-    async function setScale(scale: number): Promise<void> {
-        const clampedScale = Math.max(0.5, Math.min(2.0, scale));
-        await ConfigService.updateUiScale(clampedScale);
-        currentScale = clampedScale;
-    }
+			ConfigService.applyUiScale()
+				.then(() => ConfigService.getUiConfig())
+				.then((config) => {
+					currentScale = config.ui_scale;
+				})
+				.catch((error) => {
+					console.warn('Failed to apply UI scale:', error);
+				});
+		}
+	});
 
-    return {
-        get scale() { return currentScale; },
-        setScale,
-        resetScale: () => setScale(1.0)
-    };
+	async function setScale(scale: number): Promise<void> {
+		const clampedScale = Math.max(0.5, Math.min(2.0, scale));
+		await ConfigService.updateUiScale(clampedScale);
+		currentScale = clampedScale;
+	}
+
+	return {
+		get scale() {
+			return currentScale;
+		},
+		setScale,
+		resetScale: () => setScale(1.0),
+	};
 }
 ```
 
 ## Benefits of Webview Zoom
 
 ### ✅ Scales Everything
+
 - ✅ All HTML/CSS content
 - ✅ Native context menus (right-click)
 - ✅ Browser form controls
@@ -128,6 +132,7 @@ export function useUiScale() {
 - ✅ Canvas and WebGL content
 
 ### ✅ No Positioning Issues
+
 - ✅ Floating UI calculates correctly
 - ✅ No transform coordinate problems
 - ✅ Dropdowns position perfectly
@@ -135,12 +140,14 @@ export function useUiScale() {
 - ✅ No need for portal workarounds
 
 ### ✅ Better Performance
+
 - ✅ GPU-accelerated at OS level
 - ✅ No JavaScript calculations needed
 - ✅ No CSS transform overhead
 - ✅ Handled by native webview
 
 ### ✅ Simpler Code
+
 - ❌ No CSS transform wrappers
 - ❌ No portal positioning fixes
 - ❌ No manual scale application
@@ -150,6 +157,7 @@ export function useUiScale() {
 ## What Was Changed
 
 ### Removed
+
 1. **CSS Transform Scaling** - `#app-scale-wrapper` div removed
 2. **CSS Variables** - `--ui-scale` no longer needed
 3. **Inline Styles** - No more `transform: scale()` on dropdowns
@@ -158,12 +166,14 @@ export function useUiScale() {
 6. **app.html Inline Script** - Removed scale preloading
 
 ### Added
+
 1. **Tauri Command** - `update_ui_scale` with zoom application
 2. **Tauri Command** - `apply_ui_scale` for startup
 3. **Service Method** - `ConfigService.applyUiScale()`
 4. **Hook Effect** - Calls `applyUiScale()` on mount
 
 ### Fixed
+
 1. **Overflow Issue** - Changed `overflow-hidden` to `overflow-y-auto` in dropdowns
 2. **Submenu Clipping** - Submenus no longer cut off
 3. **Native Elements** - Now scale with everything else
@@ -175,18 +185,18 @@ If you have existing CSS scaling code:
 ```svelte
 <!-- ❌ OLD: CSS Transform Scaling -->
 <div style="transform: scale(var(--ui-scale))">
-    <Portal to="#app-scale-wrapper">
-        <Dropdown />
-    </Portal>
+	<Portal to="#app-scale-wrapper">
+		<Dropdown />
+	</Portal>
 </div>
 ```
 
 ```svelte
 <!-- ✅ NEW: Webview Zoom (no changes needed!) -->
 <div>
-    <Portal>
-        <Dropdown />
-    </Portal>
+	<Portal>
+		<Dropdown />
+	</Portal>
 </div>
 ```
 
@@ -240,6 +250,7 @@ await uiScale.resetScale();
 ## Browser vs Tauri
 
 This solution is **Tauri-specific**. In a regular browser:
+
 - `window.set_zoom()` doesn't exist
 - Fall back to CSS `transform: scale()` or `zoom` property
 - Or just don't support UI scaling in web mode
@@ -247,6 +258,7 @@ This solution is **Tauri-specific**. In a regular browser:
 ## Performance
 
 Webview zoom is **GPU-accelerated** at the OS level:
+
 - Faster than CSS transforms
 - No JavaScript overhead
 - Native rendering pipeline
@@ -255,6 +267,7 @@ Webview zoom is **GPU-accelerated** at the OS level:
 ## Conclusion
 
 **Webview zoom is the correct solution for Tauri apps** because it:
+
 1. Scales everything including native elements
 2. Has no positioning issues
 3. Is faster and simpler

@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle,
+	} from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Select from '$lib/components/ui/select';
@@ -34,7 +40,7 @@
 		{ value: 'vue', label: 'Vue' },
 		{ value: 'angular', label: 'Angular' },
 		{ value: 'nextjs', label: 'Next.js' },
-		{ value: 'nuxt', label: 'Nuxt' }
+		{ value: 'nuxt', label: 'Nuxt' },
 	];
 
 	const sizes = [
@@ -42,7 +48,7 @@
 		{ value: 'sm', label: 'Small' },
 		{ value: 'md', label: 'Medium' },
 		{ value: 'lg', label: 'Large' },
-		{ value: 'xl', label: 'Extra Large' }
+		{ value: 'xl', label: 'Extra Large' },
 	];
 
 	const frameworkTriggerContent = $derived(
@@ -56,13 +62,13 @@
 
 <div class="container mx-auto p-8">
 	<div class="mb-8">
-		<h1 class="text-4xl font-bold mb-2">Dropdown & Select Demo</h1>
+		<h1 class="mb-2 text-4xl font-bold">Dropdown & Select Demo</h1>
 		<p class="text-muted-foreground">
 			Test dropdown positioning and visual effects at different UI scales
 		</p>
 	</div>
 
-	<div class="grid gap-6 md:grid-cols-2 mb-8">
+	<div class="mb-8 grid gap-6 md:grid-cols-2">
 		<!-- UI Scale Control -->
 		<Card>
 			<CardHeader>
@@ -77,9 +83,9 @@
 					min="50"
 					max="200"
 					step="5"
-					class="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
+					class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-secondary accent-primary"
 				/>
-				<div class="flex justify-between text-xs text-muted-foreground mt-2">
+				<div class="mt-2 flex justify-between text-xs text-muted-foreground">
 					<span>50%</span>
 					<span>100%</span>
 					<span>200%</span>
@@ -93,7 +99,7 @@
 				<CardTitle>Dropdown Menu</CardTitle>
 				<CardDescription>Test blur effects and positioning</CardDescription>
 			</CardHeader>
-			<CardContent class="flex gap-4 flex-wrap">
+			<CardContent class="flex flex-wrap gap-4">
 				<DropdownMenu.Root>
 					<DropdownMenu.Trigger>
 						<Button variant="outline">
@@ -204,18 +210,13 @@
 				<CardDescription>Test select dropdown with blur effects</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<div class="flex gap-4 flex-wrap items-end">
-					<div class="flex-1 min-w-[200px] space-y-2">
-						<label for="framework-select" class="text-sm font-medium">
-							Choose a framework
-						</label>
-						<Select.Root
-							type="single"
-							bind:value={selectedFramework}
-							items={frameworks}
-						>
+				<div class="flex flex-wrap items-end gap-4">
+					<div class="min-w-[200px] flex-1 space-y-2">
+						<label for="framework-select" class="text-sm font-medium"> Choose a framework </label>
+						<Select.Root type="single" bind:value={selectedFramework} items={frameworks}>
 							<Select.Trigger id="framework-select" class="w-full">
-								{frameworks.find(f => f.value === selectedFramework)?.label || 'Select a framework'}
+								{frameworks.find((f) => f.value === selectedFramework)?.label ||
+									'Select a framework'}
 							</Select.Trigger>
 							<Select.Content>
 								<Select.Group>
@@ -230,14 +231,10 @@
 						</Select.Root>
 					</div>
 
-					<div class="flex-1 min-w-[200px] space-y-2">
-						<label for="size-select" class="text-sm font-medium">
-							Choose a size
-						</label>
+					<div class="min-w-[200px] flex-1 space-y-2">
+						<label for="size-select" class="text-sm font-medium"> Choose a size </label>
 						<Select.Root type="single">
-							<Select.Trigger id="size-select" class="w-full">
-								Select size
-							</Select.Trigger>
+							<Select.Trigger id="size-select" class="w-full">Select size</Select.Trigger>
 							<Select.Content>
 								<Select.Group>
 									<Select.Label>Sizes</Select.Label>
@@ -253,10 +250,10 @@
 				</div>
 
 				{#if selectedFramework}
-					<div class="mt-4 p-4 bg-muted rounded-lg">
+					<div class="mt-4 rounded-lg bg-muted p-4">
 						<p class="text-sm">
 							<span class="font-medium">Selected:</span>
-							{frameworks.find(f => f.value === selectedFramework)?.label}
+							{frameworks.find((f) => f.value === selectedFramework)?.label}
 						</p>
 					</div>
 				{/if}
@@ -271,7 +268,7 @@
 			<CardDescription>Test dropdowns at different positions on the screen</CardDescription>
 		</CardHeader>
 		<CardContent>
-			<div class="grid grid-cols-3 gap-4 min-h-[400px]">
+			<div class="grid min-h-[400px] grid-cols-3 gap-4">
 				<!-- Top Left -->
 				<div class="flex items-start justify-start">
 					<DropdownMenu.Root>

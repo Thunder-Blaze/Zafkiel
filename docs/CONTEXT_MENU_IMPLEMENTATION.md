@@ -88,13 +88,13 @@ A fully-featured custom right-click context menu system has been successfully im
 
 ```typescript
 interface ContextMenuItem {
-  id: string;              // Unique identifier
-  label: string;           // Display text
-  icon?: string;          // Icon (emoji or HTML)
-  shortcut?: string;      // Keyboard shortcut display
-  disabled?: boolean;     // Whether item is disabled
-  separator?: boolean;    // Whether this is a separator
-  onClick?: () => void | Promise<void>; // Click handler
+	id: string; // Unique identifier
+	label: string; // Display text
+	icon?: string; // Icon (emoji or HTML)
+	shortcut?: string; // Keyboard shortcut display
+	disabled?: boolean; // Whether item is disabled
+	separator?: boolean; // Whether this is a separator
+	onClick?: () => void | Promise<void>; // Click handler
 }
 ```
 
@@ -124,14 +124,14 @@ contextMenuStore.handleItemClick(item: ContextMenuItem);
 
 ```svelte
 <script lang="ts">
-  import { useContextMenu } from '$lib/hooks/useContextMenu';
-  
-  const items = [
-    { id: 'copy', label: 'Copy', icon: '📋', onClick: () => {} },
-    { id: 'paste', label: 'Paste', icon: '📄', onClick: () => {} }
-  ];
-  
-  const { onContextMenu } = useContextMenu(items);
+	import { useContextMenu } from '$lib/hooks/useContextMenu';
+
+	const items = [
+		{ id: 'copy', label: 'Copy', icon: '📋', onClick: () => {} },
+		{ id: 'paste', label: 'Paste', icon: '📄', onClick: () => {} },
+	];
+
+	const { onContextMenu } = useContextMenu(items);
 </script>
 
 <div oncontextmenu={onContextMenu}>Right-click me!</div>
@@ -141,23 +141,23 @@ contextMenuStore.handleItemClick(item: ContextMenuItem);
 
 ```svelte
 <script lang="ts">
-  const items = [
-    { 
-      id: 'copy', 
-      label: 'Copy', 
-      icon: '📋', 
-      shortcut: '⌘C',
-      onClick: () => navigator.clipboard.writeText('...')
-    },
-    { id: 'sep1', label: '', separator: true },
-    { 
-      id: 'delete', 
-      label: 'Delete', 
-      icon: '🗑️', 
-      shortcut: 'Del',
-      onClick: () => {}
-    }
-  ];
+	const items = [
+		{
+			id: 'copy',
+			label: 'Copy',
+			icon: '📋',
+			shortcut: '⌘C',
+			onClick: () => navigator.clipboard.writeText('...'),
+		},
+		{ id: 'sep1', label: '', separator: true },
+		{
+			id: 'delete',
+			label: 'Delete',
+			icon: '🗑️',
+			shortcut: 'Del',
+			onClick: () => {},
+		},
+	];
 </script>
 ```
 
@@ -165,18 +165,18 @@ contextMenuStore.handleItemClick(item: ContextMenuItem);
 
 ```svelte
 <script lang="ts">
-  import { useContextMenuDynamic } from '$lib/hooks/useContextMenu';
-  
-  const { onContextMenu } = useContextMenuDynamic((element) => {
-    const text = element.textContent;
-    return [
-      {
-        id: 'copy',
-        label: `Copy "${text}"`,
-        onClick: () => navigator.clipboard.writeText(text)
-      }
-    ];
-  });
+	import { useContextMenuDynamic } from '$lib/hooks/useContextMenu';
+
+	const { onContextMenu } = useContextMenuDynamic((element) => {
+		const text = element.textContent;
+		return [
+			{
+				id: 'copy',
+				label: `Copy "${text}"`,
+				onClick: () => navigator.clipboard.writeText(text),
+			},
+		];
+	});
 </script>
 ```
 
@@ -198,6 +198,7 @@ bun tauri dev
 ```
 
 Navigate to `/context-menu-demo` to see:
+
 - Simple context menu
 - Anime-specific actions
 - Text selection menu
@@ -265,15 +266,15 @@ Edit `src/lib/components/ContextMenu.svelte`:
 
 ```svelte
 <style>
-  .context-menu-content {
-    /* Customize menu container */
-    @apply rounded-lg border bg-popover shadow-2xl;
-  }
-  
-  .context-menu-item {
-    /* Customize menu items */
-    @apply px-3 py-2 text-sm;
-  }
+	.context-menu-content {
+		/* Customize menu container */
+		@apply rounded-lg border bg-popover shadow-2xl;
+	}
+
+	.context-menu-item {
+		/* Customize menu items */
+		@apply px-3 py-2 text-sm;
+	}
 </style>
 ```
 
@@ -281,7 +282,7 @@ Edit `src/lib/components/ContextMenu.svelte`:
 
 ```svelte
 <div
-  transition:scale={{ 
+  transition:scale={{
     duration: 200,  // Adjust duration
     easing: quintOut,  // Change easing
     start: 0.9  // Adjust scale start
@@ -339,6 +340,7 @@ None currently! The @apply CSS warnings are false positives from the linter - Ta
 ## ✨ Credits
 
 Built with:
+
 - **Svelte 5** - Reactive framework
 - **shadcn-svelte** - UI components
 - **Tailwind CSS** - Styling
