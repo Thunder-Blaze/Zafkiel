@@ -38,7 +38,7 @@ function createAuthStore() {
 
 			try {
 				const isAuthed = await checkAuthStatus();
-				
+
 				if (isAuthed) {
 					// Fetch user profile
 					const userResponse = await anilistApi.user.getCurrent();

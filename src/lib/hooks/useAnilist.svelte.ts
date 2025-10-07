@@ -21,8 +21,7 @@ export const anilistKeys = {
 		byId: (id: number) => ['anilist', 'anime', 'byId', id] as const,
 		trending: (params?: PaginationParams) => ['anilist', 'anime', 'trending', params] as const,
 		popular: (params?: PaginationParams) => ['anilist', 'anime', 'popular', params] as const,
-		seasonal: (params: SeasonalAnimeParams) =>
-			['anilist', 'anime', 'seasonal', params] as const,
+		seasonal: (params: SeasonalAnimeParams) => ['anilist', 'anime', 'seasonal', params] as const,
 	},
 
 	// Manga keys
@@ -58,7 +57,7 @@ export function useSearchAnime(
 	return createQuery(() => {
 		const p = typeof params === 'function' ? params() : params;
 		const e = typeof enabled === 'function' ? enabled() : enabled;
-		
+
 		return {
 			queryKey: anilistKeys.anime.search(p),
 			queryFn: async () => {

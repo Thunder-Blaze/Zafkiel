@@ -70,7 +70,7 @@ sequenceDiagram
     participant Browser as Browser/WebView
     participant AniList as AniList OAuth
     participant Server as Local Callback Server
-    
+
     App->>App: start_oauth_flow()
     App->>Server: Start on port 57575 (or next available)
     App->>App: Generate auth URL
@@ -112,7 +112,7 @@ import { onMount } from 'svelte';
 import { authStore } from '$lib/stores/auth';
 
 onMount(async () => {
-  await authStore.init();
+	await authStore.init();
 });
 ```
 
@@ -122,12 +122,12 @@ onMount(async () => {
 import { authStore } from '$lib/stores/auth';
 
 async function handleLogin() {
-  try {
-    await authStore.login();
-    // User is now authenticated
-  } catch (error) {
-    console.error('Login failed:', error);
-  }
+	try {
+		await authStore.login();
+		// User is now authenticated
+	} catch (error) {
+		console.error('Login failed:', error);
+	}
 }
 ```
 
@@ -135,17 +135,15 @@ async function handleLogin() {
 
 ```svelte
 <script>
-  import { isAuthenticated, currentUser, authLoading } from '$lib/stores/auth';
+	import { isAuthenticated, currentUser, authLoading } from '$lib/stores/auth';
 </script>
 
 {#if $authLoading}
-  <p>Loading...</p>
+	<p>Loading...</p>
 {:else if $isAuthenticated}
-  <p>Welcome, {$currentUser?.name}!</p>
+	<p>Welcome, {$currentUser?.name}!</p>
 {:else}
-  <button on:click={() => authStore.login()}>
-    Login with AniList
-  </button>
+	<button on:click={() => authStore.login()}> Login with AniList </button>
 {/if}
 ```
 
@@ -155,7 +153,7 @@ async function handleLogin() {
 import { authStore } from '$lib/stores/auth';
 
 async function handleLogout() {
-  await authStore.logout();
+	await authStore.logout();
 }
 ```
 
@@ -190,20 +188,24 @@ async function handleLogout() {
 ## Troubleshooting
 
 ### Port already in use
+
 - Server tries ports 57575-57600
 - Falls back to OS-assigned port
 - Check console for actual port used
 
 ### Browser doesn't open
+
 - Falls back to webview automatically
 - Check logs for errors
 
 ### Token not saving
+
 - Check config directory permissions
 - Verify encryption key generation
 - Check logs for serialization errors
 
 ### Authentication fails
+
 - Verify `.env` credentials
 - Check redirect URI matches registered URI
 - Ensure client ID/secret are correct

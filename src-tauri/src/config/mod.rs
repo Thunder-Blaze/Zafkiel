@@ -20,7 +20,7 @@ pub fn get_config_path() -> Result<PathBuf, String> {
     let config_dir = get_config_dir()?;
     fs::create_dir_all(&config_dir)
         .map_err(|e| format!("Failed to create config directory: {}", e))?;
-    
+
     let config_filename = if cfg!(test) {
         "config.test.ron"
     } else if cfg!(debug_assertions) {
@@ -28,19 +28,19 @@ pub fn get_config_path() -> Result<PathBuf, String> {
     } else {
         "config.ron"
     };
-    
+
     Ok(config_dir.join(config_filename))
 }
 
 /// Load config from file or return default
 pub fn load_or_default() -> Result<AppConfig, String> {
     let path = get_config_path()?;
-    
+
     if path.exists() {
-        let contents = fs::read_to_string(&path)
-            .map_err(|e| format!("Failed to read config file: {}", e))?;
-        let config: AppConfig = ron::from_str(&contents)
-            .map_err(|e| format!("Failed to parse config: {}", e))?;
+        let contents =
+            fs::read_to_string(&path).map_err(|e| format!("Failed to read config file: {}", e))?;
+        let config: AppConfig =
+            ron::from_str(&contents).map_err(|e| format!("Failed to parse config: {}", e))?;
         Ok(config)
     } else {
         Ok(AppConfig::default())
@@ -52,7 +52,6 @@ pub fn save(config: &AppConfig) -> Result<(), String> {
     let path = get_config_path()?;
     let ron_string = ron::ser::to_string_pretty(config, Default::default())
         .map_err(|e| format!("Failed to serialize config: {}", e))?;
-    fs::write(&path, ron_string)
-        .map_err(|e| format!("Failed to write config file: {}", e))?;
+    fs::write(&path, ron_string).map_err(|e| format!("Failed to write config file: {}", e))?;
     Ok(())
 }

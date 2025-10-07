@@ -5,6 +5,7 @@ This document describes the AniList API integration in Zafkiel using the `anilis
 ## Overview
 
 The integration provides:
+
 - ✅ Type-safe backend API using anilist_moe crate
 - ✅ Tauri commands for frontend communication
 - ✅ TanStack Query hooks with intelligent caching
@@ -46,6 +47,7 @@ AniList GraphQL API
 ### Available Backend Commands
 
 #### Anime
+
 - `search_anime(query, page?, perPage?)`
 - `get_anime_by_id(id)`
 - `get_trending_anime(page?, perPage?)`
@@ -53,12 +55,14 @@ AniList GraphQL API
 - `get_seasonal_anime(params)` (fallback to popular)
 
 #### Manga
+
 - `search_manga(query, page?, perPage?)`
 - `get_manga_by_id(id)`
 - `get_trending_manga(page?, perPage?)`
 - `get_popular_manga(page?, perPage?)`
 
 #### Users
+
 - `get_current_user()` (requires auth token)
 - `get_user_by_id(id)`
 - `get_user_by_name(name)`
@@ -88,14 +92,14 @@ AniList GraphQL API
 
 ### Caching Strategy
 
-| Endpoint Type      | Stale Time | Reasoning                        |
-|--------------------|------------|----------------------------------|
-| Anime/Manga Details| 30 minutes | Rarely changes                   |
-| Trending Content   | 5 minutes  | Updates frequently               |
-| Popular Content    | 15 minutes | Moderate change rate             |
-| Seasonal Content   | 60 minutes | Very stable                      |
-| User Profiles      | 30-60 min  | Infrequent changes               |
-| Search Results     | 10 minutes | Balance freshness/cache benefit  |
+| Endpoint Type       | Stale Time | Reasoning                       |
+| ------------------- | ---------- | ------------------------------- |
+| Anime/Manga Details | 30 minutes | Rarely changes                  |
+| Trending Content    | 5 minutes  | Updates frequently              |
+| Popular Content     | 15 minutes | Moderate change rate            |
+| Seasonal Content    | 60 minutes | Very stable                     |
+| User Profiles       | 30-60 min  | Infrequent changes              |
+| Search Results      | 10 minutes | Balance freshness/cache benefit |
 
 ### Usage Example
 
@@ -107,15 +111,15 @@ const trendingQuery = useTrendingAnime({ page: 1, perPage: 20 });
 
 // Access query state
 if (trendingQuery.isLoading) {
-  // Show loading state
+	// Show loading state
 }
 
 if (trendingQuery.error) {
-  // Handle error
+	// Handle error
 }
 
 if (trendingQuery.data) {
-  // Display anime data
+	// Display anime data
 }
 
 // Conditional queries
@@ -127,6 +131,7 @@ const animeQuery = useAnimeById(animeId, shouldFetch);
 ### Token Management
 
 AniList access token is:
+
 1. Stored encrypted in `~/.config/zafkiel/config.ron`
 2. Automatically decrypted and loaded by backend
 3. Applied to all authenticated requests
@@ -136,6 +141,7 @@ Get your token at: https://anilist.co/settings/developer
 ### Rate Limiting
 
 AniList enforces 90 requests/minute:
+
 - Backend handles rate limit errors gracefully
 - Frontend caching significantly reduces API calls
 - Consider debouncing search inputs (500ms recommended)
@@ -144,6 +150,7 @@ AniList enforces 90 requests/minute:
 ## Testing
 
 Visit `/anime` to test the integration:
+
 - View trending anime
 - Search anime with debounced input
 - Monitor cache status and data freshness
@@ -152,6 +159,7 @@ Visit `/anime` to test the integration:
 ## Best Practices
 
 ### Do's ✅
+
 - Always use hooks instead of direct API calls
 - Trust the configured staleTime values
 - Use `enabled` parameter for conditional queries
@@ -159,6 +167,7 @@ Visit `/anime` to test the integration:
 - Debounce user input for search
 
 ### Don'ts ❌
+
 - Don't manually invalidate queries unless necessary
 - Don't fetch same data multiple times
 - Don't ignore rate limiting

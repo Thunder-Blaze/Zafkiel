@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { useTrendingAnime, useSearchAnime } from '$lib/hooks/useAnilist.svelte';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle,
+	} from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import { Skeleton } from '$lib/components/ui/skeleton';
@@ -25,7 +31,7 @@
 
 	// Fetch queries
 	const isSearchActive = $derived(debouncedQuery.length > 0);
-	
+
 	const trendingQuery = useTrendingAnime({ page: 1, perPage: 20 });
 	const searchQueryResult = useSearchAnime(
 		() => ({ query: debouncedQuery, page: 1, perPage: 20 }),
@@ -43,9 +49,7 @@
 	const activeIsFetching = $derived(
 		isSearchActive ? searchQueryResult.isFetching : trendingQuery.isFetching
 	);
-	const activeError = $derived(
-		isSearchActive ? searchQueryResult.error : trendingQuery.error
-	);
+	const activeError = $derived(isSearchActive ? searchQueryResult.error : trendingQuery.error);
 
 	// Debug logging
 	$effect(() => {
@@ -53,7 +57,7 @@
 			isSearchActive,
 			activeIsLoading,
 			activeIsFetching,
-			dataCount: activeData?.length ?? 0
+			dataCount: activeData?.length ?? 0,
 		});
 	});
 
@@ -71,9 +75,7 @@
 	<!-- Header -->
 	<div class="space-y-2">
 		<h1 class="text-3xl font-bold">Anime Browser</h1>
-		<p class="text-muted-foreground">
-			Explore trending anime or search for your favorites
-		</p>
+		<p class="text-muted-foreground">Explore trending anime or search for your favorites</p>
 	</div>
 
 	<!-- Search Bar -->
@@ -81,19 +83,19 @@
 		<div class="relative flex-1">
 			<Icon
 				icon="solar:magnifer-bold"
-				class="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
+				class="absolute top-1/2 left-3 size-5 -translate-y-1/2 text-muted-foreground"
 			/>
 			<Input
 				type="text"
 				placeholder="Search anime..."
-				class="pl-10 pr-10"
+				class="pr-10 pl-10"
 				bind:value={searchQuery}
 			/>
 			{#if searchQuery}
 				<Button
 					variant="ghost"
 					size="icon"
-					class="absolute right-1 top-1/2 size-7 -translate-y-1/2"
+					class="absolute top-1/2 right-1 size-7 -translate-y-1/2"
 					onclick={() => (searchQuery = '')}
 				>
 					<Icon icon="solar:close-circle-bold" class="size-4" />
@@ -130,7 +132,7 @@
 				</Card>
 			{/each}
 		</div>
-	<!-- Error State -->
+		<!-- Error State -->
 	{:else if activeError}
 		<Card class="border-destructive">
 			<CardHeader>
@@ -141,7 +143,7 @@
 				<CardDescription>{activeError.message}</CardDescription>
 			</CardHeader>
 		</Card>
-	<!-- Empty State -->
+		<!-- Empty State -->
 	{:else if !activeData || activeData.length === 0}
 		<Card>
 			<CardContent class="flex flex-col items-center justify-center py-12">
@@ -152,7 +154,7 @@
 				</p>
 			</CardContent>
 		</Card>
-	<!-- Anime Grid -->
+		<!-- Anime Grid -->
 	{:else}
 		<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 			{#each activeData as anime (anime.id)}
@@ -166,17 +168,21 @@
 								class="size-full object-cover transition-transform group-hover:scale-105"
 							/>
 						{/if}
-						
+
 						<!-- Score Badge -->
 						{#if anime.averageScore}
-							<div class="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+							<div
+								class="absolute top-2 right-2 rounded-full bg-black/70 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm"
+							>
 								⭐ {formatScore(anime.averageScore)}
 							</div>
 						{/if}
 
 						<!-- Format Badge -->
 						{#if anime.format}
-							<div class="absolute bottom-2 left-2 rounded-full bg-primary/90 px-2 py-1 text-xs font-medium text-primary-foreground backdrop-blur-sm">
+							<div
+								class="absolute bottom-2 left-2 rounded-full bg-primary/90 px-2 py-1 text-xs font-medium text-primary-foreground backdrop-blur-sm"
+							>
 								{anime.format}
 							</div>
 						{/if}
@@ -184,7 +190,7 @@
 
 					<!-- Info -->
 					<CardContent class="space-y-1 p-4">
-						<h3 class="line-clamp-2 font-semibold leading-tight" title={getTitle(anime)}>
+						<h3 class="line-clamp-2 leading-tight font-semibold" title={getTitle(anime)}>
 							{getTitle(anime)}
 						</h3>
 						<div class="flex items-center gap-2 text-xs text-muted-foreground">

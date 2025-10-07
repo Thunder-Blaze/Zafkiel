@@ -3,6 +3,7 @@
 ## Problem
 
 The authentication was stuck on "Connecting..." even though the callback was received. The logs showed:
+
 ```
 [Auth] Received callback connection
 [Auth] Extracted authorization code
@@ -51,6 +52,7 @@ The channel was being created AFTER the callback had already been received, so t
 ### Code Changes
 
 #### `auth.rs`
+
 ```rust
 pub struct AuthState {
     pub pending_auth: Arc<Mutex<Option<oneshot::Sender<...>>>>,
@@ -61,6 +63,7 @@ pub struct AuthState {
 #### `auth_commands.rs`
 
 **`start_oauth_flow`:**
+
 ```rust
 // Create channel
 let (tx, rx) = tokio::sync::oneshot::channel();
@@ -81,6 +84,7 @@ let (tx, rx) = tokio::sync::oneshot::channel();
 ```
 
 **`wait_for_oauth_callback`:**
+
 ```rust
 // Get the receiver that was created in start_oauth_flow
 let rx = {
@@ -130,6 +134,7 @@ No cleanup needed - the task and listener are dropped after the callback.
 ## Logs
 
 Successful flow logs:
+
 ```
 [Auth Command] Starting OAuth flow
 [Auth Command] Using port 57575 for callback

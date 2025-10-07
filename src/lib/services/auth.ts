@@ -75,16 +75,16 @@ export async function logout(): Promise<void> {
  */
 export async function completeOAuthFlow(): Promise<string> {
 	console.log('[Auth] Starting complete OAuth flow');
-	
+
 	// Start OAuth flow and get authorization URL
 	const { authUrl } = await startOAuthFlow();
-	
+
 	// Open browser (or fallback to webview)
 	await openAuthBrowser(authUrl);
-	
+
 	// Wait for callback and exchange code for token
 	const token = await waitForOAuthCallback();
-	
+
 	console.log('[Auth] Complete OAuth flow finished successfully');
 	return token;
 }

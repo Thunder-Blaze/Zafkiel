@@ -59,6 +59,7 @@ pub async fn get_trending_anime(&self, ...) -> Result<Vec<Media>, AniListError> 
 ```
 
 **Key Benefits:**
+
 - No `.clone()` - just a reference through the read guard
 - Multiple requests can run concurrently (multiple readers)
 - Memory efficient - single client instance
@@ -79,6 +80,7 @@ pub async fn update_token(&self, token: Option<String>) -> Result<(), String> {
 ```
 
 **When Token Updates Happen:**
+
 1. **App Startup**: Loads token from config if exists
 2. **After OAuth Login**: Updates client with new token
 3. **After Logout**: Replaces client with anonymous client
@@ -91,30 +93,31 @@ stateDiagram-v2
     AppStartup --> LoadConfig
     LoadConfig --> HasToken: Token exists
     LoadConfig --> NoToken: No token
-    
+
     HasToken --> CreateAuthClient: AniListClient::with_token()
     NoToken --> CreateAnonClient: AniListClient::new()
-    
+
     CreateAuthClient --> StoreInState
     CreateAnonClient --> StoreInState
-    
+
     StoreInState --> Ready: app.manage(Arc::new(service))
-    
+
     Ready --> MakeRequests: All API calls use same instance
     Ready --> Login: User logs in
     Ready --> Logout: User logs out
-    
+
     Login --> UpdateToken: service.update_token(Some(token))
     Logout --> UpdateToken: service.update_token(None)
-    
+
     UpdateToken --> Ready: Client replaced, continues serving
-    
+
     MakeRequests --> MakeRequests: Concurrent requests OK
 ```
 
 ## Thread Safety
 
 ### Concurrent Reads
+
 ```rust
 // Multiple requests can run simultaneously
 let service: Arc<AniListService> = app.state();
@@ -129,6 +132,7 @@ let popular = service.get_popular_anime(...).await;
 ```
 
 ### Write Safety
+
 ```rust
 // Token update (exclusive access)
 service.update_token(Some(token)).await;
@@ -157,6 +161,7 @@ pub async fn get_trending_anime(
 ## Performance Benefits
 
 ### Before (Cloning)
+
 ```rust
 // ❌ Old approach - creates copy on every request
 let client = self.client.read().await.clone();  // Clone entire client!
@@ -164,11 +169,13 @@ let response = client.anime().get_trending_anime(...).await?;
 ```
 
 **Costs:**
+
 - Memory allocation for cloned client
 - Copying all internal state (HTTP client, rate limiter, etc.)
 - Garbage collection overhead
 
 ### After (Read Guard)
+
 ```rust
 // ✅ New approach - reference only
 let client = self.client().await;  // Just a reference via read guard
@@ -176,6 +183,7 @@ let response = client.anime().get_trending_anime(...).await?;
 ```
 
 **Benefits:**
+
 - Zero memory allocation
 - No copying
 - Direct access to singleton instance
@@ -188,40 +196,42 @@ sequenceDiagram
     participant Service as AniListService
     participant Config as Config File
     participant Client as AniListClient (Singleton)
-    
+
     App->>Config: Load on startup
     Config-->>App: Token (or None)
     App->>Service: new(token)
     Service->>Client: Create with token
     Client-->>Service: Single instance created
     Service-->>App: Store in state
-    
+
     Note over Client: App runs, makes requests...
-    
+
     App->>Service: All requests use same instance
     Service->>Client: client().await (read lock)
     Client-->>Service: Read guard
     Service-->>App: Response
-    
+
     Note over App: User logs in via OAuth
-    
+
     App->>Service: update_token(new_token)
     Service->>Client: Write lock, replace client
     Client-->>Service: New client with token
     Service-->>App: Updated
-    
+
     Note over Client: New instance, all requests now authenticated
 ```
 
 ## Best Practices
 
 ### ✅ DO:
+
 - Access via `self.client().await` for reads
 - Use `RwLock::write()` only for token updates
 - Let read guards drop automatically (don't store them)
 - Trust the singleton - it's always available
 
 ### ❌ DON'T:
+
 - Clone the client unless absolutely necessary
 - Hold read/write locks across `.await` points
 - Create new `AniListService` instances
@@ -235,19 +245,19 @@ The singleton pattern makes testing straightforward:
 #[tokio::test]
 async fn test_concurrent_requests() {
     let service = Arc::new(AniListService::new(None));
-    
+
     // Spawn concurrent requests
     let service1 = service.clone();
     let service2 = service.clone();
-    
+
     let task1 = tokio::spawn(async move {
         service1.get_trending_anime(None, None).await
     });
-    
+
     let task2 = tokio::spawn(async move {
         service2.get_popular_anime(None, None).await
     });
-    
+
     // Both use same underlying client ✅
     let (result1, result2) = tokio::join!(task1, task2);
 }

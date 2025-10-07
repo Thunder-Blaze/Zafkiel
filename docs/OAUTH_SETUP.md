@@ -21,11 +21,13 @@ This guide will help you set up AniList OAuth authentication for Zafkiel.
 ## Step 2: Configure Environment Variables
 
 1. Copy the `.env.example` file to `.env`:
+
    ```bash
    cp .env.example .env
    ```
 
 2. Open `.env` and replace the placeholder values:
+
    ```env
    ANILIST_CLIENT_ID=1234567890  # Your actual Client ID
    ANILIST_CLIENT_SECRET=abcdef123456  # Your actual Client Secret
@@ -90,6 +92,7 @@ bun dev
 The `.env` file is already in `.gitignore`, but make sure you don't accidentally commit it.
 
 Your credentials should remain private:
+
 - Don't share your Client Secret with anyone
 - Don't commit it to public repositories
 - Don't include it in screenshots or logs

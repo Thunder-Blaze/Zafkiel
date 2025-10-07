@@ -63,7 +63,11 @@ impl AniListService {
         );
         let client = self.client().await;
         let response = client.anime().search_anime(query, page, per_page).await?;
-        log::info!("Found {} anime matching '{}'", response.data.page.data.media.len(), query);
+        log::info!(
+            "Found {} anime matching '{}'",
+            response.data.page.data.media.len(),
+            query
+        );
         Ok(response.data.page.data.media)
     }
 
@@ -87,7 +91,10 @@ impl AniListService {
         );
         let client = self.client().await;
         let response = client.anime().get_trending_anime(page, per_page).await?;
-        log::info!("Successfully fetched {} trending anime", response.data.page.data.media.len());
+        log::info!(
+            "Successfully fetched {} trending anime",
+            response.data.page.data.media.len()
+        );
         Ok(response.data.page.data.media)
     }
 

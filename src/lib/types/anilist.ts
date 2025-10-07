@@ -31,12 +31,7 @@ export type MediaFormat =
 	| 'NOVEL'
 	| 'ONE_SHOT';
 
-export type MediaStatus =
-	| 'FINISHED'
-	| 'RELEASING'
-	| 'NOT_YET_RELEASED'
-	| 'CANCELLED'
-	| 'HIATUS';
+export type MediaStatus = 'FINISHED' | 'RELEASING' | 'NOT_YET_RELEASED' | 'CANCELLED' | 'HIATUS';
 
 export type MediaSeason = 'WINTER' | 'SPRING' | 'SUMMER' | 'FALL';
 

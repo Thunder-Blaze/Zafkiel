@@ -1,11 +1,10 @@
 /**
  * Tauri Commands for OAuth Authentication
  */
-
 use crate::anilist::AniListService;
 use crate::auth::{
-    exchange_code_for_token, find_available_port, get_authorization_url, start_callback_server,
-    AuthState, OAuthConfig,
+    AuthState, OAuthConfig, exchange_code_for_token, find_available_port, get_authorization_url,
+    start_callback_server,
 };
 use crate::config;
 use std::sync::Arc;
@@ -102,7 +101,9 @@ pub async fn wait_for_oauth_callback(
     // Get the receiver that was created in start_oauth_flow
     let rx = {
         let mut receiver = auth_state.pending_receiver.lock().await;
-        receiver.take().ok_or("No pending OAuth flow. Call start_oauth_flow first.".to_string())?
+        receiver
+            .take()
+            .ok_or("No pending OAuth flow. Call start_oauth_flow first.".to_string())?
     };
 
     // Wait for callback (with timeout)
@@ -133,7 +134,8 @@ pub async fn wait_for_oauth_callback(
     let token_response = exchange_code_for_token(&oauth_config, &code, redirect_uri).await?;
 
     // Save token to config
-    let mut config = config::load_or_default().map_err(|e| format!("Failed to load config: {}", e))?;
+    let mut config =
+        config::load_or_default().map_err(|e| format!("Failed to load config: {}", e))?;
     config.anilist.access_token = Some(token_response.access_token.clone());
     config::save(&config).map_err(|e| format!("Failed to save config: {}", e))?;
 
@@ -172,17 +174,14 @@ pub async fn check_auth_status(
 
 /// Logout - clear stored token
 #[tauri::command]
-pub async fn logout(
-    anilist_service: State<'_, Arc<AniListService>>,
-) -> Result<(), String> {
+pub async fn logout(anilist_service: State<'_, Arc<AniListService>>) -> Result<(), String> {
     log::info!("[Auth Command] Logging out");
 
     // Clear token from config
-    let mut config = config::load_or_default()
-        .map_err(|e| format!("Failed to load config: {}", e))?;
+    let mut config =
+        config::load_or_default().map_err(|e| format!("Failed to load config: {}", e))?;
     config.anilist.access_token = None;
-    config::save(&config)
-        .map_err(|e| format!("Failed to save config: {}", e))?;
+    config::save(&config).map_err(|e| format!("Failed to save config: {}", e))?;
 
     // Clear token from AniList service
     anilist_service

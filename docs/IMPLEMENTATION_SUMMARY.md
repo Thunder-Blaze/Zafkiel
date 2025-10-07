@@ -3,6 +3,7 @@
 ## What We Built
 
 A complete authentication system with:
+
 - ✅ OAuth 2.0 flow with AniList
 - ✅ Browser-based authentication with webview fallback
 - ✅ Encrypted token storage
@@ -15,6 +16,7 @@ A complete authentication system with:
 ## Pages Created
 
 ### 1. Login Page (`/login`)
+
 - Clean, modern design with gradient background
 - AniList branding and icon
 - Feature highlights (sync, recommendations, cross-device)
@@ -23,6 +25,7 @@ A complete authentication system with:
 - Auto-redirects to home when authenticated
 
 ### 2. Home Page (`/` - Updated)
+
 - **Profile Section**: Avatar, name, member since date, logout button
 - **User Stats**: Total anime, episodes watched, days watched, mean score
 - **Settings**: UI scale control, context menu info
@@ -34,6 +37,7 @@ A complete authentication system with:
 ## Architecture
 
 ### Backend (Rust)
+
 ```
 src-tauri/src/
 ├── lib.rs              - App initialization, loads .env
@@ -44,11 +48,13 @@ src-tauri/src/
 ```
 
 **Key Changes:**
+
 - Added `dotenvy` crate for `.env` loading
 - Environment variables loaded on app startup
 - Proper error messages when credentials missing
 
 ### Frontend (TypeScript/Svelte)
+
 ```
 src/
 ├── routes/
@@ -64,6 +70,7 @@ src/
 ```
 
 **Key Features:**
+
 - Reactive auth state with derived stores
 - Auto-initialization in layout
 - Route protection with redirects
@@ -79,11 +86,13 @@ src/
    - Copy Client ID and Client Secret
 
 2. **Configure Environment**:
+
    ```bash
    cp .env.example .env
    ```
-   
+
    Edit `.env`:
+
    ```env
    ANILIST_CLIENT_ID=your_client_id
    ANILIST_CLIENT_SECRET=your_client_secret
@@ -106,12 +115,14 @@ src/
 ## Error Handling
 
 ### Backend Errors (Rust)
+
 - Missing `.env` file → Warning logged, descriptive error on login
 - Invalid credentials → OAuth flow fails with clear message
 - Network errors → Timeout after 5 minutes with error message
 - Token save failure → Config error logged and returned to frontend
 
 ### Frontend Errors (TypeScript)
+
 - Login failure → Error message displayed on login page
 - Auth check failure → Assumes not authenticated, redirects to login
 - Profile fetch failure → Shows in auth store error state
@@ -120,11 +131,13 @@ src/
 ## Token Management
 
 ### Storage
+
 - Location: `~/.config/zafkiel/config.ron`
 - Encryption: AES-GCM with random key
 - Format: RON (Rusty Object Notation)
 
 ### Lifecycle
+
 1. **Login**: Token received → Encrypted → Saved to config → Loaded into service
 2. **Startup**: Config loaded → Token decrypted → Service initialized with token
 3. **Runtime**: Single client instance uses token for all requests
@@ -151,6 +164,7 @@ src/
 ## Documentation
 
 All documentation updated:
+
 - ✅ `README.md` - Quick start guide
 - ✅ `docs/OAUTH_SETUP.md` - Step-by-step OAuth setup
 - ✅ `docs/AUTHENTICATION.md` - OAuth implementation details
@@ -161,11 +175,13 @@ All documentation updated:
 ## Testing Checklist
 
 ### Before First Run
+
 - [ ] `.env` file created with valid credentials
 - [ ] AniList OAuth app configured with correct redirect URL
 - [ ] Development server started
 
 ### First Login
+
 - [ ] App redirects to `/login` when not authenticated
 - [ ] Click "Sign in with AniList" opens browser
 - [ ] Authorize on AniList page
@@ -174,12 +190,14 @@ All documentation updated:
 - [ ] User stats displayed correctly
 
 ### Subsequent Use
+
 - [ ] App starts directly on home page (already authenticated)
 - [ ] Profile loads automatically
 - [ ] Logout button works
 - [ ] After logout, redirects to login page
 
 ### Error Cases
+
 - [ ] Missing `.env` shows clear error message
 - [ ] Invalid credentials show error on login page
 - [ ] Network error shows timeout message
@@ -188,6 +206,7 @@ All documentation updated:
 ## Next Steps (Optional)
 
 ### Enhancements
+
 - [ ] Add token refresh logic (AniList tokens don't expire, but good practice)
 - [ ] Add multiple account support
 - [ ] Add profile editing
@@ -196,6 +215,7 @@ All documentation updated:
 - [ ] Add offline mode with cached data
 
 ### Polish
+
 - [ ] Add animations to login page
 - [ ] Add skeleton loaders for profile
 - [ ] Add more detailed error messages
@@ -205,18 +225,23 @@ All documentation updated:
 ## Troubleshooting
 
 ### "ANILIST_CLIENT_ID not found in environment"
+
 → Create `.env` file with credentials and restart server
 
 ### "Failed to login" immediately
+
 → Check `.env` has valid credentials without extra spaces
 
 ### Browser doesn't open
+
 → Webview fallback will open automatically
 
 ### Token doesn't persist
+
 → Check `~/.config/zafkiel/` is writable
 
 ### Profile not loading
+
 → Check backend logs for errors, verify token is valid
 
 ## Success! 🎉

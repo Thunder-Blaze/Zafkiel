@@ -1,5 +1,8 @@
 use crate::anilist::{AniListResponse, AniListService};
-use anilist_moe::{enums::media::MediaSeason, objects::{media::Media, responses::ViewerUserData, user::User}};
+use anilist_moe::{
+    enums::media::MediaSeason,
+    objects::{media::Media, responses::ViewerUserData, user::User},
+};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tauri::State;
@@ -19,7 +22,12 @@ pub async fn search_anime(
     per_page: Option<i32>,
     service: State<'_, AniListState>,
 ) -> Result<AniListResponse<Vec<Media>>, String> {
-    log::info!("Command: search_anime called with query='{}', page={:?}, per_page={:?}", query, page, per_page);
+    log::info!(
+        "Command: search_anime called with query='{}', page={:?}, per_page={:?}",
+        query,
+        page,
+        per_page
+    );
     let result = service.search_anime(&query, page, per_page).await;
     match &result {
         Ok(media) => log::info!("Command: search_anime succeeded with {} items", media.len()),
@@ -45,15 +53,24 @@ pub async fn get_trending_anime(
     per_page: Option<i32>,
     service: State<'_, AniListState>,
 ) -> Result<AniListResponse<Vec<Media>>, String> {
-    log::info!("Command: get_trending_anime called with page={:?}, per_page={:?}", page, per_page);
+    log::info!(
+        "Command: get_trending_anime called with page={:?}, per_page={:?}",
+        page,
+        per_page
+    );
     let result = service.get_trending_anime(page, per_page).await;
     match &result {
         Ok(media) => {
-            log::info!("Command: get_trending_anime succeeded with {} items", media.len());
+            log::info!(
+                "Command: get_trending_anime succeeded with {} items",
+                media.len()
+            );
             // Try to serialize and log the first item for debugging
             if let Some(first) = media.first() {
                 match serde_json::to_string(first) {
-                    Ok(json) => log::info!("First anime serialized successfully: {} bytes", json.len()),
+                    Ok(json) => {
+                        log::info!("First anime serialized successfully: {} bytes", json.len())
+                    }
                     Err(e) => log::error!("Failed to serialize first anime: {}", e),
                 }
             }
