@@ -100,7 +100,6 @@ pub fn run() {
             anilist_commands::search_users,
             // Theme commands
             theme_commands::list_themes,
-            theme_commands::get_theme_metadata,
             theme_commands::save_theme_preference,
             theme_commands::get_theme_preference,
         ])
