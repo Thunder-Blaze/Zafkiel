@@ -1,121 +1,147 @@
 <script lang="ts">
 	import { themeStore } from '$lib/stores/theme.svelte';
-	import { themeManager } from '$lib/services/theme';
 	import { Button } from '$lib/components/ui/button';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '$lib/components/ui/sheet';
+	import { Label } from '$lib/components/ui/label';
+	import { Separator } from '$lib/components/ui/separator';
 	import Icon from '@iconify/svelte';
+	import { toast } from 'svelte-sonner';
 
-	const currentTheme = $derived(themeStore.currentTheme);
-	const availableThemes = $derived(themeStore.availableThemes);
-	const isDark = $derived(themeStore.isDark);
-	const isLoading = $derived(themeStore.isLoading);
+	let open = $state(false);
+	let switchingTheme = $state(false);
 
-	let loadingThemeId = $state<string | null>(null);
-
-	async function handleThemeClick(themeId: string) {
-		if (currentTheme === themeId) return;
-
-		if (!themeManager.isThemeLoaded(themeId)) {
-			loadingThemeId = themeId;
+	async function handleThemeSwitch(themeId: string): Promise<void> {
+		if (switchingTheme) return;
+		
+		const isLoaded = themeStore.loadedThemes.has(themeId);
+		
+		// If theme is not loaded, load it first
+		if (!isLoaded) {
+			switchingTheme = true;
 			try {
-				await themeManager.loadTheme(themeId);
-			} finally {
-				loadingThemeId = null;
+				await themeStore.loadTheme(themeId);
+				toast.success(`Loaded ${themeId} theme`);
+			} catch (error) {
+				toast.error('Failed to load theme');
+				switchingTheme = false;
+				return;
 			}
-		} else {
-			await themeStore.switchTheme(themeId);
 		}
-	}
-
-	function toggleDarkMode() {
-		themeStore.toggleDarkMode();
+		
+		// Now switch to it if it's not already active
+		if (themeStore.currentTheme !== themeId) {
+			try {
+				await themeStore.switchTheme(themeId);
+				toast.success(`Switched to ${themeId} theme`);
+			} catch (error) {
+				toast.error('Failed to switch theme');
+			}
+		}
+		
+		switchingTheme = false;
+		open = false; // Close the sheet after switching
 	}
 </script>
 
-<DropdownMenu.Root>
-	<DropdownMenu.Trigger>
+<Sheet bind:open>
+	<SheetTrigger>
 		{#snippet child({ props })}
-			<Button variant="outline" size="icon" disabled={isLoading} {...props}>
-				{#if isLoading}
-					<Icon icon="solar:refresh-circle-line-duotone" class="h-5 w-5 animate-spin" />
-				{:else}
-					<Icon icon="solar:pallete-2-bold-duotone" class="h-5 w-5" />
-				{/if}
-				<span class="sr-only">Theme Switcher</span>
+			<Button
+				variant="outline"
+				size="icon"
+				class="rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
+				{...props}
+			>
+				<Icon icon="solar:pallete-2-bold" class="h-5 w-5" />
 			</Button>
 		{/snippet}
-	</DropdownMenu.Trigger>
-	<DropdownMenu.Content align="end" class="w-56 max-h-[400px] overflow-y-auto">
-		<DropdownMenu.Label>Themes</DropdownMenu.Label>
-		<DropdownMenu.Separator />
+	</SheetTrigger>
+	<SheetContent side="right" class="w-full sm:max-w-lg overflow-y-auto">
+		<SheetHeader>
+			<SheetTitle class="flex items-center gap-2 text-xl">
+				<Icon icon="solar:pallete-2-bold" class="h-6 w-6 text-primary" />
+				Theme Selector
+			</SheetTitle>
+		</SheetHeader>
+		
+		<Separator class="my-4" />
 
-		<DropdownMenu.Item onclick={toggleDarkMode} class="flex items-center justify-between">
-			<span>Dark Mode</span>
-			{#if isDark}
-				<Icon icon="solar:moon-bold" class="h-4 w-4" />
-			{:else}
-				<Icon icon="solar:sun-bold" class="h-4 w-4" />
-			{/if}
-		</DropdownMenu.Item>
+		<div class="space-y-4">
+			<Label class="text-base font-medium">Color Theme</Label>
+			<div class="grid grid-cols-2 gap-4">
+				{#each themeStore.availableThemes as theme}
+					{@const isActive = themeStore.currentTheme === theme.id}
+					{@const isLoaded = themeStore.loadedThemes.has(theme.id)}
 
-		<DropdownMenu.Separator />
-
-		<DropdownMenu.Group>
-			{#if availableThemes.length === 0}
-				<DropdownMenu.Item disabled class="text-muted-foreground">
-					<Icon icon="solar:refresh-circle-line-duotone" class="h-4 w-4 animate-spin" />
-					Loading themes...
-				</DropdownMenu.Item>
-			{:else}
-				{#each availableThemes as theme}
-					{@const isLoaded = themeManager.isThemeLoaded(theme.id)}
-					{@const isCurrentTheme = currentTheme === theme.id}
-					{@const isLoadingThis = loadingThemeId === theme.id}
-
-					<DropdownMenu.Item
-						onclick={() => handleThemeClick(theme.id)}
-						class="flex items-center gap-3 cursor-pointer"
+					<button
+						onclick={() => handleThemeSwitch(theme.id)}
+						disabled={switchingTheme}
+						class="group relative flex flex-col gap-3 rounded-xl border-2 p-4 transition-all duration-300 ease-out
+							{isActive
+							? 'scale-[1.02] border-primary/60 bg-primary/10 shadow-xl ring-2 ring-primary/20'
+							: isLoaded
+							? 'border-border hover:scale-[1.02] hover:border-primary/30 hover:bg-foreground/5 hover:shadow-lg'
+							: 'border-border/50 opacity-60 hover:opacity-100'}
+							{switchingTheme ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 					>
-						<div class="flex gap-0.5">
-							{#if isLoaded}
-								<div
-									class="h-3 w-3 rounded-full border"
-									style="background-color: hsl(var(--primary));"
-								></div>
-								<div
-									class="h-3 w-3 rounded-full border"
-									style="background-color: hsl(var(--background));"
-								></div>
-								<div
-									class="h-3 w-3 rounded-full border"
-									style="background-color: hsl(var(--accent));"
-								></div>
-							{:else}
-								<div class="h-3 w-3 rounded-full border bg-muted"></div>
-								<div class="h-3 w-3 rounded-full border bg-muted"></div>
-								<div class="h-3 w-3 rounded-full border bg-muted"></div>
+						<!-- Color Preview -->
+						<div class="flex h-10 gap-1.5 overflow-hidden rounded-lg border border-border/50" data-theme={theme.id}>
+							<div
+								class="flex-1 rounded-md bg-primary transition-all duration-300 ease-out group-hover:scale-105 group-hover:shadow-md"
+							></div>
+							<div
+								class="flex-1 rounded-md bg-background border border-border/50 transition-all duration-300 ease-out group-hover:scale-105 group-hover:shadow-md"
+							></div>
+							<div
+								class="flex-1 rounded-md bg-accent transition-all duration-300 ease-out group-hover:scale-105 group-hover:shadow-md"
+							></div>
+						</div>
+
+						<!-- Theme Name -->
+						<div class="text-center transition-transform duration-200 group-hover:translate-y-[-1px]">
+							<span class="text-sm font-medium text-foreground">{theme.name}</span>
+							{#if !isLoaded}
+								<p class="mt-1 text-xs text-foreground/50">Click to load</p>
 							{/if}
 						</div>
 
-						<div class="flex-1 flex flex-col">
-							<span class="text-sm font-medium">{theme.name}</span>
-							{#if !isLoaded && !isCurrentTheme}
-								<span class="text-xs text-muted-foreground">Click to load</span>
-							{:else if isLoadingThis}
-								<span class="text-xs text-muted-foreground">Loading...</span>
-							{:else if isLoaded && !isCurrentTheme}
-								<span class="text-xs text-muted-foreground">Click to switch</span>
-							{/if}
-						</div>
-
-						{#if isCurrentTheme}
-							<Icon icon="solar:check-circle-bold" class="h-4 w-4 text-primary" />
-						{:else if isLoadingThis}
-							<Icon icon="solar:refresh-circle-line-duotone" class="h-4 w-4 animate-spin" />
+						<!-- Active Indicator with Checkmark -->
+						{#if isActive}
+							<div
+								class="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-primary/90 shadow-lg transition-transform duration-300 ease-out"
+							>
+								<Icon icon="solar:check-circle-bold" class="h-5 w-5 text-background" />
+							</div>
 						{/if}
-					</DropdownMenu.Item>
+
+						<!-- Loading Indicator -->
+						{#if !isLoaded && !isActive}
+							<div
+								class="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-foreground/10 backdrop-blur-sm"
+							>
+								<Icon icon="solar:download-minimalistic-bold" class="h-4 w-4 text-foreground/50" />
+							</div>
+						{/if}
+
+						<!-- Hover Overlay Effect -->
+						<div
+							class="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent to-foreground/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+						></div>
+					</button>
 				{/each}
-			{/if}
-		</DropdownMenu.Group>
-	</DropdownMenu.Content>
-</DropdownMenu.Root>
+			</div>
+		</div>
+
+		<Separator class="my-6" />
+
+		<div class="space-y-3 rounded-xl border border-border/50 bg-foreground/5 p-4">
+			<div class="flex items-center gap-2">
+				<Icon icon="solar:lightbulb-bolt-bold" class="h-5 w-5 text-primary" />
+				<span class="text-sm font-medium">Pro Tip</span>
+			</div>
+			<p class="text-xs text-foreground/70 leading-relaxed">
+				Themes are loaded on-demand to improve performance. Unloaded themes show a download icon. Once loaded, they're cached for instant switching.
+			</p>
+		</div>
+	</SheetContent>
+</Sheet>

@@ -1,9 +1,11 @@
 import { themeManager, type Theme } from '$lib/services/theme';
+import { SvelteSet } from 'svelte/reactivity';
 
 interface ThemeState {
 	currentTheme: string;
 	isDark: boolean;
 	availableThemes: Theme[];
+	loadedThemes: SvelteSet<string>;
 	isLoading: boolean;
 	initialized: boolean;
 }
@@ -13,6 +15,7 @@ function createThemeStore() {
 		currentTheme: 'default',
 		isDark: false,
 		availableThemes: [],
+		loadedThemes: new SvelteSet<string>(),
 		isLoading: false,
 		initialized: false,
 	});
@@ -26,6 +29,9 @@ function createThemeStore() {
 		},
 		get availableThemes() {
 			return state.availableThemes;
+		},
+		get loadedThemes() {
+			return state.loadedThemes;
 		},
 		get isLoading() {
 			return state.isLoading;
@@ -49,6 +55,9 @@ function createThemeStore() {
 
 				const themes = await themeManager.listThemes();
 				state.availableThemes = themes;
+				
+				// Mark initially loaded theme
+				state.loadedThemes.add(state.currentTheme);
 
 				state.initialized = true;
 				console.log('[ThemeStore] ✓ Initialized');
@@ -76,9 +85,31 @@ function createThemeStore() {
 			try {
 				await themeManager.switchTheme(themeId, state.isDark);
 				state.currentTheme = themeId;
+				state.loadedThemes.add(themeId);
 				console.log('[ThemeStore] ✓ Switched to:', themeId);
 			} catch (error) {
 				console.error('[ThemeStore] ✗ Switch failed:', error);
+				throw error;
+			} finally {
+				state.isLoading = false;
+			}
+		},
+		
+		async loadTheme(themeId: string) {
+			if (state.loadedThemes.has(themeId)) {
+				console.log(`[ThemeStore] Theme ${themeId} already loaded`);
+				return;
+			}
+
+			console.log(`[ThemeStore] Loading theme: ${themeId}`);
+			state.isLoading = true;
+
+			try {
+				await themeManager.loadTheme(themeId);
+				state.loadedThemes.add(themeId);
+				console.log('[ThemeStore] ✓ Loaded:', themeId);
+			} catch (error) {
+				console.error('[ThemeStore] ✗ Load failed:', error);
 				throw error;
 			} finally {
 				state.isLoading = false;

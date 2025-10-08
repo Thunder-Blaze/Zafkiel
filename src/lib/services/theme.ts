@@ -122,19 +122,20 @@ name: this.formatThemeName(id)
 
 	private async saveThemePreference(themeId: string): Promise<void> {
 		try {
-			localStorage.setItem('theme-preference', themeId);
 			await invoke('save_theme_preference', { themeId });
+			console.log(`[ThemeManager] ✓ Saved theme preference to config: ${themeId}`);
 		} catch (error) {
-			console.error('[ThemeManager] Failed to save preference:', error);
+			console.error('[ThemeManager] ✗ Failed to save theme preference:', error);
 		}
 	}
 
 	async loadThemePreference(): Promise<string> {
 		try {
 			const themeId = await invoke<string>('get_theme_preference');
+			console.log(`[ThemeManager] ✓ Loaded theme preference from config: ${themeId}`);
 			return themeId || 'default';
 		} catch (error) {
-			console.error('[ThemeManager] Failed to load preference:', error);
+			console.error('[ThemeManager] ✗ Failed to load theme preference:', error);
 			return 'default';
 		}
 	}
@@ -143,12 +144,8 @@ name: this.formatThemeName(id)
 		try {
 			console.log('[ThemeManager] Initializing...');
 
-			let themeToLoad = localStorage.getItem('theme-preference');
-
-			if (!themeToLoad) {
-				themeToLoad = await this.loadThemePreference();
-				localStorage.setItem('theme-preference', themeToLoad);
-			}
+			// Load theme from backend config (single source of truth)
+			const themeToLoad = await this.loadThemePreference();
 
 			console.log(`[ThemeManager] Loading theme: ${themeToLoad}`);
 			await this.loadTheme(themeToLoad);
