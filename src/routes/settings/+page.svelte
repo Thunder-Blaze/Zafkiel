@@ -5,7 +5,7 @@
 	import { authLoading, isAuthenticated } from '$lib/stores/auth';
 	import Icon from '@iconify/svelte';
 	import { fade, slide } from 'svelte/transition';
-	
+
 	// Import setting components
 	import InterfaceSettings from '$lib/components/settings/InterfaceSettings.svelte';
 	import UiScaleSettings from '$lib/components/settings/UiScaleSettings.svelte';
@@ -21,7 +21,6 @@
 	let showSpoilers = $state(false);
 	let enableNotifications = $state(true);
 	let compactMode = $state(false);
-	let animationsEnabled = $state(true);
 
 	// Preferences state
 	let show18Plus = $state(false);
@@ -108,7 +107,6 @@
 							bind:showSpoilers
 							bind:enableNotifications
 							bind:compactMode
-							bind:animationsEnabled
 						/>
 					</div>
 				{/if}

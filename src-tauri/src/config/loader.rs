@@ -208,6 +208,17 @@ impl ConfigLoader {
         self.save()
     }
 
+    /// Update blur effects setting
+    pub fn update_blur_effects(&self, enabled: bool) -> Result<(), ConfigError> {
+        let mut config = self.config.write().map_err(|_| {
+            ConfigError::Deserialization("Failed to acquire write lock".to_string())
+        })?;
+
+        config.ui.blur_effects = enabled;
+        drop(config);
+        self.save()
+    }
+
     /// Update animations setting
     pub fn update_animations(&self, enabled: bool) -> Result<(), ConfigError> {
         let mut config = self.config.write().map_err(|_| {
@@ -305,12 +316,14 @@ mod tests {
 
         loader.update_ui_theme("dark".to_string()).unwrap();
         loader.update_glow_effects(false).unwrap();
+        loader.update_blur_effects(false).unwrap();
         loader.update_animations(false).unwrap();
         loader.update_smooth_scroll(false).unwrap();
 
         let ui_config = loader.get_ui_config().unwrap();
         assert_eq!(ui_config.theme, "dark");
         assert!(!ui_config.glow_effects);
+        assert!(!ui_config.blur_effects);
         assert!(!ui_config.animations);
         assert!(!ui_config.smooth_scroll);
     }

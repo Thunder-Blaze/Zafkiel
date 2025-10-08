@@ -33,6 +33,9 @@ pub struct UiConfig {
     /// Enable glow effects on UI elements
     pub glow_effects: bool,
 
+    /// Enable blur effects on UI elements
+    pub blur_effects: bool,
+
     /// Enable animations
     pub animations: bool,
 
@@ -78,6 +81,7 @@ impl Default for UiConfig {
         Self {
             theme: "catppuccin".to_string(),
             glow_effects: true,
+            blur_effects: true,
             animations: true,
             smooth_scroll: true,
             ui_scale: 1.0,
@@ -96,6 +100,7 @@ mod tests {
         assert_eq!(config.security.encryption_key, "");
         assert_eq!(config.ui.theme, "catppuccin");
         assert!(config.ui.glow_effects);
+        assert!(config.ui.blur_effects);
         assert!(config.ui.animations);
         assert!(config.ui.smooth_scroll);
     }

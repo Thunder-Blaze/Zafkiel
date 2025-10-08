@@ -2,6 +2,8 @@
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
+	import { ConfigService, type UiConfig } from '$lib/services/config';
+	import { toast } from 'svelte-sonner';
 	import Icon from '@iconify/svelte';
 	import { slide } from 'svelte/transition';
 
@@ -10,12 +12,10 @@
 		showSpoilers?: boolean;
 		enableNotifications?: boolean;
 		compactMode?: boolean;
-		animationsEnabled?: boolean;
 		onautoPlayTrailersChange?: (value: boolean) => void;
 		onshowSpoilersChange?: (value: boolean) => void;
 		onenableNotificationsChange?: (value: boolean) => void;
 		oncompactModeChange?: (value: boolean) => void;
-		onanimationsEnabledChange?: (value: boolean) => void;
 	}
 
 	let {
@@ -23,8 +23,58 @@
 		showSpoilers = $bindable(false),
 		enableNotifications = $bindable(true),
 		compactMode = $bindable(false),
-		animationsEnabled = $bindable(true),
 	}: Props = $props();
+
+	// Load config-backed settings
+	let animationsEnabled = $state(true);
+	let glowEffectsEnabled = $state(true);
+	let blurEffectsEnabled = $state(true);
+
+	// Load settings from config
+	$effect(() => {
+		ConfigService.getUiConfig()
+			.then((config: UiConfig) => {
+				animationsEnabled = config.animations;
+				glowEffectsEnabled = config.glow_effects;
+				blurEffectsEnabled = config.blur_effects;
+			})
+			.catch((error) => {
+				console.error('Failed to load UI config:', error);
+			});
+	});
+
+	async function handleAnimationsToggle(): Promise<void> {
+		const newValue = !animationsEnabled;
+		try {
+			await ConfigService.updateAnimations(newValue);
+			animationsEnabled = newValue;
+			toast.success(`Animations ${newValue ? 'enabled' : 'disabled'}`);
+		} catch (error) {
+			toast.error('Failed to update animations setting');
+		}
+	}
+
+	async function handleGlowEffectsToggle(): Promise<void> {
+		const newValue = !glowEffectsEnabled;
+		try {
+			await ConfigService.updateGlowEffects(newValue);
+			glowEffectsEnabled = newValue;
+			toast.success(`Glow effects ${newValue ? 'enabled' : 'disabled'}`);
+		} catch (error) {
+			toast.error('Failed to update glow effects setting');
+		}
+	}
+
+	async function handleBlurEffectsToggle(): Promise<void> {
+		const newValue = !blurEffectsEnabled;
+		try {
+			await ConfigService.updateBlurEffects(newValue);
+			blurEffectsEnabled = newValue;
+			toast.success(`Blur effects ${newValue ? 'enabled' : 'disabled'}`);
+		} catch (error) {
+			toast.error('Failed to update blur effects setting');
+		}
+	}
 </script>
 
 <div transition:slide={{ duration: 300 }}>
@@ -83,7 +133,25 @@
 				<Label class="text-base font-medium">Animations</Label>
 				<p class="text-sm text-foreground/70">Enable interface animations and transitions</p>
 			</div>
-			<Switch bind:checked={animationsEnabled} />
+			<Switch checked={animationsEnabled} onCheckedChange={handleAnimationsToggle} />
+		</div>
+
+		<!-- Glow Effects -->
+		<div class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4">
+			<div class="space-y-0.5">
+				<Label class="text-base font-medium">Glow Effects</Label>
+				<p class="text-sm text-foreground/70">Add glow effects to images and cards</p>
+			</div>
+			<Switch checked={glowEffectsEnabled} onCheckedChange={handleGlowEffectsToggle} />
+		</div>
+
+		<!-- Blur Effects -->
+		<div class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4">
+			<div class="space-y-0.5">
+				<Label class="text-base font-medium">Blur Effects</Label>
+				<p class="text-sm text-foreground/70">Enable backdrop blur effects on overlays</p>
+			</div>
+			<Switch checked={blurEffectsEnabled} onCheckedChange={handleBlurEffectsToggle} />
 		</div>
 	</CardContent>
 </Card>

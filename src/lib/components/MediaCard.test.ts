@@ -15,7 +15,7 @@ describe('AnimeCard utilities', () => {
 		userProgress: 10,
 		totalEpisodes: 24,
 		genres: ['Action', 'Adventure'],
-		studios: ['Test Studio'],
+		studio: 'Test Studio',
 		year: 2023,
 		season: 'SPRING',
 		isAdult: false,

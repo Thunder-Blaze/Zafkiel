@@ -68,7 +68,7 @@
 					<button
 						onclick={() => handleThemeSwitch(theme.id)}
 						disabled={switchingTheme}
-						theme={theme.id}
+						data-theme={theme.id}
 						class={`group relative flex w-full flex-col gap-3 rounded-lg  hover:scale-[1.025] border p-4 text-left transition-all bg-background/80
 							${isActive
 							? 'border-primary/60 bg-primary/5'

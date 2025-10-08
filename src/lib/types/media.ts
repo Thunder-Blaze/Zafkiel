@@ -1,4 +1,5 @@
-export type MediaStatus = 'FINISHED' | 'RELEASING' | 'NOT_YET_RELEASED' | 'CANCELLED' | 'HIATUS';
+import type { MediaType, MediaFormat, MediaStatus, MediaSeason, MediaSource } from "./anilist";
+
 export type MediaListStatus =
 	| 'CURRENT'
 	| 'PLANNING'
@@ -6,18 +7,6 @@ export type MediaListStatus =
 	| 'DROPPED'
 	| 'PAUSED'
 	| 'REPEATING';
-export type MediaSeason = 'WINTER' | 'SPRING' | 'SUMMER' | 'FALL';
-export type MediaFormat =
-	| 'TV'
-	| 'TV_SHORT'
-	| 'MOVIE'
-	| 'SPECIAL'
-	| 'OVA'
-	| 'ONA'
-	| 'MUSIC'
-	| 'MANGA'
-	| 'NOVEL'
-	| 'ONE_SHOT';
 
 export interface MediaData {
 	id: number;
@@ -31,8 +20,10 @@ export interface MediaData {
 	userProgress?: number;
 	totalEpisodes?: number;
 	genres?: string[];
-	studios?: string[];
+	studio?: string;
 	year?: number;
+	type?: MediaType;
+	source?: MediaSource;
 	season?: MediaSeason;
 	isAdult?: boolean;
 	description?: string;

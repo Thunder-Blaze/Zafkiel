@@ -33,6 +33,8 @@ export interface UiConfig {
 	theme: string;
 	/** Enable glow effects on UI elements */
 	glow_effects: boolean;
+	/** Enable blur effects on UI elements */
+	blur_effects: boolean;
 	/** Enable animations */
 	animations: boolean;
 	/** Enable smooth scrolling */
@@ -135,6 +137,16 @@ export class ConfigService {
 		const response = await invoke<ConfigResponse<void>>('update_glow_effects', { enabled });
 		if (!response.success) {
 			throw new Error(response.error || 'Failed to update glow effects');
+		}
+	}
+
+	/**
+	 * Update blur effects setting
+	 */
+	static async updateBlurEffects(enabled: boolean): Promise<void> {
+		const response = await invoke<ConfigResponse<void>>('update_blur_effects', { enabled });
+		if (!response.success) {
+			throw new Error(response.error || 'Failed to update blur effects');
 		}
 	}
 

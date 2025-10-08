@@ -104,6 +104,15 @@ pub fn update_glow_effects(enabled: bool, config: State<ConfigState>) -> ConfigR
     }
 }
 
+/// Update blur effects setting
+#[tauri::command]
+pub fn update_blur_effects(enabled: bool, config: State<ConfigState>) -> ConfigResponse<()> {
+    match config.update_blur_effects(enabled) {
+        Ok(_) => ConfigResponse::success(()),
+        Err(e) => ConfigResponse::error(e.to_string()),
+    }
+}
+
 /// Update animations setting
 #[tauri::command]
 pub fn update_animations(enabled: bool, config: State<ConfigState>) -> ConfigResponse<()> {

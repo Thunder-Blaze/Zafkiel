@@ -295,6 +295,20 @@
 			</Card>
 
 			<Card class="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg">
+				<a href="/media-demo" class="block p-6">
+					<div class="flex items-start gap-4">
+						<div class="rounded-lg bg-pink-500/10 p-3 transition-colors group-hover:bg-pink-500/20">
+							<Icon icon="solar:gallery-bold-duotone" class="h-8 w-8 text-pink-500" />
+						</div>
+						<div class="flex-1">
+							<h3 class="mb-1 font-semibold">Media Card Demo</h3>
+							<p class="text-sm text-muted-foreground">Showcase of all media card types</p>
+						</div>
+					</div>
+				</a>
+			</Card>
+
+			<Card class="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg">
 				<a href="/demo" class="block p-6">
 					<div class="flex items-start gap-4">
 						<div

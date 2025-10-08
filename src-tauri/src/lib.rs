@@ -70,6 +70,7 @@ pub fn run() {
             commands::update_ui_config,
             commands::update_theme,
             commands::update_glow_effects,
+            commands::update_blur_effects,
             commands::update_animations,
             commands::update_smooth_scroll,
             commands::update_ui_scale,
