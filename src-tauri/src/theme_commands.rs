@@ -79,11 +79,11 @@ pub async fn save_theme_preference(
     config: tauri::State<'_, std::sync::Arc<crate::config::ConfigLoader>>,
 ) -> Result<(), String> {
     println!("[Themes] Saving theme preference: {}", theme_id);
-    
+
     config
         .update_ui_theme(theme_id)
         .map_err(|e| format!("Failed to save theme preference: {}", e))?;
-    
+
     println!("[Themes] ✓ Theme preference saved successfully");
     Ok(())
 }
@@ -93,11 +93,11 @@ pub async fn get_theme_preference(
     config: tauri::State<'_, std::sync::Arc<crate::config::ConfigLoader>>,
 ) -> Result<String, String> {
     println!("[Themes] Getting theme preference");
-    
+
     let ui_config = config
         .get_ui_config()
         .map_err(|e| format!("Failed to get theme preference: {}", e))?;
-    
+
     println!("[Themes] ✓ Got theme preference: {}", ui_config.theme);
     Ok(ui_config.theme)
 }

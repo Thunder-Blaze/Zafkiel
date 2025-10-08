@@ -1,4 +1,4 @@
-import { themeManager, type ThemeMetadata } from '$lib/services/theme';
+import { themeManager, type Theme } from '$lib/services/theme';
 
 /**
  * Theme store using Svelte 5 runes
@@ -7,7 +7,7 @@ import { themeManager, type ThemeMetadata } from '$lib/services/theme';
 class ThemeStore {
 	private _currentTheme = $state<string>('default');
 	private _isDark = $state<boolean>(false);
-	private _availableThemes = $state<ThemeMetadata[]>([]);
+	private _availableThemes = $state<Theme[]>([]);
 	private _isLoading = $state<boolean>(false);
 	private _initialized = $state<boolean>(false);
 
@@ -136,17 +136,9 @@ class ThemeStore {
 	}
 
 	/**
-	 * Preview a theme without switching
-	 * Returns theme metadata for preview UI
-	 */
-	async previewTheme(themeId: string): Promise<ThemeMetadata> {
-		return themeManager.previewTheme(themeId);
-	}
-
-	/**
 	 * Get theme by ID from available themes
 	 */
-	getTheme(themeId: string): ThemeMetadata | undefined {
+	getTheme(themeId: string): Theme | undefined {
 		return this._availableThemes.find((t) => t.id === themeId);
 	}
 

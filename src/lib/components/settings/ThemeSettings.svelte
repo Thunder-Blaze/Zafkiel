@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { themeStore } from '$lib/stores/theme.svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '$lib/components/ui/sheet';
+	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
 	import { Separator } from '$lib/components/ui/separator';
-	import Icon from '@iconify/svelte';
+	import { themeStore } from '$lib/stores/theme.svelte';
 	import { toast } from 'svelte-sonner';
-
-	let open = $state(false);
+	import Icon from '@iconify/svelte';
+	import { slide } from 'svelte/transition';
+	
 	let switchingTheme = $state(false);
 
 	async function handleThemeSwitch(themeId: string): Promise<void> {
@@ -39,36 +38,29 @@
 		}
 
 		switchingTheme = false;
-		open = false; // Close the sheet after switching
 	}
 </script>
 
-<Sheet bind:open>
-	<SheetTrigger>
-		{#snippet child({ props })}
-			<Button
-				variant="outline"
-				size="icon"
-				class="rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
-				{...props}
-			>
-				<Icon icon="solar:pallete-2-bold" class="h-5 w-5" />
-			</Button>
-		{/snippet}
-	</SheetTrigger>
-	<SheetContent side="right" class="w-full sm:max-w-md overflow-y-auto">
-		<SheetHeader>
-			<SheetTitle class="flex items-center gap-2 text-xl">
-				<Icon icon="solar:pallete-2-bold" class="h-6 w-6 text-primary" />
-				Theme Selector
-			</SheetTitle>
-		</SheetHeader>
+<div transition:slide={{ duration: 300 }}>
+	<Card>
+		<CardHeader>
+			<div class="flex items-center gap-3">
+				<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+					<Icon icon="solar:pallete-2-bold" class="h-5 w-5 text-primary" />
+				</div>
+			<div>
+				<CardTitle>Theme</CardTitle>
+				<CardDescription>Choose your color theme</CardDescription>
+			</div>
+		</div>
+	</CardHeader>
+	<CardContent class="space-y-4">
+		<Separator />
 
-		<Separator class="my-4" />
-
-		<div class="space-y-4 px-2">
+		<!-- Theme Selector -->
+		<div class="space-y-3">
 			<Label class="text-base font-medium">Color Theme</Label>
-			<div class="space-y-3">
+			<div class="flex flex-col gap-3">
 				{#each themeStore.availableThemes as theme}
 					{@const isActive = themeStore.currentTheme === theme.id}
 					{@const isLoaded = themeStore.loadedThemes.has(theme.id)}
@@ -84,7 +76,7 @@
 							: 'border-border/50 opacity-60 hover:opacity-100'}
 							{switchingTheme ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 					>
-						<!-- Color Preview -->
+						<!-- Color Preview - Shows actual colors when theme is loaded -->
 						<div class="flex h-10 gap-1.5 overflow-hidden rounded-lg border border-border/50" data-theme={theme.id}>
 							<div
 								class="flex-1 rounded-md bg-primary transition-all duration-300 ease-out group-hover:scale-105 group-hover:shadow-md"
@@ -131,17 +123,6 @@
 				{/each}
 			</div>
 		</div>
-
-		<Separator class="my-6" />
-
-		<div class="space-y-3 rounded-xl border border-border/50 bg-foreground/5 p-4">
-			<div class="flex items-center gap-2">
-				<Icon icon="solar:lightbulb-bolt-bold" class="h-5 w-5 text-primary" />
-				<span class="text-sm font-medium">Pro Tip</span>
-			</div>
-			<p class="text-xs text-foreground/70 leading-relaxed">
-				Themes are loaded on-demand to improve performance. Unloaded themes show a download icon. Once loaded, they're cached for instant switching.
-			</p>
-		</div>
-	</SheetContent>
-</Sheet>
+	</CardContent>
+</Card>
+</div>

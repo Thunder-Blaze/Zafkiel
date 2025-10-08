@@ -55,7 +55,7 @@ function createThemeStore() {
 
 				const themes = await themeManager.listThemes();
 				state.availableThemes = themes;
-				
+
 				// Mark initially loaded theme
 				state.loadedThemes.add(state.currentTheme);
 
@@ -94,7 +94,7 @@ function createThemeStore() {
 				state.isLoading = false;
 			}
 		},
-		
+
 		async loadTheme(themeId: string) {
 			if (state.loadedThemes.has(themeId)) {
 				console.log(`[ThemeStore] Theme ${themeId} already loaded`);

@@ -10,6 +10,8 @@ This document provides guidelines for GitHub Copilot when working on the Zafkiel
 - **Performance Optimized**: Always prioritize performance and efficiency in implementation
 - **Best Practices**: Follow industry best practices for Rust, Svelte, and TypeScript
 - **Type Safety**: Leverage TypeScript's type system for robust, error-free code
+- **Component Composition**: Split large components into smaller, reusable components whenever a file exceeds ~200 lines or contains multiple logical sections
+- **Built-in Transitions**: Use Svelte's built-in transitions (`slide`, `fade`, `fly`, `scale`) or Framer Motion instead of defining custom transitions
 
 ### Technology Stack Guidelines
 
