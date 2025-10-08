@@ -1,4 +1,4 @@
-:root {
+:root[theme="nature"], [theme="nature"] {
 	--background: oklch(0.9711 0.0074 80.7211);
 	--foreground: oklch(0.3 0.0358 30.2042);
 	--card: oklch(0.9711 0.0074 80.7211);
@@ -45,7 +45,7 @@
 	--shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 }
 
-.dark {
+.dark[theme="nature"], .dark [theme="nature"] {
 	--background: oklch(0.2683 0.0279 150.7681);
 	--foreground: oklch(0.9423 0.0097 72.6595);
 	--card: oklch(0.3327 0.0271 146.9867);

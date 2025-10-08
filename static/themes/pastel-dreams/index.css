@@ -1,4 +1,4 @@
-:root {
+:root[theme="pastel-dreams"], [theme="pastel-dreams"] {
 	--background: oklch(0.9689 0.009 314.7819);
 	--foreground: oklch(0.3729 0.0306 259.7328);
 	--card: oklch(1 0 0);
@@ -45,7 +45,7 @@
 	--shadow-2xl: 0px 8px 16px -4px hsl(0 0% 0% / 0.2);
 }
 
-.dark {
+.dark[theme="pastel-dreams"], .dark [theme="pastel-dreams"] {
 	--background: oklch(0.2161 0.0061 56.0434);
 	--foreground: oklch(0.9299 0.0334 272.7879);
 	--card: oklch(0.2805 0.0309 307.2326);

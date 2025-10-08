@@ -1,4 +1,4 @@
-:root {
+:root[theme="vintage-paper"], [theme="vintage-paper"] {
 	--background: oklch(0.9582 0.0152 90.2357);
 	--foreground: oklch(0.376 0.0225 64.3434);
 	--card: oklch(0.9914 0.0098 87.4695);
@@ -45,7 +45,7 @@
 	--shadow-2xl: 2px 3px 5px 0px hsl(28 13% 20% / 0.3);
 }
 
-.dark {
+.dark[theme="vintage-paper"], .dark [theme="vintage-paper"] {
 	--background: oklch(0.2747 0.0139 57.6523);
 	--foreground: oklch(0.9239 0.019 83.0636);
 	--card: oklch(0.3237 0.0155 59.0603);

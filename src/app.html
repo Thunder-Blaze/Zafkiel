@@ -5,28 +5,6 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
 
-		<!-- Preload theme CSS to prevent flash of unstyled content -->
-		<script>
-			(function () {
-				// Load theme preference from localStorage (fast, synchronous)
-				const savedTheme = localStorage.getItem('theme-preference') || 'default';
-				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-				// Set attributes immediately
-				document.documentElement.setAttribute('data-theme', savedTheme);
-				if (prefersDark) {
-					document.documentElement.classList.add('dark');
-				}
-
-				// Inject theme CSS link immediately
-				const link = document.createElement('link');
-				link.rel = 'stylesheet';
-				link.href = '/themes/' + savedTheme + '/index.css';
-				link.dataset.themeId = savedTheme;
-				document.head.appendChild(link);
-			})();
-		</script>
-
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

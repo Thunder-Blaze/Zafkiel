@@ -370,45 +370,47 @@
 									<div class="grid grid-cols-2 gap-4 md:grid-cols-3">
 										{#each themeStore.availableThemes as theme}
 											{@const isActive = themeStore.currentTheme === theme.id}
-											{@const colors = themeStore.isDark ? theme.colors.dark : theme.colors.light}
 
 											<button
 												onclick={() => handleThemeSwitch(theme.id)}
 												disabled={switchingTheme}
-												class="group relative flex flex-col gap-3 rounded-lg border-2 p-4 transition-all duration-200
+												class="group relative flex flex-col gap-3 rounded-xl border-2 p-4 transition-all duration-300 ease-out
 													{isActive
-													? 'scale-105 border-primary bg-accent shadow-lg'
-													: 'border-muted hover:scale-105 hover:border-primary hover:bg-accent'}
+													? 'scale-[1.02] border-primary/60 bg-primary/10 shadow-xl ring-2 ring-primary/20'
+													: 'border-border hover:scale-[1.02] hover:border-primary/30 hover:bg-foreground/5 hover:shadow-lg'}
 													{switchingTheme ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 											>
-												<!-- Color Preview -->
-												<div class="flex h-8 gap-1.5">
+												<!-- Color Preview - Shows actual colors when theme is loaded -->
+												<div class="flex h-10 gap-1.5 overflow-hidden rounded-lg border border-border/50" theme={theme.id}>
 													<div
-														class="flex-1 rounded transition-transform group-hover:scale-105"
-														style="background: {colors.primary}"
+														class="flex-1 rounded-md bg-primary transition-all duration-300 ease-out group-hover:scale-105 group-hover:shadow-md"
 													></div>
 													<div
-														class="flex-1 rounded transition-transform group-hover:scale-105"
-														style="background: {colors.background}"
+														class="flex-1 rounded-md bg-background border border-border/50 transition-all duration-300 ease-out group-hover:scale-105 group-hover:shadow-md"
 													></div>
 													<div
-														class="flex-1 rounded transition-transform group-hover:scale-105"
-														style="background: {colors.accent}"
+														class="flex-1 rounded-md bg-accent transition-all duration-300 ease-out group-hover:scale-105 group-hover:shadow-md"
 													></div>
 												</div>
 
 												<!-- Theme Name -->
-												<div class="text-center">
-													<span class="text-sm font-medium">{theme.name}</span>
-													<p class="mt-1 text-xs text-muted-foreground">{theme.description}</p>
+												<div class="text-center transition-transform duration-200 group-hover:translate-y-[-1px]">
+													<span class="text-sm font-medium text-foreground">{theme.name}</span>
 												</div>
 
-												<!-- Active Indicator -->
+												<!-- Active Indicator with Checkmark -->
 												{#if isActive}
 													<div
-														class="absolute -top-1 -right-1 h-4 w-4 animate-pulse rounded-full bg-primary"
-													></div>
+														class="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-primary/90 shadow-lg transition-transform duration-300 ease-out"
+													>
+														<Icon icon="solar:check-circle-bold" class="h-5 w-5 text-background" />
+													</div>
 												{/if}
+
+												<!-- Hover Overlay Effect -->
+												<div
+													class="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-transparent via-transparent to-foreground/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+												></div>
 											</button>
 										{/each}
 									</div>

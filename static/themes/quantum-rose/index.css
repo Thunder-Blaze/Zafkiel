@@ -1,4 +1,4 @@
-:root {
+:root[theme="quantum-rose"], [theme="quantum-rose"] {
 	--background: oklch(0.9692 0.0192 343.9344);
 	--foreground: oklch(0.4426 0.1653 352.3762);
 	--card: oklch(0.9837 0.0107 339.3288);
@@ -45,7 +45,7 @@
 	--shadow-2xl: 0px 3px 0px 0px hsl(330 70% 30% / 0.45);
 }
 
-.dark {
+.dark[theme="quantum-rose"], .dark [theme="quantum-rose"] {
 	--background: oklch(0.1808 0.0535 313.7159);
 	--foreground: oklch(0.8624 0.1307 326.6356);
 	--card: oklch(0.2398 0.0661 313.2337);
