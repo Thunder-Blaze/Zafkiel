@@ -1,4 +1,4 @@
-:root[theme="catppuccin"], [theme="catppuccin"] {
+:root[data-theme="catppuccin"], [data-theme="catppuccin"] {
 	--background: oklch(0.9578 0.0058 264.5321);
 	--foreground: oklch(0.4355 0.043 279.325);
 	--card: oklch(1 0 0);
@@ -45,7 +45,7 @@
 	--shadow-2xl: 0px 4px 6px 0px hsl(240 30% 25% / 0.3);
 }
 
-.dark[theme="catppuccin"], .dark [theme="catppuccin"] {
+.dark[data-theme="catppuccin"], .dark [data-theme="catppuccin"] {
 	--background: oklch(0.2155 0.0254 284.0647);
 	--foreground: oklch(0.8787 0.0426 272.2767);
 	--card: oklch(0.2429 0.0304 283.911);

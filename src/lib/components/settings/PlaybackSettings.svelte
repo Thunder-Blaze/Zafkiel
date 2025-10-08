@@ -4,7 +4,7 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import Icon from '@iconify/svelte';
 	import { slide } from 'svelte/transition';
-	
+
 	interface Props {
 		autoSkipIntro?: boolean;
 		autoSkipOutro?: boolean;
@@ -15,7 +15,7 @@
 		onautoPlayNextChange?: (value: boolean) => void;
 		onpreferDubChange?: (value: boolean) => void;
 	}
-	
+
 	let {
 		autoSkipIntro = $bindable(true),
 		autoSkipOutro = $bindable(false),

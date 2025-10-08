@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { contextMenuStore } from '$lib/stores/context-menu';
-	import { getDefaultContextMenuItems } from '$lib/utils/default-context-menu';
+	import { getDefaultContextMenuItems } from '$lib/utils/default-context-menu.svelte';
 
 	const { children } = $props();
 

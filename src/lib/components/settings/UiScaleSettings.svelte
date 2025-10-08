@@ -6,16 +6,16 @@
 	import { toast } from 'svelte-sonner';
 	import Icon from '@iconify/svelte';
 	import { slide } from 'svelte/transition';
-	
+
 	const uiScale = useUiScale();
 	let sliderValue = $state(uiScale.scale * 100);
 	let scaleUpdateTimeout: ReturnType<typeof setTimeout>;
-	
+
 	// Update slider when scale changes
 	$effect(() => {
 		sliderValue = uiScale.scale * 100;
 	});
-	
+
 	function handleScaleChange(event: Event): void {
 		const target = event.target as HTMLInputElement;
 		const scale = Number(target.value) / 100;

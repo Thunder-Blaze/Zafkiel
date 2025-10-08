@@ -1,4 +1,4 @@
-:root[theme="sunset"], [theme="sunset"] {
+:root[data-theme="sunset"], [data-theme="sunset"] {
 	--background: oklch(0.98 0.01 30);
 	--foreground: oklch(0.15 0.05 30);
 	--card: oklch(1 0 0);
@@ -45,7 +45,7 @@
 	--shadow-2xl: 0px 8px 16px -4px hsl(0 0% 0% / 0.2);
 }
 
-.dark[theme="sunset"], .dark [theme="sunset"] {
+.dark[data-theme="sunset"], .dark [data-theme="sunset"] {
 	--background: oklch(0.12 0.04 30);
 	--foreground: oklch(0.95 0.01 30);
 	--card: oklch(0.18 0.05 30);

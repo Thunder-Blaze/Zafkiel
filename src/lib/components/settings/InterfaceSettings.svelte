@@ -4,7 +4,7 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import Icon from '@iconify/svelte';
 	import { slide } from 'svelte/transition';
-	
+
 	interface Props {
 		autoPlayTrailers?: boolean;
 		showSpoilers?: boolean;
@@ -17,7 +17,7 @@
 		oncompactModeChange?: (value: boolean) => void;
 		onanimationsEnabledChange?: (value: boolean) => void;
 	}
-	
+
 	let {
 		autoPlayTrailers = $bindable(true),
 		showSpoilers = $bindable(false),

@@ -1,4 +1,4 @@
-:root[theme="amber-minimal"], [theme="amber-minimal"] {
+:root[data-theme="amber-minimal"], [data-theme="amber-minimal"] {
 	--background: oklch(1 0 0);
 	--foreground: oklch(0.2686 0 0);
 	--card: oklch(1 0 0);
@@ -45,7 +45,7 @@
 	--shadow-2xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.25);
 }
 
-.dark[theme="amber-minimal"], .dark [theme="amber-minimal"] {
+.dark[data-theme="amber-minimal"], .dark [data-theme="amber-minimal"] {
 	--background: oklch(0.2046 0 0);
 	--foreground: oklch(0.9219 0 0);
 	--card: oklch(0.2686 0 0);

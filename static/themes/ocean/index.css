@@ -1,4 +1,4 @@
-:root[theme="ocean"], [theme="ocean"] {
+:root[data-theme="ocean"], [data-theme="ocean"] {
 	--background: oklch(0.98 0.01 220);
 	--foreground: oklch(0.15 0.05 220);
 	--card: oklch(1 0 0);
@@ -45,7 +45,7 @@
 	--shadow-2xl: 0px 8px 16px -4px hsl(0 0% 0% / 0.2);
 }
 
-.dark[theme="ocean"], .dark [theme="ocean"] {
+.dark[data-theme="ocean"], .dark [data-theme="ocean"] {
 	--background: oklch(0.12 0.04 220);
 	--foreground: oklch(0.95 0.01 220);
 	--card: oklch(0.18 0.05 220);

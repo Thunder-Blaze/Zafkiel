@@ -5,7 +5,7 @@
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
 	import { slide } from 'svelte/transition';
-	
+
 	let isLoggingOut = $state(false);
 
 	async function handleLogout(): Promise<void> {

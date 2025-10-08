@@ -4,7 +4,7 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import Icon from '@iconify/svelte';
 	import { slide } from 'svelte/transition';
-	
+
 	interface Props {
 		show18Plus?: boolean;
 		showInList?: boolean;
@@ -13,19 +13,19 @@
 		onshowInListChange?: (value: boolean) => void;
 		onselectedGenresChange?: (value: string[]) => void;
 	}
-	
+
 	let {
 		show18Plus = $bindable(false),
 		showInList = $bindable(true),
 		selectedGenres = $bindable<string[]>([]),
 	}: Props = $props();
-	
+
 	const availableGenres = [
 		'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror',
 		'Mecha', 'Music', 'Mystery', 'Psychological', 'Romance', 'Sci-Fi',
 		'Slice of Life', 'Sports', 'Supernatural', 'Thriller'
 	];
-	
+
 	function toggleGenre(genre: string): void {
 		if (selectedGenres.includes(genre)) {
 			selectedGenres = selectedGenres.filter((g) => g !== genre);

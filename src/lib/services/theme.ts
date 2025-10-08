@@ -90,7 +90,7 @@ name: this.formatThemeName(id)
 			}
 
 			const root = document.documentElement;
-			root.setAttribute('theme', themeId);
+			root.setAttribute('data-theme', themeId);
 
 			if (isDark) {
 				root.classList.add('dark');
@@ -159,13 +159,13 @@ name: this.formatThemeName(id)
 				root.classList.remove('dark');
 			}
 
-			root.setAttribute('theme', themeToLoad);
+			root.setAttribute('data-theme', themeToLoad);
 
 			console.log(`[ThemeManager] ✓ Initialized with ${themeToLoad}`);
 		} catch (error) {
 			console.error('[ThemeManager] ✗ Initialization failed:', error);
 			this.currentThemeId = 'default';
-			document.documentElement.setAttribute('theme', 'default');
+			document.documentElement.setAttribute('data-theme', 'default');
 		}
 	}
 }

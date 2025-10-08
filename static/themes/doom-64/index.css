@@ -1,4 +1,4 @@
-:root[theme="doom-64"], [theme="doom-64"] {
+:root[data-theme="doom-64"], [data-theme="doom-64"] {
 	--background: oklch(0.8452 0 0);
 	--foreground: oklch(0.2393 0 0);
 	--card: oklch(0.7572 0 0);
@@ -45,7 +45,7 @@
 	--shadow-2xl: 0px 2px 4px 0px hsl(0 0% 0% / 1);
 }
 
-.dark[theme="doom-64"], .dark [theme="doom-64"] {
+.dark[data-theme="doom-64"], .dark [data-theme="doom-64"] {
 	--background: oklch(0.2178 0 0);
 	--foreground: oklch(0.9067 0 0);
 	--card: oklch(0.285 0 0);

@@ -107,11 +107,11 @@ src/routes/settings/+page.svelte
 ```markdown
 ### Code Quality Standards
 
-- **Component Composition**: Split large components into smaller, 
-  reusable components whenever a file exceeds ~200 lines or contains 
+- **Component Composition**: Split large components into smaller,
+  reusable components whenever a file exceeds ~200 lines or contains
   multiple logical sections
-- **Built-in Transitions**: Use Svelte's built-in transitions 
-  (`slide`, `fade`, `fly`, `scale`) or Framer Motion instead of 
+- **Built-in Transitions**: Use Svelte's built-in transitions
+  (`slide`, `fade`, `fly`, `scale`) or Framer Motion instead of
   defining custom transitions
 ```
 
@@ -136,12 +136,12 @@ All components follow this pattern:
 <script lang="ts">
   // 1. Imports
   import { slide } from 'svelte/transition';
-  
+
   // 2. Props interface
   interface Props {
     setting?: boolean;
   }
-  
+
   // 3. Bindable state
   let { setting = $bindable(false) }: Props = $props();
 </script>
@@ -231,7 +231,7 @@ src/lib/components/settings/
   let setting1 = $state(false);
   let setting2 = $state(true);
   // ... 50 more settings
-  
+
   function handler1() {}
   function handler2() {}
   // ... 20 more handlers
@@ -251,7 +251,7 @@ src/lib/components/settings/
 <!-- Clean 150-line orchestrator -->
 <script>
   import InterfaceSettings from '$lib/components/settings/InterfaceSettings.svelte';
-  
+
   let setting1 = $state(false);
   let setting2 = $state(true);
 </script>
@@ -340,7 +340,7 @@ Other files that could benefit from splitting:
 
 ---
 
-**Date:** October 8, 2025  
-**Status:** ✅ Complete  
-**Breaking Changes:** None (backward compatible)  
+**Date:** October 8, 2025
+**Status:** ✅ Complete
+**Breaking Changes:** None (backward compatible)
 **Migration Required:** No (drop-in replacement)
