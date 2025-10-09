@@ -77,7 +77,7 @@
 			</Button>
 		{/snippet}
 	</SheetTrigger>
-	<SheetContent side="right" class="w-full sm:max-w-xs gap-0 flex flex-col">
+	<SheetContent side="right" class="w-full sm:max-w-xs h-[calc(100vh-3rem)] mt-[3rem] gap-0 flex flex-col">
 		<SheetHeader class="flex-shrink-0">
 			<SheetTitle class="flex items-center gap-2 text-xl">
 				<Icon icon="solar:pallete-2-bold" class="h-6 w-6 text-primary" />

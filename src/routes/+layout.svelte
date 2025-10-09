@@ -27,7 +27,7 @@
 			await themeStore.initialize();
 			await configStore.init();
 			await authStore.init();
-			
+
 			// Mark as ready once theme is loaded
 			isReady = true;
 		} catch (error) {

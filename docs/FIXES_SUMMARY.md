@@ -20,7 +20,7 @@
 ---
 
 ### 2. ✅ Auth Token Not Persisting / Decryption Issues
-**Problem:** 
+**Problem:**
 - Token was encrypted in config but not being decrypted on app startup
 - Auth state resetting on app restart
 - Logout menu showing when user not logged in

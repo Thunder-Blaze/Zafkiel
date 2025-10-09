@@ -3,7 +3,7 @@
 	import TitleBar from '$lib/components/TitleBar.svelte';
 </script>
 
-<Story 
+<Story
 	name="Default"
 	parameters={{
 		layout: 'fullscreen'
@@ -16,7 +16,7 @@
 			<p class="text-muted-foreground mb-4">
 				This is the custom title bar that replaces the default Tauri window chrome.
 			</p>
-			
+
 			<div class="space-y-4 text-sm">
 				<div class="rounded-lg border border-border/50 bg-muted/30 p-4">
 					<h3 class="font-semibold mb-2">Features:</h3>
@@ -43,7 +43,7 @@
 	</div>
 </Story>
 
-<Story 
+<Story
 	name="With Content"
 	parameters={{
 		layout: 'fullscreen'
@@ -54,7 +54,7 @@
 		<div class="container mx-auto p-8">
 			<h1 class="text-4xl font-bold mb-2">Welcome to Zafkiel</h1>
 			<p class="text-xl text-muted-foreground mb-8">Your anime watching companion</p>
-			
+
 			<div class="grid gap-6 md:grid-cols-3">
 				{#each Array(6) as _, i}
 					<div class="rounded-xl border border-border/50 bg-card p-6">

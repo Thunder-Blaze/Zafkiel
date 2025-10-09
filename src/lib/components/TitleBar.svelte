@@ -68,7 +68,7 @@
 {#if browser && !isFullscreen}
 	<div
 		data-tauri-drag-region
-		class="fixed top-0 left-0 right-0 z-50 flex h-12 select-none items-center justify-between border-b border-border/50 bg-background/95 backdrop-blur-xl"
+		class="fixed top-0 left-0 right-0 z-[999999] flex h-12 select-none items-center justify-between border-b border-border/50 bg-background/95 backdrop-blur-xl"
 	>
 		<!-- Left: App branding and navigation -->
 		<div class="flex h-full items-center gap-2 pl-3" data-tauri-drag-region>
@@ -78,8 +78,8 @@
 					<Icon icon="solar:clock-circle-bold" class="h-4 w-4 text-primary-foreground" />
 				</div>
 				<div class="flex items-baseline gap-1" data-tauri-drag-region>
-					<span class="text-base font-bold tracking-tight">Zafkiel</span>
-					<sup class="text-[8px] font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/30 bg-amber-500/10 px-1 py-1 rounded">
+					<span class="text-lg font-bold tracking-tight">Zafkiel</span>
+					<sup class="text-[8px] font-semibold text-accent-foreground -top-2 border border-accent/60 bg-accent px-1 py-1.5 rounded">
 						ALPHA
 					</sup>
 				</div>

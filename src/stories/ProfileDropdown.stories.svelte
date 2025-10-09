@@ -3,7 +3,7 @@
 	import ProfileDropdown from '$lib/components/ProfileDropdown.svelte';
 </script>
 
-<Story 
+<Story
 	name="Guest User"
 	parameters={{
 		layout: 'centered'
@@ -14,7 +14,7 @@
 	</div>
 </Story>
 
-<Story 
+<Story
 	name="Logged In User"
 	parameters={{
 		layout: 'centered'
@@ -28,7 +28,7 @@
 	</div>
 </Story>
 
-<Story 
+<Story
 	name="In Title Bar Context"
 	parameters={{
 		layout: 'fullscreen'
@@ -40,7 +40,7 @@
 				<div class="h-6 w-6 rounded bg-primary/20"></div>
 				<span class="text-sm font-semibold">Zafkiel</span>
 			</div>
-			
+
 			<div class="flex items-center gap-4">
 				<button class="text-sm text-muted-foreground hover:text-foreground">Theme</button>
 				<ProfileDropdown />
@@ -51,7 +51,7 @@
 				</div>
 			</div>
 		</div>
-		
+
 		<div class="p-8">
 			<h2 class="text-xl font-semibold mb-2">Profile Dropdown in Title Bar</h2>
 			<p class="text-sm text-muted-foreground">
