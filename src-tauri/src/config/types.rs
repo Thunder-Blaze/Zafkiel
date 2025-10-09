@@ -42,6 +42,9 @@ pub struct UiConfig {
     /// Enable smooth scrolling
     pub smooth_scroll: bool,
 
+    /// Enable hover card previews on media cards
+    pub hover_card: bool,
+
     /// UI scale factor (0.5 to 2.0, default 1.0)
     /// Controls the overall size of UI elements via CSS zoom
     #[serde(default = "default_ui_scale")]
@@ -84,6 +87,7 @@ impl Default for UiConfig {
             blur_effects: true,
             animations: true,
             smooth_scroll: true,
+            hover_card: true,
             ui_scale: 1.0,
         }
     }
@@ -103,6 +107,7 @@ mod tests {
         assert!(config.ui.blur_effects);
         assert!(config.ui.animations);
         assert!(config.ui.smooth_scroll);
+        assert!(config.ui.hover_card);
     }
 
     #[test]

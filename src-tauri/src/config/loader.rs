@@ -241,6 +241,17 @@ impl ConfigLoader {
         self.save()
     }
 
+    /// Update hover card previews setting
+    pub fn update_hover_card(&self, enabled: bool) -> Result<(), ConfigError> {
+        let mut config = self.config.write().map_err(|_| {
+            ConfigError::Deserialization("Failed to acquire write lock".to_string())
+        })?;
+
+        config.ui.hover_card = enabled;
+        drop(config);
+        self.save()
+    }
+
     /// Update UI scale factor
     pub fn update_ui_scale(&self, scale: f32) -> Result<(), ConfigError> {
         let mut config = self.config.write().map_err(|_| {

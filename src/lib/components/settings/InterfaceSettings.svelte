@@ -29,6 +29,7 @@
 	let animationsEnabled = $state(true);
 	let glowEffectsEnabled = $state(true);
 	let blurEffectsEnabled = $state(true);
+	let hoverCardEnabled = $state(true);
 
 	// Load settings from config
 	$effect(() => {
@@ -37,6 +38,7 @@
 				animationsEnabled = config.animations;
 				glowEffectsEnabled = config.glow_effects;
 				blurEffectsEnabled = config.blur_effects;
+				hoverCardEnabled = config.hover_card;
 			})
 			.catch((error) => {
 				console.error('Failed to load UI config:', error);
@@ -73,6 +75,17 @@
 			toast.success(`Blur effects ${newValue ? 'enabled' : 'disabled'}`);
 		} catch (error) {
 			toast.error('Failed to update blur effects setting');
+		}
+	}
+
+	async function handleHoverCardToggle(): Promise<void> {
+		const newValue = !hoverCardEnabled;
+		try {
+			await ConfigService.updateHoverCard(newValue);
+			hoverCardEnabled = newValue;
+			toast.success(`Hover card previews ${newValue ? 'enabled' : 'disabled'}`);
+		} catch (error) {
+			toast.error('Failed to update hover card setting');
 		}
 	}
 </script>
@@ -152,6 +165,15 @@
 				<p class="text-sm text-foreground/70">Enable backdrop blur effects on overlays</p>
 			</div>
 			<Switch checked={blurEffectsEnabled} onCheckedChange={handleBlurEffectsToggle} />
+		</div>
+
+		<!-- Hover Card -->
+		<div class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4">
+			<div class="space-y-0.5">
+				<Label class="text-base font-medium">Hover Card Previews</Label>
+				<p class="text-sm text-foreground/70">Show detailed preview cards when hovering over media</p>
+			</div>
+			<Switch checked={hoverCardEnabled} onCheckedChange={handleHoverCardToggle} />
 		</div>
 	</CardContent>
 </Card>

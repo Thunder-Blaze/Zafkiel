@@ -131,6 +131,15 @@ pub fn update_smooth_scroll(enabled: bool, config: State<ConfigState>) -> Config
     }
 }
 
+/// Update hover card previews setting
+#[tauri::command]
+pub fn update_hover_card(enabled: bool, config: State<ConfigState>) -> ConfigResponse<()> {
+    match config.update_hover_card(enabled) {
+        Ok(_) => ConfigResponse::success(()),
+        Err(e) => ConfigResponse::error(e.to_string()),
+    }
+}
+
 /// Update UI scale factor and apply webview zoom
 #[tauri::command]
 pub fn update_ui_scale(

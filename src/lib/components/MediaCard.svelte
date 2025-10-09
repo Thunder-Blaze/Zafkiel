@@ -1,28 +1,19 @@
 <script lang="ts">
-	import type { MediaData } from '$lib/types/media';
-	import { Card, CardContent } from '$lib/components/ui/card';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Button } from '$lib/components/ui/button';
-	import { Progress } from '$lib/components/ui/progress';
-	import { Separator } from '$lib/components/ui/separator';
+	import { cubicInOut } from 'svelte/easing';
+	import { fade, fly, scale } from 'svelte/transition';
 	import Icon from '@iconify/svelte';
-	import { scale, fly } from 'svelte/transition';
-	import { isAuthenticated } from '$lib/stores/auth';
+	import { tick } from 'svelte';
+	import type { MediaData, MediaListStatus } from '$lib/types/media';
 	import { ConfigService, type UiConfig } from '$lib/services/config';
+	import GenreSubCards from './GenreSubCards.svelte';
 
-	interface Props {
-		mediaData: MediaData;
-		onProgressUpdate?: (newProgress: number) => void;
-		onStatusChange?: (newStatus: string) => void;
-	}
+	let { mediaData }: { mediaData: MediaData } = $props();
 
-	let { mediaData, onProgressUpdate, onStatusChange }: Props = $props();
-
-	let isHovered = $state(false);
-	let previewScrollable = $state(false);
-	let animationsEnabled = $state(true);
-	let glowEffectsEnabled = $state(true);
-	let blurEffectsEnabled = $state(true);
+	// Config states
+	let blurEffectsEnabled = $state(false);
+	let glowEffectsEnabled = $state(false);
+	let animationsEnabled = $state(false);
+	let hoverCardEnabled = $state(false);
 
 	// Load config on mount
 	$effect(() => {
@@ -31,429 +22,404 @@
 				animationsEnabled = config.animations;
 				glowEffectsEnabled = config.glow_effects;
 				blurEffectsEnabled = config.blur_effects;
+				hoverCardEnabled = config.hover_card;
 			}
 		});
 	});
 
-	// Computed values
-	const displayTitle = $derived(mediaData.title || mediaData.englishTitle || 'Unknown Title');
-	const isAnime = $derived(mediaData.type === 'ANIME');
-	const progressPercentage = $derived(
-		mediaData.userProgress && mediaData.totalEpisodes
-			? (mediaData.userProgress / mediaData.totalEpisodes) * 100
-			: 0
-	);
-	const isWatching = $derived(
-		mediaData.userStatus === 'CURRENT' || mediaData.userStatus === 'REPEATING'
-	);
+	let isLoading = $state(false);
+	let isHovering = $state(false);
 
-	// Status display mapping - Make it a function to access reactive isAnime
-	const getStatusLabel = (status: string): string => {
-		const labels: Record<string, string> = {
-			CURRENT: isAnime ? 'Watching' : 'Reading',
-			PLANNING: 'Planning',
-			COMPLETED: 'Completed',
-			DROPPED: 'Dropped',
-			PAUSED: 'Paused',
-			REPEATING: isAnime ? 'Rewatching' : 'Rereading'
-		};
-		return labels[status] || status;
+	const onmouseenter = () => {
+		isHovering = true;
 	};
 
-	// Format score for display
-	function formatScore(score?: number): string {
-		if (!score) return 'N/A';
-		return score.toFixed(1);
-	}
+	const onmouseleave = () => {
+		isHovering = false;
+	};
 
-	// Truncate description
-	function truncateDescription(text?: string, maxLength: number = 250): string {
-		if (!text) return 'No description available.';
-		const stripped = text.replace(/<[^>]*>/g, '');
-		if (stripped.length <= maxLength) return stripped;
-		return stripped.substring(0, maxLength) + '...';
-	}
+	let cardPositioner: HTMLDivElement | null = $state(null);
+	let position: 'left' | 'right' | 'center' = $state('center');
 
-	// Handle progress increment
-	function handleProgressIncrement() {
-		if (!mediaData.totalEpisodes) return;
-		const newProgress = Math.min((mediaData.userProgress || 0) + 1, mediaData.totalEpisodes);
-		onProgressUpdate?.(newProgress);
-	}
+	const adjustPosition = () => {
+		if (!cardPositioner) return;
 
-	// Handle progress decrement
-	function handleProgressDecrement() {
-		const newProgress = Math.max((mediaData.userProgress || 0) - 1, 0);
-		onProgressUpdate?.(newProgress);
-	}
+		const rect = cardPositioner.getBoundingClientRect();
+		const padding = 100; // buffer from edge
+		const viewportWidth = window.innerWidth;
+		if (rect.left < padding) {
+			position = 'right';
+		} else if (rect.right > viewportWidth - padding) {
+			position = 'left';
+		} else {
+			position = 'center';
+		}
+	};
 
-	// Handle status change
-	function handleStatusChange(value: string) {
-		onStatusChange?.(value);
-	}
+	$effect(() => {
+		if (isHovering) {
+			tick().then(adjustPosition);
+		}
+	});
 
-	// Check if description needs scrolling
-	function checkScrollable(node: HTMLElement) {
-		previewScrollable = node.scrollHeight > node.clientHeight;
-	}
+	// Computed values from mediaData
+	const title = $derived(mediaData.title || mediaData.englishTitle || 'Unknown');
+	const description = $derived(mediaData.description || 'No description available.');
+	const placeholderSvg = 'https://placehold.co/600x400';
+	const coverImage = $derived(mediaData.coverImage || placeholderSvg);
+	const bannerImage = $derived(mediaData.bannerImage || coverImage);
+	const score = $derived(mediaData.score ? Math.round(mediaData.score * 10) : 0);
+	const genres = $derived(mediaData.genres || []);
+	const status = $derived(mediaData.status || 'UNKNOWN');
+	const episodes = $derived(mediaData.totalEpisodes || 0);
+	const chapters = $derived(mediaData.totalChapters || 0);
+	const season = $derived(mediaData.season || '');
+	const seasonYear = $derived(mediaData.year || 0);
+	const format = $derived(mediaData.format || 'Unknown');
+	const popularity = $derived(mediaData.popularity || 0);
+	const type = $derived(mediaData.type || 'ANIME');
+	const isAdult = $derived(mediaData.isAdult || false);
+	const userStatus = $derived(mediaData.userStatus);
+	const userProgress = $derived(mediaData.userProgress || 0);
+	const link = $derived('/' + mediaData.type?.toLowerCase() + '/' + mediaData.id);
+
+	// Format season display
+	const seasonDisplay = $derived(() => {
+		if (!season || !seasonYear) return '';
+		const seasonName = season.charAt(0) + season.slice(1).toLowerCase();
+		return `${seasonName} ${seasonYear}`;
+	});
+
+	// Status action handlers
+	const handleStatusChange = (newStatus: MediaListStatus) => {
+		// TODO: Implement API call to update status
+		console.log('Status changed to:', newStatus);
+	};
+
+
 </script>
 
+
+<!-- svelte-ignore a11y_mouse_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="relative group"
-	role="article"
-	onmouseenter={() => (isHovered = true)}
-	onmouseleave={() => (isHovered = false)}
+	bind:this={cardPositioner}
+	class="relative flex w-40 flex-col items-center justify-start md:w-48 lg:w-48"
+	onmouseenter={onmouseenter}
+	onmouseleave={onmouseleave}
 >
-	<!-- Normal Card -->
-	<Card class="overflow-hidden py-0 transition-all {animationsEnabled ? 'hover:shadow-lg' : ''}">
-		<CardContent class="p-0">
-			<!-- Cover Image with optional glow effect -->
-			<div class="relative aspect-[2/3] overflow-hidden bg-muted">
-				{#if mediaData.coverImage}
-					<div class="relative h-full w-full">
-						<!-- Blurred glow layer behind -->
-						{#if glowEffectsEnabled}
-							<img
-								src={mediaData.coverImage}
-								alt=""
-								class="absolute inset-0 h-full w-full object-cover blur-2xl opacity-60 scale-110"
-								aria-hidden="true"
-							/>
-						{/if}
-						<!-- Main cover image -->
-						<img
-							src={mediaData.coverImage}
-							alt={displayTitle}
-							class="relative h-full w-full object-cover {animationsEnabled
-								? 'transition-transform duration-300 group-hover:scale-105'
-								: ''}"
-						/>
-					</div>
-				{:else}
-					<div class="flex h-full w-full items-center justify-center bg-muted">
-						<Icon icon="solar:video-library-bold" class="h-16 w-16 text-muted-foreground/20" />
-					</div>
-				{/if}
+		<div
+			class="ring-border bg-card group/animecard text-card-foreground h-56 md:h-68 lg:h-68 relative flex w-full flex-col overflow-hidden rounded-md shadow-lg ring-4 transition-all"
+			in:scale={{ duration: animationsEnabled ? 200 : 0, start: 0.95, easing: cubicInOut }}
+		>
+			<!-- Cover Image -->
+			<a
+				href={link}
+				rel="noopener noreferrer"
+				class="absolute top-0 left-0 flex h-full w-full flex-col transition-all"
+				data-sveltekit-preload-data="off"
+			>
+				<img
+					src="{coverImage}"
+					onerror={(e) => {
+						if ((e.target as HTMLImageElement)?.src) (e.target as HTMLImageElement).src=placeholderSvg;
+					}}
+					alt={title}
+					class="h-full w-full object-cover"
+				/>
+			</a>
+
+			<!-- Top badges -->
+			<div class="relative z-10 flex items-center justify-between p-2">
+				<!-- Score Badge -->
+				<div
+					class="flex items-center justify-center rounded-md px-2 py-0.5 {blurEffectsEnabled
+						? 'bg-card/65 backdrop-blur-xl'
+						: 'bg-card'} gap-0.5 font-semibold shadow-lg transition-all duration-200"
+				>
+					<Icon icon="material-symbols:star-rounded" class="text-primary -ml-1 size-5" />
+					{score}
+					<span class="text-sm font-light">%</span>
+				</div>
 
 				<!-- 18+ Badge -->
-				{#if mediaData.isAdult}
-					<Badge variant="destructive" class="absolute top-2 right-2 font-bold shadow-lg">
+				{#if isAdult}
+					<div
+						class="flex items-center justify-center text-destructive-foreground rounded-md px-2 py-0.5 {blurEffectsEnabled
+							? 'bg-destructive/80 backdrop-blur-xl'
+							: 'bg-destructive'} font-bold shadow-lg transition-all duration-200"
+
+						in:scale={{ duration: animationsEnabled ? 200 : 0, delay: 50 }}
+					>
 						18+
-					</Badge>
-				{/if}
-
-				<!-- Score Badge -->
-				{#if mediaData.score}
-					<div
-						class="absolute top-2 left-2 flex items-center gap-1 rounded-md bg-background/90 px-2 py-1 shadow-lg backdrop-blur-sm {animationsEnabled
-							? 'transition-all duration-200 hover:scale-105'
-							: ''}"
-					>
-						<Icon icon="solar:star-bold" class="h-3.5 w-3.5 text-yellow-500" />
-						<span class="text-xs font-semibold">{formatScore(mediaData.score)}</span>
 					</div>
 				{/if}
+			</div>
 
-				<!-- User Progress -->
-				{#if $isAuthenticated && mediaData.userProgress !== undefined}
-					<div class="absolute bottom-0 left-0 right-0 bg-background/90 p-2 backdrop-blur-sm">
-						<div class="flex items-center justify-between text-xs">
-							<span class="text-muted-foreground">
-								{mediaData.userProgress}/{mediaData.totalEpisodes || '?'}
-							</span>
-							{#if mediaData.userStatus}
-								<Badge variant="secondary" class="h-5 text-xs">
-									{getStatusLabel(mediaData.userStatus)}
-								</Badge>
-							{/if}
+			<!-- Progress Bar (if watching/reading) -->
+			{#if userProgress && (episodes || chapters)}
+				<div class="absolute flex flex-row-reverse bottom-0 left-0 z-10 w-full p-2">
+					{#if userStatus !== 'COMPLETED'}
+						<div class="h-2 w-full overflow-hidden rounded-md {blurEffectsEnabled
+							? 'bg-card/65 backdrop-blur-xl'
+							: 'bg-card'} shadow-md"
+						in:fly={{ y: -10, duration: animationsEnabled ? 250 : 0 }}>
+							<div
+								class="h-full rounded-r-md transition-all duration-300"
+								style="width: {(userProgress / (episodes || chapters)) * 100}%"
+								class:bg-primary={userStatus === 'CURRENT' || userStatus === 'REPEATING'}
+								class:bg-secondary={userStatus === 'PAUSED'}
+								class:bg-destructive={userStatus === 'DROPPED'}
+							></div>
 						</div>
-						{#if mediaData.totalEpisodes}
-							<Progress value={progressPercentage} class="mt-1.5 h-1" />
-						{/if}
-					</div>
-				{/if}
-			</div>
+					{:else}
+						<div class="text-xs flex items-center font-medium w-fit gap-1 whitespace-nowrap rounded-sm tracking-wide px-1.5 py-0.5 text-foreground ml-2 {blurEffectsEnabled
+							? 'bg-card/65 backdrop-blur-xl'
+							: 'bg-card'} shadow-md"
+						in:fly={{ y: -10, duration: animationsEnabled ? 250 : 0 }}>
+							<Icon icon="solar:check-read-outline" class="size-4 inline" /> Completed
+						</div>
+					{/if}
+				</div>
+			{/if}
 
-			<!-- Title -->
-			<div class="p-3">
-				<h3 class="line-clamp-2 text-sm font-semibold leading-tight">
-					{displayTitle}
-				</h3>
+		</div>
+		<!-- Title at bottom -->
+		<div class="w-full mt-3">
+			<div
+				class="flex flex-col gap-1 rounded-sm"
+			>
+				<h2 class="line-clamp-2 text-left text-xs font-semibold md:text-sm">
+					{title}
+				</h2>
+				<div class="flex items-center justify-between text-[10px] text-muted-foreground">
+					<span>{seasonDisplay()}</span>
+					<span>{format}</span>
+				</div>
 			</div>
-		</CardContent>
-	</Card>
+		</div>
 
-	<!-- Preview Card (on hover) -->
-	{#if isHovered}
+	{#if hoverCardEnabled && isHovering}
 		<div
-			class="absolute left-0 top-0 z-50 w-[320px]"
-			transition:scale={animationsEnabled ? { duration: 200, start: 0.95 } : { duration: 0 }}
+			class="ring-card bg-card group/animecard text-card-foreground absolute z-30 flex h-auto w-[140%] flex-col rounded-md shadow-[0px_0px_20px_20px_rgba(0,_0,_0,_0.4)] ring-[12px] gap-2 transition-all {position ===
+			'left'
+				? 'right-0'
+				: position === 'right'
+					? 'left-0'
+					: ''}"
+			in:scale={{ duration: animationsEnabled ? 100 : 0, start: 0.85, easing: cubicInOut }}
 		>
-			<Card class="py-0 overflow-hidden shadow-2xl {blurEffectsEnabled ? 'backdrop-blur-xl' : ''}">
-				<CardContent class="p-0 {blurEffectsEnabled ? 'backdrop-blur-xl bg-background/95' : 'bg-background'}">
-					<!-- Banner Image with glow -->
-					<div
-						class="relative h-32 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20"
+			<!-- Banner Image -->
+			<a
+				href={link}
+				rel="noopener noreferrer"
+				class="relative flex h-32 w-full flex-col rounded-lg transition-all"
+				data-sveltekit-preload-data="off"
+			>
+				<img
+					src={bannerImage}
+					alt={title + ' Banner'}
+					class="absolute h-full w-full object-cover rounded-lg"
+					onerror={(e) => {
+						if ((e.target as HTMLImageElement)?.src && (e.target as HTMLImageElement).src !== coverImage) (e.target as HTMLImageElement).src=coverImage;
+						else (e.target as HTMLImageElement).src=placeholderSvg;
+					}}
+				/>
+				<div
+					in:fade={{ duration: animationsEnabled ? 300 : 0 }}
+					class="absolute inset-0 -z-10 opacity-80"
+				>
+					{#if glowEffectsEnabled}
+						<img
+							src={bannerImage}
+							alt="Banner Glow"
+							class="h-full w-full object-cover blur-lg"
+							onerror={(e) => {
+								if ((e.target as HTMLImageElement)?.src && (e.target as HTMLImageElement).src !== coverImage) (e.target as HTMLImageElement).src=coverImage;
+								else (e.target as HTMLImageElement).src=placeholderSvg;
+							}}
+						/>
+					{/if}
+				</div>
+
+				<div class="p-2 w-full h-full flex flex-col justify-between items-start rounded-lg overflow-hidden">
+					<!-- Score and 18+ badge on banner -->
+					<div class="flex items-center justify-between w-full"
 					>
-						{#if mediaData.bannerImage}
-							<div class="relative h-full w-full">
-								<!-- Blurred glow layer -->
-								{#if glowEffectsEnabled}
-									<img
-										src={mediaData.bannerImage}
-										alt=""
-										class="absolute inset-0 h-full w-full object-cover blur-xl opacity-50 scale-110"
-										aria-hidden="true"
-									/>
-								{/if}
-								<!-- Main banner image -->
-								<img
-									src={mediaData.bannerImage}
-									alt=""
-									class="relative h-full w-full object-cover"
-								/>
-								<div
-									class="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent"
-								></div>
-							</div>
-						{:else}
-							<div class="flex h-full w-full items-center justify-center">
-								<Icon icon="solar:gallery-bold" class="h-12 w-12 text-muted-foreground/20" />
-							</div>
-						{/if}
-
-						<!-- Title overlay on banner -->
-						<div class="absolute bottom-2 left-3 right-3">
-							<h3 class="line-clamp-2 text-sm font-bold text-white drop-shadow-lg">
-								{displayTitle}
-							</h3>
-						</div>
-					</div>
-
-					<!-- Content Section -->
-					<div class="space-y-3 p-4">
-						<!-- Metadata Row -->
-						<div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-							<!-- Type Badge -->
-							{#if mediaData.type}
-								<Badge
-									variant="outline"
-									class="gap-1 {animationsEnabled
-										? 'transition-all hover:scale-105 hover:bg-primary/10'
-										: ''}"
-								>
-									<Icon
-										icon={isAnime ? 'solar:tv-bold' : 'solar:book-2-bold'}
-										class="h-3 w-3"
-									/>
-									{mediaData.type}
-								</Badge>
-							{/if}
-
-							<!-- Format -->
-							{#if mediaData.format}
-								<Badge
-									variant="outline"
-									class={animationsEnabled
-										? 'transition-all hover:scale-105 hover:bg-primary/10'
-										: ''}
-								>
-									{mediaData.format}
-								</Badge>
-							{/if}
-
-							<!-- Year & Season -->
-							{#if mediaData.year}
-								<Badge variant="outline" class="gap-1">
-									<Icon icon="solar:calendar-bold" class="h-3 w-3" />
-									{mediaData.season ? `${mediaData.season} ` : ''}{mediaData.year}
-								</Badge>
-							{/if}
-
-							<!-- Episodes/Chapters -->
-							{#if mediaData.totalEpisodes}
-								<Badge variant="outline" class="gap-1">
-									<Icon
-										icon={isAnime
-											? 'solar:videocamera-record-bold'
-											: 'solar:documents-bold'}
-										class="h-3 w-3"
-									/>
-									{mediaData.totalEpisodes}
-									{isAnime ? 'eps' : 'ch'}
-								</Badge>
-							{/if}
-
-							<!-- Duration (Anime only) -->
-							{#if isAnime && mediaData.duration}
-								<Badge variant="outline" class="gap-1">
-									<Icon icon="solar:clock-circle-bold" class="h-3 w-3" />
-									{mediaData.duration}m
-								</Badge>
-							{/if}
-						</div>
-
-						<!-- Score & Popularity -->
-						<div class="flex items-center gap-3 text-xs">
-							{#if mediaData.score}
-								<div class="flex items-center gap-1">
-									<Icon icon="solar:star-bold" class="h-4 w-4 text-yellow-500" />
-									<span class="font-semibold">{formatScore(mediaData.score)}</span>
-								</div>
-							{/if}
-							{#if mediaData.popularity}
-								<div class="flex items-center gap-1 text-muted-foreground">
-									<Icon icon="solar:users-group-rounded-bold" class="h-4 w-4" />
-									<span>{mediaData.popularity.toLocaleString()}</span>
-								</div>
-							{/if}
-							{#if mediaData.favourites}
-								<div class="flex items-center gap-1 text-muted-foreground">
-									<Icon icon="solar:heart-bold" class="h-4 w-4" />
-									<span>{mediaData.favourites.toLocaleString()}</span>
-								</div>
-							{/if}
-						</div>
-
-						<!-- Genres -->
-						{#if mediaData.genres && mediaData.genres.length > 0}
-							<div class="flex flex-wrap gap-1.5">
-								{#each mediaData.genres.slice(0, 5) as genre}
-									<Badge variant="secondary" class="text-xs">
-										{genre}
-									</Badge>
-								{/each}
-							</div>
-						{/if}
-
-						<Separator />
-
-						<!-- Description -->
 						<div
-							class="max-h-24 overflow-y-auto text-xs leading-relaxed text-muted-foreground"
-							use:checkScrollable
+							class="flex items-center justify-center rounded-md px-2 py-0.5 {blurEffectsEnabled
+								? 'bg-card/65 backdrop-blur-xl'
+								: 'bg-card'} gap-0.5 font-semibold shadow-lg"
 						>
-							<p>{truncateDescription(mediaData.description, 300)}</p>
+							<Icon icon="material-symbols:star-rounded" class="text-primary -ml-1 size-5" />
+							{score}
+							<span class="text-sm font-light">%</span>
 						</div>
 
-						{#if $isAuthenticated}
-							<Separator />
-
-							<!-- Progress Controls (if watching/reading) -->
-							{#if isWatching && mediaData.totalEpisodes}
-								<div class="space-y-2">
-									<div class="flex items-center justify-between text-xs">
-										<span class="text-muted-foreground">Progress</span>
-										<span class="font-semibold">
-											{mediaData.userProgress || 0}/{mediaData.totalEpisodes}
-										</span>
-									</div>
-									<Progress value={progressPercentage} class="h-2" />
-									<div class="flex gap-2">
-										<Button
-											variant="outline"
-											size="sm"
-											class="flex-1 gap-1 {animationsEnabled
-												? 'transition-all active:scale-95'
-												: ''}"
-											onclick={handleProgressDecrement}
-											disabled={(mediaData.userProgress || 0) === 0}
-										>
-											<Icon icon="solar:minus-circle-bold" class="h-4 w-4" />
-											<span class="text-xs">-1</span>
-										</Button>
-										<Button
-											variant="default"
-											size="sm"
-											class="flex-1 gap-1 {animationsEnabled
-												? 'transition-all active:scale-95'
-												: ''}"
-											onclick={handleProgressIncrement}
-											disabled={mediaData.userProgress === mediaData.totalEpisodes}
-										>
-											<Icon icon="solar:play-circle-bold" class="h-4 w-4" />
-											<span class="text-xs">+1 {isAnime ? 'Episode' : 'Chapter'}</span>
-										</Button>
-									</div>
-								</div>
-							{/if}
-
-							<!-- Status Selector (if not watching) -->
-							{#if !isWatching}
-								<div class="space-y-2">
-									<div class="text-xs text-muted-foreground">Change Status</div>
-									<div class="grid grid-cols-2 gap-2">
-										<Button
-											variant="outline"
-											size="sm"
-											class="gap-1 justify-start {animationsEnabled
-												? 'transition-all hover:scale-105 active:scale-95'
-												: ''}"
-											onclick={() => handleStatusChange('CURRENT')}
-										>
-											<Icon icon="solar:play-circle-bold" class="h-3.5 w-3.5" />
-											<span class="text-xs">{isAnime ? 'Watch' : 'Read'}</span>
-										</Button>
-										<Button
-											variant="outline"
-											size="sm"
-											class="gap-1 justify-start {animationsEnabled
-												? 'transition-all hover:scale-105 active:scale-95'
-												: ''}"
-											onclick={() => handleStatusChange('COMPLETED')}
-										>
-											<Icon icon="solar:check-circle-bold" class="h-3.5 w-3.5" />
-											<span class="text-xs">Complete</span>
-										</Button>
-										<Button
-											variant="outline"
-											size="sm"
-											class="gap-1 justify-start {animationsEnabled
-												? 'transition-all hover:scale-105 active:scale-95'
-												: ''}"
-											onclick={() => handleStatusChange('PAUSED')}
-										>
-											<Icon icon="solar:pause-circle-bold" class="h-3.5 w-3.5" />
-											<span class="text-xs">Pause</span>
-										</Button>
-										<Button
-											variant="outline"
-											size="sm"
-											class="gap-1 justify-start {animationsEnabled
-												? 'transition-all hover:scale-105 active:scale-95'
-												: ''}"
-											onclick={() => handleStatusChange('DROPPED')}
-										>
-											<Icon icon="solar:close-circle-bold" class="h-3.5 w-3.5" />
-											<span class="text-xs">Drop</span>
-										</Button>
-									</div>
-								</div>
-							{/if}
+						{#if isAdult}
+							<div
+								class="flex items-center justify-center text-destructive-foreground rounded-md px-2 py-0.5 {blurEffectsEnabled
+									? 'bg-destructive/80 backdrop-blur-xl'
+									: 'bg-destructive'} font-bold shadow-lg"
+							>
+								18+
+							</div>
 						{/if}
 					</div>
-				</CardContent>
-			</Card>
+
+					<!-- Progress Bar on banner -->
+					{#if userProgress && (episodes || chapters)}
+						<div class="flex flex-row-reverse z-10 items-end justify-between w-full">
+							{#if userStatus !== 'COMPLETED'}
+								<span class="text-xs flex items-center font-light gap-1 whitespace-nowrap rounded-sm tracking-wide px-1.5 py-0.5 text-foreground ml-2 {blurEffectsEnabled
+									? 'bg-card/65 backdrop-blur-xl'
+									: 'bg-card'} shadow-md"
+								in:fly={{ y: -10, duration: animationsEnabled ? 250 : 0 }}>
+									<Icon icon="solar:play-bold" class="size-2.5 inline" />{userProgress} / {episodes || chapters}
+								</span>
+								<div class="h-2 w-full overflow-hidden rounded-md {blurEffectsEnabled
+									? 'bg-card/65 backdrop-blur-xl'
+									: 'bg-card'} shadow-md"
+								in:fly={{ y: -10, duration: animationsEnabled ? 250 : 0 }}>
+									<div
+										class="h-full rounded-r-md transition-all duration-300"
+										style="width: {(userProgress / (episodes || chapters)) * 100}%"
+										class:bg-primary={userStatus === 'CURRENT' || userStatus === 'REPEATING'}
+										class:bg-secondary={userStatus === 'PAUSED'}
+										class:bg-destructive={userStatus === 'DROPPED'}
+									></div>
+								</div>
+							{:else}
+								<span class="text-xs flex items-center font-medium gap-1 whitespace-nowrap rounded-sm tracking-wide px-1.5 py-0.5 text-foreground ml-2 {blurEffectsEnabled
+									? 'bg-card/65 backdrop-blur-xl'
+									: 'bg-card'} shadow-md"
+								in:fly={{ y: -10, duration: animationsEnabled ? 250 : 0 }}>
+									<Icon icon="solar:check-read-outline" class="size-4 inline" /> Completed
+								</span>
+							{/if}
+						</div>
+					{/if}
+				</div>
+			</a>
+
+			<!-- Content section -->
+			<div class="flex flex-col gap-2">
+				<!-- Title -->
+				<h2
+					class="line-clamp-2 text-sm font-semibold md:text-base"
+					in:fly={{ y: -10, duration: animationsEnabled ? 250 : 0, delay: 50 }}
+				>
+					{title}
+				</h2>
+
+				<!-- Genres -->
+				<GenreSubCards animationsEnabled={animationsEnabled} genres={genres} />
+
+				<!-- Description -->
+				<p class="line-clamp-3 text-[10px] text-muted-foreground"
+					in:fly={{ y: 10, duration: animationsEnabled ? 250 : 0, delay: 100 }}
+				>
+					{description}
+				</p>
+
+				<!-- Action Buttons Strip -->
+				<div
+					class="bg-border flex items-center justify-between gap-1 rounded-md p-1"
+					in:fade={{ duration: animationsEnabled ? 250 : 0, delay: 150 }}
+				>
+					<button
+						onclick={() => handleStatusChange('PLANNING')}
+						class="hover:bg-primary/20 flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors {userStatus ===
+						'PLANNING'
+							? 'bg-primary/30'
+							: 'bg-background/50'}"
+						title="Plan to Watch"
+					>
+						<Icon icon="material-symbols:bookmark-outline" class="size-3.5" />
+						Plan
+					</button>
+					<button
+						onclick={() => handleStatusChange('CURRENT')}
+						class="hover:bg-primary/20 flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors {userStatus ===
+						'CURRENT'
+							? 'bg-primary/30'
+							: 'bg-background/50'}"
+						title="Watching"
+					>
+						<Icon icon="material-symbols:play-circle-outline" class="size-3.5" />
+						Watch
+					</button>
+					<button
+						onclick={() => handleStatusChange('COMPLETED')}
+						class="hover:bg-primary/20 flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors {userStatus ===
+						'COMPLETED'
+							? 'bg-primary/30'
+							: 'bg-background/50'}"
+						title="Completed"
+					>
+						<Icon icon="material-symbols:check-circle-outline" class="size-3.5" />
+						Done
+					</button>
+					<button
+						onclick={() => handleStatusChange('PAUSED')}
+						class="hover:bg-primary/20 flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors {userStatus ===
+						'PAUSED'
+							? 'bg-primary/30'
+							: 'bg-background/50'}"
+						title="Paused"
+					>
+						<Icon icon="material-symbols:pause-circle-outline" class="size-3.5" />
+					</button>
+					<button
+						onclick={() => handleStatusChange('DROPPED')}
+						class="hover:bg-primary/20 flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors {userStatus ===
+						'DROPPED'
+							? 'bg-primary/30'
+							: 'bg-background/50'}"
+						title="Dropped"
+					>
+						<Icon icon="material-symbols:cancel-outline" class="size-3.5" />
+					</button>
+				</div>
+
+				<!-- Stats Grid -->
+				<div
+					class="bg-border grid grid-cols-2 gap-1.5 rounded-md p-1.5"
+					in:fade={{ duration: animationsEnabled ? 250 : 0, delay: 175 }}
+				>
+					<!-- Status -->
+					<div
+						class="col-span-2 rounded-sm p-1.5 text-center text-xs font-semibold {status ===
+						'RELEASING'
+							? 'bg-green-500/40'
+							: status === 'FINISHED'
+								? 'bg-blue-500/40'
+								: 'bg-muted/40'}"
+					>
+						{status ? status.charAt(0) + status.slice(1).toLowerCase().replace('_', ' ') : ''}
+					</div>
+
+					<!-- Episodes/Chapters -->
+					<div class="bg-background/75 flex items-center justify-center gap-1 rounded-sm px-2 py-1.5">
+						<Icon
+							icon={type === 'ANIME' ? 'fluent:tv-16-filled' : 'mynaui:book-solid'}
+							class="size-4"
+						/>
+						<span class="text-xs font-medium">
+							{episodes || '??'}
+							{type === 'ANIME' ? 'Eps' : 'Ch'}
+						</span>
+					</div>
+
+					<!-- Popularity -->
+					<div class="bg-background/75 flex items-center justify-center gap-1 rounded-sm px-2 py-1.5">
+						<Icon icon="mingcute:user-3-fill" class="size-4" />
+						<span class="text-xs font-medium">
+							{popularity > 1000 ? (popularity / 1000).toFixed(1) + 'k' : popularity}
+						</span>
+					</div>
+				</div>
+			</div>
 		</div>
 	{/if}
 </div>
-
-<style>
-	/* Custom scrollbar for description */
-	.overflow-y-auto::-webkit-scrollbar {
-		width: 4px;
-	}
-
-	.overflow-y-auto::-webkit-scrollbar-track {
-		background: transparent;
-	}
-
-	.overflow-y-auto::-webkit-scrollbar-thumb {
-		background: hsl(var(--muted-foreground) / 0.3);
-		border-radius: 2px;
-	}
-
-	.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-		background: hsl(var(--muted-foreground) / 0.5);
-	}
-</style>

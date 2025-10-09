@@ -19,6 +19,7 @@ export interface MediaData {
 	userStatus?: MediaListStatus;
 	userProgress?: number;
 	totalEpisodes?: number;
+	totalChapters?: number;
 	genres?: string[];
 	studio?: string;
 	year?: number;

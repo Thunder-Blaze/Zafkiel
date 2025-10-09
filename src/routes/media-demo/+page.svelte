@@ -337,16 +337,10 @@
 				</div>
 			</CardHeader>
 			<CardContent>
-				<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+				<div class="grid gap-6 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
 					{#each sampleAnime as anime (anime.id)}
 						<MediaCard
 							mediaData={anime}
-							onProgressUpdate={(progress) => {
-								console.log(`Updated progress for ${anime.title}: ${progress}`);
-							}}
-							onStatusChange={(status) => {
-								console.log(`Changed status for ${anime.title}: ${status}`);
-							}}
 						/>
 					{/each}
 				</div>
@@ -371,16 +365,10 @@
 				</div>
 			</CardHeader>
 			<CardContent>
-				<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+				<div class="grid gap-6 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
 					{#each sampleManga as manga (manga.id)}
 						<MediaCard
 							mediaData={manga}
-							onProgressUpdate={(progress) => {
-								console.log(`Updated progress for ${manga.title}: ${progress}`);
-							}}
-							onStatusChange={(status) => {
-								console.log(`Changed status for ${manga.title}: ${status}`);
-							}}
 						/>
 					{/each}
 				</div>
@@ -406,16 +394,10 @@
 				</div>
 			</CardHeader>
 			<CardContent>
-				<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+				<div class="grid gap-6 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
 					{#each sampleAdult as adult (adult.id)}
 						<MediaCard
 							mediaData={adult}
-							onProgressUpdate={(progress) => {
-								console.log(`Updated progress for ${adult.title}: ${progress}`);
-							}}
-							onStatusChange={(status) => {
-								console.log(`Changed status for ${adult.title}: ${status}`);
-							}}
 						/>
 					{/each}
 				</div>
@@ -440,16 +422,10 @@
 				</div>
 			</CardHeader>
 			<CardContent>
-				<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+				<div class="grid gap-6 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
 					{#each sampleStatuses as status (status.id)}
 						<MediaCard
 							mediaData={status}
-							onProgressUpdate={(progress) => {
-								console.log(`Updated progress for ${status.title}: ${progress}`);
-							}}
-							onStatusChange={(newStatus) => {
-								console.log(`Changed status for ${status.title}: ${newStatus}`);
-							}}
 						/>
 					{/each}
 				</div>
@@ -474,7 +450,7 @@
 				</div>
 			</CardHeader>
 			<CardContent class="space-y-4">
-				<div class="grid gap-4 md:grid-cols-2">
+				<div class="grid gap-4 md:grid-cols-4">
 					<div class="space-y-2">
 						<h4 class="font-semibold">Normal Card</h4>
 						<ul class="space-y-1 text-sm text-muted-foreground">

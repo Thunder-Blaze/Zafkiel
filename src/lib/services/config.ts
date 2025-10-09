@@ -39,6 +39,8 @@ export interface UiConfig {
 	animations: boolean;
 	/** Enable smooth scrolling */
 	smooth_scroll: boolean;
+	/** Enable hover card previews on media cards */
+	hover_card: boolean;
 	/** UI scale factor (0.5 to 2.0, default 1.0) */
 	ui_scale: number;
 }
@@ -167,6 +169,16 @@ export class ConfigService {
 		const response = await invoke<ConfigResponse<void>>('update_smooth_scroll', { enabled });
 		if (!response.success) {
 			throw new Error(response.error || 'Failed to update smooth scroll');
+		}
+	}
+
+	/**
+	 * Update hover card previews setting
+	 */
+	static async updateHoverCard(enabled: boolean): Promise<void> {
+		const response = await invoke<ConfigResponse<void>>('update_hover_card', { enabled });
+		if (!response.success) {
+			throw new Error(response.error || 'Failed to update hover card');
 		}
 	}
 

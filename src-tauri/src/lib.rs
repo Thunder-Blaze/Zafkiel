@@ -73,6 +73,7 @@ pub fn run() {
             commands::update_blur_effects,
             commands::update_animations,
             commands::update_smooth_scroll,
+            commands::update_hover_card,
             commands::update_ui_scale,
             commands::apply_ui_scale,
             commands::open_devtools,

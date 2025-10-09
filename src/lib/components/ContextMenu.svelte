@@ -92,7 +92,7 @@
 		tabindex="-1"
 	>
 		<div
-			class="animate-fade-in rounded-lg border bg-popover/95 p-1 text-popover-foreground shadow-2xl ring-1 shadow-black/20 ring-black/5 [backdrop-filter:blur(24px)] [-webkit-backdrop-filter:blur(24px)] dark:shadow-black/40"
+			class="animate-fade-in rounded-lg border bg-popover/85 p-1 text-popover-foreground shadow-2xl ring-1 shadow-black/20 ring-black/5 backdrop-blur-lg dark:shadow-black/40"
 		>
 			{#each menuState.items as item (item.id)}
 				{#if item.separator}

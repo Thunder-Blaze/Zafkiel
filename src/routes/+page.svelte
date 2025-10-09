@@ -36,18 +36,15 @@
 		<div class="absolute flex items-center justify-center inset-0">
 			<!-- Dynamic Text -->
 			<h1
-				class="absolute font-bold tracking-tight font-mono -z-10"
+				class="absolute font-bold tracking-tight text-foreground/20 font-mono -z-10"
 				style="
-					font-size: {100 / (themeStore?.currentTheme?.length || 5)}vw;
+					font-size: {100 / ($currentUser?.name?.length || 5)}vw;
 					text-shadow: '2px 2px 4px rgba(0, 0, 0, 0.7)';
 					user-select: 'none';
 					pointer-events: 'none';
-					color: transparent;
-					-webkit-text-stroke-width: {20 / (themeStore?.currentTheme?.length || 5)}px;
-					-webkit-text-stroke-color: var(--foreground);
-				"
-			>
-				{themeStore?.currentTheme?.toUpperCase() || 'THEME'}
+					"
+					>
+				{$currentUser?.name || 'GUEST'}
 			</h1>
 			<!-- Lighter Gradient Overlays for readability -->
 			<div class="absolute inset-0 -z-20 bg-gradient-to-br from-background/70 via-background/20 to-background/50"></div>
