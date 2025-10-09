@@ -51,7 +51,9 @@
 		data-tauri-drag-region="false"
 	>
 		<!-- Avatar -->
-		<div class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary to-primary/70 shadow-md">
+		<div
+			class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary to-primary/70 shadow-md"
+		>
 			{#if $isAuthenticated && $currentUser?.avatar}
 				{@const avatarUrl = getAvatarUrl($currentUser.avatar)}
 				{#if avatarUrl}
@@ -65,7 +67,7 @@
 		</div>
 
 		<!-- Username -->
-		<span class="text-sm font-medium text-foreground/90 max-w-24 truncate">
+		<span class="max-w-24 truncate text-sm font-medium text-foreground/90">
 			{$isAuthenticated && $currentUser?.name ? $currentUser.name : 'Guest'}
 		</span>
 
@@ -87,7 +89,12 @@
 				{$isAuthenticated && $currentUser?.name ? $currentUser.name : 'Guest User'}
 			</p>
 			{#if $isAuthenticated && $currentUser}
-				<a href={'https://anilist.co/user/' + $currentUser.name} target="_blank" rel="noopener noreferrer" class="text-xs text-muted-foreground hover:text-primary truncate block">
+				<a
+					href={'https://anilist.co/user/' + $currentUser.name}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="block truncate text-xs text-muted-foreground hover:text-primary"
+				>
 					View on AniList
 				</a>
 			{:else}
@@ -102,7 +109,9 @@
 			{:else if 'icon' in item}
 				{@const menuItem = item as MenuItem}
 				<DropdownMenu.Item
-					class="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-foreground/5 active:bg-foreground/10 {menuItem.danger ? 'text-destructive hover:bg-destructive/10' : 'text-foreground'}"
+					class="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-foreground/5 active:bg-foreground/10 {menuItem.danger
+						? 'text-destructive hover:bg-destructive/10'
+						: 'text-foreground'}"
 					onSelect={menuItem.action}
 				>
 					<Icon icon={menuItem.icon} class="h-4 w-4" />

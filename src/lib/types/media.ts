@@ -1,4 +1,4 @@
-import type { MediaType, MediaFormat, MediaStatus, MediaSeason, MediaSource } from "./anilist";
+import type { MediaType, MediaFormat, MediaStatus, MediaSeason, MediaSource } from './anilist';
 
 export type MediaListStatus =
 	| 'CURRENT'

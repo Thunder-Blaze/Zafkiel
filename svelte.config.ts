@@ -14,7 +14,7 @@ const config: Config = {
 		adapter: adapter(),
 		paths: {
 			base: '',
-		}
+		},
 	},
 };
 

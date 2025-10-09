@@ -30,9 +30,9 @@ class ThemeManager {
 			console.log(`[ThemeManager] ✓ Found ${themeIds.length} themes:`, themeIds);
 
 			const themes: Theme[] = themeIds.map((id) => ({
-id,
-name: this.formatThemeName(id)
-}));
+				id,
+				name: this.formatThemeName(id),
+			}));
 
 			return themes;
 		} catch (error) {

@@ -157,7 +157,7 @@ function createThemeStore() {
 		 */
 		applyThemeMode(mode: 'light' | 'dark' | 'system') {
 			const root = document.documentElement;
-			
+
 			if (mode === 'system') {
 				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 				root.classList.remove('light', 'dark');

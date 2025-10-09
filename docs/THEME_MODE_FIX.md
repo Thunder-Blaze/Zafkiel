@@ -10,11 +10,13 @@ The theme mode (light/dark/system) was experiencing two critical issues:
 ## Root Causes
 
 ### 1. Separated Initialization
+
 - **Theme Store**: Initialized in `+layout.svelte` during `onMount()`, loading theme immediately
 - **Theme Mode**: Loaded separately in individual components via `$effect()`, which runs after mount
 - This created a timing gap where theme loaded first with default system preference, then theme_mode applied later
 
 ### 2. Conflicting State Management
+
 - Theme store had its own `setDarkMode()` method that directly managed the `dark` class
 - Components had duplicate `applyThemeMode()` functions
 - Theme mode config was stored in backend but not synchronized with theme store state
@@ -36,19 +38,21 @@ Made the **theme store** the single source of truth for theme mode by:
 ### 1. Theme Store (`src/lib/stores/theme.svelte.ts`)
 
 #### Added to State Interface
+
 ```typescript
 interface ThemeState {
-    currentTheme: string;
-    isDark: boolean;
-    themeMode: 'light' | 'dark' | 'system';  // NEW
-    availableThemes: Theme[];
-    loadedThemes: SvelteSet<string>;
-    isLoading: boolean;
-    initialized: boolean;
+	currentTheme: string;
+	isDark: boolean;
+	themeMode: 'light' | 'dark' | 'system'; // NEW
+	availableThemes: Theme[];
+	loadedThemes: SvelteSet<string>;
+	isLoading: boolean;
+	initialized: boolean;
 }
 ```
 
 #### Enhanced Initialization
+
 ```typescript
 async initialize() {
     // Load theme_mode from config FIRST
@@ -68,12 +72,13 @@ async initialize() {
 
     // Then initialize theme manager with correct isDark value
     await themeManager.initialize(state.isDark);
-    
+
     // ... rest of initialization
 }
 ```
 
 #### Added Public Methods
+
 ```typescript
 /**
  * Apply theme mode to document
@@ -81,7 +86,7 @@ async initialize() {
  */
 applyThemeMode(mode: 'light' | 'dark' | 'system') {
     const root = document.documentElement;
-    
+
     if (mode === 'system') {
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         root.classList.remove('light', 'dark');
@@ -113,6 +118,7 @@ async setThemeMode(mode: 'light' | 'dark' | 'system') {
 ```
 
 #### Added Getter
+
 ```typescript
 get themeMode() {
     return state.themeMode;
@@ -122,28 +128,30 @@ get themeMode() {
 ### 2. Interface Settings (`src/lib/components/settings/InterfaceSettings.svelte`)
 
 **Before:**
+
 ```typescript
 let themeMode = $state<'light' | 'dark' | 'system'>('dark');
 
 // Load from config
 $effect(() => {
-    ConfigService.getUiConfig().then((config) => {
-        themeMode = config.theme_mode;
-    });
+	ConfigService.getUiConfig().then((config) => {
+		themeMode = config.theme_mode;
+	});
 });
 
 async function handleThemeModeChange(mode) {
-    await ConfigService.updateThemeMode(mode);
-    themeMode = mode;
-    applyThemeMode(mode);  // Local function
+	await ConfigService.updateThemeMode(mode);
+	themeMode = mode;
+	applyThemeMode(mode); // Local function
 }
 
 function applyThemeMode(mode) {
-    // Duplicate logic
+	// Duplicate logic
 }
 ```
 
 **After:**
+
 ```typescript
 // No local state needed!
 import { themeStore } from '$lib/stores/theme.svelte';
@@ -167,12 +175,14 @@ async function handleThemeModeChange(mode: 'light' | 'dark' | 'system') {
 **Same simplification as Interface Settings:**
 
 **Before:**
+
 - Separate `themeMode` state
 - Duplicate `applyThemeMode()` logic
 - `$effect()` to load from config
 - Direct `ConfigService.updateThemeMode()` calls
 
 **After:**
+
 - Uses `themeStore.themeMode` directly
 - Calls `themeStore.setThemeMode()` to update
 - No duplicate state or logic
@@ -180,22 +190,26 @@ async function handleThemeModeChange(mode: 'light' | 'dark' | 'system') {
 ## Benefits
 
 ### 1. ✅ Synchronized Loading
+
 - Theme and theme_mode load together during app initialization
 - No visible flash or delay between theme and color mode application
 - Single `onMount()` in `+layout.svelte` handles everything
 
 ### 2. ✅ Persistent Theme Mode
+
 - Theme mode is stored in theme store state
 - Survives theme switches
 - System preference listener only activates when `theme_mode === 'system'`
 
 ### 3. ✅ Single Source of Truth
+
 - All theme mode logic centralized in theme store
 - Components just delegate to store methods
 - No duplicate state management
 - Reduced code complexity
 
 ### 4. ✅ Better Developer Experience
+
 - Clear ownership: theme store manages both theme and theme_mode
 - Components are simpler, just UI containers
 - Type-safe throughout with TypeScript

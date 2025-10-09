@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { themeStore } from '$lib/stores/theme.svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '$lib/components/ui/sheet';
+	import {
+		Sheet,
+		SheetContent,
+		SheetHeader,
+		SheetTitle,
+		SheetTrigger,
+	} from '$lib/components/ui/sheet';
 	import { Label } from '$lib/components/ui/label';
 	import { Separator } from '$lib/components/ui/separator';
 	import Icon from '@iconify/svelte';
@@ -87,7 +93,10 @@
 			</Button>
 		{/snippet}
 	</SheetTrigger>
-	<SheetContent side="right" class="w-full sm:max-w-xs h-[calc(100vh-3rem)] mt-[3rem] gap-0 flex flex-col">
+	<SheetContent
+		side="right"
+		class="mt-[3rem] flex h-[calc(100vh-3rem)] w-full flex-col gap-0 sm:max-w-xs"
+	>
 		<SheetHeader class="flex-shrink-0">
 			<SheetTitle class="flex items-center gap-2 text-xl">
 				<Icon icon="solar:pallete-2-bold" class="h-6 w-6 text-primary" />
@@ -98,13 +107,13 @@
 		<div
 			bind:this={scrollContainerRef}
 			onwheel={handleWheel}
-			class="overflow-y-auto flex-1 py-2 px-4"
+			class="flex-1 overflow-y-auto px-4 py-2"
 			style="overscroll-behavior: contain; touch-action: pan-y;"
 		>
 			<div class="flex flex-col gap-4">
 				<!-- Theme Mode Selector -->
 				<div class="rounded-lg border border-border/50 bg-muted/20 p-4">
-					<Label class="text-sm font-semibold mb-3 block">Color Mode</Label>
+					<Label class="mb-3 block text-sm font-semibold">Color Mode</Label>
 					<div class="flex gap-2">
 						<Button
 							variant={themeStore.themeMode === 'light' ? 'default' : 'outline'}
@@ -148,10 +157,12 @@
 						onclick={() => handleThemeSwitch(theme.id)}
 						disabled={switchingTheme}
 						data-theme={theme.id}
-						class={`group relative flex w-full flex-col gap-3 rounded-lg  hover:scale-[1.025] border p-4 text-left transition-all bg-background/80
-							${isActive
-							? 'border-primary/60 bg-primary/5'
-							: 'border-border hover:border-border/80 hover:bg-background'}
+						class={`group relative flex w-full flex-col gap-3 rounded-lg  border bg-background/80 p-4 text-left transition-all hover:scale-[1.025]
+							${
+								isActive
+									? 'border-primary/60 bg-primary/5'
+									: 'border-border hover:border-border/80 hover:bg-background'
+							}
 							${switchingTheme ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
 							${isLoaded ? '' : 'grayscale'}`}
 					>
@@ -168,7 +179,9 @@
 							</div>
 						{:else}
 							<div class="flex gap-3">
-								<div class="h-8 w-full rounded-md bg-primary/20 flex items-center justify-center italic text-xs opacity-70">
+								<div
+									class="flex h-8 w-full items-center justify-center rounded-md bg-primary/20 text-xs italic opacity-70"
+								>
 									Click to Load
 								</div>
 							</div>
@@ -177,7 +190,7 @@
 						<!-- Active Indicator with Checkmark -->
 						{#if isActive}
 							<div
-								class="absolute -top-2 -right-2 h-6 w-6 flex items-center justify-center rounded-full bg-primary shadow-lg"
+								class="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary shadow-lg"
 							>
 								<Icon icon="solar:check-read-broken" class="h-5 w-5 text-primary-foreground" />
 							</div>
@@ -188,7 +201,10 @@
 							<div
 								class="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-muted"
 							>
-								<Icon icon="solar:download-minimalistic-bold" class="h-3.5 w-3.5 text-muted-foreground" />
+								<Icon
+									icon="solar:download-minimalistic-bold"
+									class="h-3.5 w-3.5 text-muted-foreground"
+								/>
 							</div>
 						{/if}
 					</button>
@@ -202,8 +218,9 @@
 					<Icon icon="solar:lightbulb-bolt-bold" class="h-5 w-5 text-primary" />
 					<span class="text-sm font-medium">Pro Tip</span>
 				</div>
-				<p class="text-xs text-foreground/70 leading-relaxed">
-					Themes are loaded on-demand to improve performance. Unloaded themes show a download icon. Once loaded, they're cached for instant switching.
+				<p class="text-xs leading-relaxed text-foreground/70">
+					Themes are loaded on-demand to improve performance. Unloaded themes show a download icon.
+					Once loaded, they're cached for instant switching.
 				</p>
 			</div>
 		</div>

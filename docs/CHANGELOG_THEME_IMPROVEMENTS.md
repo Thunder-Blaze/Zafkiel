@@ -1,16 +1,20 @@
 # Theme System Improvements - Changelog
 
 ## 🎯 Overview
+
 Complete overhaul of the theme system to use backend config storage, implement lazy loading, and add a modern sheet-based theme switcher.
 
 ## ✅ Completed Changes
 
 ### 1. **Backend Config Integration**
+
 **Files Modified:**
+
 - `src-tauri/src/theme_commands.rs`
 - `src/lib/services/theme.ts`
 
 **Changes:**
+
 - ✅ Removed localStorage as theme storage (was causing persistence issues)
 - ✅ Implemented proper backend config integration using `ConfigLoader`
 - ✅ `save_theme_preference()` now calls `config.update_ui_theme()`
@@ -18,6 +22,7 @@ Complete overhaul of the theme system to use backend config storage, implement l
 - ✅ Config stored at `~/.config/zafkiel/config.debug.ron` (debug) or `config.ron` (release)
 
 **Before:**
+
 ```typescript
 // Theme stored in localStorage only
 localStorage.setItem('theme-preference', themeId);
@@ -25,6 +30,7 @@ await invoke('save_theme_preference', { themeId }); // Was TODO
 ```
 
 **After:**
+
 ```typescript
 // Theme stored in backend config file
 await invoke('save_theme_preference', { themeId });
@@ -32,11 +38,14 @@ await invoke('save_theme_preference', { themeId });
 ```
 
 ### 2. **Lazy Loading Implementation**
+
 **Files Modified:**
+
 - `src/lib/stores/theme.svelte.ts`
 - `src/routes/settings/+page.svelte`
 
 **Changes:**
+
 - ✅ Added `loadedThemes: SvelteSet<string>` to track loaded themes
 - ✅ Exposed `loadTheme()` method in theme store
 - ✅ Only the initial theme loads on startup (performance boost)
@@ -44,15 +53,19 @@ await invoke('save_theme_preference', { themeId });
 - ✅ Used Svelte 5's `SvelteSet` for proper reactivity
 
 **Performance Impact:**
+
 - Before: All 17 themes loaded on startup (~17 CSS files, ~500KB)
 - After: Only 1 theme loaded on startup (~30KB), others on-demand
 
 ### 3. **Theme UI States**
+
 **Files Modified:**
+
 - `src/routes/settings/+page.svelte`
 - `src/lib/components/ThemeSwitcher.svelte`
 
 **Visual States:**
+
 1. **Active Theme**
    - Primary border + background
    - Checkmark icon
@@ -72,15 +85,19 @@ await invoke('save_theme_preference', { themeId });
    - No color preview (neutral gray)
 
 ### 4. **Theme Switcher Sheet Component**
+
 **Files Modified:**
+
 - `src/lib/components/ThemeSwitcher.svelte` (complete rewrite)
 
 **Old Design:**
+
 - Dropdown menu with small theme list
 - Limited space for themes
 - No visual theme previews
 
 **New Design:**
+
 - Right-side sheet/drawer
 - 2-column grid layout
 - Large theme cards with color previews
@@ -90,10 +107,13 @@ await invoke('save_theme_preference', { themeId });
 - Auto-closes after theme selection
 
 ### 5. **Settings Page Updates**
+
 **Files Modified:**
+
 - `src/routes/settings/+page.svelte`
 
 **Changes:**
+
 - ✅ Compacted UI scale display to badge format
 - ✅ Theme grid matches new switcher design
 - ✅ Proper lazy loading integration
@@ -102,6 +122,7 @@ await invoke('save_theme_preference', { themeId });
 ## 🔧 Technical Details
 
 ### Config File Structure
+
 ```ron
 (
     anilist: (
@@ -121,6 +142,7 @@ await invoke('save_theme_preference', { themeId });
 ```
 
 ### Lazy Loading Flow
+
 1. **App Startup**
    - Call `get_theme_preference()` → gets theme from config
    - Load only that single theme CSS
@@ -137,6 +159,7 @@ await invoke('save_theme_preference', { themeId });
    - No re-download, uses cached CSS
 
 ### SvelteSet Reactivity
+
 ```typescript
 // ✅ Correct - Svelte 5 reactive Set
 state.loadedThemes = new SvelteSet<string>();
@@ -167,15 +190,15 @@ state.loadedThemes.add(themeId); // Won't update UI
 
 ## 📊 Before vs After
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Storage | localStorage only | Backend config file |
-| Persistence | ❌ Lost on clear cache | ✅ Survives cache clear |
-| Startup Load | 17 themes (~500KB) | 1 theme (~30KB) |
+| Aspect          | Before                   | After                           |
+| --------------- | ------------------------ | ------------------------------- |
+| Storage         | localStorage only        | Backend config file             |
+| Persistence     | ❌ Lost on clear cache   | ✅ Survives cache clear         |
+| Startup Load    | 17 themes (~500KB)       | 1 theme (~30KB)                 |
 | Theme Switching | Instant (all pre-loaded) | First click loads, then instant |
-| UI Component | Dropdown menu | Right sheet panel |
-| Theme Previews | Small color dots | Large color bars |
-| Visual Feedback | Basic checkmark | Download icon + status text |
+| UI Component    | Dropdown menu            | Right sheet panel               |
+| Theme Previews  | Small color dots         | Large color bars                |
+| Visual Feedback | Basic checkmark          | Download icon + status text     |
 
 ## 🚀 Performance Improvements
 
@@ -230,6 +253,7 @@ state.loadedThemes.add(themeId); // Won't update UI
 ## 📚 Related Files
 
 **Core Files:**
+
 - `src/lib/stores/theme.svelte.ts` - Theme store
 - `src/lib/services/theme.ts` - Theme manager
 - `src-tauri/src/config/types.rs` - Config types
@@ -237,11 +261,13 @@ state.loadedThemes.add(themeId); // Won't update UI
 - `src-tauri/src/theme_commands.rs` - Backend commands
 
 **UI Files:**
+
 - `src/lib/components/ThemeSwitcher.svelte` - Sheet switcher
 - `src/routes/settings/+page.svelte` - Settings page
 - `src/routes/+page.svelte` - Home page (uses switcher)
 
 **Infrastructure:**
+
 - `src/lib/components/ui/sheet/*` - Sheet components
 - `src-tauri/capabilities/default.json` - Tauri permissions
 

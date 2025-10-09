@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Icon from "@iconify/svelte";
+	import Icon from '@iconify/svelte';
 
-	const { text = "Loading..." }: { text: string } = $props();
+	const { text = 'Loading...' }: { text: string } = $props();
 </script>
 
 <div class="flex min-h-screen items-center justify-center">

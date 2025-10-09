@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { themeStore } from '$lib/stores/theme.svelte';
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle,
+	} from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Label } from '$lib/components/ui/label';
 	import { toast } from 'svelte-sonner';

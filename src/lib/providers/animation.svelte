@@ -13,11 +13,10 @@
 			}
 		});
 	});
-
 </script>
 
 {#if animationsEnabled}
-	<div use:autoAnimate="{{ duration: 200 }}">
+	<div use:autoAnimate={{ duration: 200 }}>
 		{@render children?.()}
 	</div>
 {:else}

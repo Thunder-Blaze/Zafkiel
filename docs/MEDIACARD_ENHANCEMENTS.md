@@ -7,18 +7,21 @@
 **Key Principle**: Never mix `transition:` with `in:`/`out:` on the same element.
 
 #### When to use `transition:`
+
 - Single element appearing/disappearing in place
 - Element doesn't move between different DOM locations
 - Simpler syntax for basic enter/exit animations
 - Example: Modal dialogs, tooltips, dropdowns
 
 #### When to use `crossfade` (in:/out:)
+
 - Element morphs between two different DOM locations
 - Smooth position/size transitions between states
 - Requires matching keys on both source and destination
 - Example: List item moving to detail view, card expanding to different container
 
 #### When to use `in:` and `out:` separately
+
 - Different animations for enter vs exit
 - More granular control over timing
 - Can use different transition functions
@@ -27,6 +30,7 @@
 ### Our Implementation Choice
 
 **We use `transition:` exclusively** because:
+
 1. **No element moves between containers** - Card scales in place
 2. **Simpler and cleaner** - Single directive vs multiple
 3. **Better performance** - Less overhead than crossfade
@@ -36,8 +40,10 @@
 ## ✨ Key Enhancements
 
 ### 1. Fixed Hover Issues
+
 **Problem**: Hover card remained open when mouse quickly left
 **Solution**:
+
 - Added `isHovering` state to track mouse presence
 - Implemented dual timeout system:
   - `hoverTimeout` - Delays expansion (160ms)
@@ -46,31 +52,32 @@
 
 ```typescript
 const onmouseenter = () => {
-    if (leaveTimeout) {
-        clearTimeout(leaveTimeout);
-        leaveTimeout = undefined;
-    }
-    isHovering = true;
-    hoverTimeout = setTimeout(() => {
-        if (isHovering) layout = 'expanded';
-    }, 160);
+	if (leaveTimeout) {
+		clearTimeout(leaveTimeout);
+		leaveTimeout = undefined;
+	}
+	isHovering = true;
+	hoverTimeout = setTimeout(() => {
+		if (isHovering) layout = 'expanded';
+	}, 160);
 };
 
 const onmouseleave = () => {
-    if (hoverTimeout) {
-        clearTimeout(hoverTimeout);
-        hoverTimeout = undefined;
-    }
-    isHovering = false;
-    leaveTimeout = setTimeout(() => {
-        if (!isHovering) layout = 'compact';
-    }, 50);
+	if (hoverTimeout) {
+		clearTimeout(hoverTimeout);
+		hoverTimeout = undefined;
+	}
+	isHovering = false;
+	leaveTimeout = setTimeout(() => {
+		if (!isHovering) layout = 'compact';
+	}, 50);
 };
 ```
 
 ### 2. Improved Layout Design
 
 #### Compact View
+
 - **Cover image** as full background
 - **Score badge** (top-left) with star icon
 - **18+ badge** (top-right, conditional) in red
@@ -81,6 +88,7 @@ const onmouseleave = () => {
   - Format (right, small text)
 
 #### Expanded View (Hover Card)
+
 - **Banner image** with optional glow effect
 - **Score + 18+ badges** overlaid on banner
 - **Progress bar** at bottom of banner (if watching)
@@ -100,12 +108,14 @@ const onmouseleave = () => {
 ### 3. New Features Added
 
 #### 18+ Badge
+
 - Shows for adult content (`isAdult: true`)
 - Red background with white text
 - Prominent positioning for visibility
 - Appears in both compact and expanded views
 
 #### Progress Bar
+
 - Visual indicator of watch progress
 - Shows `userProgress / totalEpisodes` ratio
 - Only displays if user has progress data
@@ -115,6 +125,7 @@ const onmouseleave = () => {
   - Expanded: Bottom of banner, full-width
 
 #### Season & Format Display
+
 - Bottom metadata line in compact view
 - Format: "Summer 2006" style season display
 - Shows format type (TV, Movie, OVA, etc.)
@@ -122,6 +133,7 @@ const onmouseleave = () => {
 - Consistent positioning
 
 #### Action Buttons
+
 - 5-button strip for quick status changes
 - Visual feedback for current status (highlighted)
 - Hover effects on each button
@@ -132,12 +144,14 @@ const onmouseleave = () => {
 ### 4. Animation Improvements
 
 **All animations respect `animationsEnabled` config**:
+
 - Duration: `animationsEnabled ? X : 0`
 - Scales/fades disabled when config is off
 - Smooth 60fps transitions
 - Staggered delays for visual polish
 
 **Transition Types Used**:
+
 - `scale` - Card appearance/expansion
 - `fly` - Sliding elements (title, genres, stats)
 - `fade` - Glow effects
@@ -146,6 +160,7 @@ const onmouseleave = () => {
 ### 5. Responsive Design
 
 **Breakpoints maintained**:
+
 - Base: 40px width, 56px height (mobile)
 - md: 48px width, 68px height (tablet)
 - lg: 48px width, 68px height (desktop)
@@ -157,6 +172,7 @@ const onmouseleave = () => {
 ## 🎨 Visual Hierarchy
 
 ### Compact View Priority
+
 1. Cover image (primary)
 2. Title (bottom, readable)
 3. Score badge (top-left)
@@ -165,6 +181,7 @@ const onmouseleave = () => {
 6. Season/Format (subtle metadata)
 
 ### Expanded View Priority
+
 1. Banner image (impact)
 2. Action buttons (primary interaction)
 3. Title + metadata
@@ -174,18 +191,21 @@ const onmouseleave = () => {
 ## 🔧 Technical Notes
 
 ### Removed Crossfade
+
 - Removed `crossfade` import and usage
 - Eliminated all `send`/`receive` directives
 - Fixed transition conflicts
 - Simpler codebase, easier to maintain
 
 ### State Management
+
 - Added `isHovering` boolean for precise mouse tracking
 - Proper timeout cleanup prevents memory leaks
 - Derived values for all computed properties
 - TypeScript types fully satisfied
 
 ### Performance
+
 - No unnecessary re-renders
 - Efficient DOM updates
 - CSS transitions for smooth animations
@@ -203,20 +223,21 @@ const onmouseleave = () => {
 
 ## 📊 Before vs After
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Title position | Overlaid on image | Below image (compact), clear area (expanded) |
-| 18+ indicator | ❌ Missing | ✅ Clear badge |
-| Progress tracking | ❌ Missing | ✅ Visual progress bar |
-| Season/Format | Hidden in expanded | ✅ Always visible |
-| Quick actions | Single + button | ✅ 5-button strip |
-| Hover stability | ⚠️ Could stick | ✅ Reliable tracking |
-| Transition conflicts | ⚠️ Multiple types | ✅ Single strategy |
-| Code complexity | Complex crossfade | ✅ Simple transitions |
+| Aspect               | Before             | After                                        |
+| -------------------- | ------------------ | -------------------------------------------- |
+| Title position       | Overlaid on image  | Below image (compact), clear area (expanded) |
+| 18+ indicator        | ❌ Missing         | ✅ Clear badge                               |
+| Progress tracking    | ❌ Missing         | ✅ Visual progress bar                       |
+| Season/Format        | Hidden in expanded | ✅ Always visible                            |
+| Quick actions        | Single + button    | ✅ 5-button strip                            |
+| Hover stability      | ⚠️ Could stick     | ✅ Reliable tracking                         |
+| Transition conflicts | ⚠️ Multiple types  | ✅ Single strategy                           |
+| Code complexity      | Complex crossfade  | ✅ Simple transitions                        |
 
 ## 🚀 Future Enhancements
 
 Potential additions (not implemented yet):
+
 - [ ] Edit progress inline (slider/input)
 - [ ] Add to favorites (heart icon)
 - [ ] Quick trailer preview (play button)
@@ -228,6 +249,7 @@ Potential additions (not implemented yet):
 ---
 
 **Note**: All enhancements maintain the design principles from `.github/copilot-instructions.md`:
+
 - ✅ Svelte 5 runes mode
 - ✅ Built-in transitions only
 - ✅ TypeScript type safety

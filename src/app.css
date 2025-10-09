@@ -27,13 +27,18 @@ body {
 }
 
 /* Prevent double-tap zoom on buttons and interactive elements */
-button, a, input, select, textarea {
+button,
+a,
+input,
+select,
+textarea {
 	touch-action: manipulation;
 	-ms-touch-action: manipulation;
 }
 
 /* Fallback Theme Variables */
-:root[data-theme="default"], [data-theme="default"] {
+:root[data-theme='default'],
+[data-theme='default'] {
 	--background: oklch(1 0 0);
 	--foreground: oklch(0.129 0.042 264.695);
 	--card: oklch(1 0 0);
@@ -80,7 +85,8 @@ button, a, input, select, textarea {
 	--shadow-2xl: 0px 8px 16px -4px hsl(0 0% 0% / 0.2);
 }
 
-.dark[data-theme="default"], .dark [data-theme="default"] {
+.dark[data-theme='default'],
+.dark [data-theme='default'] {
 	--background: oklch(0.129 0.042 264.695);
 	--foreground: oklch(0.984 0.003 247.858);
 	--card: oklch(0.208 0.042 265.755);

@@ -147,7 +147,7 @@ pub fn update_theme_mode(mode: String, config: State<ConfigState>) -> ConfigResp
     if mode != "light" && mode != "dark" && mode != "system" {
         return ConfigResponse::error("Invalid theme mode. Must be 'light', 'dark', or 'system'".to_string());
     }
-    
+
     match config.update_theme_mode(mode) {
         Ok(_) => ConfigResponse::success(()),
         Err(e) => ConfigResponse::error(e.to_string()),

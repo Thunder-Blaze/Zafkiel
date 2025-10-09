@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
+	import {
+		Card,
+		CardContent,
+		CardDescription,
+		CardHeader,
+		CardTitle,
+	} from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
 	import { Button } from '$lib/components/ui/button';
@@ -104,78 +110,96 @@
 				</div>
 			</div>
 		</CardHeader>
-	<CardContent class="space-y-6">
-		<!-- Auto-play Trailers -->
-		<div class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4">
-			<div class="space-y-0.5">
-				<Label class="text-base font-medium">Auto-play Trailers</Label>
-				<p class="text-sm text-foreground/70">Automatically play trailers when browsing</p>
+		<CardContent class="space-y-6">
+			<!-- Auto-play Trailers -->
+			<div
+				class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4"
+			>
+				<div class="space-y-0.5">
+					<Label class="text-base font-medium">Auto-play Trailers</Label>
+					<p class="text-sm text-foreground/70">Automatically play trailers when browsing</p>
+				</div>
+				<Switch bind:checked={autoPlayTrailers} />
 			</div>
-			<Switch bind:checked={autoPlayTrailers} />
-		</div>
 
-		<!-- Show Spoilers -->
-		<div class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4">
-			<div class="space-y-0.5">
-				<Label class="text-base font-medium">Show Spoilers</Label>
-				<p class="text-sm text-foreground/70">Display spoiler content without warnings</p>
+			<!-- Show Spoilers -->
+			<div
+				class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4"
+			>
+				<div class="space-y-0.5">
+					<Label class="text-base font-medium">Show Spoilers</Label>
+					<p class="text-sm text-foreground/70">Display spoiler content without warnings</p>
+				</div>
+				<Switch bind:checked={showSpoilers} />
 			</div>
-			<Switch bind:checked={showSpoilers} />
-		</div>
 
-		<!-- Notifications -->
-		<div class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4">
-			<div class="space-y-0.5">
-				<Label class="text-base font-medium">Enable Notifications</Label>
-				<p class="text-sm text-foreground/70">Get notified about new episodes and updates</p>
+			<!-- Notifications -->
+			<div
+				class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4"
+			>
+				<div class="space-y-0.5">
+					<Label class="text-base font-medium">Enable Notifications</Label>
+					<p class="text-sm text-foreground/70">Get notified about new episodes and updates</p>
+				</div>
+				<Switch bind:checked={enableNotifications} />
 			</div>
-			<Switch bind:checked={enableNotifications} />
-		</div>
 
-		<!-- Compact Mode -->
-		<div class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4">
-			<div class="space-y-0.5">
-				<Label class="text-base font-medium">Compact Mode</Label>
-				<p class="text-sm text-foreground/70">Display more content in less space</p>
+			<!-- Compact Mode -->
+			<div
+				class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4"
+			>
+				<div class="space-y-0.5">
+					<Label class="text-base font-medium">Compact Mode</Label>
+					<p class="text-sm text-foreground/70">Display more content in less space</p>
+				</div>
+				<Switch bind:checked={compactMode} />
 			</div>
-			<Switch bind:checked={compactMode} />
-		</div>
 
-		<!-- Animations -->
-		<div class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4">
-			<div class="space-y-0.5">
-				<Label class="text-base font-medium">Animations</Label>
-				<p class="text-sm text-foreground/70">Enable interface animations and transitions</p>
+			<!-- Animations -->
+			<div
+				class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4"
+			>
+				<div class="space-y-0.5">
+					<Label class="text-base font-medium">Animations</Label>
+					<p class="text-sm text-foreground/70">Enable interface animations and transitions</p>
+				</div>
+				<Switch checked={animationsEnabled} onCheckedChange={handleAnimationsToggle} />
 			</div>
-			<Switch checked={animationsEnabled} onCheckedChange={handleAnimationsToggle} />
-		</div>
 
-		<!-- Glow Effects -->
-		<div class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4">
-			<div class="space-y-0.5">
-				<Label class="text-base font-medium">Glow Effects</Label>
-				<p class="text-sm text-foreground/70">Add glow effects to images and cards</p>
+			<!-- Glow Effects -->
+			<div
+				class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4"
+			>
+				<div class="space-y-0.5">
+					<Label class="text-base font-medium">Glow Effects</Label>
+					<p class="text-sm text-foreground/70">Add glow effects to images and cards</p>
+				</div>
+				<Switch checked={glowEffectsEnabled} onCheckedChange={handleGlowEffectsToggle} />
 			</div>
-			<Switch checked={glowEffectsEnabled} onCheckedChange={handleGlowEffectsToggle} />
-		</div>
 
-		<!-- Blur Effects -->
-		<div class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4">
-			<div class="space-y-0.5">
-				<Label class="text-base font-medium">Blur Effects</Label>
-				<p class="text-sm text-foreground/70">Enable backdrop blur effects on overlays</p>
+			<!-- Blur Effects -->
+			<div
+				class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4"
+			>
+				<div class="space-y-0.5">
+					<Label class="text-base font-medium">Blur Effects</Label>
+					<p class="text-sm text-foreground/70">Enable backdrop blur effects on overlays</p>
+				</div>
+				<Switch checked={blurEffectsEnabled} onCheckedChange={handleBlurEffectsToggle} />
 			</div>
-			<Switch checked={blurEffectsEnabled} onCheckedChange={handleBlurEffectsToggle} />
-		</div>
 
-		<!-- Hover Card -->
-		<div class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4">
-			<div class="space-y-0.5">
-				<Label class="text-base font-medium">Hover Card Previews</Label>
-				<p class="text-sm text-foreground/70">Show detailed preview cards when hovering over media</p>
+			<!-- Hover Card -->
+			<div
+				class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4"
+			>
+				<div class="space-y-0.5">
+					<Label class="text-base font-medium">Hover Card Previews</Label>
+					<p class="text-sm text-foreground/70">
+						Show detailed preview cards when hovering over media
+					</p>
+				</div>
+				<Switch checked={hoverCardEnabled} onCheckedChange={handleHoverCardToggle} />
 			</div>
-			<Switch checked={hoverCardEnabled} onCheckedChange={handleHoverCardToggle} />
-		</div>
-	</CardContent>
-</Card>
+		</CardContent>
+	</Card>
 </div>

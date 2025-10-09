@@ -117,11 +117,7 @@
 				<!-- Preferences Settings -->
 				{#if activeSection === 'preferences'}
 					<div class="space-y-6">
-						<PreferencesSettings
-							bind:show18Plus
-							bind:showInList
-							bind:selectedGenres
-						/>
+						<PreferencesSettings bind:show18Plus bind:showInList bind:selectedGenres />
 					</div>
 				{/if}
 
