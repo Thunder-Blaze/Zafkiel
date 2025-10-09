@@ -25,7 +25,10 @@ pub async fn list_themes() -> Result<Vec<String>, String> {
     let themes_dir = get_themes_dir();
 
     if !themes_dir.exists() {
-        println!("[Themes] ✗ Themes directory does not exist: {:?}", themes_dir);
+        println!(
+            "[Themes] ✗ Themes directory does not exist: {:?}",
+            themes_dir
+        );
         return Err(format!("Themes directory not found: {:?}", themes_dir));
     }
 

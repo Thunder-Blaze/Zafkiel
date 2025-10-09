@@ -145,7 +145,9 @@ pub fn update_hover_card(enabled: bool, config: State<ConfigState>) -> ConfigRes
 pub fn update_theme_mode(mode: String, config: State<ConfigState>) -> ConfigResponse<()> {
     // Validate mode
     if mode != "light" && mode != "dark" && mode != "system" {
-        return ConfigResponse::error("Invalid theme mode. Must be 'light', 'dark', or 'system'".to_string());
+        return ConfigResponse::error(
+            "Invalid theme mode. Must be 'light', 'dark', or 'system'".to_string(),
+        );
     }
 
     match config.update_theme_mode(mode) {
