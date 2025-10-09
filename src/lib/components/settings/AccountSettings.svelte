@@ -12,7 +12,7 @@
 		isLoggingOut = true;
 		try {
 			await authStore.logout();
-			goto('/login');
+			goto('/');
 		} catch (error) {
 			console.error('Logout failed:', error);
 		} finally {
@@ -76,7 +76,7 @@
 				<Icon icon="solar:link-broken-bold" class="mx-auto mb-3 h-12 w-12 text-foreground/50" />
 				<p class="mb-2 font-medium text-foreground">Not Connected</p>
 				<p class="mb-4 text-sm text-foreground/70">Connect your AniList account to sync your watchlist</p>
-				<Button onclick={() => goto('/login')}>
+				<Button onclick={() => goto('/auth/login')}>
 					<Icon icon="solar:login-2-bold" class="mr-2 h-4 w-4" />
 					Connect AniList
 				</Button>

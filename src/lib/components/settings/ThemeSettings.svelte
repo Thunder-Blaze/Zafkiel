@@ -89,7 +89,7 @@
 							</div>
 						{:else}
 							<div class="flex gap-3">
-								<div class="h-8 w-full rounded-md bg-primary/20 flex items-center justify-center italic text-xs animate-pulse">
+								<div class="h-8 w-full rounded-md bg-primary/20 flex items-center justify-center italic text-xs opacity-70">
 									Click to Load
 								</div>
 							</div>

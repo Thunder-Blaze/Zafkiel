@@ -112,6 +112,23 @@ name: this.formatThemeName(id)
 		return this.currentThemeId;
 	}
 
+	/**
+	 * Get the absolute path to the current theme's directory
+	 * @returns The path to the theme folder (e.g., "/themes/catppuccin")
+	 */
+	getCurrentThemePath(): string {
+		return `/themes/${this.currentThemeId}`;
+	}
+
+	/**
+	 * Get the absolute path to a specific theme's directory
+	 * @param themeId - The theme ID
+	 * @returns The path to the theme folder (e.g., "/themes/catppuccin")
+	 */
+	getThemePath(themeId: string): string {
+		return `/themes/${themeId}`;
+	}
+
 	getLoadedThemes(): string[] {
 		return Array.from(this.loadedThemes.keys());
 	}

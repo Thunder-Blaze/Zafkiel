@@ -24,6 +24,9 @@ function createThemeStore() {
 		get currentTheme() {
 			return state.currentTheme;
 		},
+		get currentThemePath() {
+			return `/themes/${state.currentTheme}`;
+		},
 		get isDark() {
 			return state.isDark;
 		},
@@ -38,6 +41,15 @@ function createThemeStore() {
 		},
 		get initialized() {
 			return state.initialized;
+		},
+
+		/**
+		 * Get the absolute path to a specific theme's directory
+		 * @param themeId - The theme ID (optional, defaults to current theme)
+		 * @returns The path to the theme folder (e.g., "/themes/catppuccin")
+		 */
+		getThemePath(themeId?: string): string {
+			return `/themes/${themeId || state.currentTheme}`;
 		},
 
 		async initialize() {

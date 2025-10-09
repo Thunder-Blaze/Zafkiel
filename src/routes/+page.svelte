@@ -1,395 +1,200 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
-	import { browser } from '$app/environment';
-	import {
-		Card,
-		CardContent,
-		CardDescription,
-		CardHeader,
-		CardTitle,
-	} from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator';
-	import { authStore, isAuthenticated, currentUser, authLoading } from '$lib/stores/auth';
-	import { useUiScale } from '$lib/hooks/useUiScale.svelte';
-	import { toast } from 'svelte-sonner';
 	import Icon from '@iconify/svelte';
-	import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
+	import { Card } from '$lib/components/ui/card';
+	import { Button } from '$lib/components/ui/button';
+	import { Badge } from '$lib/components/ui/badge';
+	import { authStore, isAuthenticated, currentUser, authLoading } from '$lib/stores/auth';
+	import { themeStore } from '$lib/stores/theme.svelte';
+	import Loader from '$lib/components/Loader.svelte';
+	import { goto } from '$app/navigation';
 
-	const uiScale = useUiScale();
-	let sliderValue = $state(uiScale.scale * 100);
-	let isLoggingOut = $state(false);
+	let currentTime = $state(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+	let currentDate = $state(new Date());
 
-	// Redirect to login if not authenticated
 	$effect(() => {
-		if (browser && !$authLoading && !$isAuthenticated) {
-			goto('/login');
-		}
+		const interval = setInterval(() => {
+			const now = new Date();
+			currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+			currentDate = now;
+		}, 1000);
+
+		return () => clearInterval(interval);
 	});
 
-	// Update slider when scale changes
-	$effect(() => {
-		sliderValue = uiScale.scale * 100;
-	});
+	// Stats
+	const stats = [
+		{ label: 'Watching', value: 12, icon: 'solar:play-bold', color: 'text-primary' },
+		{ label: 'Completed', value: 48, icon: 'solar:check-circle-bold', color: 'text-green-500' },
+		{ label: 'Plan to Watch', value: 23, icon: 'solar:bookmark-bold', color: 'text-blue-500' },
+		{ label: 'Episodes', value: 1247, icon: 'solar:video-library-bold', color: 'text-purple-500' },
+	];
 
-	function handleScaleChange(event: Event): void {
-		const target = event.target as HTMLInputElement;
-		const scale = Number(target.value) / 100;
-		sliderValue = Number(target.value);
+	// Quick actions
+	const quickActions = [
+		{ label: 'Browse', icon: 'solar:magnifer-bold', path: '/anime' },
+		{ label: 'My List', icon: 'solar:clipboard-list-bold', path: '/list' },
+		{ label: 'Trending', icon: 'solar:fire-bold', path: '/trending' },
+		{ label: 'Settings', icon: 'solar:settings-bold', path: '/settings' },
+	];
 
-		// Debounce the actual config update
-		clearTimeout(scaleUpdateTimeout);
-		scaleUpdateTimeout = setTimeout(async () => {
-			try {
-				await uiScale.setScale(scale);
-				toast.success(`UI Scale set to ${scale.toFixed(2)}x`);
-			} catch (error) {
-				toast.error('Failed to update UI scale');
-			}
-		}, 300);
-	}
+	const getDayOfWeek = (date: Date) => {
+		return date.toLocaleDateString('en-US', { weekday: 'short' });
+	};
 
-	let scaleUpdateTimeout: ReturnType<typeof setTimeout>;
+	const getFormattedDate = (date: Date) => {
+		return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+	};
 
-	async function resetScale(): Promise<void> {
-		try {
-			await uiScale.resetScale();
-			toast.success('UI Scale reset to 1.0x');
-		} catch (error) {
-			toast.error('Failed to reset UI scale');
-		}
-	}
-
-	async function handleLogout(): Promise<void> {
-		isLoggingOut = true;
-		try {
-			await authStore.logout();
-			toast.success('Logged out successfully');
-			goto('/login');
-		} catch (error) {
-			toast.error('Failed to logout');
-		} finally {
-			isLoggingOut = false;
-		}
-	}
-
-	function formatDate(timestamp: number): string {
-		return new Date(timestamp * 1000).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric',
-		});
-	}
+	// Get avatar URL from UserAvatar object
+	const getAvatarUrl = (avatar: any) => {
+		if (!avatar) return null;
+		return avatar.large || avatar.medium || null;
+	};
 </script>
 
 {#if $authLoading}
-	<div class="flex min-h-screen items-center justify-center">
-		<div class="space-y-4 text-center">
-			<Icon
-				icon="solar:refresh-circle-line-duotone"
-				class="mx-auto h-12 w-12 animate-spin text-primary"
+	<Loader text="Loading your dashboard..." />
+{:else}
+	<div class="h-[calc(100vh-3rem)] overflow-hidden relative bg-black/40">
+		<!-- Background Theme Image -->
+		<div class="absolute flex items-center justify-center inset-0">
+			<img
+				src={themeStore.currentThemePath ? `${themeStore.currentThemePath}/theme.png` : '/images/fallback-theme.png'}
+				alt="Background Theme"
+				class="w-auto h-full object-fit"
 			/>
-			<p class="text-muted-foreground">Loading your profile...</p>
+			<!-- Lighter Gradient Overlays for readability -->
+			<div class="absolute inset-0 -z-10 bg-gradient-to-br from-background/70 via-background/40 to-background/60"></div>
 		</div>
-	</div>
-{:else if $currentUser}
-	<div class="container mx-auto p-8">
-		<!-- Header with Profile -->
-		<div class="mb-8 flex flex-wrap items-start justify-between gap-6">
-			<div class="min-w-0 flex-1">
-				<h1 class="mb-2 text-4xl font-bold">Welcome back, {$currentUser.name}!</h1>
-				<p class="text-muted-foreground">Manage your anime experience and preferences</p>
+
+		<!-- Content Layer -->
+		<div class="relative h-full w-full p-6">
+			<!-- TOP LEFT: Welcome + Stats -->
+			<div class="absolute top-6 left-6 w-[30%] space-y-3">
+				<!-- Welcome Card -->
+				<Card class="p-4 border-border/50 bg-card/60 backdrop-blur-md">
+					<h1 class="text-xl font-bold tracking-tight">
+						Welcome back! 👋
+					</h1>
+					<p class="text-xs text-muted-foreground">
+						{$isAuthenticated && $currentUser?.name ? $currentUser.name : 'Guest'}
+					</p>
+				</Card>
+
+				<!-- Stats Grid -->
+				<div class="grid grid-cols-2 gap-2">
+					{#each stats as stat}
+						<Card class="p-3 hover:shadow-lg transition-shadow cursor-pointer border-border/50 bg-card/60 backdrop-blur-md">
+							<div class="flex items-center gap-2">
+								<div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+									<Icon icon={stat.icon} class="h-4 w-4 {stat.color}" />
+								</div>
+								<div>
+									<p class="text-xl font-bold">{stat.value}</p>
+									<p class="text-[10px] text-muted-foreground">{stat.label}</p>
+								</div>
+							</div>
+						</Card>
+					{/each}
+				</div>
 			</div>
 
-			<Card class="w-full flex-shrink-0 sm:w-auto">
-				<CardContent class="flex items-center gap-4 p-4">
-					{#if $currentUser.avatar?.large}
-						<img
-							src={$currentUser.avatar.large}
-							alt={$currentUser.name}
-							class="h-16 w-16 rounded-full object-cover ring-2 ring-primary/20"
-						/>
-					{:else}
-						<div
-							class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/20"
-						>
-							<Icon icon="solar:user-bold" class="h-8 w-8 text-primary" />
+			<!-- TOP RIGHT: Calendar + Profile -->
+			<div class="absolute top-6 right-6 w-[30%] space-y-3">
+				<!-- Calendar Widget -->
+				<Card class="p-5 border-border/50 bg-gradient-to-br from-primary/20 to-primary/30 backdrop-blur-md">
+					<div class="text-center">
+						<p class="text-xs font-medium text-muted-foreground mb-1">{getDayOfWeek(currentDate).toUpperCase()}</p>
+						<p class="text-5xl font-bold tracking-tight mb-1">{currentDate.getDate()}</p>
+						<p class="text-sm text-muted-foreground mb-2">
+							{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+						</p>
+						<div class="pt-2 border-t border-border/50">
+							<p class="text-lg font-mono font-medium">{currentTime}</p>
 						</div>
-					{/if}
-					<div class="min-w-0 flex-1">
-						<p class="truncate text-lg font-semibold">{$currentUser.name}</p>
-						{#if $currentUser.createdAt}
-							<p class="text-xs text-muted-foreground">
-								Member since {formatDate($currentUser.createdAt)}
-							</p>
-						{/if}
 					</div>
-					<div class="flex gap-2">
-						<ThemeSwitcher />
-						<Button
-							variant="ghost"
-							size="icon"
-							onclick={handleLogout}
-							disabled={isLoggingOut}
-							title="Logout"
-						>
-							{#if isLoggingOut}
-								<Icon icon="solar:refresh-circle-line-duotone" class="h-5 w-5 animate-spin" />
-							{:else}
-								<Icon icon="solar:logout-3-bold" class="h-5 w-5" />
-							{/if}
+				</Card>
+
+				<!-- Profile Card -->
+				{#if $isAuthenticated && $currentUser}
+					<Card class="p-4 border-border/50 bg-card/60 backdrop-blur-md">
+						<div class="flex items-center gap-3">
+							<div class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary to-primary/70 shadow-lg shrink-0">
+								{#if $currentUser.avatar}
+									{@const avatarUrl = getAvatarUrl($currentUser.avatar)}
+									{#if avatarUrl}
+										<img src={avatarUrl} alt={$currentUser.name} class="h-full w-full object-cover" />
+									{:else}
+										<Icon icon="solar:user-bold" class="h-7 w-7 text-primary-foreground" />
+									{/if}
+								{:else}
+									<Icon icon="solar:user-bold" class="h-7 w-7 text-primary-foreground" />
+								{/if}
+							</div>
+							<div class="flex-1 min-w-0">
+								<h3 class="font-semibold text-sm truncate">{$currentUser.name}</h3>
+								<p class="text-xs text-muted-foreground">AniList Member</p>
+								<Button variant="outline" size="sm" class="mt-1.5 h-6 text-xs" onclick={() => goto('/profile')}>
+									View Profile
+								</Button>
+							</div>
+						</div>
+					</Card>
+				{/if}
+			</div>
+
+			<!-- BOTTOM LEFT: Quick Actions -->
+			<div class="absolute bottom-6 left-6 w-[30%]">
+				<Card class="p-5 border-border/50 bg-card/60 backdrop-blur-md">
+					<h2 class="text-base font-semibold mb-3 flex items-center gap-2">
+						<Icon icon="solar:widget-4-bold" class="h-4 w-4 text-primary" />
+						Quick Actions
+					</h2>
+					<div class="grid grid-cols-4 gap-2">
+						{#each quickActions as action}
+							<button
+								onclick={() => goto(action.path)}
+								class="flex flex-col items-center justify-center gap-1.5 p-2.5 rounded-xl border border-border/50 bg-background/50 hover:bg-primary/5 hover:border-primary/30 transition-all group"
+							>
+								<div class="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+									<Icon icon={action.icon} class="h-4 w-4 text-primary" />
+								</div>
+								<span class="text-[10px] font-medium text-foreground/80">{action.label}</span>
+							</button>
+						{/each}
+					</div>
+				</Card>
+			</div>
+
+			<!-- BOTTOM RIGHT: Theme Info / Actions -->
+			<div class="absolute bottom-6 right-6 w-[30%]">
+				<Card class="p-5 border-border/50 bg-card/60 backdrop-blur-md">
+					<h2 class="text-base font-semibold mb-3 flex items-center gap-2">
+						<Icon icon="solar:palette-bold" class="h-4 w-4 text-primary" />
+						Appearance
+					</h2>
+					<div class="space-y-2.5">
+						<div class="flex items-center justify-between p-3 rounded-lg bg-background/50">
+							<div class="flex items-center gap-3">
+								<div class="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-primary/70"></div>
+								<div>
+									<p class="text-sm font-medium capitalize">{themeStore.currentTheme}</p>
+									<p class="text-xs text-muted-foreground">Active Theme</p>
+								</div>
+							</div>
+							<Button variant="ghost" size="sm" onclick={() => goto('/settings')}>
+								<Icon icon="solar:settings-bold" class="h-4 w-4" />
+							</Button>
+						</div>
+						<Button variant="outline" class="w-full" onclick={() => goto('/settings')}>
+							<Icon icon="solar:gallery-bold" class="h-4 w-4 mr-2" />
+							Browse All Themes
 						</Button>
 					</div>
-				</CardContent>
-			</Card>
-		</div>
-
-		<!-- User Stats -->
-		{#if $currentUser.statistics?.anime}
-			<div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				<Card>
-					<CardContent class="flex items-center gap-3 p-6">
-						<div class="rounded-full bg-blue-500/10 p-3">
-							<Icon icon="solar:play-circle-bold-duotone" class="h-6 w-6 text-blue-500" />
-						</div>
-						<div>
-							<p class="text-2xl font-bold">{$currentUser.statistics.anime.count || 0}</p>
-							<p class="text-xs text-muted-foreground">Total Anime</p>
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardContent class="flex items-center gap-3 p-6">
-						<div class="rounded-full bg-purple-500/10 p-3">
-							<Icon icon="solar:video-library-bold-duotone" class="h-6 w-6 text-purple-500" />
-						</div>
-						<div>
-							<p class="text-2xl font-bold">{$currentUser.statistics.anime.episodesWatched || 0}</p>
-							<p class="text-xs text-muted-foreground">Episodes Watched</p>
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardContent class="flex items-center gap-3 p-6">
-						<div class="rounded-full bg-green-500/10 p-3">
-							<Icon icon="solar:clock-circle-bold-duotone" class="h-6 w-6 text-green-500" />
-						</div>
-						<div>
-							<p class="text-2xl font-bold">
-								{Math.round(($currentUser.statistics.anime.minutesWatched || 0) / 60 / 24)}
-							</p>
-							<p class="text-xs text-muted-foreground">Days Watched</p>
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardContent class="flex items-center gap-3 p-6">
-						<div class="rounded-full bg-orange-500/10 p-3">
-							<Icon icon="solar:star-bold-duotone" class="h-6 w-6 text-orange-500" />
-						</div>
-						<div>
-							<p class="text-2xl font-bold">
-								{$currentUser.statistics.anime.meanScore
-									? $currentUser.statistics.anime.meanScore.toFixed(1)
-									: '0.0'}
-							</p>
-							<p class="text-xs text-muted-foreground">Mean Score</p>
-						</div>
-					</CardContent>
 				</Card>
 			</div>
-		{/if}
-
-		<Separator class="my-8" />
-
-		<!-- Settings Section -->
-		<h2 class="mb-6 text-2xl font-bold">Application Settings</h2>
-
-		<div class="grid gap-6 md:grid-cols-2">
-			<!-- UI Scale Control -->
-			<Card>
-				<CardHeader>
-					<div class="flex items-center gap-2">
-						<Icon icon="solar:scale-bold-duotone" class="h-5 w-5 text-primary" />
-						<CardTitle>UI Scale Control</CardTitle>
-					</div>
-					<CardDescription>Adjust the overall size of the UI elements (50% - 200%)</CardDescription>
-				</CardHeader>
-				<CardContent class="space-y-4">
-					<div class="space-y-2">
-						<div class="flex items-center justify-between">
-							<span class="text-sm font-medium">Current Scale:</span>
-							<span class="text-2xl font-bold">{sliderValue.toFixed(0)}%</span>
-						</div>
-						<input
-							type="range"
-							value={sliderValue}
-							oninput={handleScaleChange}
-							min="50"
-							max="200"
-							step="5"
-							class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-secondary accent-primary"
-						/>
-						<div class="flex justify-between text-xs text-muted-foreground">
-							<span>50%</span>
-							<span>100%</span>
-							<span>200%</span>
-						</div>
-					</div>
-					<Button onclick={resetScale} variant="outline" class="w-full">
-						<Icon icon="solar:refresh-bold" class="mr-2 h-4 w-4" />
-						Reset to Default (100%)
-					</Button>
-				</CardContent>
-			</Card>
-
-			<!-- Context Menu Info -->
-			<Card>
-				<CardHeader>
-					<div class="flex items-center gap-2">
-						<Icon icon="solar:menu-dots-bold-duotone" class="h-5 w-5 text-primary" />
-						<CardTitle>Custom Context Menu</CardTitle>
-					</div>
-					<CardDescription>Right-click anywhere to try the custom context menu</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<ul class="space-y-2 text-sm">
-						<li class="flex items-center gap-2">
-							<Icon icon="solar:refresh-circle-bold" class="h-4 w-4 text-primary" />
-							<span>Reload page</span>
-						</li>
-						<li class="flex items-center gap-2">
-							<Icon icon="solar:arrow-left-bold" class="h-4 w-4 text-primary" />
-							<span>Navigate back/forward</span>
-						</li>
-						<li class="flex items-center gap-2">
-							<Icon icon="solar:code-bold" class="h-4 w-4 text-primary" />
-							<span>Inspect Element (opens devtools)</span>
-						</li>
-					</ul>
-				</CardContent>
-			</Card>
 		</div>
-
-		<Separator class="my-8" />
-
-		<!-- Quick Links -->
-		<h2 class="mb-6 text-2xl font-bold">Quick Navigation</h2>
-		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-			<Card class="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg">
-				<a href="/anime" class="block p-6">
-					<div class="flex items-start gap-4">
-						<div class="rounded-lg bg-blue-500/10 p-3 transition-colors group-hover:bg-blue-500/20">
-							<Icon icon="solar:video-library-bold-duotone" class="h-8 w-8 text-blue-500" />
-						</div>
-						<div class="flex-1">
-							<h3 class="mb-1 font-semibold">Browse Anime</h3>
-							<p class="text-sm text-muted-foreground">Discover trending and popular anime</p>
-						</div>
-					</div>
-				</a>
-			</Card>
-
-			<Card class="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg">
-				<a href="/media-demo" class="block p-6">
-					<div class="flex items-start gap-4">
-						<div class="rounded-lg bg-pink-500/10 p-3 transition-colors group-hover:bg-pink-500/20">
-							<Icon icon="solar:gallery-bold-duotone" class="h-8 w-8 text-pink-500" />
-						</div>
-						<div class="flex-1">
-							<h3 class="mb-1 font-semibold">Media Card Demo</h3>
-							<p class="text-sm text-muted-foreground">Showcase of all media card types</p>
-						</div>
-					</div>
-				</a>
-			</Card>
-
-			<Card class="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg">
-				<a href="/demo" class="block p-6">
-					<div class="flex items-start gap-4">
-						<div
-							class="rounded-lg bg-purple-500/10 p-3 transition-colors group-hover:bg-purple-500/20"
-						>
-							<Icon icon="solar:widget-bold-duotone" class="h-8 w-8 text-purple-500" />
-						</div>
-						<div class="flex-1">
-							<h3 class="mb-1 font-semibold">Component Demo</h3>
-							<p class="text-sm text-muted-foreground">Explore UI components</p>
-						</div>
-					</div>
-				</a>
-			</Card>
-
-			<Card class="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg">
-				<a href="/config-demo" class="block p-6">
-					<div class="flex items-start gap-4">
-						<div
-							class="rounded-lg bg-green-500/10 p-3 transition-colors group-hover:bg-green-500/20"
-						>
-							<Icon icon="solar:document-text-bold-duotone" class="h-8 w-8 text-green-500" />
-						</div>
-						<div class="flex-1">
-							<h3 class="mb-1 font-semibold">Config Demo</h3>
-							<p class="text-sm text-muted-foreground">Test configuration</p>
-						</div>
-					</div>
-				</a>
-			</Card>
-
-			<Card class="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg">
-				<a href="/settings" class="block p-6">
-					<div class="flex items-start gap-4">
-						<div
-							class="rounded-lg bg-orange-500/10 p-3 transition-colors group-hover:bg-orange-500/20"
-						>
-							<Icon icon="solar:settings-bold-duotone" class="h-8 w-8 text-orange-500" />
-						</div>
-						<div class="flex-1">
-							<h3 class="mb-1 font-semibold">Settings</h3>
-							<p class="text-sm text-muted-foreground">Configure your preferences</p>
-						</div>
-					</div>
-				</a>
-			</Card>
-		</div>
-
-		<!-- About Section -->
-		<Card class="mt-8">
-			<CardHeader>
-				<div class="flex items-center gap-2">
-					<Icon icon="solar:info-circle-bold-duotone" class="h-5 w-5 text-primary" />
-					<CardTitle>About Zafkiel</CardTitle>
-				</div>
-				<CardDescription>Your cross-platform anime watching companion</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<p class="mb-4 text-sm leading-relaxed text-muted-foreground">
-					Zafkiel is a modern, cross-platform anime watching application built with SvelteKit and
-					Tauri. It provides a seamless experience for tracking your anime list, discovering new
-					shows, and managing your viewing preferences across all your devices.
-				</p>
-				<div class="flex flex-wrap gap-2">
-					<span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-						>SvelteKit</span
-					>
-					<span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-						>Tauri</span
-					>
-					<span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-						>TypeScript</span
-					>
-					<span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-						>Rust</span
-					>
-					<span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-						>AniList API</span
-					>
-				</div>
-			</CardContent>
-		</Card>
 	</div>
 {/if}
+
+

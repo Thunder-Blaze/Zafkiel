@@ -133,13 +133,14 @@ pub async fn wait_for_oauth_callback(
     // Exchange code for token
     let token_response = exchange_code_for_token(&oauth_config, &code, redirect_uri).await?;
 
-    // Save token to config
-    let mut config =
-        config::load_or_default().map_err(|e| format!("Failed to load config: {}", e))?;
-    config.anilist.access_token = Some(token_response.access_token.clone());
-    config::save(&config).map_err(|e| format!("Failed to save config: {}", e))?;
+    // Save token to config using ConfigLoader (with encryption)
+    let config_loader =
+        config::ConfigLoader::new().map_err(|e| format!("Failed to load config: {}", e))?;
+    config_loader
+        .set_anilist_token(&token_response.access_token)
+        .map_err(|e| format!("Failed to save token: {}", e))?;
 
-    log::info!("[Auth Command] Token saved to config");
+    log::info!("[Auth Command] Token saved to config (encrypted)");
 
     // Update AniList service with new token
     anilist_service
@@ -177,11 +178,12 @@ pub async fn check_auth_status(
 pub async fn logout(anilist_service: State<'_, Arc<AniListService>>) -> Result<(), String> {
     log::info!("[Auth Command] Logging out");
 
-    // Clear token from config
-    let mut config =
-        config::load_or_default().map_err(|e| format!("Failed to load config: {}", e))?;
-    config.anilist.access_token = None;
-    config::save(&config).map_err(|e| format!("Failed to save config: {}", e))?;
+    // Clear token from config using ConfigLoader
+    let config_loader =
+        config::ConfigLoader::new().map_err(|e| format!("Failed to load config: {}", e))?;
+    config_loader
+        .clear_anilist_token()
+        .map_err(|e| format!("Failed to clear token: {}", e))?;
 
     // Clear token from AniList service
     anilist_service

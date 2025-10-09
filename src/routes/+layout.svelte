@@ -7,6 +7,7 @@
 	import ContextMenuProvider from '$lib/providers/context-menu.svelte';
 	import TanstackProvider from '$lib/providers/tanstack.svelte';
 	import LenisProvider from '$lib/providers/lenis.svelte';
+	import TitleBar from '$lib/components/TitleBar.svelte';
 	import { configStore } from '$lib/stores/config';
 	import { authStore } from '$lib/stores/auth';
 	import { themeStore } from '$lib/stores/theme.svelte';
@@ -17,18 +18,22 @@
 	// Initialize UI scale (applies Tauri webview zoom)
 	const uiScale = useUiScale();
 
+	let isReady = $state(false);
+
 	// Initialize config, auth, and theme stores on app mount
 	onMount(async () => {
 		try {
+			// Initialize stores sequentially, with theme first
+			await themeStore.initialize();
 			await configStore.init();
 			await authStore.init();
-
-			// Initialize theme store in background (non-blocking)
-			themeStore.initialize().catch((error) => {
-				console.warn('Theme store initialization failed, using defaults:', error);
-			});
+			
+			// Mark as ready once theme is loaded
+			isReady = true;
 		} catch (error) {
 			console.error('Failed to initialize app stores:', error);
+			// Still mark as ready to prevent blank screen
+			isReady = true;
 		}
 	});
 </script>
@@ -37,15 +42,28 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<!-- Portals at root level - webview zoom scales everything -->
-<ThemedToaster />
-<ContextMenu />
+{#if isReady}
+	<!-- Custom Title Bar -->
+	<TitleBar />
 
-<!-- Main app content -->
-<TanstackProvider>
-	<LenisProvider>
-		<ContextMenuProvider>
-			{@render children?.()}
-		</ContextMenuProvider>
-	</LenisProvider>
-</TanstackProvider>
+	<!-- Portals at root level - webview zoom scales everything -->
+	<ThemedToaster />
+	<ContextMenu />
+
+	<!-- Main app content -->
+	<TanstackProvider>
+		<LenisProvider>
+			<ContextMenuProvider>
+				{@render children?.()}
+			</ContextMenuProvider>
+		</LenisProvider>
+	</TanstackProvider>
+{:else}
+	<!-- Loading state with theme-aware background -->
+	<div class="flex h-screen w-screen items-center justify-center bg-background">
+		<div class="flex flex-col items-center gap-4">
+			<div class="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+			<p class="text-sm text-muted-foreground">Loading Zafkiel...</p>
+		</div>
+	</div>
+{/if}

@@ -31,13 +31,6 @@
 	let preferDub = $state(false);
 	let selectedGenres = $state<string[]>(['Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy']);
 
-	// Redirect to login if not authenticated
-	$effect(() => {
-		if (browser && !$authLoading && !$isAuthenticated) {
-			goto('/login');
-		}
-	});
-
 	function setActiveSection(section: string): void {
 		activeSection = section;
 	}

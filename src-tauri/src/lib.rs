@@ -34,14 +34,14 @@ pub fn run() {
             let config_loader =
                 config::ConfigLoader::new().expect("Failed to initialize config loader");
 
-            // Load token from config if available
+            // Load decrypted token from config if available
             let token = config_loader
-                .get_config()
+                .get_anilist_token()
                 .ok()
-                .and_then(|config| config.anilist.access_token);
+                .flatten(); // flatten converts Option<Option<String>> to Option<String>
 
             if token.is_some() {
-                log::info!("[Setup] Found existing AniList token in config");
+                log::info!("[Setup] Found existing AniList token in config (decrypted)");
             } else {
                 log::info!("[Setup] No AniList token found, user needs to authenticate");
             }

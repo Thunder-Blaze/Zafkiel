@@ -9,6 +9,7 @@
 
 	let open = $state(false);
 	let switchingTheme = $state(false);
+	let scrollContainerRef: HTMLDivElement | null = $state(null);
 
 	async function handleThemeSwitch(themeId: string): Promise<void> {
 		if (switchingTheme) return;
@@ -41,6 +42,26 @@
 		switchingTheme = false;
 		// open = false; // Close the sheet after switching
 	}
+
+	// Prevent scroll propagation to background
+	function handleWheel(e: WheelEvent): void {
+		if (!scrollContainerRef) return;
+
+		const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef;
+		const isScrollingDown = e.deltaY > 0;
+		const isScrollingUp = e.deltaY < 0;
+
+		const isAtTop = scrollTop === 0;
+		const isAtBottom = scrollTop + clientHeight >= scrollHeight;
+
+		// Prevent default if we're not at the boundaries or if we're scrolling away from boundaries
+		if ((!isAtTop && isScrollingUp) || (!isAtBottom && isScrollingDown)) {
+			e.stopPropagation();
+		} else if ((isAtTop && isScrollingUp) || (isAtBottom && isScrollingDown)) {
+			e.preventDefault();
+			e.stopPropagation();
+		}
+	}
 </script>
 
 <Sheet bind:open>
@@ -56,15 +77,20 @@
 			</Button>
 		{/snippet}
 	</SheetTrigger>
-	<SheetContent side="right" class="w-full sm:max-w-xs overflow-y-auto gap-0">
-		<SheetHeader>
+	<SheetContent side="right" class="w-full sm:max-w-xs gap-0 flex flex-col">
+		<SheetHeader class="flex-shrink-0">
 			<SheetTitle class="flex items-center gap-2 text-xl">
 				<Icon icon="solar:pallete-2-bold" class="h-6 w-6 text-primary" />
 				Theme Selector
 			</SheetTitle>
 		</SheetHeader>
 
-		<div class="px-4">
+		<div
+			bind:this={scrollContainerRef}
+			onwheel={handleWheel}
+			class="overflow-y-auto flex-1 py-2 px-4"
+			style="overscroll-behavior: contain; touch-action: pan-y;"
+		>
 			<div class="flex flex-col gap-4">
 				{#each themeStore.availableThemes as theme}
 					{@const isActive = themeStore.currentTheme === theme.id}
@@ -94,7 +120,7 @@
 							</div>
 						{:else}
 							<div class="flex gap-3">
-								<div class="h-8 w-full rounded-md bg-primary/20 flex items-center justify-center italic text-xs animate-pulse">
+								<div class="h-8 w-full rounded-md bg-primary/20 flex items-center justify-center italic text-xs opacity-70">
 									Click to Load
 								</div>
 							</div>
@@ -103,9 +129,9 @@
 						<!-- Active Indicator with Checkmark -->
 						{#if isActive}
 							<div
-								class="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary shadow-lg"
+								class="absolute -top-2 -right-2 h-6 w-6 flex items-center justify-center rounded-full bg-primary shadow-lg"
 							>
-								<Icon icon="solar:check-circle-bold" class="h-4 w-4 text-primary-foreground" />
+								<Icon icon="solar:check-read-broken" class="h-5 w-5 text-primary-foreground" />
 							</div>
 						{/if}
 
@@ -120,18 +146,18 @@
 					</button>
 				{/each}
 			</div>
-		</div>
 
-		<Separator class="my-6" />
+			<Separator class="my-6" />
 
-		<div class="m-3 mt-0 rounded-xl border border-border/50 bg-foreground/5 p-4">
-			<div class="flex items-center gap-2">
-				<Icon icon="solar:lightbulb-bolt-bold" class="h-5 w-5 text-primary" />
-				<span class="text-sm font-medium">Pro Tip</span>
+			<div class="mb-4 rounded-xl border border-border/50 bg-foreground/5 p-4">
+				<div class="flex items-center gap-2">
+					<Icon icon="solar:lightbulb-bolt-bold" class="h-5 w-5 text-primary" />
+					<span class="text-sm font-medium">Pro Tip</span>
+				</div>
+				<p class="text-xs text-foreground/70 leading-relaxed">
+					Themes are loaded on-demand to improve performance. Unloaded themes show a download icon. Once loaded, they're cached for instant switching.
+				</p>
 			</div>
-			<p class="text-xs text-foreground/70 leading-relaxed">
-				Themes are loaded on-demand to improve performance. Unloaded themes show a download icon. Once loaded, they're cached for instant switching.
-			</p>
 		</div>
 	</SheetContent>
 </Sheet>
