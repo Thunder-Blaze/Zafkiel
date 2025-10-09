@@ -306,7 +306,7 @@
 	];
 </script>
 
-<div class="container mx-auto max-w-7xl space-y-8 p-6" transition:fade={{ duration: 300 }}>
+<div class="container mx-auto max-w-7xl space-y-8 p-6">
 	<!-- Header -->
 	<div class="space-y-2" transition:slide={{ duration: 300 }}>
 		<div class="flex items-center gap-3">

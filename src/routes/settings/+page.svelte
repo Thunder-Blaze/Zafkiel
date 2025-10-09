@@ -13,6 +13,7 @@
 	import PreferencesSettings from '$lib/components/settings/PreferencesSettings.svelte';
 	import PlaybackSettings from '$lib/components/settings/PlaybackSettings.svelte';
 	import AccountSettings from '$lib/components/settings/AccountSettings.svelte';
+	import ThemeModeSettings from '$lib/components/settings/ThemeModeSettings.svelte';
 
 	let activeSection = $state('general');
 
@@ -108,6 +109,7 @@
 				{#if activeSection === 'appearance'}
 					<div class="space-y-6">
 						<UiScaleSettings />
+						<ThemeModeSettings />
 						<ThemeSettings />
 					</div>
 				{/if}

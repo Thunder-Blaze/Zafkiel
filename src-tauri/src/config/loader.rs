@@ -252,6 +252,17 @@ impl ConfigLoader {
         self.save()
     }
 
+    /// Update theme mode (light/dark/system)
+    pub fn update_theme_mode(&self, mode: String) -> Result<(), ConfigError> {
+        let mut config = self.config.write().map_err(|_| {
+            ConfigError::Deserialization("Failed to acquire write lock".to_string())
+        })?;
+
+        config.ui.theme_mode = mode;
+        drop(config);
+        self.save()
+    }
+
     /// Update UI scale factor
     pub fn update_ui_scale(&self, scale: f32) -> Result<(), ConfigError> {
         let mut config = self.config.write().map_err(|_| {

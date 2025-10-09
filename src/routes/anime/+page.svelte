@@ -12,6 +12,8 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import Icon from '@iconify/svelte';
 	import type { Media } from '$lib/types/anilist';
+	import MediaCard from '$lib/components/MediaCard.svelte';
+	import type { MediaData } from '$lib/types/media';
 
 	// Search state
 	let searchQuery = $state('');
@@ -158,61 +160,28 @@
 	{:else}
 		<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 			{#each activeData as anime (anime.id)}
-				<Card class="group overflow-hidden transition-all hover:shadow-lg">
-					<!-- Cover Image -->
-					<div class="relative aspect-[2/3] overflow-hidden bg-muted">
-						{#if anime.coverImage?.large}
-							<img
-								src={anime.coverImage.large}
-								alt={getTitle(anime)}
-								class="size-full object-cover transition-transform group-hover:scale-105"
-							/>
-						{/if}
-
-						<!-- Score Badge -->
-						{#if anime.averageScore}
-							<div
-								class="absolute top-2 right-2 rounded-full bg-black/70 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm"
-							>
-								⭐ {formatScore(anime.averageScore)}
-							</div>
-						{/if}
-
-						<!-- Format Badge -->
-						{#if anime.format}
-							<div
-								class="absolute bottom-2 left-2 rounded-full bg-primary/90 px-2 py-1 text-xs font-medium text-primary-foreground backdrop-blur-sm"
-							>
-								{anime.format}
-							</div>
-						{/if}
-					</div>
-
-					<!-- Info -->
-					<CardContent class="space-y-1 p-4">
-						<h3 class="line-clamp-2 leading-tight font-semibold" title={getTitle(anime)}>
-							{getTitle(anime)}
-						</h3>
-						<div class="flex items-center gap-2 text-xs text-muted-foreground">
-							{#if anime.seasonYear}
-								<span>{anime.seasonYear}</span>
-							{/if}
-							{#if anime.episodes}
-								<span>•</span>
-								<span>{anime.episodes} eps</span>
-							{/if}
-						</div>
-						{#if anime.genres && anime.genres.length > 0}
-							<div class="flex flex-wrap gap-1">
-								{#each anime.genres.slice(0, 3) as genre}
-									<span class="rounded-full bg-muted px-2 py-0.5 text-xs">
-										{genre}
-									</span>
-								{/each}
-							</div>
-						{/if}
-					</CardContent>
-				</Card>
+				{@const activeMediaData = {
+					id: anime.id,
+					title: getTitle(anime),
+					englishTitle: anime.title?.english || null,
+					coverImage: anime.coverImage?.large || anime.coverImage?.medium || '',
+					bannerImage: anime.bannerImage || null,
+					score: anime.averageScore || 0,
+					totalEpisodes: anime.episodes || 'N/A',
+					totalChapters: anime.chapters || 'N/A',
+					year: anime.seasonYear || 'N/A',
+					status: anime.status || 'N/A',
+					genres: anime.genres || [],
+					format: anime.format || 'N/A',
+					season: anime.season || 'N/A',
+					seasonYear: anime.seasonYear || 'N/A',
+					popularity: anime.popularity || 0,
+					trending: anime.trending || 0,
+					description: anime.description || 'No description available.',
+					isAdult: anime.isAdult || false,
+					favourites: anime.favourites || 0,
+				} as MediaData}
+				<MediaCard mediaData={activeMediaData} />
 			{/each}
 		</div>
 	{/if}

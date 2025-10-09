@@ -11,6 +11,16 @@
 	let switchingTheme = $state(false);
 	let scrollContainerRef: HTMLDivElement | null = $state(null);
 
+	async function handleThemeModeChange(mode: 'light' | 'dark' | 'system'): Promise<void> {
+		try {
+			await themeStore.setThemeMode(mode);
+			const modeText = mode === 'system' ? 'system preference' : `${mode} mode`;
+			toast.success(`Theme mode set to ${modeText}`);
+		} catch (error) {
+			toast.error('Failed to update theme mode');
+		}
+	}
+
 	async function handleThemeSwitch(themeId: string): Promise<void> {
 		if (switchingTheme) return;
 
@@ -92,6 +102,44 @@
 			style="overscroll-behavior: contain; touch-action: pan-y;"
 		>
 			<div class="flex flex-col gap-4">
+				<!-- Theme Mode Selector -->
+				<div class="rounded-lg border border-border/50 bg-muted/20 p-4">
+					<Label class="text-sm font-semibold mb-3 block">Color Mode</Label>
+					<div class="flex gap-2">
+						<Button
+							variant={themeStore.themeMode === 'light' ? 'default' : 'outline'}
+							size="sm"
+							class="flex-1 gap-1.5 text-xs"
+							onclick={() => handleThemeModeChange('light')}
+						>
+							<Icon icon="ph:sun-bold" class="h-3.5 w-3.5" />
+							Light
+						</Button>
+						<Button
+							variant={themeStore.themeMode === 'dark' ? 'default' : 'outline'}
+							size="sm"
+							class="flex-1 gap-1.5 text-xs"
+							onclick={() => handleThemeModeChange('dark')}
+						>
+							<Icon icon="ph:moon-bold" class="h-3.5 w-3.5" />
+							Dark
+						</Button>
+						<Button
+							variant={themeStore.themeMode === 'system' ? 'default' : 'outline'}
+							size="sm"
+							class="flex-1 gap-1.5 text-xs"
+							onclick={() => handleThemeModeChange('system')}
+						>
+							<Icon icon="ph:monitor-bold" class="h-3.5 w-3.5" />
+							Auto
+						</Button>
+					</div>
+				</div>
+
+				<Separator class="my-2" />
+
+				<Label class="text-sm font-semibold">Theme Styles</Label>
+
 				{#each themeStore.availableThemes as theme}
 					{@const isActive = themeStore.currentTheme === theme.id}
 					{@const isLoaded = themeStore.loadedThemes.has(theme.id)}

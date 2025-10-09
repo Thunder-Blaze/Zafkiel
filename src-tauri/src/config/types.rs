@@ -30,6 +30,10 @@ pub struct UiConfig {
     /// Theme name (e.g., "catppuccin", "dark", "light")
     pub theme: String,
 
+    /// Theme mode: "light", "dark", or "system"
+    #[serde(default = "default_theme_mode")]
+    pub theme_mode: String,
+
     /// Enable glow effects on UI elements
     pub glow_effects: bool,
 
@@ -53,6 +57,10 @@ pub struct UiConfig {
 
 fn default_ui_scale() -> f32 {
     1.0
+}
+
+fn default_theme_mode() -> String {
+    "dark".to_string()
 }
 
 impl Default for AppConfig {
@@ -83,6 +91,7 @@ impl Default for UiConfig {
     fn default() -> Self {
         Self {
             theme: "catppuccin".to_string(),
+            theme_mode: "dark".to_string(),
             glow_effects: true,
             blur_effects: true,
             animations: true,
@@ -103,6 +112,7 @@ mod tests {
         assert_eq!(config.anilist.access_token, None);
         assert_eq!(config.security.encryption_key, "");
         assert_eq!(config.ui.theme, "catppuccin");
+        assert_eq!(config.ui.theme_mode, "dark");
         assert!(config.ui.glow_effects);
         assert!(config.ui.blur_effects);
         assert!(config.ui.animations);

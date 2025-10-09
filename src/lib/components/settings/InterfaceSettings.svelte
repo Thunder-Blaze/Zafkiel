@@ -2,6 +2,7 @@
 	import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
 	import { Switch } from '$lib/components/ui/switch';
+	import { Button } from '$lib/components/ui/button';
 	import { ConfigService, type UiConfig } from '$lib/services/config';
 	import { toast } from 'svelte-sonner';
 	import Icon from '@iconify/svelte';
@@ -31,7 +32,7 @@
 	let blurEffectsEnabled = $state(true);
 	let hoverCardEnabled = $state(true);
 
-	// Load settings from config
+	// Load settings from config (theme_mode is now in themeStore)
 	$effect(() => {
 		ConfigService.getUiConfig()
 			.then((config: UiConfig) => {

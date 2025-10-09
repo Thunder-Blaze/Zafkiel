@@ -31,6 +31,8 @@ export interface SecurityConfig {
 export interface UiConfig {
 	/** Theme name (e.g., "catppuccin", "dark", "light") */
 	theme: string;
+	/** Theme mode: "light", "dark", or "system" */
+	theme_mode: 'light' | 'dark' | 'system';
 	/** Enable glow effects on UI elements */
 	glow_effects: boolean;
 	/** Enable blur effects on UI elements */
@@ -179,6 +181,16 @@ export class ConfigService {
 		const response = await invoke<ConfigResponse<void>>('update_hover_card', { enabled });
 		if (!response.success) {
 			throw new Error(response.error || 'Failed to update hover card');
+		}
+	}
+
+	/**
+	 * Update theme mode (light/dark/system)
+	 */
+	static async updateThemeMode(mode: 'light' | 'dark' | 'system'): Promise<void> {
+		const response = await invoke<ConfigResponse<void>>('update_theme_mode', { mode });
+		if (!response.success) {
+			throw new Error(response.error || 'Failed to update theme mode');
 		}
 	}
 

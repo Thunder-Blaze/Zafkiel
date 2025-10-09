@@ -26,12 +26,14 @@
 		{ label: 'Trending', icon: 'solar:fire-bold', path: '/trending' },
 		{ label: 'Settings', icon: 'solar:settings-bold', path: '/settings' },
 	];
+
+	const fallbackThemeImage = '/images/fallback-theme.png';
 </script>
 
 {#if $authLoading}
 	<Loader text="Loading your dashboard..." />
 {:else}
-	<div class="h-[calc(100vh-3rem)] overflow-hidden relative bg-black/40">
+	<div class="h-[calc(100vh-3rem)] overflow-hidden relative {themeStore.isDark ? 'bg-black/40' : 'bg-white/40'}">
 		<!-- Background Theme Image -->
 		<div class="absolute flex items-center justify-center inset-0">
 			<!-- Dynamic Text -->
@@ -51,7 +53,9 @@
 
 			<img
 				src="{themeStore.currentThemePath}/theme.png"
-				onerror={(e) => e.target.src='/images/fallback-theme.png'}
+				onerror={(e) => {
+					if ((e.target as HTMLImageElement)?.src) (e.target as HTMLImageElement).src=fallbackThemeImage;
+				}}
 				alt="Background Theme"
 				class="object-contain w-full h-full"
 			/>

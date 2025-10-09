@@ -7,16 +7,14 @@
 	import ContextMenuProvider from '$lib/providers/context-menu.svelte';
 	import TanstackProvider from '$lib/providers/tanstack.svelte';
 	import LenisProvider from '$lib/providers/lenis.svelte';
+	import AnimationProvider from '$lib/providers/animation.svelte';
 	import TitleBar from '$lib/components/TitleBar.svelte';
 	import { configStore } from '$lib/stores/config';
 	import { authStore } from '$lib/stores/auth';
 	import { themeStore } from '$lib/stores/theme.svelte';
-	import { useUiScale } from '$lib/hooks/useUiScale.svelte';
+	import Loader from '$lib/components/Loader.svelte';
 
 	let { children }: { children: any } = $props();
-
-	// Initialize UI scale (applies Tauri webview zoom)
-	const uiScale = useUiScale();
 
 	let isReady = $state(false);
 
@@ -54,16 +52,13 @@
 	<TanstackProvider>
 		<LenisProvider>
 			<ContextMenuProvider>
-				{@render children?.()}
+				<AnimationProvider>
+					{@render children?.()}
+				</AnimationProvider>
 			</ContextMenuProvider>
 		</LenisProvider>
 	</TanstackProvider>
 {:else}
 	<!-- Loading state with theme-aware background -->
-	<div class="flex h-screen w-screen items-center justify-center bg-background">
-		<div class="flex flex-col items-center gap-4">
-			<div class="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-			<p class="text-sm text-muted-foreground">Loading Zafkiel...</p>
-		</div>
-	</div>
+	<Loader text="Loading Zafkiel..." />
 {/if}

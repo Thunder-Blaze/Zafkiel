@@ -1,9 +1,11 @@
 import { themeManager, type Theme } from '$lib/services/theme';
+import { ConfigService } from '$lib/services/config';
 import { SvelteSet } from 'svelte/reactivity';
 
 interface ThemeState {
 	currentTheme: string;
 	isDark: boolean;
+	themeMode: 'light' | 'dark' | 'system';
 	availableThemes: Theme[];
 	loadedThemes: SvelteSet<string>;
 	isLoading: boolean;
@@ -14,6 +16,7 @@ function createThemeStore() {
 	const state = $state<ThemeState>({
 		currentTheme: 'default',
 		isDark: false,
+		themeMode: 'dark',
 		availableThemes: [],
 		loadedThemes: new SvelteSet<string>(),
 		isLoading: false,
@@ -29,6 +32,9 @@ function createThemeStore() {
 		},
 		get isDark() {
 			return state.isDark;
+		},
+		get themeMode() {
+			return state.themeMode;
 		},
 		get availableThemes() {
 			return state.availableThemes;
@@ -59,10 +65,22 @@ function createThemeStore() {
 			state.isLoading = true;
 
 			try {
-				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-				state.isDark = prefersDark;
+				// Load theme_mode from config first
+				const config = await ConfigService.getUiConfig();
+				state.themeMode = config.theme_mode;
 
-				await themeManager.initialize(prefersDark);
+				// Determine isDark based on theme_mode
+				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+				if (state.themeMode === 'system') {
+					state.isDark = prefersDark;
+				} else {
+					state.isDark = state.themeMode === 'dark';
+				}
+
+				// Apply theme mode to document immediately
+				this.applyThemeMode(state.themeMode);
+
+				await themeManager.initialize(state.isDark);
 				state.currentTheme = themeManager.getCurrentTheme();
 
 				const themes = await themeManager.listThemes();
@@ -72,15 +90,20 @@ function createThemeStore() {
 				state.loadedThemes.add(state.currentTheme);
 
 				state.initialized = true;
-				console.log('[ThemeStore] ✓ Initialized');
+				console.log('[ThemeStore] ✓ Initialized with theme_mode:', state.themeMode);
 
+				// Listen for system preference changes only if theme_mode is 'system'
 				window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-					this.setDarkMode(e.matches);
+					if (state.themeMode === 'system') {
+						state.isDark = e.matches;
+						this.applyThemeMode('system');
+					}
 				});
 			} catch (error) {
 				console.error('[ThemeStore] ✗ Init failed:', error);
 				state.currentTheme = 'default';
 				state.isDark = false;
+				state.themeMode = 'dark';
 				state.availableThemes = [];
 				state.initialized = true;
 			} finally {
@@ -125,6 +148,42 @@ function createThemeStore() {
 				throw error;
 			} finally {
 				state.isLoading = false;
+			}
+		},
+
+		/**
+		 * Apply theme mode to document
+		 * This is the single source of truth for light/dark mode classes
+		 */
+		applyThemeMode(mode: 'light' | 'dark' | 'system') {
+			const root = document.documentElement;
+			
+			if (mode === 'system') {
+				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+				root.classList.remove('light', 'dark');
+				root.classList.add(prefersDark ? 'dark' : 'light');
+				state.isDark = prefersDark;
+			} else {
+				root.classList.remove('light', 'dark');
+				root.classList.add(mode);
+				state.isDark = mode === 'dark';
+			}
+		},
+
+		/**
+		 * Update theme mode and persist to config
+		 */
+		async setThemeMode(mode: 'light' | 'dark' | 'system') {
+			if (state.themeMode === mode) return;
+
+			try {
+				await ConfigService.updateThemeMode(mode);
+				state.themeMode = mode;
+				this.applyThemeMode(mode);
+				console.log('[ThemeStore] ✓ Theme mode updated to:', mode);
+			} catch (error) {
+				console.error('[ThemeStore] ✗ Failed to update theme mode:', error);
+				throw error;
 			}
 		},
 

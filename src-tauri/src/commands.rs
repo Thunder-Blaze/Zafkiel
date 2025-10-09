@@ -140,6 +140,20 @@ pub fn update_hover_card(enabled: bool, config: State<ConfigState>) -> ConfigRes
     }
 }
 
+/// Update theme mode (light/dark/system)
+#[tauri::command]
+pub fn update_theme_mode(mode: String, config: State<ConfigState>) -> ConfigResponse<()> {
+    // Validate mode
+    if mode != "light" && mode != "dark" && mode != "system" {
+        return ConfigResponse::error("Invalid theme mode. Must be 'light', 'dark', or 'system'".to_string());
+    }
+    
+    match config.update_theme_mode(mode) {
+        Ok(_) => ConfigResponse::success(()),
+        Err(e) => ConfigResponse::error(e.to_string()),
+    }
+}
+
 /// Update UI scale factor and apply webview zoom
 #[tauri::command]
 pub fn update_ui_scale(

@@ -6,6 +6,7 @@
 	import type { MediaData, MediaListStatus } from '$lib/types/media';
 	import { ConfigService, type UiConfig } from '$lib/services/config';
 	import GenreSubCards from './GenreSubCards.svelte';
+	import { Debounced } from "runed";
 
 	let { mediaData }: { mediaData: MediaData } = $props();
 
@@ -29,6 +30,7 @@
 
 	let isLoading = $state(false);
 	let isHovering = $state(false);
+	const debouncedHovering = new Debounced(() => isHovering, 100);
 
 	const onmouseenter = () => {
 		isHovering = true;
@@ -36,6 +38,7 @@
 
 	const onmouseleave = () => {
 		isHovering = false;
+		debouncedHovering.updateImmediately();
 	};
 
 	let cardPositioner: HTMLDivElement | null = $state(null);
@@ -199,7 +202,7 @@
 			</div>
 		</div>
 
-	{#if hoverCardEnabled && isHovering}
+	{#if hoverCardEnabled && debouncedHovering.current}
 		<div
 			class="ring-card bg-card group/animecard text-card-foreground absolute z-30 flex h-auto w-[140%] flex-col rounded-md shadow-[0px_0px_20px_20px_rgba(0,_0,_0,_0.4)] ring-[12px] gap-2 transition-all {position ===
 			'left'
@@ -274,13 +277,20 @@
 								<span class="text-xs flex items-center font-light gap-1 whitespace-nowrap rounded-sm tracking-wide px-1.5 py-0.5 text-foreground ml-2 {blurEffectsEnabled
 									? 'bg-card/65 backdrop-blur-xl'
 									: 'bg-card'} shadow-md"
-								in:fly={{ y: -10, duration: animationsEnabled ? 250 : 0 }}>
-									<Icon icon="solar:play-bold" class="size-2.5 inline" />{userProgress} / {episodes || chapters}
+								>
+									{#if userStatus === 'CURRENT' || userStatus === 'REPEATING'}
+										<Icon icon="mingcute:play-fill" class="size-2.5 inline" />
+									{:else if userStatus === 'PAUSED'}
+										<Icon icon="mingcute:pause-fill" class="size-2.5 inline" />
+									{:else if userStatus === 'DROPPED'}
+										<Icon icon="mingcute:close-fill" class="size-3 inline" />
+									{/if}
+									{userProgress} / {episodes || chapters}
 								</span>
 								<div class="h-2 w-full overflow-hidden rounded-md {blurEffectsEnabled
 									? 'bg-card/65 backdrop-blur-xl'
 									: 'bg-card'} shadow-md"
-								in:fly={{ y: -10, duration: animationsEnabled ? 250 : 0 }}>
+								>
 									<div
 										class="h-full rounded-r-md transition-all duration-300"
 										style="width: {(userProgress / (episodes || chapters)) * 100}%"
@@ -293,7 +303,7 @@
 								<span class="text-xs flex items-center font-medium gap-1 whitespace-nowrap rounded-sm tracking-wide px-1.5 py-0.5 text-foreground ml-2 {blurEffectsEnabled
 									? 'bg-card/65 backdrop-blur-xl'
 									: 'bg-card'} shadow-md"
-								in:fly={{ y: -10, duration: animationsEnabled ? 250 : 0 }}>
+								>
 									<Icon icon="solar:check-read-outline" class="size-4 inline" /> Completed
 								</span>
 							{/if}
@@ -307,25 +317,21 @@
 				<!-- Title -->
 				<h2
 					class="line-clamp-2 text-sm font-semibold md:text-base"
-					in:fly={{ y: -10, duration: animationsEnabled ? 250 : 0, delay: 50 }}
 				>
 					{title}
 				</h2>
 
 				<!-- Genres -->
-				<GenreSubCards animationsEnabled={animationsEnabled} genres={genres} />
+				<GenreSubCards genres={genres} />
 
 				<!-- Description -->
-				<p class="line-clamp-3 text-[10px] text-muted-foreground"
-					in:fly={{ y: 10, duration: animationsEnabled ? 250 : 0, delay: 100 }}
-				>
+				<p class="line-clamp-3 text-[10px] text-muted-foreground">
 					{description}
 				</p>
 
 				<!-- Action Buttons Strip -->
 				<div
 					class="bg-border flex items-center justify-between gap-1 rounded-md p-1"
-					in:fade={{ duration: animationsEnabled ? 250 : 0, delay: 150 }}
 				>
 					<button
 						onclick={() => handleStatusChange('PLANNING')}
@@ -385,7 +391,6 @@
 				<!-- Stats Grid -->
 				<div
 					class="bg-border grid grid-cols-2 gap-1.5 rounded-md p-1.5"
-					in:fade={{ duration: animationsEnabled ? 250 : 0, delay: 175 }}
 				>
 					<!-- Status -->
 					<div
