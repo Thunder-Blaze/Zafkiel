@@ -103,7 +103,7 @@
 	});
 
 	function formatScore(score: number | null): string {
-		if (!score) return 'N/A';
+		if (!score) return '??';
 		return `${score}%`;
 	}
 

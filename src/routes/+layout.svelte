@@ -11,12 +11,15 @@
 	import TitleBar from '$lib/components/TitleBar.svelte';
 	import { configStore } from '$lib/stores/config';
 	import { authStore } from '$lib/stores/auth';
+	import { useUiScale } from '$lib/hooks/useUiScale.svelte';
 	import { themeStore } from '$lib/stores/theme.svelte';
 	import Loader from '$lib/components/Loader.svelte';
+	import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 
 	let { children }: { children: any } = $props();
 
 	let isReady = $state(false);
+	let uiScale = useUiScale();
 
 	// Initialize config, auth, and theme stores on app mount
 	onMount(async () => {
@@ -57,6 +60,7 @@
 				</AnimationProvider>
 			</ContextMenuProvider>
 		</LenisProvider>
+		<SvelteQueryDevtools />
 	</TanstackProvider>
 {:else}
 	<!-- Loading state with theme-aware background -->

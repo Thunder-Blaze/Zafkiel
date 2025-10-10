@@ -3,12 +3,14 @@
 	import { fade, fly, scale } from 'svelte/transition';
 	import Icon from '@iconify/svelte';
 	import { tick } from 'svelte';
-	import type { MediaData, MediaListStatus } from '$lib/types/media';
+	import type { MediaData } from '$lib/types/media';
 	import { ConfigService, type UiConfig } from '$lib/services/config';
 	import GenreSubCards from './GenreSubCards.svelte';
 	import { Debounced } from 'runed';
+	import ActionButtonStrip from './ActionButtonStrip.svelte';
+	import type { Media } from '$lib/types/anilist';
 
-	let { mediaData }: { mediaData: MediaData } = $props();
+	let { media }: { media: Media } = $props();
 
 	// Config states
 	let blurEffectsEnabled = $state(false);
@@ -65,26 +67,27 @@
 		}
 	});
 
-	// Computed values from mediaData
-	const title = $derived(mediaData.title || mediaData.englishTitle || 'Unknown');
-	const description = $derived(mediaData.description || 'No description available.');
+	// Computed values from media
+	const title = $derived(media.title?.userPreferred || 'Unknown Title');
+	const description = $derived(media.description || 'No description available.');
 	const placeholderSvg = 'https://placehold.co/600x400';
-	const coverImage = $derived(mediaData.coverImage || placeholderSvg);
-	const bannerImage = $derived(mediaData.bannerImage || coverImage);
-	const score = $derived(mediaData.score ? Math.round(mediaData.score * 10) : 0);
-	const genres = $derived(mediaData.genres || []);
-	const status = $derived(mediaData.status || 'UNKNOWN');
-	const episodes = $derived(mediaData.totalEpisodes || 0);
-	const chapters = $derived(mediaData.totalChapters || 0);
-	const season = $derived(mediaData.season || '');
-	const seasonYear = $derived(mediaData.year || 0);
-	const format = $derived(mediaData.format || 'Unknown');
-	const popularity = $derived(mediaData.popularity || 0);
-	const type = $derived(mediaData.type || 'ANIME');
-	const isAdult = $derived(mediaData.isAdult || false);
-	const userStatus = $derived(mediaData.userStatus);
-	const userProgress = $derived(mediaData.userProgress || 0);
-	const link = $derived('/' + mediaData.type?.toLowerCase() + '/' + mediaData.id);
+	const coverImage = $derived(media.coverImage?.large || placeholderSvg);
+	const bannerImage = $derived(media.bannerImage || coverImage);
+	const score = $derived(media.averageScore);
+	const genres = $derived(media.genres);
+	const status = $derived(media.status);
+	const episodes = $derived(media.episodes);
+	const chapters = $derived(media.chapters);
+	const season = $derived(media.season);
+	const seasonYear = $derived(media.seasonYear);
+	const format = $derived(media.format);
+	const popularity = $derived(media.popularity);
+	const type = $derived(media.type || 'ANIME');
+	const studio = $derived(media.studios?.edges?.[0]?.node?.name);
+	const isAdult = $derived(media.isAdult || false);
+	const userStatus = $derived(media?.mediaListEntry?.status);
+	const userProgress = $derived(media?.mediaListEntry?.progress || 0);
+	const link = $derived('/' + media.type?.toLowerCase() + '/' + media.id);
 
 	// Format season display
 	const seasonDisplay = $derived(() => {
@@ -92,12 +95,6 @@
 		const seasonName = season.charAt(0) + season.slice(1).toLowerCase();
 		return `${seasonName} ${seasonYear}`;
 	});
-
-	// Status action handlers
-	const handleStatusChange = (newStatus: MediaListStatus) => {
-		// TODO: Implement API call to update status
-		console.log('Status changed to:', newStatus);
-	};
 </script>
 
 <!-- svelte-ignore a11y_mouse_events_have_key_events -->
@@ -134,11 +131,11 @@
 		<div class="relative z-10 flex items-center justify-between p-2">
 			<!-- Score Badge -->
 			<div
-				class="flex items-center justify-center rounded-md px-2 py-0.5 {blurEffectsEnabled
+				class="flex items-center justify-center rounded-md text-card-foreground px-2 py-0.5 {blurEffectsEnabled
 					? 'bg-card/65 backdrop-blur-xl'
 					: 'bg-card'} gap-0.5 font-semibold shadow-lg transition-all duration-200"
 			>
-				<Icon icon="material-symbols:star-rounded" class="-ml-1 size-5 text-primary" />
+				<Icon icon="solar:star-bold" class="-ml-1 size-5 text-primary" />
 				{score}
 				<span class="text-sm font-light">%</span>
 			</div>
@@ -157,7 +154,7 @@
 		</div>
 
 		<!-- Progress Bar (if watching/reading) -->
-		{#if userProgress && (episodes || chapters)}
+		{#if userProgress && (episodes != null || chapters != null)}
 			<div class="absolute bottom-0 left-0 z-10 flex w-full flex-row-reverse p-2">
 				{#if userStatus !== 'COMPLETED'}
 					<div
@@ -168,7 +165,7 @@
 					>
 						<div
 							class="h-full rounded-r-md transition-all duration-300"
-							style="width: {(userProgress / (episodes || chapters)) * 100}%"
+							style="width: {(userProgress / ((episodes != null) ? episodes : (chapters != null ? chapters : 0))) * 100}%"
 							class:bg-primary={userStatus === 'CURRENT' || userStatus === 'REPEATING'}
 							class:bg-secondary={userStatus === 'PAUSED'}
 							class:bg-destructive={userStatus === 'DROPPED'}
@@ -202,12 +199,13 @@
 
 	{#if hoverCardEnabled && debouncedHovering.current}
 		<div
-			class="group/animecard absolute z-30 flex h-auto w-[140%] flex-col gap-2 rounded-md bg-card text-card-foreground shadow-[0px_0px_20px_20px_rgba(0,_0,_0,_0.4)] ring-[12px] ring-card transition-all {position ===
+			class="group/animecard absolute z-30 flex h-auto w-[140%] flex-col gap-2 rounded-md text-card-foreground shadow-[0px_0px_20px_20px_rgba(0,_0,_0,_0.4)] ring-[12px] ring-card transition-all {position ===
 			'left'
 				? 'right-0'
 				: position === 'right'
 					? 'left-0'
-					: ''}"
+					: ''} {blurEffectsEnabled
+					? 'backdrop-blur-xl bg-card/95' : 'bg-card'}"
 			in:scale={{ duration: animationsEnabled ? 100 : 0, start: 0.85, easing: cubicInOut }}
 		>
 			<!-- Banner Image -->
@@ -255,8 +253,8 @@
 					class="flex h-full w-full flex-col items-start justify-between overflow-hidden rounded-lg p-2"
 				>
 					<!-- Score and 18+ badge on banner -->
-					<div class="flex w-full items-center justify-between">
-						<div
+					<div class="flex flex-row-reverse w-full items-center justify-between">
+						<!-- <div
 							class="flex items-center justify-center rounded-md px-2 py-0.5 {blurEffectsEnabled
 								? 'bg-card/65 backdrop-blur-xl'
 								: 'bg-card'} gap-0.5 font-semibold shadow-lg"
@@ -273,6 +271,16 @@
 									: 'bg-destructive'} font-bold shadow-lg"
 							>
 								18+
+							</div>
+						{/if} -->
+						{#if studio}
+							<div
+								class="flex items-center text-xs justify-center text-card-foreground rounded-md px-2 py-0.5 {blurEffectsEnabled
+									? 'bg-card/65 backdrop-blur-xl'
+									: 'bg-card'} gap-0.5 shadow-lg"
+							>
+								<Icon icon="solar:clapperboard-open-play-bold" class="-ml-1 size-3" />
+								{studio}
 							</div>
 						{/if}
 					</div>
@@ -302,7 +310,7 @@
 								>
 									<div
 										class="h-full rounded-r-md transition-all duration-300"
-										style="width: {(userProgress / (episodes || chapters)) * 100}%"
+										style="width: {(userProgress / ((episodes != null) ? episodes : (chapters != null ? chapters : 0))) * 100}%"
 										class:bg-primary={userStatus === 'CURRENT' || userStatus === 'REPEATING'}
 										class:bg-secondary={userStatus === 'PAUSED'}
 										class:bg-destructive={userStatus === 'DROPPED'}
@@ -330,69 +338,17 @@
 				</h2>
 
 				<!-- Genres -->
-				<GenreSubCards {genres} />
+				{#if genres && genres.length > 0}
+					<GenreSubCards {genres} />
+				{/if}
 
 				<!-- Description -->
-				<p class="line-clamp-3 text-[10px] text-muted-foreground">
-					{description}
+				<p class="line-clamp-3 text-xs text-muted-foreground">
+					{@html description.replaceAll('<br />', '').replaceAll('<br><br>', '<br>').replaceAll('<br><br>', '<br>')}
 				</p>
 
 				<!-- Action Buttons Strip -->
-				<div class="flex items-center justify-between gap-1 rounded-md bg-border p-1">
-					<button
-						onclick={() => handleStatusChange('PLANNING')}
-						class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus ===
-						'PLANNING'
-							? 'bg-primary/30'
-							: 'bg-background/50'}"
-						title="Plan to Watch"
-					>
-						<Icon icon="material-symbols:bookmark-outline" class="size-3.5" />
-						Plan
-					</button>
-					<button
-						onclick={() => handleStatusChange('CURRENT')}
-						class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus ===
-						'CURRENT'
-							? 'bg-primary/30'
-							: 'bg-background/50'}"
-						title="Watching"
-					>
-						<Icon icon="material-symbols:play-circle-outline" class="size-3.5" />
-						Watch
-					</button>
-					<button
-						onclick={() => handleStatusChange('COMPLETED')}
-						class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus ===
-						'COMPLETED'
-							? 'bg-primary/30'
-							: 'bg-background/50'}"
-						title="Completed"
-					>
-						<Icon icon="material-symbols:check-circle-outline" class="size-3.5" />
-						Done
-					</button>
-					<button
-						onclick={() => handleStatusChange('PAUSED')}
-						class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus ===
-						'PAUSED'
-							? 'bg-primary/30'
-							: 'bg-background/50'}"
-						title="Paused"
-					>
-						<Icon icon="material-symbols:pause-circle-outline" class="size-3.5" />
-					</button>
-					<button
-						onclick={() => handleStatusChange('DROPPED')}
-						class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus ===
-						'DROPPED'
-							? 'bg-primary/30'
-							: 'bg-background/50'}"
-						title="Dropped"
-					>
-						<Icon icon="material-symbols:cancel-outline" class="size-3.5" />
-					</button>
-				</div>
+				<ActionButtonStrip {userStatus} />
 
 				<!-- Stats Grid -->
 				<div class="grid grid-cols-2 gap-1.5 rounded-md bg-border p-1.5">
@@ -423,14 +379,16 @@
 					</div>
 
 					<!-- Popularity -->
-					<div
-						class="flex items-center justify-center gap-1 rounded-sm bg-background/75 px-2 py-1.5"
-					>
-						<Icon icon="mingcute:user-3-fill" class="size-4" />
-						<span class="text-xs font-medium">
-							{popularity > 1000 ? (popularity / 1000).toFixed(1) + 'k' : popularity}
-						</span>
-					</div>
+					{#if popularity != null}
+						<div
+							class="flex items-center justify-center gap-1 rounded-sm bg-background/75 px-2 py-1.5"
+						>
+							<Icon icon="mingcute:user-3-fill" class="size-4" />
+							<span class="text-xs font-medium">
+								{popularity > 1000 ? (popularity / 1000).toFixed(1) + 'k' : popularity}
+							</span>
+						</div>
+					{/if}
 				</div>
 			</div>
 		</div>

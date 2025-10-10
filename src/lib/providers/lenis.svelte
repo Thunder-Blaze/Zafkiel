@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import Lenis from '@studio-freight/lenis';
 	import { smoothScroll } from '$lib/stores/config';
 

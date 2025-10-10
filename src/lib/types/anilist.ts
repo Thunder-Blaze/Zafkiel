@@ -109,6 +109,25 @@ export interface MediaExternalLink {
 	icon: string | null;
 }
 
+export type MediaListStatus = 'CURRENT' | 'PLANNING' | 'COMPLETED' | 'DROPPED' | 'PAUSED' | 'REPEATING';
+
+export interface MediaListEntry {
+	id: number;
+	status: MediaListStatus | null;
+	score: number | null;
+	progress: number | null;
+	progressVolumes: number | null;
+	repeat: number | null;
+	priority: number | null;
+	notes: string | null;
+	hiddenFromStatusLists: boolean | null;
+	customLists: string[] | null;
+	startedAt: MediaDate | null;
+	finishedAt: MediaDate | null;
+	updatedAt: number | null;
+	createdAt: number | null;
+}
+
 export interface MediaRanking {
 	id: number;
 	rank: number;
@@ -168,9 +187,14 @@ export interface Media {
 	isFavourite: boolean;
 	isAdult: boolean | null;
 	siteUrl: string | null;
+	mediaListEntry: MediaListEntry | null;
 	autoCreateForumThread: boolean | null;
 	isRecommendationBlocked: boolean | null;
 	modNotes: string | null;
+	studios: {
+		edges?: { isMain?: boolean; node?: MediaStudio }[] | null;
+		nodes?: MediaStudio[] | null;
+	} | null;
 }
 
 // ============================================================================

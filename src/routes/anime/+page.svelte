@@ -13,7 +13,6 @@
 	import Icon from '@iconify/svelte';
 	import type { Media } from '$lib/types/anilist';
 	import MediaCard from '$lib/components/MediaCard.svelte';
-	import type { MediaData } from '$lib/types/media';
 
 	// Search state
 	let searchQuery = $state('');
@@ -62,15 +61,6 @@
 			dataCount: activeData?.length ?? 0,
 		});
 	});
-
-	// Helper functions
-	function getTitle(anime: any): string {
-		return anime.title?.english || anime.title?.romaji || anime.title?.native || 'Unknown';
-	}
-
-	function formatScore(score: number | null): string {
-		return score ? `${score}%` : 'N/A';
-	}
 </script>
 
 <div class="container mx-auto space-y-6 p-8">
@@ -159,29 +149,8 @@
 		<!-- Anime Grid -->
 	{:else}
 		<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-			{#each activeData as anime (anime.id)}
-				{@const activeMediaData = {
-					id: anime.id,
-					title: getTitle(anime),
-					englishTitle: anime.title?.english || null,
-					coverImage: anime.coverImage?.large || anime.coverImage?.medium || '',
-					bannerImage: anime.bannerImage || null,
-					score: anime.averageScore || 0,
-					totalEpisodes: anime.episodes || 'N/A',
-					totalChapters: anime.chapters || 'N/A',
-					year: anime.seasonYear || 'N/A',
-					status: anime.status || 'N/A',
-					genres: anime.genres || [],
-					format: anime.format || 'N/A',
-					season: anime.season || 'N/A',
-					seasonYear: anime.seasonYear || 'N/A',
-					popularity: anime.popularity || 0,
-					trending: anime.trending || 0,
-					description: anime.description || 'No description available.',
-					isAdult: anime.isAdult || false,
-					favourites: anime.favourites || 0,
-				} as MediaData}
-				<MediaCard mediaData={activeMediaData} />
+			{#each activeData as anime}
+				<MediaCard media={anime} />
 			{/each}
 		</div>
 	{/if}
