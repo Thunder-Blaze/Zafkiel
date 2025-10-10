@@ -141,8 +141,6 @@ dependencies = [
 [[package]]
 name = "anilist_moe"
 version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff8082c5e805e7503ec8189efc7d76e3ebeaa8f9ca0d9d99d396dd871ef40a0a"
 dependencies = [
  "chrono",
  "dotenv",
