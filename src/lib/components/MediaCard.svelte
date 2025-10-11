@@ -8,6 +8,7 @@
 	import GenreSubCards from './GenreSubCards.svelte';
 	import { Debounced } from 'runed';
 	import ActionButtonStrip from './ActionButtonStrip.svelte';
+	import CachedImage from '$lib/components/ui/CachedImage.svelte';
 	import type { Media } from '$lib/types/anilist';
 
 	let { media }: { media: Media } = $props();
@@ -116,12 +117,8 @@
 			class="absolute top-0 left-0 flex h-full w-full flex-col transition-all"
 			data-sveltekit-preload-data="off"
 		>
-			<img
+			<CachedImage
 				src={coverImage}
-				onerror={(e) => {
-					if ((e.target as HTMLImageElement)?.src)
-						(e.target as HTMLImageElement).src = placeholderSvg;
-				}}
 				alt={title}
 				class="h-full w-full object-cover"
 			/>
@@ -215,36 +212,22 @@
 				class="relative flex h-32 w-full flex-col rounded-lg transition-all"
 				data-sveltekit-preload-data="off"
 			>
-				<img
+				<CachedImage
 					src={bannerImage}
+					fallbackSrc={coverImage}
 					alt={title + ' Banner'}
 					class="absolute h-full w-full rounded-lg object-cover"
-					onerror={(e) => {
-						if (
-							(e.target as HTMLImageElement)?.src &&
-							(e.target as HTMLImageElement).src !== coverImage
-						)
-							(e.target as HTMLImageElement).src = coverImage;
-						else (e.target as HTMLImageElement).src = placeholderSvg;
-					}}
 				/>
 				<div
 					in:fade={{ duration: animationsEnabled ? 300 : 0 }}
 					class="absolute inset-0 -z-10 opacity-80"
 				>
 					{#if glowEffectsEnabled}
-						<img
+						<CachedImage
 							src={bannerImage}
+							fallbackSrc={coverImage}
 							alt="Banner Glow"
 							class="h-full w-full object-cover blur-lg"
-							onerror={(e) => {
-								if (
-									(e.target as HTMLImageElement)?.src &&
-									(e.target as HTMLImageElement).src !== coverImage
-								)
-									(e.target as HTMLImageElement).src = coverImage;
-								else (e.target as HTMLImageElement).src = placeholderSvg;
-							}}
 						/>
 					{/if}
 				</div>

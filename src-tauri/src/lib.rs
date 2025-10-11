@@ -4,6 +4,8 @@ mod auth;
 mod auth_commands;
 mod commands;
 mod config;
+mod db_commands;
+mod image_cache_commands;
 mod theme_commands;
 
 use anilist::AniListService;
@@ -105,6 +107,22 @@ pub fn run() {
             theme_commands::list_themes,
             theme_commands::save_theme_preference,
             theme_commands::get_theme_preference,
+            // Image cache commands
+            image_cache_commands::download_image,
+            image_cache_commands::file_exists,
+            image_cache_commands::delete_file,
+            image_cache_commands::get_cache_stats,
+            image_cache_commands::cleanup_image_cache,
+            image_cache_commands::get_cached_file_path,
+            // Database commands
+            db_commands::update_local_progress,
+            db_commands::cache_media,
+            db_commands::cache_user,
+            db_commands::add_to_recently_viewed,
+            db_commands::get_recently_viewed,
+            db_commands::search_cached_media,
+            db_commands::cleanup_cache,
+            db_commands::get_all_cached_images,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

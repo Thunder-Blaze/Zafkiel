@@ -106,6 +106,12 @@
 
 				<!-- Stats Grid -->
 				<div class="grid grid-cols-2 gap-1.5">
+					<div>
+						<a href="/anime/16498">AOT</a>
+						<a href="/manga/74347">OPM</a>
+						<a href="/staff/103509">HS</a>
+						<a href="/user/127222">MS</a>
+					</div>
 					{#each stats as stat}
 						<Card
 							class="group cursor-pointer border-border/50 bg-card/70 px-2.5 py-2 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg"

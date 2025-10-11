@@ -85,6 +85,7 @@
 		"@tanstack/svelte-query-devtools": "^6.0.0",
 		"@tauri-apps/api": "^2.8.0",
 		"better-sqlite3": "^12.4.1",
+		"lucide-svelte": "^0.545.0",
 		"runed": "^0.34.0"
 	}
 }

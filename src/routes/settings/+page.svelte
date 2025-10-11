@@ -14,6 +14,7 @@
 	import PlaybackSettings from '$lib/components/settings/PlaybackSettings.svelte';
 	import AccountSettings from '$lib/components/settings/AccountSettings.svelte';
 	import ThemeModeSettings from '$lib/components/settings/ThemeModeSettings.svelte';
+	import ImageCacheManager from '$lib/components/settings/ImageCacheManager.svelte';
 
 	let activeSection = $state('general');
 
@@ -41,6 +42,7 @@
 		{ id: 'appearance', label: 'Appearance', icon: 'solar:pallete-2-bold' },
 		{ id: 'preferences', label: 'Preferences', icon: 'solar:tuning-bold' },
 		{ id: 'playback', label: 'Playback', icon: 'solar:play-circle-bold' },
+		{ id: 'cache', label: 'Cache', icon: 'solar:download-bold' },
 		{ id: 'account', label: 'Account', icon: 'solar:user-bold' },
 	];
 </script>
@@ -130,6 +132,13 @@
 							bind:autoPlayNext
 							bind:preferDub
 						/>
+					</div>
+				{/if}
+
+				<!-- Cache Settings -->
+				{#if activeSection === 'cache'}
+					<div class="space-y-6">
+						<ImageCacheManager />
 					</div>
 				{/if}
 

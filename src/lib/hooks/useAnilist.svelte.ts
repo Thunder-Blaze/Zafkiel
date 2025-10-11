@@ -1,155 +1,159 @@
 /**
- * TanStack Query hooks for AniList API
- * Provides caching and optimized data fetching
+ * TanStack Query hooks for AniList data with comprehensive caching
+ * Updated to use only fetch commands from anilist_moe crate
  */
 
-import { createQuery } from '@tanstack/svelte-query';
-import { anilistApi } from '$lib/services/anilist';
-import type { PaginationParams, SearchParams, SeasonalAnimeParams } from '$lib/types/anilist';
+import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
+import type { CreateQueryOptions } from '@tanstack/svelte-query';
+import { animeApi, mangaApi, userApi } from '$lib/services/anilist';
+import { ClientDatabaseService } from '$lib/services/client-database';
+import type {
+	Media,
+	User,
+	PaginationParams,
+	SearchParams,
+	SeasonalAnimeParams,
+	AniListResponse
+} from '$lib/types/anilist';
 
 // ============================================================================
 // Query Key Factories
 // ============================================================================
 
 export const anilistKeys = {
-	all: ['anilist'] as const,
-
-	// Anime keys
+	// Anime
 	anime: {
-		all: ['anilist', 'anime'] as const,
-		search: (params: SearchParams) => ['anilist', 'anime', 'search', params] as const,
-		byId: (id: number) => ['anilist', 'anime', 'byId', id] as const,
-		trending: (params?: PaginationParams) => ['anilist', 'anime', 'trending', params] as const,
-		popular: (params?: PaginationParams) => ['anilist', 'anime', 'popular', params] as const,
-		seasonal: (params: SeasonalAnimeParams) => ['anilist', 'anime', 'seasonal', params] as const,
+		all: ['anime'] as const,
+		lists: () => [...anilistKeys.anime.all, 'list'] as const,
+		list: (params: PaginationParams) => [...anilistKeys.anime.lists(), params] as const,
+		searches: () => [...anilistKeys.anime.all, 'search'] as const,
+		search: (params: SearchParams) => [...anilistKeys.anime.searches(), params] as const,
+		detail: (id: number) => [...anilistKeys.anime.all, 'detail', id] as const,
+		trending: (params?: PaginationParams) => [...anilistKeys.anime.all, 'trending', params || {}] as const,
+		popular: (params?: PaginationParams) => [...anilistKeys.anime.all, 'popular', params || {}] as const,
+		seasonal: (params: SeasonalAnimeParams) => [...anilistKeys.anime.all, 'seasonal', params] as const,
 	},
-
-	// Manga keys
+	// Manga
 	manga: {
-		all: ['anilist', 'manga'] as const,
-		search: (params: SearchParams) => ['anilist', 'manga', 'search', params] as const,
-		byId: (id: number) => ['anilist', 'manga', 'byId', id] as const,
-		trending: (params?: PaginationParams) => ['anilist', 'manga', 'trending', params] as const,
-		popular: (params?: PaginationParams) => ['anilist', 'manga', 'popular', params] as const,
+		all: ['manga'] as const,
+		lists: () => [...anilistKeys.manga.all, 'list'] as const,
+		list: (params: PaginationParams) => [...anilistKeys.manga.lists(), params] as const,
+		searches: () => [...anilistKeys.manga.all, 'search'] as const,
+		search: (params: SearchParams) => [...anilistKeys.manga.searches(), params] as const,
+		detail: (id: number) => [...anilistKeys.manga.all, 'detail', id] as const,
+		trending: (params?: PaginationParams) => [...anilistKeys.manga.all, 'trending', params || {}] as const,
+		popular: (params?: PaginationParams) => [...anilistKeys.manga.all, 'popular', params || {}] as const,
 	},
-
-	// User keys
+	// Users
 	user: {
-		all: ['anilist', 'user'] as const,
-		current: () => ['anilist', 'user', 'current'] as const,
-		byId: (id: number) => ['anilist', 'user', 'byId', id] as const,
-		byName: (name: string) => ['anilist', 'user', 'byName', name] as const,
-		search: (params: SearchParams) => ['anilist', 'user', 'search', params] as const,
+		all: ['user'] as const,
+		current: () => [...anilistKeys.user.all, 'current'] as const,
+		detail: (id: number) => [...anilistKeys.user.all, 'detail', id] as const,
+		byName: (name: string) => [...anilistKeys.user.all, 'byName', name] as const,
+		searches: () => [...anilistKeys.user.all, 'search'] as const,
+		search: (params: SearchParams) => [...anilistKeys.user.searches(), params] as const,
 	},
-};
+	// Media (generic for both anime and manga)
+	media: {
+		all: ['media'] as const,
+		detail: (id: number) => [...anilistKeys.media.all, 'detail', id] as const,
+		search: (params: SearchParams & { type?: 'ANIME' | 'MANGA' }) =>
+			[...anilistKeys.media.all, 'search', params] as const,
+	},
+} as const;
+
+// ============================================================================
+// Common Query Options
+// ============================================================================
+
+const defaultStaleTime = {
+	detail: 30 * 60 * 1000, // 30 minutes - detailed data changes less frequently
+	list: 5 * 60 * 1000,   // 5 minutes - lists update more frequently
+	trending: 5 * 60 * 1000, // 5 minutes - trending changes frequently
+	popular: 15 * 60 * 1000, // 15 minutes - popular changes less frequently
+	seasonal: 60 * 60 * 1000, // 1 hour - seasonal data very stable
+	search: 10 * 60 * 1000,  // 10 minutes - search results moderate stability
+	user: 30 * 60 * 1000,    // 30 minutes - user data changes less frequently
+} as const;
 
 // ============================================================================
 // Anime Queries
 // ============================================================================
 
 /**
- * Search for anime
+ * Search anime with caching
  */
-export function useSearchAnime(
-	params: SearchParams | (() => SearchParams),
-	enabled: boolean | (() => boolean) = true
+export function useAnimeSearch(
+	params: SearchParams,
+	options?: Partial<CreateQueryOptions<AniListResponse<Media[]>>>
 ) {
-	return createQuery(() => {
-		const p = typeof params === 'function' ? params() : params;
-		const e = typeof enabled === 'function' ? enabled() : enabled;
-
-		return {
-			queryKey: anilistKeys.anime.search(p),
-			queryFn: async () => {
-				console.log('[useAnilist] Searching anime with params:', p);
-				const response = await anilistApi.anime.search(p);
-				console.log('[useAnilist] Search anime response:', response);
-				if (!response.success || !response.data) {
-					console.error('[useAnilist] Search anime failed:', response.error);
-					throw new Error(response.error ?? 'Failed to search anime');
-				}
-				console.log('[useAnilist] Search anime success, got', response.data.length, 'items');
-				return response.data;
-			},
-			staleTime: 1000 * 60 * 10, // 10 minutes
-			enabled: e,
-		};
-	});
-}
-
-/**
- * Get anime by ID
- */
-export function useAnimeById(id: number, enabled = true) {
 	return createQuery(() => ({
-		queryKey: anilistKeys.anime.byId(id),
-		queryFn: async () => {
-			const response = await anilistApi.anime.getById(id);
-			if (!response.success || !response.data) {
-				throw new Error(response.error ?? 'Failed to fetch anime');
-			}
-			return response.data;
-		},
-		staleTime: 1000 * 60 * 30, // 30 minutes - anime details change less frequently
-		enabled,
+		queryKey: anilistKeys.anime.search(params),
+		queryFn: () => animeApi.search(params),
+		staleTime: defaultStaleTime.search,
+		enabled: params.query.length > 0,
+		...options,
 	}));
 }
 
 /**
- * Get trending anime
+ * Get anime by ID with caching
  */
-export function useTrendingAnime(params?: PaginationParams, enabled = true) {
+export function useAnimeById(
+	id: number,
+	options?: Partial<CreateQueryOptions<AniListResponse<Media>>>
+) {
+	return createQuery(() => ({
+		queryKey: anilistKeys.anime.detail(id),
+		queryFn: () => animeApi.getById(id),
+		staleTime: defaultStaleTime.detail,
+		enabled: id > 0,
+		...options,
+	}));
+}
+
+/**
+ * Get trending anime with caching
+ */
+export function useTrendingAnime(
+	params?: PaginationParams,
+	options?: Partial<CreateQueryOptions<AniListResponse<Media[]>>>
+) {
 	return createQuery(() => ({
 		queryKey: anilistKeys.anime.trending(params),
-		queryFn: async () => {
-			console.log('[useAnilist] Fetching trending anime with params:', params);
-			const response = await anilistApi.anime.getTrending(params);
-			console.log('[useAnilist] Trending anime response:', response);
-			if (!response.success || !response.data) {
-				console.error('[useAnilist] Trending anime failed:', response.error);
-				throw new Error(response.error ?? 'Failed to fetch trending anime');
-			}
-			console.log('[useAnilist] Trending anime success, got', response.data.length, 'items');
-			return response.data;
-		},
-		staleTime: 1000 * 60 * 5, // 5 minutes - trending updates frequently
-		enabled,
+		queryFn: () => animeApi.getTrending(params),
+		staleTime: defaultStaleTime.trending,
+		...options,
 	}));
 }
 
 /**
- * Get popular anime
+ * Get popular anime with caching
  */
-export function usePopularAnime(params?: PaginationParams, enabled = true) {
+export function usePopularAnime(
+	params?: PaginationParams,
+	options?: Partial<CreateQueryOptions<AniListResponse<Media[]>>>
+) {
 	return createQuery(() => ({
 		queryKey: anilistKeys.anime.popular(params),
-		queryFn: async () => {
-			const response = await anilistApi.anime.getPopular(params);
-			if (!response.success || !response.data) {
-				throw new Error(response.error ?? 'Failed to fetch popular anime');
-			}
-			return response.data;
-		},
-		staleTime: 1000 * 60 * 15, // 15 minutes
-		enabled,
+		queryFn: () => animeApi.getPopular(params),
+		staleTime: defaultStaleTime.popular,
+		...options,
 	}));
 }
 
 /**
- * Get seasonal anime
+ * Get seasonal anime with caching
  */
-export function useSeasonalAnime(params: SeasonalAnimeParams, enabled = true) {
+export function useSeasonalAnime(
+	params: SeasonalAnimeParams,
+	options?: Partial<CreateQueryOptions<AniListResponse<Media[]>>>
+) {
 	return createQuery(() => ({
 		queryKey: anilistKeys.anime.seasonal(params),
-		queryFn: async () => {
-			const response = await anilistApi.anime.getSeasonal(params);
-			if (!response.success || !response.data) {
-				throw new Error(response.error ?? 'Failed to fetch seasonal anime');
-			}
-			return response.data;
-		},
-		staleTime: 1000 * 60 * 60, // 60 minutes - seasonal data is stable
-		enabled,
+		queryFn: () => animeApi.getSeasonal(params),
+		staleTime: defaultStaleTime.seasonal,
+		...options,
 	}));
 }
 
@@ -158,74 +162,64 @@ export function useSeasonalAnime(params: SeasonalAnimeParams, enabled = true) {
 // ============================================================================
 
 /**
- * Search for manga
+ * Search manga with caching
  */
-export function useSearchManga(params: SearchParams, enabled = true) {
+export function useMangaSearch(
+	params: SearchParams,
+	options?: Partial<CreateQueryOptions<AniListResponse<Media[]>>>
+) {
 	return createQuery(() => ({
 		queryKey: anilistKeys.manga.search(params),
-		queryFn: async () => {
-			const response = await anilistApi.manga.search(params);
-			if (!response.success || !response.data) {
-				throw new Error(response.error ?? 'Failed to search manga');
-			}
-			return response.data;
-		},
-		staleTime: 1000 * 60 * 10, // 10 minutes
-		enabled,
+		queryFn: () => mangaApi.search(params),
+		staleTime: defaultStaleTime.search,
+		enabled: params.query.length > 0,
+		...options,
 	}));
 }
 
 /**
- * Get manga by ID
+ * Get manga by ID with caching
  */
-export function useMangaById(id: number, enabled = true) {
+export function useMangaById(
+	id: number,
+	options?: Partial<CreateQueryOptions<AniListResponse<Media>>>
+) {
 	return createQuery(() => ({
-		queryKey: anilistKeys.manga.byId(id),
-		queryFn: async () => {
-			const response = await anilistApi.manga.getById(id);
-			if (!response.success || !response.data) {
-				throw new Error(response.error ?? 'Failed to fetch manga');
-			}
-			return response.data;
-		},
-		staleTime: 1000 * 60 * 30, // 30 minutes
-		enabled,
+		queryKey: anilistKeys.manga.detail(id),
+		queryFn: () => mangaApi.getById(id),
+		staleTime: defaultStaleTime.detail,
+		enabled: id > 0,
+		...options,
 	}));
 }
 
 /**
- * Get trending manga
+ * Get trending manga with caching
  */
-export function useTrendingManga(params?: PaginationParams, enabled = true) {
+export function useTrendingManga(
+	params?: PaginationParams,
+	options?: Partial<CreateQueryOptions<AniListResponse<Media[]>>>
+) {
 	return createQuery(() => ({
 		queryKey: anilistKeys.manga.trending(params),
-		queryFn: async () => {
-			const response = await anilistApi.manga.getTrending(params);
-			if (!response.success || !response.data) {
-				throw new Error(response.error ?? 'Failed to fetch trending manga');
-			}
-			return response.data;
-		},
-		staleTime: 1000 * 60 * 5, // 5 minutes
-		enabled,
+		queryFn: () => mangaApi.getTrending(params),
+		staleTime: defaultStaleTime.trending,
+		...options,
 	}));
 }
 
 /**
- * Get popular manga
+ * Get popular manga with caching
  */
-export function usePopularManga(params?: PaginationParams, enabled = true) {
+export function usePopularManga(
+	params?: PaginationParams,
+	options?: Partial<CreateQueryOptions<AniListResponse<Media[]>>>
+) {
 	return createQuery(() => ({
 		queryKey: anilistKeys.manga.popular(params),
-		queryFn: async () => {
-			const response = await anilistApi.manga.getPopular(params);
-			if (!response.success || !response.data) {
-				throw new Error(response.error ?? 'Failed to fetch popular manga');
-			}
-			return response.data;
-		},
-		staleTime: 1000 * 60 * 15, // 15 minutes
-		enabled,
+		queryFn: () => mangaApi.getPopular(params),
+		staleTime: defaultStaleTime.popular,
+		...options,
 	}));
 }
 
@@ -234,74 +228,328 @@ export function usePopularManga(params?: PaginationParams, enabled = true) {
 // ============================================================================
 
 /**
- * Get current authenticated user
+ * Get current authenticated user with caching
  */
-export function useCurrentUser(enabled = true) {
+export function useCurrentUser(
+	options?: Partial<CreateQueryOptions<AniListResponse<User>>>
+) {
 	return createQuery(() => ({
 		queryKey: anilistKeys.user.current(),
-		queryFn: async () => {
-			const response = await anilistApi.user.getCurrent();
-			if (!response.success || !response.data) {
-				throw new Error(response.error ?? 'Failed to fetch current user');
-			}
-			return response.data;
-		},
-		staleTime: 1000 * 60 * 60, // 60 minutes - user profile changes infrequently
+		queryFn: () => userApi.getCurrent(),
+		staleTime: defaultStaleTime.user,
 		retry: false, // Don't retry if not authenticated
-		enabled,
+		...options,
 	}));
 }
 
 /**
- * Get user by ID
+ * Get user by ID with caching
  */
-export function useUserById(id: number, enabled = true) {
+export function useUserById(
+	id: number,
+	options?: Partial<CreateQueryOptions<AniListResponse<User>>>
+) {
 	return createQuery(() => ({
-		queryKey: anilistKeys.user.byId(id),
-		queryFn: async () => {
-			const response = await anilistApi.user.getById(id);
-			if (!response.success || !response.data) {
-				throw new Error(response.error ?? 'Failed to fetch user');
-			}
-			return response.data;
-		},
-		staleTime: 1000 * 60 * 30, // 30 minutes
-		enabled,
+		queryKey: anilistKeys.user.detail(id),
+		queryFn: () => userApi.getById(id),
+		staleTime: defaultStaleTime.user,
+		enabled: id > 0,
+		...options,
 	}));
 }
 
 /**
- * Get user by name
+ * Get user by name with caching
  */
-export function useUserByName(name: string, enabled = true) {
+export function useUserByName(
+	name: string,
+	options?: Partial<CreateQueryOptions<AniListResponse<User>>>
+) {
 	return createQuery(() => ({
 		queryKey: anilistKeys.user.byName(name),
-		queryFn: async () => {
-			const response = await anilistApi.user.getByName(name);
-			if (!response.success || !response.data) {
-				throw new Error(response.error ?? 'Failed to fetch user');
-			}
-			return response.data;
-		},
-		staleTime: 1000 * 60 * 30, // 30 minutes
-		enabled,
+		queryFn: () => userApi.getByName(name),
+		staleTime: defaultStaleTime.user,
+		enabled: name.length > 0,
+		...options,
 	}));
 }
 
 /**
- * Search users
+ * Search users with caching
  */
-export function useSearchUsers(params: SearchParams, enabled = true) {
+export function useUserSearch(
+	params: SearchParams,
+	options?: Partial<CreateQueryOptions<AniListResponse<User[]>>>
+) {
 	return createQuery(() => ({
 		queryKey: anilistKeys.user.search(params),
+		queryFn: () => userApi.search(params),
+		staleTime: defaultStaleTime.search,
+		enabled: params.query.length > 0,
+		...options,
+	}));
+}
+
+// ============================================================================
+// Generic Media Queries
+// ============================================================================
+
+/**
+ * Get media by ID (works for both anime and manga) with caching
+ */
+export function useMediaById(
+	id: number,
+	options?: Partial<CreateQueryOptions<AniListResponse<Media>>>
+) {
+	return createQuery(() => ({
+		queryKey: anilistKeys.media.detail(id),
 		queryFn: async () => {
-			const response = await anilistApi.user.search(params);
-			if (!response.success || !response.data) {
-				throw new Error(response.error ?? 'Failed to search users');
+			// Try anime first, then manga
+			try {
+				const animeResult = await animeApi.getById(id);
+				if (animeResult.success && animeResult.data) {
+					return animeResult;
+				}
+			} catch {
+				// If anime fails, try manga
 			}
-			return response.data;
+
+			return await mangaApi.getById(id);
 		},
-		staleTime: 1000 * 60 * 10, // 10 minutes
-		enabled,
+		staleTime: defaultStaleTime.detail,
+		enabled: id > 0,
+		...options,
+	}));
+}
+
+/**
+ * Search media (both anime and manga) with caching
+ */
+export function useMediaSearch(
+	params: SearchParams & { type?: 'ANIME' | 'MANGA' },
+	options?: Partial<CreateQueryOptions<AniListResponse<Media[]>>>
+) {
+	return createQuery(() => ({
+		queryKey: anilistKeys.media.search(params),
+		queryFn: async () => {
+			if (params.type === 'ANIME') {
+				return await animeApi.search(params);
+			} else if (params.type === 'MANGA') {
+				return await mangaApi.search(params);
+			} else {
+				// Search both anime and manga, combine results
+				const [animeResults, mangaResults] = await Promise.allSettled([
+					animeApi.search(params),
+					mangaApi.search(params),
+				]);
+
+				const combinedData: Media[] = [];
+
+				if (animeResults.status === 'fulfilled' && animeResults.value.success) {
+					combinedData.push(...(animeResults.value.data || []));
+				}
+
+				if (mangaResults.status === 'fulfilled' && mangaResults.value.success) {
+					combinedData.push(...(mangaResults.value.data || []));
+				}
+
+				return {
+					success: true,
+					data: combinedData,
+					error: null,
+				} as AniListResponse<Media[]>;
+			}
+		},
+		staleTime: defaultStaleTime.search,
+		enabled: params.query.length > 0,
+		...options,
+	}));
+}
+
+// ============================================================================
+// Backward Compatibility Aliases
+// ============================================================================
+
+/**
+ * Alias for useAnimeSearch for backward compatibility
+ */
+export const useSearchAnime = useAnimeSearch;
+
+// ============================================================================
+// Mutation Types
+// ============================================================================
+
+export interface UpdateProgressParams {
+	mediaId: number;
+	progress: number;
+	status?: 'CURRENT' | 'COMPLETED' | 'PAUSED' | 'DROPPED' | 'PLANNING' | 'REPEATING';
+	score?: number;
+	startedAt?: string;
+	completedAt?: string;
+}
+
+export interface AddToListParams {
+	mediaId: number;
+	status: 'CURRENT' | 'COMPLETED' | 'PAUSED' | 'DROPPED' | 'PLANNING' | 'REPEATING';
+	progress?: number;
+	score?: number;
+}
+
+export interface RemoveFromListParams {
+	mediaId: number;
+}
+
+// ============================================================================
+// Mutation Hooks
+// ============================================================================
+
+/**
+ * Update progress for anime/manga with optimistic updates
+ */
+export function useUpdateProgress() {
+	const queryClient = useQueryClient();
+
+	return createMutation(() => ({
+		mutationFn: async (params: UpdateProgressParams) => {
+			// Update local database first
+			await ClientDatabaseService.updateLocalProgress(params.mediaId, params.progress);
+
+			// Then sync with AniList API (implement when API functions are available)
+			// For now, just return success
+			return { success: true, data: params };
+		},
+		onMutate: async (params) => {
+			// Cancel outgoing refetches
+			await queryClient.cancelQueries({
+				queryKey: anilistKeys.media.detail(params.mediaId)
+			});
+
+			// Snapshot previous value
+			const previousData = queryClient.getQueryData(
+				anilistKeys.media.detail(params.mediaId)
+			);
+
+			// Optimistically update
+			queryClient.setQueryData(
+				anilistKeys.media.detail(params.mediaId),
+				(old: AniListResponse<Media> | undefined) => {
+					if (!old?.data) return old;
+					return {
+						...old,
+						data: {
+							...old.data,
+							mediaListEntry: {
+								...old.data.mediaListEntry,
+								progress: params.progress,
+								status: params.status || old.data.mediaListEntry?.status,
+								score: params.score || old.data.mediaListEntry?.score,
+							}
+						}
+					};
+				}
+			);
+
+			return { previousData };
+		},
+		onError: (err, params, context) => {
+			// Rollback on error
+			if (context?.previousData) {
+				queryClient.setQueryData(
+					anilistKeys.media.detail(params.mediaId),
+					context.previousData
+				);
+			}
+		},
+		onSettled: (data, error, params) => {
+			// Refetch to ensure consistency
+			queryClient.invalidateQueries({
+				queryKey: anilistKeys.media.detail(params.mediaId)
+			});
+			queryClient.invalidateQueries({
+				queryKey: anilistKeys.user.current()
+			});
+		},
+	}));
+}
+
+/**
+ * Add media to user's list
+ */
+export function useAddToList() {
+	const queryClient = useQueryClient();
+
+	return createMutation(() => ({
+		mutationFn: async (params: AddToListParams) => {
+			// Cache media data first
+			const media = queryClient.getQueryData(
+				anilistKeys.media.detail(params.mediaId)
+			) as AniListResponse<Media> | undefined;
+
+			if (media?.data) {
+				await ClientDatabaseService.cacheMedia(media.data);
+			}
+
+			// Add to recently viewed
+			await ClientDatabaseService.addToRecentlyViewed(params.mediaId);
+
+			// TODO: Implement AniList API call when available
+			return { success: true, data: params };
+		},
+		onSuccess: (data, params) => {
+			// Invalidate relevant queries
+			queryClient.invalidateQueries({
+				queryKey: anilistKeys.media.detail(params.mediaId)
+			});
+			queryClient.invalidateQueries({
+				queryKey: anilistKeys.user.current()
+			});
+		},
+	}));
+}
+
+/**
+ * Remove media from user's list
+ */
+export function useRemoveFromList() {
+	const queryClient = useQueryClient();
+
+	return createMutation(() => ({
+		mutationFn: async (params: RemoveFromListParams) => {
+			// TODO: Implement AniList API call when available
+			return { success: true, data: params };
+		},
+		onSuccess: (data, params) => {
+			// Invalidate relevant queries
+			queryClient.invalidateQueries({
+				queryKey: anilistKeys.media.detail(params.mediaId)
+			});
+			queryClient.invalidateQueries({
+				queryKey: anilistKeys.user.current()
+			});
+		},
+	}));
+}
+
+/**
+ * Cache media data to local database
+ */
+export function useCacheMedia() {
+	return createMutation(() => ({
+		mutationFn: async (media: Media) => {
+			await ClientDatabaseService.cacheMedia(media);
+			return { success: true, data: media };
+		},
+	}));
+}
+
+/**
+ * Cache user data to local database
+ */
+export function useCacheUser() {
+	return createMutation(() => ({
+		mutationFn: async (user: User) => {
+			await ClientDatabaseService.cacheUser(user);
+			return { success: true, data: user };
+		},
 	}));
 }

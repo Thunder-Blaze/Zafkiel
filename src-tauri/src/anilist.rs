@@ -1,8 +1,5 @@
 use anilist_moe::{
-    client::AniListClient,
-    enums::media::MediaSeason,
-    errors::AniListError,
-    objects::{media::Media, responses::ViewerUserData, user::User},
+    client::AniListClient, endpoints::media::FetchMediaOptions, enums::media::MediaSeason, errors::AniListError, objects::{media::Media, responses::ViewerUserData, user::User}
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -33,10 +30,10 @@ impl AniListService {
     pub async fn update_token(&self, token: Option<String>) -> Result<(), String> {
         log::info!("[AniListService] Updating token");
         let mut client = self.client.write().await;
-        *client = if let Some(t) = token {
-            AniListClient::with_token(&t)
+        if let Some(t) = token {
+            client.set_token(&t);
         } else {
-            AniListClient::new()
+						client.clear_token();
         };
         log::info!("[AniListService] Token updated successfully");
         Ok(())
@@ -49,24 +46,19 @@ impl AniListService {
     }
 
     /// Search for anime
-    pub async fn search_anime(
+    pub async fn fetch(
         &self,
-        query: &str,
-        page: Option<i32>,
-        per_page: Option<i32>,
+        options: FetchMediaOptions
     ) -> Result<Vec<Media>, AniListError> {
         log::info!(
-            "Searching anime: query='{}', page={:?}, per_page={:?}",
-            query,
-            page,
-            per_page
+            "Searching anime: options={:#?}",
+            options
         );
         let client = self.client().await;
-        let response = client.anime().search_anime(query, page, per_page).await?;
+        let response = client.anime().fetch(options).await?;
         log::info!(
-            "Found {} anime matching '{}'",
-            response.data.page.data.media.len(),
-            query
+            "Found {} anime",
+            response.data.page.data.media.len()
         );
         Ok(response.data.page.data.media)
     }
