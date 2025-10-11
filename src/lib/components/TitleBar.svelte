@@ -6,16 +6,35 @@
 	import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
 	import ProfileDropdown from '$lib/components/ProfileDropdown.svelte';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
+	import { navigating, page } from '$app/stores';
 	import { Window, getCurrentWindow } from '@tauri-apps/api/window';
 	import type { UnlistenFn } from '@tauri-apps/api/event';
+	import {
+		initializeKeybindings,
+		cleanupKeybindings,
+		updateKeyBindingAction,
+		formatKeyBinding,
+	} from '$lib/utils/keybindings';
 
 	const appWindow: Window | null = browser ? getCurrentWindow() : null;
 
 	let isMaximized = $state(false);
 	let isFullscreen = $state(false);
 
-	// --- IMPROVEMENT 1: Added onDestroy and event listeners ---
+	// Navigation history management
+	let navigationHistory = $state<string[]>([]);
+	let currentHistoryIndex = $state(-1);
+	let canGoBack = $derived(currentHistoryIndex > 0);
+	let canGoForward = $derived(currentHistoryIndex < navigationHistory.length - 1);
+
+	// Search bar
+	let searchInput = $state<HTMLInputElement | null>(null);
+	let searchQuery = $state('');
+	
+	// Platform-specific keyboard shortcut display
+	const isMac = browser && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+	const searchShortcut = isMac ? '⌘K' : 'Ctrl+K';
+
 	let unlisten: UnlistenFn | null = null;
 
 	onMount(async () => {
@@ -31,19 +50,67 @@
 				isMaximized = await appWindow.isMaximized();
 				isFullscreen = await appWindow.isFullscreen();
 			});
+
+			// Initialize navigation history with current page
+			if (browser && $page.url.pathname) {
+				navigationHistory = [$page.url.pathname];
+				currentHistoryIndex = 0;
+				console.log('[TitleBar] Navigation history initialized:', navigationHistory);
+			}
+
+			// Initialize keybindings
+			if (browser) {
+				initializeKeybindings();
+
+				// Set up keybinding actions with cross-platform modifiers
+				updateKeyBindingAction('ArrowLeft', { secondary: true }, handleBack);
+				updateKeyBindingAction('ArrowRight', { secondary: true }, handleForward);
+				updateKeyBindingAction('r', { primary: true }, handleReload);
+				updateKeyBindingAction('k', { primary: true }, focusSearch);
+				
+				console.log('[TitleBar] Keybindings initialized');
+			}
 		} catch (error) {
-			console.error('[TitleBar] Failed to initialize window:', error);
+			console.error('[TitleBar] Failed to initialize:', error);
 		}
 	});
 
-	// Clean up the event listener when the component is destroyed
 	onDestroy(() => {
 		if (unlisten) {
 			unlisten();
 		}
+		cleanupKeybindings();
 	});
 
-	// --- IMPROVEMENT 2: Simplified functions with async/await ---
+	// Track navigation for history
+	$effect(() => {
+		if (browser && $page.url.pathname) {
+			const newPath = $page.url.pathname;
+			
+			// Skip if this is the same as current path
+			if (newPath === navigationHistory[currentHistoryIndex]) {
+				return;
+			}
+			
+			// Check if this is a back/forward navigation
+			const existingIndex = navigationHistory.indexOf(newPath);
+			if (existingIndex !== -1 && existingIndex < currentHistoryIndex) {
+				// User went back
+				currentHistoryIndex = existingIndex;
+				console.log('[TitleBar] Went back to:', newPath, 'index:', currentHistoryIndex);
+			} else if (existingIndex !== -1 && existingIndex > currentHistoryIndex) {
+				// User went forward
+				currentHistoryIndex = existingIndex;
+				console.log('[TitleBar] Went forward to:', newPath, 'index:', currentHistoryIndex);
+			} else {
+				// New navigation - remove any forward history and add new path
+				navigationHistory = [...navigationHistory.slice(0, currentHistoryIndex + 1), newPath];
+				currentHistoryIndex = navigationHistory.length - 1;
+				console.log('[TitleBar] New navigation to:', newPath, 'history:', navigationHistory);
+			}
+		}
+	});
+
 	async function minimize(): Promise<void> {
 		try {
 			await appWindow?.minimize();
@@ -55,7 +122,6 @@
 	async function toggleMaximize(): Promise<void> {
 		try {
 			await appWindow?.toggleMaximize();
-			// State will update automatically via the onResized listener
 		} catch (err) {
 			console.error('[TitleBar] Failed to toggle maximize:', err);
 		}
@@ -66,6 +132,39 @@
 			await appWindow?.close();
 		} catch (err) {
 			console.error('[TitleBar] Failed to close window:', err);
+		}
+	}
+
+	// Navigation functions
+	function handleBack(): void {
+		if (canGoBack) {
+			currentHistoryIndex -= 1;
+			goto(navigationHistory[currentHistoryIndex]);
+		}
+	}
+
+	function handleForward(): void {
+		if (canGoForward) {
+			currentHistoryIndex += 1;
+			goto(navigationHistory[currentHistoryIndex]);
+		}
+	}
+
+	function handleReload(): void {
+		if (browser) {
+			window.location.reload();
+		}
+	}
+
+	function focusSearch(): void {
+		searchInput?.focus();
+	}
+
+	function handleSearchSubmit(): void {
+		if (searchQuery.trim()) {
+			// TODO: Implement search functionality
+			console.log('[TitleBar] Search:', searchQuery);
+			// For now, navigate to search page or show search modal
 		}
 	}
 
@@ -82,7 +181,9 @@
 		data-tauri-drag-region
 		class="fixed top-0 right-0 left-0 z-[999999] flex h-12 items-center justify-between border-b border-border/50 bg-background/95 backdrop-blur-xl select-none"
 	>
+		<!-- Left Section: Logo + Navigation Buttons + Nav Items -->
 		<div class="flex h-full items-center gap-2 pl-3" data-tauri-drag-region>
+			<!-- Logo -->
 			<div class="flex items-center gap-2 px-2" data-tauri-drag-region>
 				<div
 					class="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/20"
@@ -99,9 +200,51 @@
 				</div>
 			</div>
 
+			<!-- Navigation Controls -->
+			<div class="flex h-full items-center gap-1 border-l border-border/30 pl-2">
+				<Button
+					variant="ghost"
+					size="icon"
+					class="h-7 w-7"
+					disabled={!canGoBack}
+					onclick={handleBack}
+					title="Go back (Alt+←)"
+				>
+					<Icon
+						icon="solar:alt-arrow-left-bold"
+						class="h-4 w-4 {canGoBack ? 'text-foreground' : 'text-muted-foreground'}"
+					/>
+				</Button>
+
+				<Button
+					variant="ghost"
+					size="icon"
+					class="h-7 w-7"
+					disabled={!canGoForward}
+					onclick={handleForward}
+					title="Go forward (Alt+→)"
+				>
+					<Icon
+						icon="solar:alt-arrow-right-bold"
+						class="h-4 w-4 {canGoForward ? 'text-foreground' : 'text-muted-foreground'}"
+					/>
+				</Button>
+
+				<Button
+					variant="ghost"
+					size="icon"
+					class="h-7 w-7"
+					onclick={handleReload}
+					title="Reload (⌘+R)"
+				>
+					<Icon icon="solar:refresh-bold" class="h-4 w-4 text-foreground" />
+				</Button>
+			</div>
+
+			<!-- Nav Items -->
 			<div class="ml-2 flex h-full items-center gap-1">
 				{#each navItems as item}
-					{@const isActive = page.url.pathname === item.path}
+					{@const isActive = $page.url.pathname === item.path}
 					<Button
 						variant="ghost"
 						size="sm"
@@ -117,6 +260,37 @@
 			</div>
 		</div>
 
+		<!-- Center Section: Search Bar -->
+		<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+			<form onsubmit={(e) => { e.preventDefault(); handleSearchSubmit(); }} class="relative">
+				<div
+					class="flex items-center gap-2 rounded-lg border border-border/60 bg-background/50 px-3 py-1.5 shadow-sm transition-all hover:border-border hover:bg-background focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
+				>
+					<Icon icon="solar:magnifer-bold" class="h-4 w-4 text-muted-foreground" />
+					
+					<input
+						bind:this={searchInput}
+						bind:value={searchQuery}
+						type="text"
+						placeholder="Search"
+						class="w-64 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+					/>
+					
+					<div
+						class="flex items-center gap-0.5 rounded border border-border/50 bg-muted/30 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+					>
+						{#if isMac}
+							<span>⌘</span>
+							<span>K</span>
+						{:else}
+							<span>Ctrl+K</span>
+						{/if}
+					</div>
+				</div>
+			</form>
+		</div>
+
+		<!-- Right Section: Profile + Theme + Window Controls -->
 		<div class="flex h-full items-center">
 			<div class="px-2">
 				<ProfileDropdown />

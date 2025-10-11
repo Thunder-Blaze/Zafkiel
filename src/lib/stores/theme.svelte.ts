@@ -1,6 +1,7 @@
 import { themeManager, type Theme } from '$lib/services/theme';
 import { ConfigService } from '$lib/services/config';
 import { SvelteSet } from 'svelte/reactivity';
+import { loadThemeCache, saveThemeCache } from './sessionCache';
 
 interface ThemeState {
 	currentTheme: string;
@@ -59,13 +60,37 @@ function createThemeStore() {
 		},
 
 		async initialize() {
-			if (state.initialized) return;
+			// Prevent multiple initializations
+			if (state.initialized) {
+				console.log('[ThemeStore] Already initialized, skipping');
+				return;
+			}
 
 			console.log('[ThemeStore] Initializing...');
+			
+			// Try to load cached theme data first
+			const cached = loadThemeCache();
+			if (cached) {
+				console.log('[ThemeStore] ✓ Using cached theme data');
+				state.currentTheme = cached.currentTheme;
+				state.isDark = cached.isDark;
+				state.themeMode = cached.mode;
+				state.availableThemes = cached.availableThemes;
+				state.loadedThemes.add(state.currentTheme);
+				state.initialized = true;
+				
+				// Apply theme immediately from cache (skips backend call)
+				this.applyThemeMode(state.themeMode);
+				await themeManager.initializeWithTheme(state.currentTheme, state.isDark);
+				
+				return;
+			}
+			
 			state.isLoading = true;
 
 			try {
-				// Load theme_mode from config first
+				// Load theme_mode from config service
+				// This will use backend but only on first load (not on cache hit)
 				const config = await ConfigService.getUiConfig();
 				state.themeMode = config.theme_mode;
 
@@ -88,6 +113,14 @@ function createThemeStore() {
 
 				// Mark initially loaded theme
 				state.loadedThemes.add(state.currentTheme);
+
+				// Cache the theme state
+				saveThemeCache({
+					mode: state.themeMode,
+					currentTheme: state.currentTheme,
+					availableThemes: state.availableThemes,
+					isDark: state.isDark,
+				});
 
 				state.initialized = true;
 				console.log('[ThemeStore] ✓ Initialized with theme_mode:', state.themeMode);
@@ -121,6 +154,15 @@ function createThemeStore() {
 				await themeManager.switchTheme(themeId, state.isDark);
 				state.currentTheme = themeId;
 				state.loadedThemes.add(themeId);
+				
+				// Update cache
+				saveThemeCache({
+					mode: state.themeMode,
+					currentTheme: state.currentTheme,
+					availableThemes: state.availableThemes,
+					isDark: state.isDark,
+				});
+				
 				console.log('[ThemeStore] ✓ Switched to:', themeId);
 			} catch (error) {
 				console.error('[ThemeStore] ✗ Switch failed:', error);
@@ -180,6 +222,15 @@ function createThemeStore() {
 				await ConfigService.updateThemeMode(mode);
 				state.themeMode = mode;
 				this.applyThemeMode(mode);
+				
+				// Update cache
+				saveThemeCache({
+					mode: state.themeMode,
+					currentTheme: state.currentTheme,
+					availableThemes: state.availableThemes,
+					isDark: state.isDark,
+				});
+				
 				console.log('[ThemeStore] ✓ Theme mode updated to:', mode);
 			} catch (error) {
 				console.error('[ThemeStore] ✗ Failed to update theme mode:', error);

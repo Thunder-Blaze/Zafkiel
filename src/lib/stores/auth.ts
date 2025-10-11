@@ -7,76 +7,13 @@ import { writable, derived } from 'svelte/store';
 import { checkAuthStatus, completeOAuthFlow, logout as authLogout } from '$lib/services/auth';
 import { anilistApi } from '$lib/services/anilist';
 import type { User } from '$lib/types/anilist';
-import { browser } from '$app/environment';
+import { loadAuthCache, saveAuthCache, clearAuthCache } from './sessionCache';
 
 interface AuthState {
 	isAuthenticated: boolean;
 	isLoading: boolean;
 	user: User | null;
 	error: string | null;
-}
-
-const STORAGE_KEY = 'zafkiel_auth_state';
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-interface CachedAuthState {
-	isAuthenticated: boolean;
-	user: User | null;
-	timestamp: number;
-}
-
-// Load cached state from sessionStorage
-function loadCachedState(): CachedAuthState | null {
-	if (!browser) return null;
-	
-	try {
-		const cached = sessionStorage.getItem(STORAGE_KEY);
-		if (!cached) return null;
-		
-		const state: CachedAuthState = JSON.parse(cached);
-		
-		// Check if cache is still valid (within CACHE_DURATION)
-		const now = Date.now();
-		if (now - state.timestamp > CACHE_DURATION) {
-			sessionStorage.removeItem(STORAGE_KEY);
-			return null;
-		}
-		
-		console.log('[AuthStore] Loaded cached auth state');
-		return state;
-	} catch (error) {
-		console.error('[AuthStore] Failed to load cached state:', error);
-		return null;
-	}
-}
-
-// Save state to sessionStorage
-function saveCachedState(isAuthenticated: boolean, user: User | null) {
-	if (!browser) return;
-	
-	try {
-		const state: CachedAuthState = {
-			isAuthenticated,
-			user,
-			timestamp: Date.now(),
-		};
-		sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-		console.log('[AuthStore] Saved auth state to cache');
-	} catch (error) {
-		console.error('[AuthStore] Failed to save cached state:', error);
-	}
-}
-
-// Clear cached state
-function clearCachedState() {
-	if (!browser) return;
-	
-	try {
-		sessionStorage.removeItem(STORAGE_KEY);
-		console.log('[AuthStore] Cleared cached auth state');
-	} catch (error) {
-		console.error('[AuthStore] Failed to clear cached state:', error);
-	}
 }
 
 const initialState: AuthState = {
@@ -88,6 +25,9 @@ const initialState: AuthState = {
 
 function createAuthStore() {
 	const { subscribe, set, update } = writable<AuthState>(initialState);
+	
+	// Guard to prevent multiple initializations
+	let isInitialized = false;
 
 	return {
 		subscribe,
@@ -98,10 +38,17 @@ function createAuthStore() {
 		 * Uses cached state to avoid unnecessary API calls
 		 */
 		async init() {
+			// Prevent multiple initializations
+			if (isInitialized) {
+				console.log('[AuthStore] Already initialized, skipping');
+				return;
+			}
+			
 			console.log('[AuthStore] Initializing');
+			isInitialized = true;
 			
 			// Try to load cached state first
-			const cached = loadCachedState();
+			const cached = loadAuthCache();
 			if (cached) {
 				set({
 					isAuthenticated: cached.isAuthenticated,
@@ -130,7 +77,7 @@ function createAuthStore() {
 							error: null,
 						});
 						// Save to cache
-						saveCachedState(true, userResponse.data);
+						saveAuthCache(true, userResponse.data);
 						console.log('[AuthStore] User authenticated:', userResponse.data.name);
 					} else {
 						throw new Error(userResponse.error || 'Failed to fetch user profile');
@@ -143,7 +90,7 @@ function createAuthStore() {
 						error: null,
 					});
 					// Save to cache
-					saveCachedState(false, null);
+					saveAuthCache(false, null);
 					console.log('[AuthStore] User not authenticated');
 				}
 			} catch (error) {
@@ -178,7 +125,7 @@ function createAuthStore() {
 						error: null,
 					});
 					// Save to cache
-					saveCachedState(true, userResponse.data);
+					saveAuthCache(true, userResponse.data);
 					console.log('[AuthStore] Login successful:', userResponse.data.name);
 				} else {
 					throw new Error(userResponse.error || 'Failed to fetch user profile');
@@ -208,7 +155,7 @@ function createAuthStore() {
 					error: null,
 				});
 				// Clear cached state
-				clearCachedState();
+				clearAuthCache();
 				console.log('[AuthStore] Logout successful');
 			} catch (error) {
 				console.error('[AuthStore] Logout error:', error);

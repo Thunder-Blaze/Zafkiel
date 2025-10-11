@@ -5,7 +5,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { ImageCacheService } from '$lib/services/imageCache';
-	import type { CachedImageInfo } from '$lib/services/client-database';
+	import { ClientDatabaseService, type CachedImageInfo } from '$lib/services/client-database';
 	import {
 		Card,
 		CardContent,
@@ -14,9 +14,8 @@
 		CardTitle,
 	} from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
 	import { Separator } from '$lib/components/ui/separator';
-	import { Trash2, RefreshCw, HardDrive, Image } from 'lucide-svelte';
+	import { Trash2, RefreshCw, HardDrive, Image, Database } from 'lucide-svelte';
 
 	// Props - receive initial data from page load
 	let { initialCachedImages = [] }: { initialCachedImages?: CachedImageInfo[] } = $props();
@@ -28,8 +27,8 @@
 
 	// Calculate cache stats from cached images
 	let cacheStats = $derived({
-		totalImages: cachedImages.length,
-		totalSize: cachedImages.reduce((sum, img) => sum + (img.file_size || 0), 0),
+totalImages: cachedImages.length,
+totalSize: cachedImages.reduce((sum, img) => sum + (img.file_size || 0), 0),
 		oldestImage: cachedImages.length > 0 
 			? Math.min(...cachedImages.map(img => img.cached_at * 1000)) // Convert to milliseconds
 			: 0,
@@ -38,19 +37,12 @@
 	async function loadCacheStats() {
 		try {
 			isLoading = true;
-			// Try to get fresh stats from backend
-			try {
-				const backendStats = await ImageCacheService.getCacheStats();
-				console.log('Backend cache stats:', backendStats);
-				// Could update cachedImages here if backend returns list
-			} catch (error) {
-				// Backend command not implemented yet, using derived stats
-				console.log('Using derived stats from cached images');
-			}
-			// Note: To refresh cached images list, we'd need to reload the page
-			// or implement a server action
+			// Reload cached images from database via Tauri command
+			const allImages = await ClientDatabaseService.getAllCachedImages();
+			cachedImages = allImages;
+			console.log('[ImageCache] ✓ Loaded', cachedImages.length, 'cached images');
 		} catch (error) {
-			console.error('Failed to load cache stats:', error);
+			console.error('[ImageCache] Failed to load stats:', error);
 		} finally {
 			isLoading = false;
 		}
@@ -60,20 +52,35 @@
 		try {
 			isCleaningUp = true;
 			await ImageCacheService.cleanupCache();
-			await loadCacheStats(); // Reload stats after cleanup
+			console.log('[ImageCache] ✓ Cleanup completed');
+			// Reload stats after cleanup
+			await loadCacheStats();
 		} catch (error) {
-			console.error('Failed to cleanup cache:', error);
+			console.error('[ImageCache] Failed to cleanup:', error);
 		} finally {
 			isCleaningUp = false;
 		}
 	}
 
-	async function removeImage(url: string) {
+	async function clearLocalStorage() {
 		try {
-			await ImageCacheService.removeCachedImage(url);
-			await loadCacheStats(); // Reload stats after removal
+			localStorage.clear();
+			console.log('[Storage] ✓ Local storage cleared');
+			alert('Local storage cleared successfully!');
 		} catch (error) {
-			console.error('Failed to remove image:', error);
+			console.error('[Storage] Failed to clear local storage:', error);
+			alert('Failed to clear local storage');
+		}
+	}
+
+	async function clearSessionStorage() {
+		try {
+			sessionStorage.clear();
+			console.log('[Storage] ✓ Session storage cleared');
+			alert('Session storage cleared successfully! Please reload the page.');
+		} catch (error) {
+			console.error('[Storage] Failed to clear session storage:', error);
+			alert('Failed to clear session storage');
 		}
 	}
 
@@ -93,14 +100,6 @@
 		return new Date(timestamp).toLocaleDateString();
 	}
 
-	function getHostname(url: string): string {
-		try {
-			return new URL(url).hostname;
-		} catch {
-			return 'Unknown';
-		}
-	}
-
 	onMount(() => {
 		loadCacheStats();
 	});
@@ -110,105 +109,105 @@
 	<CardHeader>
 		<CardTitle class="flex items-center gap-2">
 			<Image class="w-5 h-5" />
-			Image Cache Management
+			Cache & Storage Management
 		</CardTitle>
 		<CardDescription>
-			Manage cached images for offline viewing. Images are automatically downloaded and stored locally for faster loading.
+			Manage cached images and browser storage. Images are automatically downloaded and stored locally for faster loading.
 		</CardDescription>
 	</CardHeader>
 	<CardContent class="space-y-6">
-		<!-- Cache Statistics -->
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-			<div class="flex items-center space-x-2">
-				<Image class="w-4 h-4 text-muted-foreground" />
-				<div class="space-y-1">
-					<p class="text-sm font-medium">Total Images</p>
-					<p class="text-2xl font-bold">{cacheStats.totalImages}</p>
+		<!-- Image Cache Statistics -->
+		<div>
+			<h4 class="font-medium mb-4 flex items-center gap-2">
+				<Image class="w-4 h-4" />
+				Image Cache
+			</h4>
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+				<div class="flex items-center space-x-2">
+					<Image class="w-4 h-4 text-muted-foreground" />
+					<div class="space-y-1">
+						<p class="text-sm font-medium">Total Images</p>
+						<p class="text-2xl font-bold">{cacheStats.totalImages}</p>
+					</div>
 				</div>
-			</div>
 
-			<div class="flex items-center space-x-2">
-				<HardDrive class="w-4 h-4 text-muted-foreground" />
-				<div class="space-y-1">
-					<p class="text-sm font-medium">Cache Size</p>
-					<p class="text-2xl font-bold">{formatBytes(cacheStats.totalSize)}</p>
+				<div class="flex items-center space-x-2">
+					<HardDrive class="w-4 h-4 text-muted-foreground" />
+					<div class="space-y-1">
+						<p class="text-sm font-medium">Cache Size</p>
+						<p class="text-2xl font-bold">{formatBytes(cacheStats.totalSize)}</p>
+					</div>
 				</div>
-			</div>
 
-			<div class="space-y-1">
-				<p class="text-sm font-medium">Oldest Image</p>
-				<p class="text-2xl font-bold">{formatDate(cacheStats.oldestImage)}</p>
+				<div class="space-y-1">
+					<p class="text-sm font-medium">Oldest Image</p>
+					<p class="text-2xl font-bold">{formatDate(cacheStats.oldestImage)}</p>
+				</div>
 			</div>
 		</div>
 
 		<Separator />
 
-		<!-- Actions -->
-		<div class="flex flex-wrap gap-2">
-			<Button
-				variant="outline"
-				onclick={loadCacheStats}
-				disabled={isLoading}
-				class="flex items-center gap-2"
-			>
-				<RefreshCw class="w-4 h-4 {isLoading ? 'animate-spin' : ''}" />
-				Refresh Stats
-			</Button>
+		<!-- Image Cache Actions -->
+		<div>
+			<h4 class="font-medium mb-3">Image Cache Actions</h4>
+			<div class="flex flex-wrap gap-2">
+				<Button
+					variant="outline"
+					onclick={loadCacheStats}
+					disabled={isLoading}
+					class="flex items-center gap-2"
+				>
+					<RefreshCw class="w-4 h-4 {isLoading ? 'animate-spin' : ''}" />
+					Refresh Stats
+				</Button>
 
-			<Button
-				variant="destructive"
-				onclick={cleanupCache}
-				disabled={isCleaningUp || cacheStats.totalImages === 0}
-				class="flex items-center gap-2"
-			>
-				<Trash2 class="w-4 h-4" />
-				{isCleaningUp ? 'Cleaning...' : 'Cleanup Old Images'}
-			</Button>
+				<Button
+					variant="destructive"
+					onclick={cleanupCache}
+					disabled={isCleaningUp || cacheStats.totalImages === 0}
+					class="flex items-center gap-2"
+				>
+					<Trash2 class="w-4 h-4" />
+					{isCleaningUp ? 'Cleaning...' : 'Cleanup Old Images'}
+				</Button>
+			</div>
 		</div>
 
-		{#if cachedImages.length > 0}
-			<Separator />
+		<Separator />
 
-			<!-- Cached Images List -->
-			<div class="space-y-2">
-				<h4 class="font-medium">Cached Images ({cachedImages.length})</h4>
-				<div class="max-h-64 overflow-y-auto space-y-2">
-					{#each cachedImages.slice(0, 20) as image}
-						<div class="flex items-center justify-between p-3 border rounded-lg">
-							<div class="flex-1 min-w-0">
-								<div class="flex items-center gap-2 mb-1">
-									<Badge variant="secondary" class="text-xs">
-										{getHostname(image.original_url)}
-									</Badge>
-									<span class="text-xs text-muted-foreground">
-										{formatDate(image.last_accessed)}
-									</span>
-								</div>
-								<p class="text-sm font-mono truncate" title={image.local_path}>
-									{image.local_path}
-								</p>
-							</div>
-							<Button
-								variant="ghost"
-								size="sm"
-								onclick={() => removeImage(image.original_url)}
-								class="ml-2"
-							>
-								<Trash2 class="w-4 h-4" />
-							</Button>
-						</div>
-					{/each}
+		<!-- Browser Storage Actions -->
+		<div>
+			<h4 class="font-medium mb-3 flex items-center gap-2">
+				<Database class="w-4 h-4" />
+				Browser Storage
+			</h4>
+			<p class="text-sm text-muted-foreground mb-3">
+				Clear browser storage caches. This will remove all cached authentication, config, and theme data. You may need to reload the page after clearing.
+			</p>
+			<div class="flex flex-wrap gap-2">
+				<Button
+					variant="outline"
+					onclick={clearSessionStorage}
+					class="flex items-center gap-2"
+				>
+					<Trash2 class="w-4 h-4" />
+					Clear Session Storage
+				</Button>
 
-					{#if cachedImages.length > 20}
-						<p class="text-sm text-muted-foreground text-center">
-							... and {cachedImages.length - 20} more images
-						</p>
-					{/if}
-				</div>
+				<Button
+					variant="outline"
+					onclick={clearLocalStorage}
+					class="flex items-center gap-2"
+				>
+					<Trash2 class="w-4 h-4" />
+					Clear Local Storage
+				</Button>
 			</div>
-		{/if}
+		</div>
 
 		{#if cacheStats.totalImages === 0 && !isLoading}
+			<Separator />
 			<div class="text-center py-8">
 				<Image class="w-12 h-12 mx-auto text-muted-foreground mb-2" />
 				<p class="text-muted-foreground">No cached images found</p>

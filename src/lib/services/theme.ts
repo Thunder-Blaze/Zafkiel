@@ -185,6 +185,34 @@ class ThemeManager {
 			document.documentElement.setAttribute('data-theme', 'default');
 		}
 	}
+
+	/**
+	 * Initialize with a specific theme (skips backend load)
+	 * Used when loading from cache to avoid redundant backend calls
+	 */
+	async initializeWithTheme(themeId: string, isDark: boolean = false): Promise<void> {
+		try {
+			console.log(`[ThemeManager] Initializing with theme: ${themeId}`);
+
+			await this.loadTheme(themeId);
+			this.currentThemeId = themeId;
+
+			const root = document.documentElement;
+			if (isDark) {
+				root.classList.add('dark');
+			} else {
+				root.classList.remove('dark');
+			}
+
+			root.setAttribute('data-theme', themeId);
+
+			console.log(`[ThemeManager] ✓ Initialized with ${themeId}`);
+		} catch (error) {
+			console.error('[ThemeManager] ✗ Initialization failed:', error);
+			this.currentThemeId = 'default';
+			document.documentElement.setAttribute('data-theme', 'default');
+		}
+	}
 }
 
 export const themeManager = new ThemeManager();

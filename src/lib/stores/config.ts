@@ -1,36 +1,64 @@
 import { writable, derived } from 'svelte/store';
-import { ConfigService, type AppConfig, type UiConfig } from '$lib/services/config';
+import { ConfigService } from '$lib/services/config';
+import type { AppConfig, UiConfig } from '$lib/types/config';
+import { loadConfigCache, saveConfigCache } from './sessionCache';
 
 /**
  * Reactive store for application configuration
  */
 function createConfigStore() {
 	const { subscribe, set, update } = writable<AppConfig | null>(null);
+	
+	// Guard to prevent multiple initializations
+	let isInitialized = false;
 
 	return {
 		subscribe,
 
 		/**
-		 * Initialize the config store by loading from backend
+		 * Initialize the config store by loading from cache or backend
 		 */
 		async init() {
+			// Prevent multiple initializations
+			if (isInitialized) {
+				console.log('[Config] Already initialized, skipping');
+				return;
+			}
+			
 			try {
+				isInitialized = true;
+				
+				// Check cache first
+				const cached = loadConfigCache();
+				if (cached) {
+					console.log('[Config] ✓ Loaded from cache');
+					set(cached);
+					return;
+				}
+
+				// Load from backend if no cache
+				console.log('[Config] Loading from backend...');
 				const config = await ConfigService.getConfig();
 				set(config);
+				saveConfigCache(config);
+				console.log('[Config] ✓ Loaded and cached');
 			} catch (error) {
-				console.error('Failed to initialize config store:', error);
+				console.error('[Config] Failed to initialize:', error);
 			}
 		},
 
 		/**
-		 * Reload config from backend
+		 * Reload config from backend (bypasses cache)
 		 */
 		async reload() {
 			try {
+				console.log('[Config] Reloading from backend...');
 				const config = await ConfigService.getConfig();
 				set(config);
+				saveConfigCache(config);
+				console.log('[Config] ✓ Reloaded and cached');
 			} catch (error) {
-				console.error('Failed to reload config:', error);
+				console.error('[Config] Failed to reload:', error);
 			}
 		},
 
@@ -66,6 +94,7 @@ function createConfigStore() {
 			update((config) => {
 				if (config) {
 					config.ui.theme = theme;
+					saveConfigCache(config);
 				}
 				return config;
 			});
@@ -79,6 +108,7 @@ function createConfigStore() {
 			update((config) => {
 				if (config) {
 					config.ui.glow_effects = enabled;
+					saveConfigCache(config);
 				}
 				return config;
 			});
@@ -92,6 +122,7 @@ function createConfigStore() {
 			update((config) => {
 				if (config) {
 					config.ui.animations = enabled;
+					saveConfigCache(config);
 				}
 				return config;
 			});
@@ -105,6 +136,7 @@ function createConfigStore() {
 			update((config) => {
 				if (config) {
 					config.ui.smooth_scroll = enabled;
+					saveConfigCache(config);
 				}
 				return config;
 			});
