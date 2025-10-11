@@ -21,6 +21,15 @@ export interface CacheUserParams {
 	user_data: User;
 }
 
+export interface CachedImageInfo {
+	id: number;
+	original_url: string;
+	local_path: string;
+	file_size?: number;
+	cached_at: number;
+	last_accessed: number;
+}
+
 export class ClientDatabaseService {
 	/**
 	 * Update local progress for media via Tauri command
@@ -30,7 +39,7 @@ export class ClientDatabaseService {
 			params: {
 				media_id: mediaId,
 				progress,
-				timestamp: timestamp || null,
+				timestamp: timestamp ?? undefined,
 			} satisfies UpdateProgressParams
 		});
 	}
@@ -42,7 +51,7 @@ export class ClientDatabaseService {
 		await invoke('cache_media', {
 			params: {
 				media_data: mediaData,
-				extension_source: extensionSource || null,
+				extension_source: extensionSource ?? undefined,
 			} satisfies CacheMediaParams
 		});
 	}
@@ -62,7 +71,7 @@ export class ClientDatabaseService {
 	 * Add media to recently viewed via Tauri command
 	 */
 	static async addToRecentlyViewed(mediaId: number): Promise<void> {
-		await invoke('add_to_recently_viewed', { media_id: mediaId });
+		await invoke('add_to_recently_viewed', { mediaId });
 	}
 
 	/**
@@ -79,7 +88,7 @@ export class ClientDatabaseService {
 	static async searchCachedMedia(query: string, mediaType?: 'ANIME' | 'MANGA'): Promise<Media[]> {
 		const result = await invoke('search_cached_media', {
 			query,
-			media_type: mediaType || null
+			mediaType: mediaType || null
 		});
 		return result as Media[];
 	}
@@ -94,9 +103,9 @@ export class ClientDatabaseService {
 	/**
 	 * Get all cached images via Tauri command
 	 */
-	static async getAllCachedImages(): Promise<any[]> {
+	static async getAllCachedImages(): Promise<CachedImageInfo[]> {
 		const result = await invoke('get_all_cached_images');
-		return result as any[];
+		return result as CachedImageInfo[];
 	}
 
 	/**
@@ -111,7 +120,7 @@ export class ClientDatabaseService {
 	 * Cache image via Tauri command
 	 */
 	static async cacheImage(url: string, localPath: string): Promise<number> {
-		const result = await invoke('cache_image', { url, local_path: localPath });
+		const result = await invoke('cache_image', { url, localPath });
 		return result as number;
 	}
 

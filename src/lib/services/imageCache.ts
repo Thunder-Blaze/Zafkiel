@@ -35,23 +35,29 @@ export class ImageCacheService {
 
 		try {
 			// Check if image is already cached
+			console.log('[ImageCache] Checking cache for:', url);
 			const cachedPath = await ClientDatabaseService.getCachedImagePath(url);
 			
 			if (cachedPath && !options.forceRefresh) {
+				console.log('[ImageCache] Found in cache:', cachedPath);
 				// Verify file still exists
 				const exists = await this.fileExists(cachedPath);
 				if (exists) {
+					console.log('[ImageCache] File exists, using cached version');
 					return cachedPath;
 				} else {
+					console.warn('[ImageCache] Cached file missing, will re-download');
 					// File was deleted, remove from cache
 					await this.removeCachedImage(url);
 				}
+			} else {
+				console.log('[ImageCache] Not in cache, will download');
 			}
 
 			// Download and cache the image
 			return await this.downloadAndCache(url, options);
 		} catch (error) {
-			console.error('Failed to get cached image:', error);
+			console.error('[ImageCache] Failed to get cached image:', error);
 			return null;
 		}
 	}
@@ -68,6 +74,8 @@ export class ImageCacheService {
 			const filename = this.generateFilename(url, options.quality);
 			const localPath = `${this.CACHE_DIR}/${filename}`;
 
+			console.log('[ImageCache] Downloading:', url, '→', localPath);
+
 			// Download image using Tauri
 			const success = await invoke<boolean>('download_image', {
 				url,
@@ -79,12 +87,20 @@ export class ImageCacheService {
 				throw new Error('Failed to download image');
 			}
 
+			console.log('[ImageCache] Download successful, storing in database...');
+
 			// Store in database
-			await ClientDatabaseService.cacheImage(url, localPath);
+			try {
+				const id = await ClientDatabaseService.cacheImage(url, localPath);
+				console.log('[ImageCache] Stored in database with ID:', id);
+			} catch (dbError) {
+				console.error('[ImageCache] Failed to store in database:', dbError);
+				throw dbError;
+			}
 
 			return localPath;
 		} catch (error) {
-			console.error('Failed to download and cache image:', error);
+			console.error('[ImageCache] Failed to download and cache image:', error);
 			return null;
 		}
 	}

@@ -5,7 +5,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { ImageCacheService } from '$lib/services/imageCache';
-	import { ClientDatabaseService } from '$lib/services/client-database';
+	import type { CachedImageInfo } from '$lib/services/client-database';
 	import {
 		Card,
 		CardContent,
@@ -18,33 +18,37 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import { Trash2, RefreshCw, HardDrive, Image } from 'lucide-svelte';
 
-	interface CacheStats {
-		totalImages: number;
-		totalSize: number;
-		oldestImage: number;
-	}
+	// Props - receive initial data from page load
+	let { initialCachedImages = [] }: { initialCachedImages?: CachedImageInfo[] } = $props();
 
-	let cacheStats: CacheStats = {
-		totalImages: 0,
-		totalSize: 0,
-		oldestImage: 0,
-	};
+	let cachedImages: CachedImageInfo[] = $state(initialCachedImages);
 
-	let cachedImages: Array<{
-		id: number;
-		original_url: string;
-		local_path: string;
-		last_accessed: number;
-	}> = [];
+	let isLoading = $state(false);
+	let isCleaningUp = $state(false);
 
-	let isLoading = false;
-	let isCleaningUp = false;
+	// Calculate cache stats from cached images
+	let cacheStats = $derived({
+		totalImages: cachedImages.length,
+		totalSize: cachedImages.reduce((sum, img) => sum + (img.file_size || 0), 0),
+		oldestImage: cachedImages.length > 0 
+			? Math.min(...cachedImages.map(img => img.cached_at * 1000)) // Convert to milliseconds
+			: 0,
+	});
 
 	async function loadCacheStats() {
 		try {
 			isLoading = true;
-			cacheStats = await ImageCacheService.getCacheStats();
-			cachedImages = await ClientDatabaseService.getAllCachedImages();
+			// Try to get fresh stats from backend
+			try {
+				const backendStats = await ImageCacheService.getCacheStats();
+				console.log('Backend cache stats:', backendStats);
+				// Could update cachedImages here if backend returns list
+			} catch (error) {
+				// Backend command not implemented yet, using derived stats
+				console.log('Using derived stats from cached images');
+			}
+			// Note: To refresh cached images list, we'd need to reload the page
+			// or implement a server action
 		} catch (error) {
 			console.error('Failed to load cache stats:', error);
 		} finally {
@@ -84,8 +88,9 @@
 	}
 
 	function formatDate(timestamp: number): string {
-		if (timestamp === 0) return 'Never';
-		return new Date(timestamp * 1000).toLocaleDateString();
+		if (timestamp === 0) return 'N/A';
+		// Timestamp is already in milliseconds from JavaScript Date
+		return new Date(timestamp).toLocaleDateString();
 	}
 
 	function getHostname(url: string): string {

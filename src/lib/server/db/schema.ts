@@ -92,6 +92,8 @@ export const cached_images = sqliteTable('cached_images', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	original_url: text('original_url').notNull().unique(),
 	local_path: text('local_path').notNull().unique(),
+	file_size: integer('file_size'),
+	cached_at: integer('cached_at').notNull(),
 	last_accessed: integer('last_accessed').notNull(),
 });
 

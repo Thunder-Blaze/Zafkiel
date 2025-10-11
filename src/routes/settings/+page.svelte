@@ -5,6 +5,7 @@
 	import { authLoading, isAuthenticated } from '$lib/stores/auth';
 	import Icon from '@iconify/svelte';
 	import { fade, slide } from 'svelte/transition';
+	import type { PageData } from './$types';
 
 	// Import setting components
 	import InterfaceSettings from '$lib/components/settings/InterfaceSettings.svelte';
@@ -15,6 +16,9 @@
 	import AccountSettings from '$lib/components/settings/AccountSettings.svelte';
 	import ThemeModeSettings from '$lib/components/settings/ThemeModeSettings.svelte';
 	import ImageCacheManager from '$lib/components/settings/ImageCacheManager.svelte';
+
+	// Get data from load function
+	let { data }: { data: PageData } = $props();
 
 	let activeSection = $state('general');
 
@@ -138,7 +142,7 @@
 				<!-- Cache Settings -->
 				{#if activeSection === 'cache'}
 					<div class="space-y-6">
-						<ImageCacheManager />
+						<ImageCacheManager initialCachedImages={data.cachedImages} />
 					</div>
 				{/if}
 

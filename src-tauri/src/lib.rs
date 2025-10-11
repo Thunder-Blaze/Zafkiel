@@ -4,12 +4,14 @@ mod auth;
 mod auth_commands;
 mod commands;
 mod config;
+mod database;
 mod db_commands;
 mod image_cache_commands;
 mod theme_commands;
 
 use anilist::AniListService;
 use auth::AuthState;
+use database::Database;
 use std::sync::Arc;
 use tauri::Manager;
 
@@ -59,6 +61,24 @@ pub fn run() {
             // Initialize auth state for OAuth flow
             let auth_state = AuthState::new();
             app.manage(auth_state);
+
+            // Initialize database
+            let db_path = app
+                .path()
+                .app_data_dir()
+                .expect("Failed to get app data dir")
+                .join("zafkiel.db");
+            
+            log::info!("[Setup] Database path: {:?}", db_path);
+            
+            // Create parent directory if it doesn't exist
+            if let Some(parent) = db_path.parent() {
+                std::fs::create_dir_all(parent).expect("Failed to create app data directory");
+            }
+            
+            let database = Database::new(db_path.clone()).expect("Failed to initialize database");
+            app.manage(database);
+            log::info!("[Setup] Database initialized at: {:?}", db_path);
 
             Ok(())
         })
@@ -123,6 +143,10 @@ pub fn run() {
             db_commands::search_cached_media,
             db_commands::cleanup_cache,
             db_commands::get_all_cached_images,
+            // Image database commands
+            db_commands::get_cached_image_path,
+            db_commands::cache_image,
+            db_commands::remove_cached_image,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

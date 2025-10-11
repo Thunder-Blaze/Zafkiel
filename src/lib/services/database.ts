@@ -305,6 +305,7 @@ export class DatabaseService {
 		const result = await db.insert(cached_images).values({
 			original_url: originalUrl,
 			local_path: localPath,
+			cached_at: now,
 			last_accessed: now,
 		}).onConflictDoUpdate({
 			target: cached_images.original_url,
@@ -353,10 +354,17 @@ export class DatabaseService {
 		id: number;
 		original_url: string;
 		local_path: string;
+		file_size?: number;
+		cached_at: number;
 		last_accessed: number;
 	}>> {
 		try {
-			return await db.select().from(cached_images);
+			const results = await db.select().from(cached_images);
+			// Convert null to undefined for file_size
+			return results.map(img => ({
+				...img,
+				file_size: img.file_size ?? undefined,
+			}));
 		} catch (error) {
 			console.error('Failed to get cached images:', error);
 			return [];
