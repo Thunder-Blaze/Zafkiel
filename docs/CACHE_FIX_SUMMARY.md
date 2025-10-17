@@ -5,7 +5,7 @@
 ### 1. ✅ Theme Preference Spam on Reload
 **Problem**: `[Themes] Getting theme preference` was appearing multiple times on every page reload
 
-**Root Cause**: 
+**Root Cause**:
 - Theme store was calling `ConfigService.getUiConfig()` which bypassed the config cache
 - `themeManager.initialize()` was calling `loadThemePreference()` which made backend call even when theme was cached
 
@@ -41,8 +41,8 @@ User loads page
   → Config Store init() checks cache → MISS
   → Loads from backend
   → Saves to session storage (15min TTL)
-  
-  → Theme Store init() checks cache → MISS  
+
+  → Theme Store init() checks cache → MISS
   → Loads from backend (via ConfigService.getUiConfig)
   → Saves to session storage (15min TTL)
 
@@ -51,7 +51,7 @@ User reloads page
   → Config Store init() checks cache → HIT ✓
   → Returns cached data instantly
   → No backend call!
-  
+
   → Theme Store init() checks cache → HIT ✓
   → Returns cached data instantly
   → Uses themeManager.initializeWithTheme() (no backend call)
@@ -60,7 +60,7 @@ User reloads page
 
 ### Cache Durations
 - **Auth**: 5 minutes
-- **Config**: 15 minutes  
+- **Config**: 15 minutes
 - **Themes**: 15 minutes
 
 ### Cache Storage
@@ -90,7 +90,7 @@ User reloads page
 - Theme preference fetched 2-3 times
 - Logs spam: `[Themes] Getting theme preference` × N
 
-### After  
+### After
 - First load: Backend calls (as expected)
 - Subsequent loads: Zero backend calls for 15 minutes
 - Config served from cache
@@ -112,7 +112,7 @@ User reloads page
 ```
 [Themes] Getting theme preference
 [Themes] ✓ Got theme preference: amethyst-haze
-[Themes] Getting theme preference  
+[Themes] Getting theme preference
 [Themes] ✓ Got theme preference: amethyst-haze
 [Themes] list_themes() called
 [Themes] Using themes directory: "..."

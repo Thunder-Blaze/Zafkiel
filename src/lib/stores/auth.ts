@@ -25,7 +25,7 @@ const initialState: AuthState = {
 
 function createAuthStore() {
 	const { subscribe, set, update } = writable<AuthState>(initialState);
-	
+
 	// Guard to prevent multiple initializations
 	let isInitialized = false;
 
@@ -43,10 +43,10 @@ function createAuthStore() {
 				console.log('[AuthStore] Already initialized, skipping');
 				return;
 			}
-			
+
 			console.log('[AuthStore] Initializing');
 			isInitialized = true;
-			
+
 			// Try to load cached state first
 			const cached = loadAuthCache();
 			if (cached) {
@@ -59,7 +59,7 @@ function createAuthStore() {
 				console.log('[AuthStore] Using cached auth state');
 				return; // Skip API call
 			}
-			
+
 			// No cache, check auth status
 			update((state) => ({ ...state, isLoading: true, error: null }));
 

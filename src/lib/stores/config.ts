@@ -8,7 +8,7 @@ import { loadConfigCache, saveConfigCache } from './sessionCache';
  */
 function createConfigStore() {
 	const { subscribe, set, update } = writable<AppConfig | null>(null);
-	
+
 	// Guard to prevent multiple initializations
 	let isInitialized = false;
 
@@ -24,10 +24,10 @@ function createConfigStore() {
 				console.log('[Config] Already initialized, skipping');
 				return;
 			}
-			
+
 			try {
 				isInitialized = true;
-				
+
 				// Check cache first
 				const cached = loadConfigCache();
 				if (cached) {

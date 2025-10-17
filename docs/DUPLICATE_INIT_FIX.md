@@ -29,7 +29,7 @@ Added **initialization guards** to all three stores to prevent multiple initiali
 ```typescript
 function createAuthStore() {
     const { subscribe, set, update } = writable<AuthState>(initialState);
-    
+
     // ✅ Guard to prevent multiple initializations
     let isInitialized = false;
 
@@ -41,7 +41,7 @@ function createAuthStore() {
                 console.log('[AuthStore] Already initialized, skipping');
                 return;
             }
-            
+
             console.log('[AuthStore] Initializing');
             isInitialized = true;
             // ... rest of initialization
@@ -54,7 +54,7 @@ function createAuthStore() {
 ```typescript
 function createConfigStore() {
     const { subscribe, set, update } = writable<AppConfig | null>(null);
-    
+
     // ✅ Guard to prevent multiple initializations
     let isInitialized = false;
 
@@ -66,7 +66,7 @@ function createConfigStore() {
                 console.log('[Config] Already initialized, skipping');
                 return;
             }
-            
+
             isInitialized = true;
             // ... rest of initialization
         }

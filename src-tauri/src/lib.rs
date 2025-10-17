@@ -68,14 +68,14 @@ pub fn run() {
                 .app_data_dir()
                 .expect("Failed to get app data dir")
                 .join("zafkiel.db");
-            
+
             log::info!("[Setup] Database path: {:?}", db_path);
-            
+
             // Create parent directory if it doesn't exist
             if let Some(parent) = db_path.parent() {
                 std::fs::create_dir_all(parent).expect("Failed to create app data directory");
             }
-            
+
             let database = Database::new(db_path.clone()).expect("Failed to initialize database");
             app.manage(database);
             log::info!("[Setup] Database initialized at: {:?}", db_path);
@@ -107,15 +107,15 @@ pub fn run() {
             auth_commands::wait_for_oauth_callback,
             auth_commands::check_auth_status,
             auth_commands::logout,
-            // Anime commands
-            anilist_commands::search_anime,
-            anilist_commands::get_anime_by_id,
+            // Media commands
+            anilist_commands::search_media,
+            anilist_commands::get_media_by_id,
+						// Anime commands
             anilist_commands::get_trending_anime,
             anilist_commands::get_popular_anime,
-            anilist_commands::get_seasonal_anime,
+            anilist_commands::get_upcoming_anime,
+            anilist_commands::get_airing_anime,
             // Manga commands
-            anilist_commands::search_manga,
-            anilist_commands::get_manga_by_id,
             anilist_commands::get_trending_manga,
             anilist_commands::get_popular_manga,
             // User commands

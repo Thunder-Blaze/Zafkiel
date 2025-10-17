@@ -77,7 +77,7 @@ await invoke('cache_image', {
      console.log('[AuthStore] Using cached auth state');
      return; // Skip API call
    }
-   
+
    // No cache, make API call
    const isAuthed = await checkAuthStatus();
    // ... fetch user profile ...

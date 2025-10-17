@@ -14,12 +14,12 @@
 $effect(() => {
   if (browser && $page.url.pathname) {
     const newPath = $page.url.pathname;
-    
+
     // Skip if this is the same as current path
     if (newPath === navigationHistory[currentHistoryIndex]) {
       return;
     }
-    
+
     // Check if this is a back/forward navigation
     const existingIndex = navigationHistory.indexOf(newPath);
     if (existingIndex !== -1 && existingIndex < currentHistoryIndex) {
@@ -58,7 +58,7 @@ $effect(() => {
 ```typescript
 onMount(async () => {
   // ... window setup code ...
-  
+
   // Initialize keybindings
   if (browser) {
     initializeKeybindings();
@@ -68,7 +68,7 @@ onMount(async () => {
     updateKeyBindingAction('ArrowRight', { alt: true }, handleForward);
     updateKeyBindingAction('r', { meta: true }, handleReload);
     updateKeyBindingAction('k', { meta: true }, focusSearch);
-    
+
     console.log('[TitleBar] Keybindings initialized');
   }
 });
@@ -124,7 +124,7 @@ async initialize() {
   if (state.initialized) return;
 
   console.log('[ThemeStore] Initializing...');
-  
+
   // Try to load cached theme data first
   const cached = loadThemeCache();
   if (cached) {
@@ -135,16 +135,16 @@ async initialize() {
     state.availableThemes = cached.availableThemes;
     state.loadedThemes.add(state.currentTheme);
     state.initialized = true;
-    
+
     // Apply theme immediately from cache
     this.applyThemeMode(state.themeMode);
     await themeManager.initialize(state.isDark);
-    
+
     return; // Skip API calls
   }
-  
+
   // ... rest of initialization with API calls ...
-  
+
   // Cache the theme state
   saveThemeCache({
     mode: state.themeMode,
@@ -352,6 +352,6 @@ The app now provides a smooth, native-like navigation experience with significan
 
 ---
 
-**Date**: October 11, 2025  
-**Status**: ✅ All Issues Resolved  
+**Date**: October 11, 2025
+**Status**: ✅ All Issues Resolved
 **Ready for Testing**: Yes

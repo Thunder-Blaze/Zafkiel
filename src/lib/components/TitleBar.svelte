@@ -30,7 +30,7 @@
 	// Search bar
 	let searchInput = $state<HTMLInputElement | null>(null);
 	let searchQuery = $state('');
-	
+
 	// Platform-specific keyboard shortcut display
 	const isMac = browser && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 	const searchShortcut = isMac ? '⌘K' : 'Ctrl+K';
@@ -67,7 +67,7 @@
 				updateKeyBindingAction('ArrowRight', { secondary: true }, handleForward);
 				updateKeyBindingAction('r', { primary: true }, handleReload);
 				updateKeyBindingAction('k', { primary: true }, focusSearch);
-				
+
 				console.log('[TitleBar] Keybindings initialized');
 			}
 		} catch (error) {
@@ -86,12 +86,12 @@
 	$effect(() => {
 		if (browser && $page.url.pathname) {
 			const newPath = $page.url.pathname;
-			
+
 			// Skip if this is the same as current path
 			if (newPath === navigationHistory[currentHistoryIndex]) {
 				return;
 			}
-			
+
 			// Check if this is a back/forward navigation
 			const existingIndex = navigationHistory.indexOf(newPath);
 			if (existingIndex !== -1 && existingIndex < currentHistoryIndex) {
@@ -267,7 +267,7 @@
 					class="flex items-center gap-2 rounded-lg border border-border/60 bg-background/50 px-3 py-1.5 shadow-sm transition-all hover:border-border hover:bg-background focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
 				>
 					<Icon icon="solar:magnifer-bold" class="h-4 w-4 text-muted-foreground" />
-					
+
 					<input
 						bind:this={searchInput}
 						bind:value={searchQuery}
@@ -275,7 +275,7 @@
 						placeholder="Search"
 						class="w-64 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
 					/>
-					
+
 					<div
 						class="flex items-center gap-0.5 rounded border border-border/50 bg-muted/30 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
 					>

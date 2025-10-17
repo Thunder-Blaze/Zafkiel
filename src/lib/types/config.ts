@@ -1,6 +1,6 @@
 /**
  * Shared configuration type definitions
- * 
+ *
  * This file contains type definitions used across stores and services
  * to prevent circular dependencies.
  */

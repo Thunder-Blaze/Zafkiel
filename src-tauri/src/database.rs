@@ -12,7 +12,7 @@ impl Database {
     /// Initialize database connection and create tables if needed
     pub fn new(db_path: PathBuf) -> Result<Self> {
         let conn = Connection::open(db_path)?;
-        
+
         // Create cached_images table if it doesn't exist
         conn.execute(
             "CREATE TABLE IF NOT EXISTS cached_images (
@@ -28,7 +28,7 @@ impl Database {
 
         // Create index for faster lookups
         conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_cached_images_url 
+            "CREATE INDEX IF NOT EXISTS idx_cached_images_url
              ON cached_images(original_url)",
             [],
         )?;

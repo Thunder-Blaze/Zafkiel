@@ -78,7 +78,7 @@ bun run tauri dev
 - `src-tauri/src/db_commands.rs` - Implemented all commands
 - `src-tauri/src/lib.rs` - Initialize database on startup
 
-### Frontend  
+### Frontend
 - `src/lib/services/client-database.ts` - Added CachedImageInfo type
 - `src/lib/services/database.ts` - Updated getAllCachedImages()
 - `src/lib/components/settings/ImageCacheManager.svelte` - Fixed types & stats
@@ -208,15 +208,15 @@ pub async fn get_cached_image_path(
     url: String
 ) -> Result<Option<String>, String> {
     let conn = db.lock().await;
-    
+
     let mut stmt = conn.prepare(
         "SELECT local_path FROM cached_images WHERE original_url = ?1"
     ).map_err(|e| e.to_string())?;
-    
+
     let result = stmt.query_row(params![url], |row| {
         row.get::<_, String>(0)
     });
-    
+
     match result {
         Ok(path) => Ok(Some(path)),
         Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
@@ -231,22 +231,22 @@ pub async fn cache_image(
     local_path: String
 ) -> Result<i64, String> {
     let conn = db.lock().await;
-    
+
     // Get file size
     let file_size = std::fs::metadata(&local_path)
         .map(|m| m.len())
         .unwrap_or(0);
-    
+
     conn.execute(
-        "INSERT INTO cached_images (original_url, local_path, file_size) 
+        "INSERT INTO cached_images (original_url, local_path, file_size)
          VALUES (?1, ?2, ?3)
-         ON CONFLICT(original_url) DO UPDATE SET 
-         local_path = ?2, 
+         ON CONFLICT(original_url) DO UPDATE SET
+         local_path = ?2,
          file_size = ?3,
          last_accessed = CURRENT_TIMESTAMP",
         params![url, local_path, file_size as i64]
     ).map_err(|e| e.to_string())?;
-    
+
     Ok(conn.last_insert_rowid())
 }
 ```
@@ -261,13 +261,13 @@ pub async fn get_all_cached_images(
     db: State<'_, DbConnection>
 ) -> Result<Vec<CachedImageInfo>, String> {
     let conn = db.lock().await;
-    
+
     let mut stmt = conn.prepare(
-        "SELECT id, original_url, local_path, file_size, cached_at, last_accessed 
-         FROM cached_images 
+        "SELECT id, original_url, local_path, file_size, cached_at, last_accessed
+         FROM cached_images
          ORDER BY last_accessed DESC"
     ).map_err(|e| e.to_string())?;
-    
+
     let images = stmt.query_map([], |row| {
         Ok(CachedImageInfo {
             id: row.get(0)?,
@@ -280,7 +280,7 @@ pub async fn get_all_cached_images(
     }).map_err(|e| e.to_string())?
     .collect::<Result<Vec<_>, _>>()
     .map_err(|e| e.to_string())?;
-    
+
     Ok(images)
 }
 ```

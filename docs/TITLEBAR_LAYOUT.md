@@ -29,7 +29,7 @@
 - **Buttons**: Back, Forward, Reload
 - **Icons**: Iconify Solar icons
 - **Size**: 28x28px (h-7 w-7)
-- **States**: 
+- **States**:
   - Enabled: Full opacity
   - Disabled: Muted foreground color
 - **Spacing**: gap-1
@@ -380,6 +380,6 @@ isFullscreen: boolean
 
 ---
 
-**Reference Version**: 1.0  
-**Last Updated**: October 11, 2025  
+**Reference Version**: 1.0
+**Last Updated**: October 11, 2025
 **Component**: `src/lib/components/TitleBar.svelte`

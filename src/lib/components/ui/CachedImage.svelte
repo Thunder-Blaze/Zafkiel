@@ -11,7 +11,7 @@
 	export let placeholder: string = '/placeholder.png';
 	export let cacheOptions: ImageCacheOptions = {};
 	export let preload: boolean = false;
-	
+
 	// Standard img attributes
 	export let width: string | number | undefined = undefined;
 	export let height: string | number | undefined = undefined;
@@ -34,7 +34,7 @@
 
 			// Try to get cached image first
 			const cachedPath = await ImageCacheService.getCachedImage(src, cacheOptions);
-			
+
 			if (cachedPath) {
 				// Use cached image
 				displaySrc = `asset://localhost/${cachedPath}`;
@@ -64,7 +64,7 @@
 
 	function handleLoad() {
 		hasError = false;
-		
+
 		// If we successfully loaded the original image, cache it in background
 		if (displaySrc === src && src) {
 			ImageCacheService.getCachedImage(src, cacheOptions).catch(err => {

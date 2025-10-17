@@ -161,7 +161,8 @@ pub async fn check_auth_status(
     log::info!("[Auth Command] Checking authentication status");
 
     // Try to fetch current user
-    match anilist_service.get_current_user().await {
+		let client = anilist_service.client().await;
+    match client.user().get_current_user().await {
         Ok(_) => {
             log::info!("[Auth Command] User is authenticated");
             Ok(true)

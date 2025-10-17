@@ -1,9 +1,7 @@
 use crate::anilist::{AniListResponse, AniListService};
 use anilist_moe::{
-    enums::media::MediaSeason,
-    objects::{media::Media, responses::ViewerUserData, user::User},
+    endpoints::media::{FetchMediaOneOptions, FetchMediaOptions}, objects::{media::Media, responses::Page, user::User}
 };
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tauri::State;
 
@@ -11,213 +9,130 @@ use tauri::State;
 pub type AniListState = Arc<AniListService>;
 
 // ============================================================================
+// Helper Macro
+// ============================================================================
+
+// In anilist_commands.rs
+
+// This macro creates a complete Tauri command function for us.
+macro_rules! create_anilist_command {
+    // Pattern for commands with arguments
+    (
+        $command_name:ident,
+				$category:ident,
+        $client_method:ident,
+        $return_type:ty,
+        ( $( $arg_name:ident: $arg_type:ty => $pass_style:tt ),+ )
+    ) => {
+        #[tauri::command]
+        pub async fn $command_name(
+            $($arg_name: $arg_type,)+
+            service: State<'_, AniListState>
+        ) -> Result<AniListResponse<$return_type>, String> {
+            log::info!("Executing command: {}", stringify!($command_name));
+            // Note the use of `&` for string arguments to avoid unnecessary cloning
+						let client = service.client().await;
+            let result = client.$category().$client_method(
+							$( create_anilist_command!(@pass $arg_name, $pass_style) ),+
+						).await;
+            Ok(result.into())
+        }
+    };
+    // Pattern for commands with NO arguments
+    (
+        $command_name:ident,
+				$category:ident,
+        $client_method:ident,
+        $return_type:ty
+    ) => {
+        #[tauri::command]
+        pub async fn $command_name(
+            service: State<'_, AniListState>
+        ) -> Result<AniListResponse<$return_type>, String> {
+            log::info!("Executing command: {}", stringify!($command_name));
+            let client = service.client().await;
+            let result = client.$category().$client_method().await;
+            Ok(result.into())
+        }
+    };
+
+		// --- HELPER RULES ---
+    // @pass $arg, val => passes the argument by value (for Copy types like i32)
+    (@pass $arg:ident, val) => { $arg };
+
+    // @pass $arg, ref => passes the argument as-is (for existing references like &str)
+    (@pass $arg:ident, ref) => { $arg };
+
+    // @pass $arg, borrow => passes the argument as a new reference (for owned structs)
+    (@pass $arg:ident, borrow) => { &$arg };
+}
+
+// ============================================================================
+// Media Commands
+// ============================================================================
+
+create_anilist_command!(search_media, media, fetch, Page<Vec<Media>>, (
+	options: FetchMediaOptions => borrow
+));
+
+create_anilist_command!(get_media_by_id, media, fetch_one, Media, (
+	options: FetchMediaOneOptions => borrow
+));
+
+// ============================================================================
 // Anime Commands
 // ============================================================================
 
-/// Search for anime
-#[tauri::command]
-pub async fn search_anime(
-    query: String,
-    page: Option<i32>,
-    per_page: Option<i32>,
-    service: State<'_, AniListState>,
-) -> Result<AniListResponse<Vec<Media>>, String> {
-    log::info!(
-        "Command: search_anime called with query='{}', page={:?}, per_page={:?}",
-        query,
-        page,
-        per_page
-    );
-    let result = service.search_anime(&query, page, per_page).await;
-    match &result {
-        Ok(media) => log::info!("Command: search_anime succeeded with {} items", media.len()),
-        Err(e) => log::error!("Command: search_anime failed: {:?}", e),
-    }
-    Ok(result.into())
-}
+create_anilist_command!(get_trending_anime, media, get_trending_anime, Page<Vec<Media>>, (
+	page: Option<i32> => ref,
+	per_page: Option<i32> => ref
+));
 
-/// Get anime by ID
-#[tauri::command]
-pub async fn get_anime_by_id(
-    id: i32,
-    service: State<'_, AniListState>,
-) -> Result<AniListResponse<Media>, String> {
-    let result = service.get_anime_by_id(id).await;
-    Ok(result.into())
-}
+create_anilist_command!(get_popular_anime, media, get_popular_anime, Page<Vec<Media>>, (
+	page: Option<i32> => ref,
+	per_page: Option<i32> => ref
+));
 
-/// Get trending anime
-#[tauri::command]
-pub async fn get_trending_anime(
-    page: Option<i32>,
-    per_page: Option<i32>,
-    service: State<'_, AniListState>,
-) -> Result<AniListResponse<Vec<Media>>, String> {
-    log::info!(
-        "Command: get_trending_anime called with page={:?}, per_page={:?}",
-        page,
-        per_page
-    );
-    let result = service.get_trending_anime(page, per_page).await;
-    match &result {
-        Ok(media) => {
-            log::info!(
-                "Command: get_trending_anime succeeded with {} items",
-                media.len()
-            );
-            // Try to serialize and log the first item for debugging
-            if let Some(first) = media.first() {
-                match serde_json::to_string(first) {
-                    Ok(json) => {
-                        log::info!("First anime serialized successfully: {} bytes", json.len())
-                    }
-                    Err(e) => log::error!("Failed to serialize first anime: {}", e),
-                }
-            }
-        }
-        Err(e) => log::error!("Command: get_trending_anime failed: {:?}", e),
-    }
-    let response: AniListResponse<Vec<Media>> = result.into();
+create_anilist_command!(get_upcoming_anime, media, get_upcoming_anime, Page<Vec<Media>>, (
+	page: Option<i32> => ref,
+	per_page: Option<i32> => ref
+));
 
-    // Try to serialize the whole response
-    match serde_json::to_string(&response) {
-        Ok(json) => log::info!("Response serialized successfully: {} bytes", json.len()),
-        Err(e) => log::error!("Failed to serialize response: {}", e),
-    }
-
-    Ok(response)
-}
-
-/// Get popular anime
-#[tauri::command]
-pub async fn get_popular_anime(
-    page: Option<i32>,
-    per_page: Option<i32>,
-    service: State<'_, AniListState>,
-) -> Result<AniListResponse<Vec<Media>>, String> {
-    let result = service.get_popular_anime(page, per_page).await;
-    Ok(result.into())
-}
-
-/// Params for seasonal anime
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SeasonalAnimeParams {
-    pub season: String, // "WINTER", "SPRING", "SUMMER", "FALL"
-    pub year: i32,
-    pub page: Option<i32>,
-    pub per_page: Option<i32>,
-}
-
-/// Get seasonal anime
-#[tauri::command]
-pub async fn get_seasonal_anime(
-    params: SeasonalAnimeParams,
-    service: State<'_, AniListState>,
-) -> Result<AniListResponse<Vec<Media>>, String> {
-    // Parse season string
-    let season = match params.season.to_uppercase().as_str() {
-        "WINTER" => MediaSeason::Winter,
-        "SPRING" => MediaSeason::Spring,
-        "SUMMER" => MediaSeason::Summer,
-        "FALL" | "AUTUMN" => MediaSeason::Fall,
-        _ => return Ok(AniListResponse::error("Invalid season".to_string())),
-    };
-
-    let result = service
-        .get_seasonal_anime(season, params.year, params.page, params.per_page)
-        .await;
-    Ok(result.into())
-}
+create_anilist_command!(get_airing_anime, media, get_airing_anime, Page<Vec<Media>>, (
+	page: Option<i32> => ref,
+	per_page: Option<i32> => ref
+));
 
 // ============================================================================
 // Manga Commands
 // ============================================================================
 
-/// Search for manga
-#[tauri::command]
-pub async fn search_manga(
-    query: String,
-    page: Option<i32>,
-    per_page: Option<i32>,
-    service: State<'_, AniListState>,
-) -> Result<AniListResponse<Vec<Media>>, String> {
-    let result = service.search_manga(&query, page, per_page).await;
-    Ok(result.into())
-}
+create_anilist_command!(get_trending_manga, media, get_trending_manga, Page<Vec<Media>>, (
+	page: Option<i32> => ref,
+	per_page: Option<i32> => ref
+));
 
-/// Get manga by ID
-#[tauri::command]
-pub async fn get_manga_by_id(
-    id: i32,
-    service: State<'_, AniListState>,
-) -> Result<AniListResponse<Media>, String> {
-    let result = service.get_manga_by_id(id).await;
-    Ok(result.into())
-}
-
-/// Get trending manga
-#[tauri::command]
-pub async fn get_trending_manga(
-    page: Option<i32>,
-    per_page: Option<i32>,
-    service: State<'_, AniListState>,
-) -> Result<AniListResponse<Vec<Media>>, String> {
-    let result = service.get_trending_manga(page, per_page).await;
-    Ok(result.into())
-}
-
-/// Get popular manga
-#[tauri::command]
-pub async fn get_popular_manga(
-    page: Option<i32>,
-    per_page: Option<i32>,
-    service: State<'_, AniListState>,
-) -> Result<AniListResponse<Vec<Media>>, String> {
-    let result = service.get_popular_manga(page, per_page).await;
-    Ok(result.into())
-}
+create_anilist_command!(get_popular_manga, media, get_popular_manga, Page<Vec<Media>>, (
+	page: Option<i32> => ref,
+	per_page: Option<i32> => ref
+));
 
 // ============================================================================
 // User Commands
 // ============================================================================
 
-/// Get current authenticated user
-#[tauri::command]
-pub async fn get_current_user(
-    service: State<'_, AniListState>,
-) -> Result<AniListResponse<ViewerUserData>, String> {
-    let result = service.get_current_user().await;
-    Ok(result.into())
-}
+create_anilist_command!(get_current_user, user, get_current_user, User);
 
-/// Get user by ID
-#[tauri::command]
-pub async fn get_user_by_id(
-    id: i32,
-    service: State<'_, AniListState>,
-) -> Result<AniListResponse<User>, String> {
-    let result = service.get_user_by_id(id).await;
-    Ok(result.into())
-}
+create_anilist_command!(get_user_by_id, user, get_by_id, User, (
+	id: i32 => val
+));
 
-/// Get user by name
-#[tauri::command]
-pub async fn get_user_by_name(
-    name: String,
-    service: State<'_, AniListState>,
-) -> Result<AniListResponse<User>, String> {
-    let result = service.get_user_by_name(&name).await;
-    Ok(result.into())
-}
+create_anilist_command!(get_user_by_name, user, get_by_name, User, (
+	name: &str => ref
+));
 
-/// Search users
-#[tauri::command]
-pub async fn search_users(
-    query: String,
-    page: Option<i32>,
-    per_page: Option<i32>,
-    service: State<'_, AniListState>,
-) -> Result<AniListResponse<Vec<User>>, String> {
-    let result = service.search_users(&query, page, per_page).await;
-    Ok(result.into())
-}
+create_anilist_command!(search_users, user, search, Page<Vec<User>>, (
+	search: &str => ref,
+	page: Option<i32> => ref,
+	per_page: Option<i32> => ref
+));

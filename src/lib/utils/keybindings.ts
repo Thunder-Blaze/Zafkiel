@@ -1,6 +1,6 @@
 /**
  * Keybindings System
- * 
+ *
  * Centralized keyboard shortcut management for the application
  * Cross-platform support: Automatically maps modifier keys based on platform
  * - macOS: meta (⌘) <-> Ctrl on Windows/Linux
@@ -287,10 +287,10 @@ export function cleanupKeybindings(): void {
  */
 export function updateKeyBindingAction(
 	key: string,
-	modifiers: { 
-		ctrl?: boolean; 
-		alt?: boolean; 
-		shift?: boolean; 
+	modifiers: {
+		ctrl?: boolean;
+		alt?: boolean;
+		shift?: boolean;
 		meta?: boolean;
 		primary?: boolean;
 		secondary?: boolean;
@@ -298,11 +298,11 @@ export function updateKeyBindingAction(
 	action: () => void | Promise<void>,
 ): void {
 	// Normalize modifiers to match stored bindings
-	const tempBinding: KeyBinding = { 
-		key, 
-		...modifiers, 
-		description: '', 
-		action: () => {} 
+	const tempBinding: KeyBinding = {
+		key,
+		...modifiers,
+		description: '',
+		action: () => {}
 	};
 	const normalized = normalizeBinding(tempBinding);
 

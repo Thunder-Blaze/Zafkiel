@@ -26,7 +26,7 @@ All errors have been successfully resolved! The app now runs without any "imposs
 
 **Error Message**:
 ```
-Cannot import $lib/server/db/schema.ts into code that runs in the browser, 
+Cannot import $lib/server/db/schema.ts into code that runs in the browser,
 as this could leak sensitive information.
 ```
 
@@ -112,7 +112,7 @@ const allImages = await ClientDatabaseService.getAllCachedImages();
 // ✅ GOOD: Import types from types directory
 import type { AppConfig } from '$lib/types/config';
 
-// ✅ GOOD: Import services from services directory  
+// ✅ GOOD: Import services from services directory
 import { ConfigService } from '$lib/services/config';
 
 // ✅ GOOD: Use client service for database access

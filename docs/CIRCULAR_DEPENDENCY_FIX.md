@@ -83,7 +83,7 @@ config.ts, theme.svelte.ts, auth.ts
 Components & Pages
 
 services/config.ts (also imports from types/config.ts)
-    ↓ (imported by)  
+    ↓ (imported by)
 theme.svelte.ts, config.ts
 
 NO CYCLES! ✅
@@ -160,7 +160,7 @@ src/routes/          (Imports from stores)
 
 ## Testing
 1. ✅ Server starts without errors
-2. ✅ No TypeScript errors in any modified files  
+2. ✅ No TypeScript errors in any modified files
 3. ✅ HMR updates work correctly
 4. ✅ Settings page loads without "impossible situation" error
 

@@ -17,15 +17,15 @@ Successfully implemented **complete end-to-end image caching** for the Zafkiel a
 - **`get_cached_image_path(url)`** - Query database for cached image path
   - Returns `Option<String>` - `Some(path)` if cached, `None` if not
   - Updates `last_accessed` timestamp on access
-  
+
 - **`cache_image(url, local_path)`** - Save image metadata to database
   - Automatically calculates file size from disk
   - Inserts or updates existing records (UPSERT)
   - Returns database row ID
-  
+
 - **`remove_cached_image(url)`** - Delete cached image record
   - Removes from database (file deletion handled by `image_cache_commands`)
-  
+
 - **`get_all_cached_images()`** - Retrieve all cached images
   - Returns array of `CachedImageInfo` with full metadata
   - Ordered by `last_accessed DESC`
@@ -73,7 +73,7 @@ Already implemented, now fully functional:
   - Replaces standard `<img>` tags
   - Downloads and caches on first view
   - Uses cached version on subsequent views
-  
+
 - **`ImageCacheManager.svelte`** - Cache management UI
   - Shows total images, cache size, oldest image
   - Displays all cached images with metadata
@@ -272,19 +272,19 @@ conn.query_row(
 1. **Cache Cleanup**
    - Implement LRU eviction when cache > X GB
    - Auto-remove images not accessed in 30+ days
-   
+
 2. **Prefetching**
    - Pre-download images for trending anime
    - Background sync for user's anime list
-   
+
 3. **Compression**
    - Compress large images (> 1MB)
    - WebP conversion for better storage
-   
+
 4. **Analytics**
    - Track cache hit rate
    - Monitor storage usage over time
-   
+
 5. **Sync**
    - Sync cache across devices
    - Cloud backup for cached images

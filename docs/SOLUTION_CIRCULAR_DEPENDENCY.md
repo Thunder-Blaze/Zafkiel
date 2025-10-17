@@ -16,7 +16,7 @@ config.ts store → sessionCache.svelte.ts
 theme.svelte.ts → sessionCache.svelte.ts AND services/config
 ```
 
-### 2. File Extension Confusion  
+### 2. File Extension Confusion
 The `.svelte.ts` extension on `sessionCache.svelte.ts` was confusing SvelteKit's module resolution system during HMR (Hot Module Replacement). This file doesn't use Svelte runes, so the `.svelte.ts` extension was inappropriate.
 
 ## Solution Applied
@@ -61,7 +61,7 @@ Reason: The file doesn't use Svelte runes (`$state`, `$derived`, etc.), so it sh
 
 **Updated all imports in:**
 - `src/lib/stores/config.ts`
-- `src/lib/stores/auth.ts`  
+- `src/lib/stores/auth.ts`
 - `src/lib/stores/theme.svelte.ts`
 
 From:
@@ -82,18 +82,18 @@ import { loadConfigCache } from './sessionCache';
 ### Modified
 1. `/src/lib/stores/sessionCache.ts` (renamed from `.svelte.ts`)
    - Import types from `$lib/types/config` instead of `$lib/services/config`
-   
+
 2. `/src/lib/stores/config.ts`
    - Import types from `$lib/types/config`
    - Import only `ConfigService` from services
-   
+
 3. `/src/lib/services/config.ts`
    - Re-export types from `$lib/types/config`
    - Use types internally from `$lib/types/config`
-   
+
 4. `/src/lib/stores/auth.ts`
    - Update import path: `./sessionCache.svelte` → `./sessionCache`
-   
+
 5. `/src/lib/stores/theme.svelte.ts`
    - Update import path: `./sessionCache.svelte` → `./sessionCache`
 
@@ -139,12 +139,12 @@ Use regular `.ts` extension when:
 
 ## Results
 
-✅ Dev server starts without errors  
-✅ No "impossible situation" error  
-✅ HMR works correctly  
-✅ TypeScript compilation successful  
-✅ No circular dependencies  
-✅ Clean module architecture  
+✅ Dev server starts without errors
+✅ No "impossible situation" error
+✅ HMR works correctly
+✅ TypeScript compilation successful
+✅ No circular dependencies
+✅ Clean module architecture
 
 ## Testing
 
@@ -170,7 +170,7 @@ Use regular `.ts` extension when:
    ```typescript
    // ✅ GOOD
    import type { AppConfig } from '$lib/types/config';
-   
+
    // ❌ BAD (can create cycles)
    import type { AppConfig } from '$lib/services/config';
    ```

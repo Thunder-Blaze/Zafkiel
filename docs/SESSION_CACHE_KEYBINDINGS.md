@@ -375,7 +375,7 @@ async init() {
     set({ ...cached, isLoading: false });
     return; // Skip API call
   }
-  
+
   // No cache, fetch fresh
   const authData = await checkAuthStatus();
   saveAuthCache(authData.isAuthenticated, authData.user);
@@ -402,7 +402,7 @@ import {
 onMount(() => {
   // Initialize keybindings
   initializeKeybindings();
-  
+
   // Set up actions
   updateKeyBindingAction('ArrowLeft', { alt: true }, handleBack);
   updateKeyBindingAction('ArrowRight', { alt: true }, handleForward);
@@ -480,7 +480,7 @@ To add new keyboard shortcuts:
 2. **Set the action** in your component:
    ```typescript
    import { updateKeyBindingAction } from '$lib/utils/keybindings';
-   
+
    onMount(() => {
      updateKeyBindingAction('n', { meta: true }, () => {
        console.log('Creating new item...');
@@ -643,6 +643,6 @@ bun run tauri dev
 
 ---
 
-**Created**: 2025-10-11  
-**Last Updated**: 2025-10-11  
+**Created**: 2025-10-11
+**Last Updated**: 2025-10-11
 **Status**: ✅ Implemented and Ready for Testing

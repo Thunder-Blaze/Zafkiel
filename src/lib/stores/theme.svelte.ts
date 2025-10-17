@@ -67,7 +67,7 @@ function createThemeStore() {
 			}
 
 			console.log('[ThemeStore] Initializing...');
-			
+
 			// Try to load cached theme data first
 			const cached = loadThemeCache();
 			if (cached) {
@@ -78,14 +78,14 @@ function createThemeStore() {
 				state.availableThemes = cached.availableThemes;
 				state.loadedThemes.add(state.currentTheme);
 				state.initialized = true;
-				
+
 				// Apply theme immediately from cache (skips backend call)
 				this.applyThemeMode(state.themeMode);
 				await themeManager.initializeWithTheme(state.currentTheme, state.isDark);
-				
+
 				return;
 			}
-			
+
 			state.isLoading = true;
 
 			try {
@@ -154,7 +154,7 @@ function createThemeStore() {
 				await themeManager.switchTheme(themeId, state.isDark);
 				state.currentTheme = themeId;
 				state.loadedThemes.add(themeId);
-				
+
 				// Update cache
 				saveThemeCache({
 					mode: state.themeMode,
@@ -162,7 +162,7 @@ function createThemeStore() {
 					availableThemes: state.availableThemes,
 					isDark: state.isDark,
 				});
-				
+
 				console.log('[ThemeStore] ✓ Switched to:', themeId);
 			} catch (error) {
 				console.error('[ThemeStore] ✗ Switch failed:', error);
@@ -222,7 +222,7 @@ function createThemeStore() {
 				await ConfigService.updateThemeMode(mode);
 				state.themeMode = mode;
 				this.applyThemeMode(mode);
-				
+
 				// Update cache
 				saveThemeCache({
 					mode: state.themeMode,
@@ -230,7 +230,7 @@ function createThemeStore() {
 					availableThemes: state.availableThemes,
 					isDark: state.isDark,
 				});
-				
+
 				console.log('[ThemeStore] ✓ Theme mode updated to:', mode);
 			} catch (error) {
 				console.error('[ThemeStore] ✗ Failed to update theme mode:', error);

@@ -28,7 +28,7 @@ export class ImageCacheService {
 	 * Get cached image path or download if not cached
 	 */
 	static async getCachedImage(
-		url: string, 
+		url: string,
 		options: ImageCacheOptions = {}
 	): Promise<string | null> {
 		if (!url) return null;
@@ -37,7 +37,7 @@ export class ImageCacheService {
 			// Check if image is already cached
 			console.log('[ImageCache] Checking cache for:', url);
 			const cachedPath = await ClientDatabaseService.getCachedImagePath(url);
-			
+
 			if (cachedPath && !options.forceRefresh) {
 				console.log('[ImageCache] Found in cache:', cachedPath);
 				// Verify file still exists
@@ -66,7 +66,7 @@ export class ImageCacheService {
 	 * Download image and store in cache
 	 */
 	private static async downloadAndCache(
-		url: string, 
+		url: string,
 		options: ImageCacheOptions
 	): Promise<string | null> {
 		try {
@@ -113,7 +113,7 @@ export class ImageCacheService {
 		const hash = this.simpleHash(url);
 		const extension = this.getFileExtension(url) || 'jpg';
 		const qualitySuffix = quality && quality !== 'original' ? `_${quality}` : '';
-		
+
 		return `${hash}${qualitySuffix}.${extension}`;
 	}
 
@@ -163,7 +163,7 @@ export class ImageCacheService {
 			if (cachedPath) {
 				// Delete file
 				await invoke('delete_file', { path: cachedPath });
-				
+
 				// Remove from database
 				await ClientDatabaseService.removeCachedImage(url);
 			}

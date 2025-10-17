@@ -29,7 +29,7 @@
 	let cacheStats = $derived({
 totalImages: cachedImages.length,
 totalSize: cachedImages.reduce((sum, img) => sum + (img.file_size || 0), 0),
-		oldestImage: cachedImages.length > 0 
+		oldestImage: cachedImages.length > 0
 			? Math.min(...cachedImages.map(img => img.cached_at * 1000)) // Convert to milliseconds
 			: 0,
 	});

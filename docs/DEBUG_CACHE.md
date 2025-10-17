@@ -6,7 +6,7 @@ Images are being downloaded repeatedly instead of using cached versions.
 ## Evidence
 ```
 [2025-10-11][12:35:09] Downloaded and cached image: https://...jpg -> .../cache/images/fvwp1i.jpg
-[2025-10-11][12:35:13] Downloaded and cached image: https://...jpg -> .../cache/images/fvwp1i.jpg  
+[2025-10-11][12:35:13] Downloaded and cached image: https://...jpg -> .../cache/images/fvwp1i.jpg
 [2025-10-11][12:35:17] Downloaded and cached image: https://...jpg -> .../cache/images/wfxfze.jpg
 [2025-10-11][12:35:18] Downloaded and cached image: https://...jpg -> .../cache/images/wfxfze.jpg
 ```
@@ -106,7 +106,7 @@ Downloads image again
 ## Test Page
 Visit http://localhost:5173/test-cache to manually test:
 1. `get_cached_image_path` command
-2. `cache_image` command  
+2. `cache_image` command
 3. Database persistence
 
 This will show if the Tauri commands work at all.
