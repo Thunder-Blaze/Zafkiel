@@ -356,7 +356,6 @@ export function useMediaSearch(
 				return {
 					success: true,
 					data: combinedData,
-					error: null,
 				} as AniListResponse<Media[]>;
 			}
 		},

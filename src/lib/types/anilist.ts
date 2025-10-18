@@ -13,6 +13,19 @@ export interface AniListResponse<T> {
 	error?: string;
 }
 
+export interface PageInfo {
+	total: number;
+	perPage: number;
+	currentPage: number;
+	lastPage: number;
+	hasNextPage: boolean;
+}
+
+export interface Page<T> {
+	pageInfo: PageInfo;
+	data: T;
+}
+
 // ============================================================================
 // Media Types (Anime & Manga)
 // ============================================================================

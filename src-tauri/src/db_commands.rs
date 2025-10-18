@@ -35,45 +35,132 @@ pub struct CachedImageInfo {
 // These are just pass-through commands for now
 
 #[command]
-pub async fn update_local_progress(params: UpdateProgressParams) -> Result<(), String> {
-    // This will be implemented later when we have proper database connection
+pub async fn update_local_progress(
+    db: State<'_, Database>,
+    params: UpdateProgressParams
+) -> Result<(), String> {
     log::info!("Update local progress: {:?}", params);
+    let conn = db.lock();
+    let now = params.timestamp.unwrap_or_else(|| {
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i32
+    });
+    conn.execute(
+        "INSERT INTO local_progress (media_id, progress, timestamp) VALUES (?1, ?2, ?3)
+         ON CONFLICT(media_id) DO UPDATE SET progress = ?2, timestamp = ?3",
+        params![params.media_id, params.progress, now],
+    ).map_err(|e| format!("Database error: {}", e))?;
     Ok(())
 }
 
 #[command]
-pub async fn cache_media(params: CacheMediaParams) -> Result<(), String> {
+pub async fn cache_media(
+    db: State<'_, Database>,
+    params: CacheMediaParams
+) -> Result<(), String> {
     log::info!("Cache media called");
+    let conn = db.lock();
+    let media_json = serde_json::to_string(&params.media_data).map_err(|e| format!("Serialization error: {}", e))?;
+    conn.execute(
+        "INSERT INTO cached_media (media_data, extension_source) VALUES (?1, ?2)",
+        params![media_json, params.extension_source],
+    ).map_err(|e| format!("Database error: {}", e))?;
     Ok(())
 }
 
 #[command]
-pub async fn cache_user(params: CacheUserParams) -> Result<(), String> {
+pub async fn cache_user(
+    db: State<'_, Database>,
+    params: CacheUserParams
+) -> Result<(), String> {
     log::info!("Cache user called");
+    let conn = db.lock();
+    let user_json = serde_json::to_string(&params.user_data).map_err(|e| format!("Serialization error: {}", e))?;
+    conn.execute(
+        "INSERT INTO cached_users (user_data) VALUES (?1)",
+        params![user_json],
+    ).map_err(|e| format!("Database error: {}", e))?;
     Ok(())
 }
 
 #[command]
-pub async fn add_to_recently_viewed(media_id: i32) -> Result<(), String> {
+pub async fn add_to_recently_viewed(
+    db: State<'_, Database>,
+    media_id: i32
+) -> Result<(), String> {
     log::info!("Add to recently viewed: {}", media_id);
+    let conn = db.lock();
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64;
+    conn.execute(
+        "INSERT INTO recently_viewed (media_id, viewed_at) VALUES (?1, ?2)",
+        params![media_id, now],
+    ).map_err(|e| format!("Database error: {}", e))?;
     Ok(())
 }
 
 #[command]
-pub async fn get_recently_viewed(limit: Option<i32>) -> Result<Vec<serde_json::Value>, String> {
+pub async fn get_recently_viewed(
+    db: State<'_, Database>,
+    limit: Option<i32>
+) -> Result<Vec<serde_json::Value>, String> {
     log::info!("Get recently viewed with limit: {:?}", limit);
-    Ok(vec![])
+    let conn = db.lock();
+    let query = if let Some(lim) = limit {
+        format!("SELECT media_id, viewed_at FROM recently_viewed ORDER BY viewed_at DESC LIMIT {}", lim)
+    } else {
+        "SELECT media_id, viewed_at FROM recently_viewed ORDER BY viewed_at DESC".to_string()
+    };
+    let mut stmt = conn.prepare(&query).map_err(|e| format!("Database error: {}", e))?;
+    let rows = stmt.query_map([], |row| {
+        let media_id: i32 = row.get(0)?;
+        let viewed_at: i64 = row.get(1)?;
+        Ok(serde_json::json!({"media_id": media_id, "viewed_at": viewed_at}))
+    }).map_err(|e| format!("Database error: {}", e))?;
+    let result = rows.collect::<Result<Vec<_>, _>>().map_err(|e| format!("Database error: {}", e))?;
+    Ok(result)
 }
 
 #[command]
-pub async fn search_cached_media(query: String, media_type: Option<String>) -> Result<Vec<serde_json::Value>, String> {
+pub async fn search_cached_media(
+    db: State<'_, Database>,
+    query: String,
+    media_type: Option<String>
+) -> Result<Vec<serde_json::Value>, String> {
     log::info!("Search cached media: {} type: {:?}", query, media_type);
-    Ok(vec![])
+    let conn = db.lock();
+    let sql = if media_type.is_some() {
+        "SELECT media_data FROM cached_media WHERE media_data LIKE ?1 AND extension_source = ?2"
+    } else {
+        "SELECT media_data FROM cached_media WHERE media_data LIKE ?1"
+    };
+    let param_query = format!("%{}%", query);
+    let mut stmt = conn.prepare(sql).map_err(|e| format!("Database error: {}", e))?;
+    let closure = |row: &rusqlite::Row| {
+        let media_json: String = row.get(0)?;
+        Ok(serde_json::from_str(&media_json).unwrap_or(serde_json::Value::Null))
+    };
+    let rows = if let Some(ref mtype) = media_type {
+        stmt.query_map(params![param_query, mtype], closure)
+    } else {
+        stmt.query_map(params![param_query], closure)
+    };
+    let result = rows.map_err(|e| format!("Database error: {}", e))?
+        .collect::<Result<Vec<_>, _>>().map_err(|e| format!("Database error: {}", e))?;
+    Ok(result)
 }
 
 #[command]
-pub async fn cleanup_cache() -> Result<(), String> {
+pub async fn cleanup_cache(db: State<'_, Database>) -> Result<(), String> {
     log::info!("Cleanup cache called");
+    let conn = db.lock();
+    conn.execute("DELETE FROM cached_images", []).map_err(|e| format!("Database error: {}", e))?;
+    conn.execute("DELETE FROM cached_media", []).map_err(|e| format!("Database error: {}", e))?;
+    conn.execute("DELETE FROM recently_viewed", []).map_err(|e| format!("Database error: {}", e))?;
     Ok(())
 }
 

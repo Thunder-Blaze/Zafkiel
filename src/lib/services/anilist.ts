@@ -43,13 +43,34 @@ export const animeApi = {
 	 * Get trending anime
 	 */
 	getTrending: async (params?: PaginationParams): Promise<AniListResponse<Media[]>> => {
-		console.log('[AniList API] Calling get_trending_anime:', params);
-		const response = (await invoke('get_trending_anime', {
-			page: params?.page ?? null,
-			perPage: params?.perPage ?? null,
-		})) as AniListResponse<Media[]>;
-		console.log('[AniList API] get_trending_anime response:', response);
-		return response;
+		try {
+			console.log('[AniList API] Calling get_trending_anime:', params);
+			const response = await invoke('get_trending_anime', {
+				page: params?.page ?? null,
+				perPage: params?.perPage ?? null,
+			}) as { success: boolean; data?: { data: Media[] }; error?: string };
+			console.log('[AniList API] get_trending_anime response:', response);
+
+			if (!response.success) {
+				return {
+					success: false,
+					error: response.error || 'Backend returned error',
+					data: []
+				};
+			}
+
+			return {
+				success: true,
+				data: response.data?.data || []
+			};
+		} catch (error) {
+			console.error('[AniList API] Error in getTrending:', error);
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Unknown error',
+				data: []
+			};
+		}
 	},
 
 	/**
