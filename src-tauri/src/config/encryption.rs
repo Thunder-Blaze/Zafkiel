@@ -1,9 +1,8 @@
 use aes_gcm::{
-    Aes256Gcm, Key, Nonce,
-    aead::{Aead, KeyInit, OsRng},
+    aead::{Aead, KeyInit}, Aes256Gcm, Nonce
 };
 use base64::{Engine, engine::general_purpose::STANDARD as BASE64};
-use rand::RngCore;
+use rand::{rngs::OsRng, RngCore};
 use thiserror::Error;
 
 /// Encryption-related errors
@@ -43,21 +42,20 @@ pub fn encrypt(data: &str, key_base64: &str) -> Result<String, EncryptionError> 
         )));
     }
 
-    let key = Key::<Aes256Gcm>::from_slice(&key_bytes);
-    let cipher = Aes256Gcm::new(key);
+		let cipher = Aes256Gcm::new_from_slice(&key_bytes).unwrap();
 
     // Generate a random nonce (12 bytes for GCM)
     let mut nonce_bytes = [0u8; 12];
     OsRng.fill_bytes(&mut nonce_bytes);
-    let nonce = Nonce::from_slice(&nonce_bytes);
+    let nonce = Nonce::from(nonce_bytes);
 
     // Encrypt the data
     let ciphertext = cipher
-        .encrypt(nonce, data.as_bytes())
+        .encrypt(&nonce, data.as_bytes())
         .map_err(|e| EncryptionError::EncryptionFailed(e.to_string()))?;
 
     // Combine nonce + ciphertext and encode as base64
-    let mut result = nonce_bytes.to_vec();
+    let mut result = nonce.to_vec();
     result.extend_from_slice(&ciphertext);
 
     Ok(BASE64.encode(result))
@@ -88,14 +86,15 @@ pub fn decrypt(encrypted_base64: &str, key_base64: &str) -> Result<String, Encry
 
     // Split nonce and ciphertext
     let (nonce_bytes, ciphertext) = encrypted_data.split_at(12);
-    let nonce = Nonce::from_slice(nonce_bytes);
-
-    let key = Key::<Aes256Gcm>::from_slice(&key_bytes);
-    let cipher = Aes256Gcm::new(key);
+    let nonce_array: [u8; 12] = nonce_bytes
+        .try_into()
+        .map_err(|_| EncryptionError::InvalidFormat)?;
+    let nonce = Nonce::from(nonce_array);
+    let cipher = Aes256Gcm::new_from_slice(&key_bytes).unwrap();
 
     // Decrypt the data
     let plaintext = cipher
-        .decrypt(nonce, ciphertext)
+        .decrypt(&nonce, ciphertext)
         .map_err(|e| EncryptionError::DecryptionFailed(e.to_string()))?;
 
     String::from_utf8(plaintext)

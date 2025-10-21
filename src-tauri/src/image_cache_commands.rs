@@ -1,8 +1,8 @@
+use reqwest;
 use std::fs;
 use std::path::Path;
 use tauri::{AppHandle, Manager};
 use tokio::fs as async_fs;
-use reqwest;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct CacheStats {
@@ -56,7 +56,11 @@ pub async fn download_image(
         .await
         .map_err(|e| format!("Failed to save image: {}", e))?;
 
-    log::info!("Downloaded and cached image: {} -> {}", url, full_path.display());
+    log::info!(
+        "Downloaded and cached image: {} -> {}",
+        url,
+        full_path.display()
+    );
     Ok(true)
 }
 
@@ -117,7 +121,10 @@ pub async fn get_cache_stats(app_handle: AppHandle) -> Result<CacheStats, String
     let default_total_size = 0;
     let default_oldest_image = u64::MAX;
 
-    fn scan_directory(dir: &Path, stats: &mut (u64, u64, u64)) -> Result<(), Box<dyn std::error::Error>> {
+    fn scan_directory(
+        dir: &Path,
+        stats: &mut (u64, u64, u64),
+    ) -> Result<(), Box<dyn std::error::Error>> {
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
             let path = entry.path();
@@ -142,8 +149,13 @@ pub async fn get_cache_stats(app_handle: AppHandle) -> Result<CacheStats, String
         Ok(())
     }
 
-    let mut stats = (default_total_images, default_total_size, default_oldest_image);
-    scan_directory(&cache_dir, &mut stats).map_err(|e| format!("Failed to scan cache directory: {}", e))?;
+    let mut stats = (
+        default_total_images,
+        default_total_size,
+        default_oldest_image,
+    );
+    scan_directory(&cache_dir, &mut stats)
+        .map_err(|e| format!("Failed to scan cache directory: {}", e))?;
 
     Ok(CacheStats {
         total_images: stats.0,
@@ -169,11 +181,16 @@ pub async fn cleanup_image_cache(app_handle: AppHandle, max_age_days: u64) -> Re
     let cutoff_time = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
-        .as_secs() - (max_age_days * 24 * 60 * 60);
+        .as_secs()
+        - (max_age_days * 24 * 60 * 60);
 
     let mut deleted_count = 0;
 
-    fn cleanup_directory(dir: &Path, cutoff: u64, count: &mut u64) -> Result<(), Box<dyn std::error::Error>> {
+    fn cleanup_directory(
+        dir: &Path,
+        cutoff: u64,
+        count: &mut u64,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
             let path = entry.path();
@@ -210,7 +227,10 @@ pub async fn cleanup_image_cache(app_handle: AppHandle, max_age_days: u64) -> Re
 
 /// Get the full path to a cached file
 #[tauri::command]
-pub async fn get_cached_file_path(app_handle: AppHandle, relative_path: String) -> Result<String, String> {
+pub async fn get_cached_file_path(
+    app_handle: AppHandle,
+    relative_path: String,
+) -> Result<String, String> {
     let app_data_dir = app_handle
         .path()
         .app_data_dir()

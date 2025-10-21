@@ -1,8 +1,8 @@
 /**
  * Tauri Commands for OAuth Authentication
  */
-use crate::anilist::AniListService;
-use crate::auth::{
+use crate::api::anilist::AniListService;
+use crate::auth::anilist::{
     AuthState, OAuthConfig, exchange_code_for_token, find_available_port, get_authorization_url,
     start_callback_server,
 };
@@ -161,7 +161,7 @@ pub async fn check_auth_status(
     log::info!("[Auth Command] Checking authentication status");
 
     // Try to fetch current user
-		let client = anilist_service.client().await;
+    let client = anilist_service.client().await;
     match client.user().get_current_user().await {
         Ok(_) => {
             log::info!("[Auth Command] User is authenticated");

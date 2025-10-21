@@ -1,7 +1,4 @@
-use anilist_moe::{
-    client::AniListClient,
-    errors::AniListError,
-};
+use anilist_moe::{client::AniListClient, errors::AniListError};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -34,7 +31,7 @@ impl AniListService {
         if let Some(t) = token {
             client.set_token(&t);
         } else {
-						client.clear_token();
+            client.clear_token();
         };
         log::info!("[AniListService] Token updated successfully");
         Ok(())

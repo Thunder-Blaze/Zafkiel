@@ -1,6 +1,7 @@
 use crate::config::{AppConfig, ConfigLoader, UiConfig};
+use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::{collections::HashMap, fs, path::PathBuf, sync::Arc};
 use tauri::{Manager, State};
 
 /// Shared state for config loader
@@ -231,4 +232,87 @@ pub fn open_devtools(app: tauri::AppHandle) -> ConfigResponse<()> {
 pub fn get_config_path(config: State<ConfigState>) -> ConfigResponse<String> {
     let path = config.get_config_file_path();
     ConfigResponse::success(path.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+pub fn get_themes_with_paths(app: tauri::AppHandle) -> ConfigResponse<HashMap<String, String>> {
+    let mut themes = HashMap::new();
+    let project_dirs = ProjectDirs::from("", "", "zafkiel").expect("Failed to get project dirs");
+    let resources_dir = app.path().resource_dir();
+    let themes_dir_config = project_dirs.config_dir().join("themes");
+    // Resources directory as themes location for default themes
+    let themes_dir_default = if let Some(res_dir) = resources_dir.unwrap().to_str() {
+        Some(PathBuf::from(res_dir).join("themes"))
+    } else {
+        None
+    };
+    log::info!(
+        "[Themes] Default themes directory: {:?}",
+        themes_dir_default
+    );
+    log::info!("[Themes] Config themes directory: {:?}", themes_dir_config);
+
+    if let Some(themes_dir) = themes_dir_default {
+        // Read theme files
+        if let Ok(entries) = fs::read_dir(&themes_dir) {
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    let path = entry.path();
+
+                    // 1. Check if the entry is a directory
+                    if path.is_dir() {
+                        // 2. Get the theme name (the directory's name)
+                        if let Some(theme_name_osstr) = path.file_name() {
+                            if let Some(theme_name) = theme_name_osstr.to_str() {
+                                // 3. Construct the path to the 'index.css' file
+                                let css_path = path.join("index.css");
+
+                                // 4. Check if 'index.css' actually exists
+                                if css_path.is_file() {
+                                    // 5. Insert the theme name and the path to the css file
+                                    themes.insert(
+                                        theme_name.to_string(),
+                                        path.to_string_lossy().into(),
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if let Some(themes_dir) = Some(themes_dir_config) {
+        // Read theme files
+        if let Ok(entries) = fs::read_dir(&themes_dir) {
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    let path = entry.path();
+
+                    // 1. Check if the entry is a directory
+                    if path.is_dir() {
+                        // 2. Get the theme name (the directory's name)
+                        if let Some(theme_name_osstr) = path.file_name() {
+                            if let Some(theme_name) = theme_name_osstr.to_str() {
+                                // 3. Construct the path to the 'index.css' file
+                                let css_path = path.join("index.css");
+
+                                // 4. Check if 'index.css' actually exists
+                                if css_path.is_file() {
+                                    // 5. Insert the theme name and the path to the css file
+                                    themes.insert(
+                                        theme_name.to_string(),
+                                        path.to_string_lossy().into(),
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    ConfigResponse::success(themes)
 }

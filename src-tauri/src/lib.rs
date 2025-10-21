@@ -1,18 +1,15 @@
-mod anilist;
-mod anilist_commands;
+mod api;
 mod auth;
-mod auth_commands;
 mod commands;
 mod config;
 mod database;
 mod db_commands;
 mod image_cache_commands;
-mod theme_commands;
 
-use anilist::AniListService;
-use auth::AuthState;
+use api::anilist::AniListService;
+use auth::anilist::AuthState;
 use database::Database;
-use std::sync::Arc;
+use std::{sync::Arc, vec};
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -29,7 +26,7 @@ pub fn run() {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()
-                        .level(log::LevelFilter::Info)
+                        .level(log::LevelFilter::Debug)
                         .build(),
                 )?;
             }
@@ -84,49 +81,49 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             // Config commands
-            commands::get_config,
-            commands::get_anilist_token,
-            commands::set_anilist_token,
-            commands::clear_anilist_token,
-            commands::get_ui_config,
-            commands::update_ui_config,
-            commands::update_theme,
-            commands::update_glow_effects,
-            commands::update_blur_effects,
-            commands::update_animations,
-            commands::update_smooth_scroll,
-            commands::update_hover_card,
-            commands::update_theme_mode,
-            commands::update_ui_scale,
-            commands::apply_ui_scale,
-            commands::open_devtools,
-            commands::get_config_path,
+            commands::config::get_config,
+            commands::config::get_anilist_token,
+            commands::config::set_anilist_token,
+            commands::config::clear_anilist_token,
+            commands::config::get_ui_config,
+            commands::config::update_ui_config,
+            commands::config::update_theme,
+            commands::config::update_glow_effects,
+            commands::config::update_blur_effects,
+            commands::config::update_animations,
+            commands::config::update_smooth_scroll,
+            commands::config::update_hover_card,
+            commands::config::update_theme_mode,
+            commands::config::update_ui_scale,
+            commands::config::apply_ui_scale,
+            commands::config::open_devtools,
+            commands::config::get_config_path,
+            commands::config::get_themes_with_paths,
+
             // Auth commands
-            auth_commands::start_oauth_flow,
-            auth_commands::open_auth_browser,
-            auth_commands::wait_for_oauth_callback,
-            auth_commands::check_auth_status,
-            auth_commands::logout,
+            commands::auth::start_oauth_flow,
+            commands::auth::open_auth_browser,
+            commands::auth::wait_for_oauth_callback,
+            commands::auth::check_auth_status,
+            commands::auth::logout,
+
+            // API commands
             // Media commands
-            anilist_commands::search_media,
-            anilist_commands::get_media_by_id,
+            commands::api::anilist::search_media,
+            commands::api::anilist::get_media_by_id,
 						// Anime commands
-            anilist_commands::get_trending_anime,
-            anilist_commands::get_popular_anime,
-            anilist_commands::get_upcoming_anime,
-            anilist_commands::get_airing_anime,
+            commands::api::anilist::get_trending_anime,
+            commands::api::anilist::get_popular_anime,
+            commands::api::anilist::get_upcoming_anime,
+            commands::api::anilist::get_airing_anime,
             // Manga commands
-            anilist_commands::get_trending_manga,
-            anilist_commands::get_popular_manga,
+            commands::api::anilist::get_trending_manga,
+            commands::api::anilist::get_popular_manga,
             // User commands
-            anilist_commands::get_current_user,
-            anilist_commands::get_user_by_id,
-            anilist_commands::get_user_by_name,
-            anilist_commands::search_users,
-            // Theme commands
-            theme_commands::list_themes,
-            theme_commands::save_theme_preference,
-            theme_commands::get_theme_preference,
+            commands::api::anilist::get_current_user,
+            commands::api::anilist::get_user_by_id,
+            commands::api::anilist::get_user_by_name,
+            commands::api::anilist::search_users,
             // Image cache commands
             image_cache_commands::download_image,
             image_cache_commands::file_exists,

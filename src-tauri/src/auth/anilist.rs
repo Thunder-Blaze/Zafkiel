@@ -3,9 +3,11 @@
  * Handles AniList OAuth flow with browser-based authorization
  */
 use serde::{Deserialize, Serialize};
-use std::net::TcpListener;
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use std::{net::TcpListener, sync::Arc};
+use tokio::sync::{
+    Mutex,
+    oneshot::{Receiver, Sender},
+};
 use url::Url;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -23,9 +25,8 @@ pub struct TokenResponse {
 
 #[derive(Debug, Clone)]
 pub struct AuthState {
-    pub pending_auth: Arc<Mutex<Option<tokio::sync::oneshot::Sender<Result<String, String>>>>>,
-    pub pending_receiver:
-        Arc<Mutex<Option<tokio::sync::oneshot::Receiver<Result<String, String>>>>>,
+    pub pending_auth: Arc<Mutex<Option<Sender<Result<String, String>>>>>,
+    pub pending_receiver: Arc<Mutex<Option<Receiver<Result<String, String>>>>>,
 }
 
 impl AuthState {

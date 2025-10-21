@@ -27,11 +27,10 @@ pub struct SecurityConfig {
 /// UI/UX preferences
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UiConfig {
-    /// Theme name (e.g., "catppuccin", "dark", "light")
+    /// Theme name (e.g., "catppuccin", "default", "cyberpunk")
     pub theme: String,
 
     /// Theme mode: "light", "dark", or "system"
-    #[serde(default = "default_theme_mode")]
     pub theme_mode: String,
 
     /// Enable glow effects on UI elements
@@ -51,16 +50,7 @@ pub struct UiConfig {
 
     /// UI scale factor (0.5 to 2.0, default 1.0)
     /// Controls the overall size of UI elements via CSS zoom
-    #[serde(default = "default_ui_scale")]
     pub ui_scale: f32,
-}
-
-fn default_ui_scale() -> f32 {
-    1.0
-}
-
-fn default_theme_mode() -> String {
-    "dark".to_string()
 }
 
 impl Default for AppConfig {
@@ -90,7 +80,7 @@ impl Default for SecurityConfig {
 impl Default for UiConfig {
     fn default() -> Self {
         Self {
-            theme: "catppuccin".to_string(),
+            theme: "default".to_string(),
             theme_mode: "dark".to_string(),
             glow_effects: true,
             blur_effects: true,
@@ -111,7 +101,7 @@ mod tests {
         let config = AppConfig::default();
         assert_eq!(config.anilist.access_token, None);
         assert_eq!(config.security.encryption_key, "");
-        assert_eq!(config.ui.theme, "catppuccin");
+        assert_eq!(config.ui.theme, "default");
         assert_eq!(config.ui.theme_mode, "dark");
         assert!(config.ui.glow_effects);
         assert!(config.ui.blur_effects);
