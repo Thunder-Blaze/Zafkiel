@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 
 // Re-export shared types
-export type { AppConfig, AniListConfig, SecurityConfig, UiConfig } from '$lib/types/config';
+export type { AppConfig, AniListConfig, UiConfig } from '$lib/types/config';
 import type { AppConfig, UiConfig } from '$lib/types/config';
 
 /**
@@ -22,32 +22,13 @@ export class ConfigService {
 	 */
 	static async getConfig(): Promise<AppConfig> {
 		const response = await invoke<ConfigResponse<AppConfig>>('get_config');
+
+		console.log('[ConfigService] getConfig response:', response);
+
 		if (!response.success || !response.data) {
 			throw new Error(response.error || 'Failed to get config');
 		}
 		return response.data;
-	}
-
-	/**
-	 * Get the decrypted AniList access token
-	 */
-	static async getAniListToken(): Promise<string | null> {
-		const response = await invoke<ConfigResponse<string | null>>('get_anilist_token');
-		if (!response.success) {
-			throw new Error(response.error || 'Failed to get AniList token');
-		}
-		return response.data ?? null;
-	}
-
-	/**
-	 * Set the AniList access token (will be encrypted automatically)
-	 * If encryption key doesn't exist, it will be generated automatically
-	 */
-	static async setAniListToken(token: string): Promise<void> {
-		const response = await invoke<ConfigResponse<void>>('set_anilist_token', { token });
-		if (!response.success) {
-			throw new Error(response.error || 'Failed to set AniList token');
-		}
 	}
 
 	/**

@@ -6,7 +6,7 @@
 	import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
 	import ProfileDropdown from '$lib/components/ProfileDropdown.svelte';
 	import { goto } from '$app/navigation';
-	import { navigating, page } from '$app/stores';
+	import { page } from '$app/state';
 	import { Window, getCurrentWindow } from '@tauri-apps/api/window';
 	import type { UnlistenFn } from '@tauri-apps/api/event';
 	import {
@@ -32,8 +32,11 @@
 	let searchQuery = $state('');
 
 	// Platform-specific keyboard shortcut display
-	const isMac = browser && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
-	const searchShortcut = isMac ? '⌘K' : 'Ctrl+K';
+	const isMac = browser && (
+		navigator.userAgent.includes('Mac') ||
+		navigator.userAgent.includes('iPhone') ||
+		navigator.userAgent.includes('iPad')
+	);
 
 	let unlisten: UnlistenFn | null = null;
 
@@ -52,10 +55,9 @@
 			});
 
 			// Initialize navigation history with current page
-			if (browser && $page.url.pathname) {
-				navigationHistory = [$page.url.pathname];
+			if (browser && page.url.pathname) {
+				navigationHistory = [page.url.pathname];
 				currentHistoryIndex = 0;
-				console.log('[TitleBar] Navigation history initialized:', navigationHistory);
 			}
 
 			// Initialize keybindings
@@ -84,8 +86,8 @@
 
 	// Track navigation for history
 	$effect(() => {
-		if (browser && $page.url.pathname) {
-			const newPath = $page.url.pathname;
+		if (browser && page.url.pathname) {
+			const newPath = page.url.pathname;
 
 			// Skip if this is the same as current path
 			if (newPath === navigationHistory[currentHistoryIndex]) {
@@ -106,7 +108,7 @@
 				// New navigation - remove any forward history and add new path
 				navigationHistory = [...navigationHistory.slice(0, currentHistoryIndex + 1), newPath];
 				currentHistoryIndex = navigationHistory.length - 1;
-				console.log('[TitleBar] New navigation to:', newPath, 'history:', navigationHistory);
+				$inspect('[TitleBar] New navigation to:', newPath, 'history:', navigationHistory);
 			}
 		}
 	});
@@ -163,7 +165,7 @@
 	function handleSearchSubmit(): void {
 		if (searchQuery.trim()) {
 			// TODO: Implement search functionality
-			console.log('[TitleBar] Search:', searchQuery);
+			$inspect('[TitleBar] Search:', searchQuery);
 			// For now, navigate to search page or show search modal
 		}
 	}
@@ -244,7 +246,7 @@
 			<!-- Nav Items -->
 			<div class="ml-2 flex h-full items-center gap-1">
 				{#each navItems as item}
-					{@const isActive = $page.url.pathname === item.path}
+					{@const isActive = page.url.pathname === item.path}
 					<Button
 						variant="ghost"
 						size="sm"
@@ -339,7 +341,7 @@
 	<div class="h-12"></div>
 {/if}
 
-<style lang="postcss">
+<style>
 	[data-tauri-drag-region] {
 		-webkit-app-region: drag;
 	}

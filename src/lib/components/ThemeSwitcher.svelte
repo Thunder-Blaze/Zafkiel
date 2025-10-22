@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { themeStore } from '$lib/stores/theme.svelte';
+	import { useThemeState } from '$lib/stores/theme.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import {
 		Sheet,
@@ -16,10 +16,13 @@
 	let open = $state(false);
 	let switchingTheme = $state(false);
 	let scrollContainerRef: HTMLDivElement | null = $state(null);
+	let themeState = useThemeState();
+
+	let themes = $derived.by(() => Array.from(themeState.themes.values()));
 
 	async function handleThemeModeChange(mode: 'light' | 'dark' | 'system'): Promise<void> {
 		try {
-			await themeStore.setThemeMode(mode);
+			themeState.setThemeMode(mode);
 			const modeText = mode === 'system' ? 'system preference' : `${mode} mode`;
 			toast.success(`Theme mode set to ${modeText}`);
 		} catch (error) {
@@ -29,34 +32,9 @@
 
 	async function handleThemeSwitch(themeId: string): Promise<void> {
 		if (switchingTheme) return;
-
-		const isLoaded = themeStore.loadedThemes.has(themeId);
-
-		// If theme is not loaded, load it first
-		if (!isLoaded) {
-			switchingTheme = true;
-			try {
-				await themeStore.loadTheme(themeId);
-				toast.success(`Loaded ${themeId} theme`);
-			} catch (error) {
-				toast.error('Failed to load theme');
-				switchingTheme = false;
-				return;
-			}
-		}
-
-		// Now switch to it if it's not already active
-		if (themeStore.currentTheme !== themeId) {
-			try {
-				await themeStore.switchTheme(themeId);
-				toast.success(`Switched to ${themeId} theme`);
-			} catch (error) {
-				toast.error('Failed to switch theme');
-			}
-		}
-
+		switchingTheme = true;
+		themeState.setTheme(themeState.themes.get(themeId)!);
 		switchingTheme = false;
-		// open = false; // Close the sheet after switching
 	}
 
 	// Prevent scroll propagation to background
@@ -116,7 +94,7 @@
 					<Label class="mb-3 block text-sm font-semibold">Color Mode</Label>
 					<div class="flex gap-2">
 						<Button
-							variant={themeStore.themeMode === 'light' ? 'default' : 'outline'}
+							variant={themeState.currentThemeMode === 'light' ? 'default' : 'outline'}
 							size="sm"
 							class="flex-1 gap-1.5 text-xs"
 							onclick={() => handleThemeModeChange('light')}
@@ -125,7 +103,7 @@
 							Light
 						</Button>
 						<Button
-							variant={themeStore.themeMode === 'dark' ? 'default' : 'outline'}
+							variant={themeState.currentThemeMode === 'dark' ? 'default' : 'outline'}
 							size="sm"
 							class="flex-1 gap-1.5 text-xs"
 							onclick={() => handleThemeModeChange('dark')}
@@ -134,7 +112,7 @@
 							Dark
 						</Button>
 						<Button
-							variant={themeStore.themeMode === 'system' ? 'default' : 'outline'}
+							variant={themeState.currentThemeMode === 'system' ? 'default' : 'outline'}
 							size="sm"
 							class="flex-1 gap-1.5 text-xs"
 							onclick={() => handleThemeModeChange('system')}
@@ -149,9 +127,9 @@
 
 				<Label class="text-sm font-semibold">Theme Styles</Label>
 
-				{#each themeStore.availableThemes as theme}
-					{@const isActive = themeStore.currentTheme === theme.id}
-					{@const isLoaded = themeStore.loadedThemes.has(theme.id)}
+				{#each themes as theme}
+					{@const isActive = themeState.currentThemeId === theme.id}
+					{@const isLoaded = themeState.themes.get(theme.id)?.linkElement !== undefined}
 
 					<button
 						onclick={() => handleThemeSwitch(theme.id)}

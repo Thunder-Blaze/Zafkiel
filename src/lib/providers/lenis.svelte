@@ -1,23 +1,12 @@
 <script lang="ts">
 	import Lenis from '@studio-freight/lenis';
-	import { smoothScroll } from '$lib/stores/config';
+	import { useConfigState } from '$lib/stores/config.svelte';
 
 	const { children } = $props();
 
 	let lenis: Lenis | null = $state(null);
 	let rafId: number | null = $state(null);
-	let smoothScrollEnabled = $state(false);
-
-	// Subscribe to smooth scroll config
-	$effect(() => {
-		const unsubscribe = smoothScroll.subscribe((value) => {
-			smoothScrollEnabled = value;
-		});
-
-		return () => {
-			unsubscribe();
-		};
-	});
+	let smoothScrollEnabled = $derived(useConfigState().smoothScroll);
 
 	// Initialize/destroy Lenis based on config
 	$effect(() => {

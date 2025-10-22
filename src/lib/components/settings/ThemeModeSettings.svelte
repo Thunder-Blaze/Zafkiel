@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { themeStore } from '$lib/stores/theme.svelte';
+	import { useThemeState } from '$lib/stores/theme.svelte';
 	import {
 		Card,
 		CardContent,
@@ -13,9 +13,11 @@
 	import Icon from '@iconify/svelte';
 	import { slide } from 'svelte/transition';
 
+	const themeState = useThemeState();
+
 	async function handleThemeModeChange(mode: 'light' | 'dark' | 'system'): Promise<void> {
 		try {
-			await themeStore.setThemeMode(mode);
+			themeState.setThemeMode(mode);
 			const modeText = mode === 'system' ? 'system preference' : `${mode} mode`;
 			toast.success(`Theme mode set to ${modeText}`);
 		} catch (error) {
@@ -41,7 +43,7 @@
 			<!-- Theme Mode -->
 			<div class="flex gap-2">
 				<Button
-					variant={themeStore.themeMode === 'light' ? 'default' : 'outline'}
+					variant={themeState.currentThemeMode === 'light' ? 'default' : 'outline'}
 					size="sm"
 					class="flex-1 gap-2"
 					onclick={() => handleThemeModeChange('light')}
@@ -50,7 +52,7 @@
 					Light
 				</Button>
 				<Button
-					variant={themeStore.themeMode === 'dark' ? 'default' : 'outline'}
+					variant={themeState.currentThemeMode === 'dark' ? 'default' : 'outline'}
 					size="sm"
 					class="flex-1 gap-2"
 					onclick={() => handleThemeModeChange('dark')}
@@ -59,7 +61,7 @@
 					Dark
 				</Button>
 				<Button
-					variant={themeStore.themeMode === 'system' ? 'default' : 'outline'}
+					variant={themeState.currentThemeMode === 'system' ? 'default' : 'outline'}
 					size="sm"
 					class="flex-1 gap-2"
 					onclick={() => handleThemeModeChange('system')}

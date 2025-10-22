@@ -4,7 +4,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import { authStore, isAuthenticated, currentUser, authLoading } from '$lib/stores/auth';
-	import { themeStore } from '$lib/stores/theme.svelte';
+	import { useThemeState } from '$lib/stores/theme.svelte';
 	import Loader from '$lib/components/Loader.svelte';
 	import { goto } from '$app/navigation';
 	import ThemeBadge from '$lib/components/dashboard/ThemeBadge.svelte';
@@ -52,13 +52,14 @@
 	];
 
 	const fallbackThemeImage = '/images/fallback-theme.png';
+	const themeState = useThemeState();
 </script>
 
 {#if $authLoading}
 	<Loader text="Loading your dashboard..." />
 {:else}
 	<div
-		class="relative h-[calc(100vh-3rem)] overflow-hidden {themeStore.isDark
+		class="relative h-[calc(100vh-3rem)] overflow-hidden {themeState.currentThemeMode === 'dark'
 			? 'bg-black/40'
 			: 'bg-white/40'}"
 	>
@@ -66,9 +67,9 @@
 		<div class="absolute inset-0 flex items-center justify-center">
 			<!-- Dynamic Text -->
 			<h1
-				class="absolute -z-10 font-mono font-bold tracking-tight text-foreground/20"
+				class="absolute -z-10 font-bold tracking-tight text-foreground/20"
 				style="
-					font-size: {100 / ($currentUser?.name?.length || 5)}vw;
+					font-size: {110 / ($currentUser?.name?.length || 5)}vw;
 					text-shadow: '2px 2px 4px rgba(0, 0, 0, 0.7)';
 					user-select: 'none';
 					pointer-events: 'none';
@@ -82,7 +83,7 @@
 			></div>
 
 			<img
-				src="{themeStore.currentThemePath}/theme.png"
+				src="{themeState.currentThemePath}/theme.png"
 				onerror={(e) => {
 					if ((e.target as HTMLImageElement)?.src)
 						(e.target as HTMLImageElement).src = fallbackThemeImage;

@@ -9,10 +9,10 @@
 	import LenisProvider from '$lib/providers/lenis.svelte';
 	import AnimationProvider from '$lib/providers/animation.svelte';
 	import TitleBar from '$lib/components/TitleBar.svelte';
-	import { configStore } from '$lib/stores/config';
+	import { useConfigState } from '$lib/stores/config.svelte';
 	import { authStore } from '$lib/stores/auth';
 	import { useUiScale } from '$lib/hooks/useUiScale.svelte';
-	import { themeStore } from '$lib/stores/theme.svelte';
+	import { useThemeState } from '$lib/stores/theme.svelte';
 	import Loader from '$lib/components/Loader.svelte';
 	import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 
@@ -20,13 +20,15 @@
 
 	let isReady = $state(false);
 	let uiScale = useUiScale();
+	let config = useConfigState();
+	let theme = useThemeState();
 
 	// Initialize config, auth, and theme stores on app mount
 	onMount(async () => {
 		try {
 			// Initialize stores sequentially, with theme first
-			await themeStore.initialize();
-			await configStore.init();
+			await config.init();
+			await theme.init();
 			await authStore.init();
 
 			// Mark as ready once theme is loaded
@@ -37,32 +39,46 @@
 			isReady = true;
 		}
 	});
+
+
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-{#if isReady}
-	<!-- Custom Title Bar -->
-	<TitleBar />
+<svelte:body />
 
-	<!-- Portals at root level - webview zoom scales everything -->
-	<ThemedToaster />
-	<ContextMenu />
+<svelte:boundary>
+	{#snippet pending()}
+		<Loader text="Initializing Zafkiel..." />
+	{/snippet}
 
-	<!-- Main app content -->
-	<TanstackProvider>
-		<LenisProvider>
-			<ContextMenuProvider>
-				<AnimationProvider>
-					{@render children?.()}
-				</AnimationProvider>
-			</ContextMenuProvider>
-		</LenisProvider>
-		<SvelteQueryDevtools />
-	</TanstackProvider>
-{:else}
-	<!-- Loading state with theme-aware background -->
-	<Loader text="Loading Zafkiel..." />
-{/if}
+	{#snippet failed(error, reset)}
+		<p>There was some Error</p>
+		<button onclick={reset}>Reload</button>
+	{/snippet}
+
+	{#if isReady}
+		<!-- Custom Title Bar -->
+		<TitleBar />
+
+		<!-- Portals at root level - webview zoom scales everything -->
+		<ThemedToaster />
+		<ContextMenu />
+
+		<!-- Main app content -->
+		<TanstackProvider>
+			<LenisProvider>
+				<ContextMenuProvider>
+					<AnimationProvider>
+						{@render children?.()}
+					</AnimationProvider>
+				</ContextMenuProvider>
+			</LenisProvider>
+			<SvelteQueryDevtools />
+		</TanstackProvider>
+	{:else}
+		<Loader text="Loading Zafkiel..." />
+	{/if}
+</svelte:boundary>

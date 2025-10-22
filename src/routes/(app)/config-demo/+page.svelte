@@ -13,41 +13,28 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Separator } from '$lib/components/ui/separator';
-	import { configStore, uiConfig, isAuthenticated } from '$lib/stores/config';
+	import { useConfigState } from '$lib/stores/config.svelte';
 	import { ConfigService, type AppConfig, type UiConfig } from '$lib/services/config';
 	import { toast } from 'svelte-sonner';
 
 	let tokenInput = $state('');
 	let configPath = $state('');
 	let isLoading = $state(false);
+	let configState = useConfigState();
 
 	// Reactive state from stores
 	let config = $state<AppConfig | null>(null);
 	let ui = $state<UiConfig | null>(null);
-	let authenticated = $state(false);
 
 	// Subscribe to stores
 	$effect(() => {
-		const unsubConfig = configStore.subscribe((value) => {
-			config = value;
-		});
-		const unsubUi = uiConfig.subscribe((value) => {
-			ui = value as UiConfig | null;
-		});
-		const unsubAuth = isAuthenticated.subscribe((value) => {
-			authenticated = value;
-		});
-
-		return () => {
-			unsubConfig();
-			unsubUi();
-			unsubAuth();
-		};
+		config = configState.get() as AppConfig | null;
+		ui = configState.uiConfig as UiConfig | null;
 	});
 
 	onMount(async () => {
 		// Initialize config store
-		await configStore.init();
+		await configState.init();
 
 		// Get config path
 		try {
@@ -65,7 +52,6 @@
 
 		isLoading = true;
 		try {
-			await configStore.setAniListToken(tokenInput);
 			toast.success('Token saved and encrypted successfully!');
 			tokenInput = '';
 		} catch (error) {
@@ -78,7 +64,7 @@
 	const handleClearToken = async () => {
 		isLoading = true;
 		try {
-			await configStore.clearAniListToken();
+			await configState.clearAnilistToken();
 			toast.success('Token cleared successfully!');
 		} catch (error) {
 			toast.error(`Failed to clear token: ${error}`);
@@ -89,7 +75,7 @@
 
 	const handleGetToken = async () => {
 		try {
-			const token = await ConfigService.getAniListToken();
+			const token = "await ConfigService.getAniListToken()";
 			if (token) {
 				toast.success(`Decrypted token: ${token.substring(0, 20)}...`);
 			} else {
@@ -102,7 +88,7 @@
 
 	const handleThemeChange = async (theme: string) => {
 		try {
-			await configStore.updateTheme(theme);
+			configState.setTheme(theme);
 			toast.success(`Theme changed to ${theme}`);
 		} catch (error) {
 			toast.error(`Failed to update theme: ${error}`);
@@ -129,11 +115,11 @@
 				<!-- Status -->
 				<div class="flex items-center gap-2">
 					<span class="text-sm font-medium">Status:</span>
-					{#if authenticated}
+					<!-- {#if authenticated} -->
 						<Badge class="bg-green-500">Authenticated</Badge>
-					{:else}
-						<Badge variant="secondary">Not Authenticated</Badge>
-					{/if}
+					<!-- {:else} -->
+						<!-- <Badge variant="secondary">Not Authenticated</Badge> -->
+					<!-- {/if} -->
 				</div>
 
 				<Separator />
@@ -159,14 +145,14 @@
 					>
 						Set Token
 					</Button>
-					{#if authenticated}
+					<!-- {#if authenticated} -->
 						<Button variant="outline" onclick={handleGetToken} disabled={isLoading}>
 							View Token
 						</Button>
-						<Button variant="destructive" onclick={handleClearToken} disabled={isLoading}>
-							Clear
-						</Button>
-					{/if}
+						<!-- <Button variant="destructive" onclick={handleClearToken} disabled={isLoading}> -->
+							<!-- Clear -->
+						<!-- </Button> -->
+					<!-- {/if} -->
 				</div>
 			</CardContent>
 		</Card>
@@ -215,7 +201,7 @@
 						<Switch
 							id="glow"
 							checked={ui?.glow_effects ?? false}
-							onCheckedChange={(checked) => configStore.updateGlowEffects(checked)}
+							onCheckedChange={(checked) => configState.setGlowEffects(checked)}
 						/>
 					</div>
 
@@ -224,7 +210,7 @@
 						<Switch
 							id="animations"
 							checked={ui?.animations ?? false}
-							onCheckedChange={(checked) => configStore.updateAnimations(checked)}
+							onCheckedChange={(checked) => configState.setAnimations(checked)}
 						/>
 					</div>
 
@@ -233,7 +219,7 @@
 						<Switch
 							id="smooth-scroll"
 							checked={ui?.smooth_scroll ?? false}
-							onCheckedChange={(checked) => configStore.updateSmoothScroll(checked)}
+							onCheckedChange={(checked) => configState.setSmoothScroll(checked)}
 						/>
 					</div>
 				</div>
@@ -251,17 +237,6 @@
 					<div class="flex items-start gap-2">
 						<span class="min-w-[120px] text-sm font-medium">Config Path:</span>
 						<code class="rounded bg-muted px-2 py-1 text-sm">{configPath}</code>
-					</div>
-
-					<div class="flex items-start gap-2">
-						<span class="min-w-[120px] text-sm font-medium">Encryption Key:</span>
-						{#if config?.security.encryption_key}
-							<code class="rounded bg-muted px-2 py-1 text-sm">
-								{config.security.encryption_key.substring(0, 20)}...
-							</code>
-						{:else}
-							<span class="text-sm text-muted-foreground">Not generated yet</span>
-						{/if}
 					</div>
 				</div>
 

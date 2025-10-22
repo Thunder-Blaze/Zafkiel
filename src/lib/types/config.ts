@@ -14,14 +14,6 @@ export interface AniListConfig {
 }
 
 /**
- * Security and encryption configuration
- */
-export interface SecurityConfig {
-	/** Base64-encoded encryption key */
-	encryption_key: string;
-}
-
-/**
  * UI/UX preferences
  */
 export interface UiConfig {
@@ -47,7 +39,5 @@ export interface UiConfig {
  * Application configuration structure
  */
 export interface AppConfig {
-	anilist: AniListConfig;
-	security: SecurityConfig;
 	ui: UiConfig;
 }

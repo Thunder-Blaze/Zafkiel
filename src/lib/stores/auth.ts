@@ -78,7 +78,7 @@ function createAuthStore() {
 						});
 						// Save to cache
 						saveAuthCache(true, userResponse.data);
-						console.log('[AuthStore] User authenticated:', userResponse.data.name);
+						// console.log('[AuthStore] User authenticated:', userResponse.data.name);
 					} else {
 						throw new Error(userResponse.error || 'Failed to fetch user profile');
 					}
@@ -126,7 +126,7 @@ function createAuthStore() {
 					});
 					// Save to cache
 					saveAuthCache(true, userResponse.data);
-					console.log('[AuthStore] Login successful:', userResponse.data.name);
+					// console.log('[AuthStore] Login successful:', userResponse.data.name);
 				} else {
 					throw new Error(userResponse.error || 'Failed to fetch user profile');
 				}

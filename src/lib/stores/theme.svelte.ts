@@ -1,260 +1,106 @@
-import { themeManager, type Theme } from '$lib/services/theme';
-import { ConfigService } from '$lib/services/config';
-import { SvelteSet } from 'svelte/reactivity';
-import { loadThemeCache, saveThemeCache } from './sessionCache';
+import ThemeService, { type Themes, type Theme, type ThemeMode } from '$lib/services/theme.svelte';
+import { useConfigState } from './config.svelte';
+import { browser } from '$app/environment';
+import { THEME_CACHE_KEY } from '$lib/constants';
+import { SvelteMap } from 'svelte/reactivity';
+
+const config = useConfigState();
 
 interface ThemeState {
-	currentTheme: string;
-	isDark: boolean;
-	themeMode: 'light' | 'dark' | 'system';
-	availableThemes: Theme[];
-	loadedThemes: SvelteSet<string>;
-	isLoading: boolean;
-	initialized: boolean;
+	themes: Themes;
 }
 
-function createThemeStore() {
-	const state = $state<ThemeState>({
-		currentTheme: 'default',
-		isDark: false,
-		themeMode: 'dark',
-		availableThemes: [],
-		loadedThemes: new SvelteSet<string>(),
-		isLoading: false,
-		initialized: false,
-	});
+const initialThemeState = browser ? JSON.parse(sessionStorage.getItem(THEME_CACHE_KEY) || 'null') : null;
+let themeState = $state<ThemeState | null>(initialThemeState);
 
-	return {
-		get currentTheme() {
-			return state.currentTheme;
-		},
-		get currentThemePath() {
-			return `/themes/${state.currentTheme}`;
-		},
-		get isDark() {
-			return state.isDark;
-		},
-		get themeMode() {
-			return state.themeMode;
-		},
-		get availableThemes() {
-			return state.availableThemes;
-		},
-		get loadedThemes() {
-			return state.loadedThemes;
-		},
-		get isLoading() {
-			return state.isLoading;
-		},
-		get initialized() {
-			return state.initialized;
-		},
+let cleanup: (() => void) | null = null;
 
-		/**
-		 * Get the absolute path to a specific theme's directory
-		 * @param themeId - The theme ID (optional, defaults to current theme)
-		 * @returns The path to the theme folder (e.g., "/themes/catppuccin")
-		 */
-		getThemePath(themeId?: string): string {
-			return `/themes/${themeId || state.currentTheme}`;
-		},
-
-		async initialize() {
-			// Prevent multiple initializations
-			if (state.initialized) {
-				console.log('[ThemeStore] Already initialized, skipping');
-				return;
-			}
-
-			console.log('[ThemeStore] Initializing...');
-
-			// Try to load cached theme data first
-			const cached = loadThemeCache();
-			if (cached) {
-				console.log('[ThemeStore] ✓ Using cached theme data');
-				state.currentTheme = cached.currentTheme;
-				state.isDark = cached.isDark;
-				state.themeMode = cached.mode;
-				state.availableThemes = cached.availableThemes;
-				state.loadedThemes.add(state.currentTheme);
-				state.initialized = true;
-
-				// Apply theme immediately from cache (skips backend call)
-				this.applyThemeMode(state.themeMode);
-				await themeManager.initializeWithTheme(state.currentTheme, state.isDark);
-
-				return;
-			}
-
-			state.isLoading = true;
-
-			try {
-				// Load theme_mode from config service
-				// This will use backend but only on first load (not on cache hit)
-				const config = await ConfigService.getUiConfig();
-				state.themeMode = config.theme_mode;
-
-				// Determine isDark based on theme_mode
-				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-				if (state.themeMode === 'system') {
-					state.isDark = prefersDark;
-				} else {
-					state.isDark = state.themeMode === 'dark';
+// Only create effects in browser environment
+if (browser) {
+	cleanup = $effect.root(() => {
+		if (themeState) {
+				try {
+					sessionStorage.setItem(THEME_CACHE_KEY, JSON.stringify(themeState));
+				} catch (error) {
+					console.error('[ThemeState] ✗ Failed to save theme state to session storage, reverting:', error);
+					themeState = JSON.parse(sessionStorage.getItem(THEME_CACHE_KEY) || 'null');
 				}
+			}
 
-				// Apply theme mode to document immediately
-				this.applyThemeMode(state.themeMode);
+		return () => {
+			console.log('[ThemeState] Effect root cleanup');
+		};
+	});
+}
 
-				await themeManager.initialize(state.isDark);
-				state.currentTheme = themeManager.getCurrentTheme();
-
-				const themes = await themeManager.listThemes();
-				state.availableThemes = themes;
-
-				// Mark initially loaded theme
-				state.loadedThemes.add(state.currentTheme);
-
-				// Cache the theme state
-				saveThemeCache({
-					mode: state.themeMode,
-					currentTheme: state.currentTheme,
-					availableThemes: state.availableThemes,
-					isDark: state.isDark,
-				});
-
-				state.initialized = true;
-				console.log('[ThemeStore] ✓ Initialized with theme_mode:', state.themeMode);
-
-				// Listen for system preference changes only if theme_mode is 'system'
-				window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-					if (state.themeMode === 'system') {
-						state.isDark = e.matches;
-						this.applyThemeMode('system');
-					}
-				});
-			} catch (error) {
-				console.error('[ThemeStore] ✗ Init failed:', error);
-				state.currentTheme = 'default';
-				state.isDark = false;
-				state.themeMode = 'dark';
-				state.availableThemes = [];
-				state.initialized = true;
-			} finally {
-				state.isLoading = false;
+export const useThemeState = () => {
+	return {
+		init: async () => {
+			if (!themeState) {
+				themeState = {
+					themes: await ThemeService.listThemes(),
+				};
+				await ThemeService.initTheme(themeState.themes);
 			}
 		},
 
-		async switchTheme(themeId: string) {
-			if (state.currentTheme === themeId) return;
+		// Getter && Setter Function
+		get: () => themeState,
 
-			console.log(`[ThemeStore] Switching to: ${themeId}`);
-			state.isLoading = true;
+		get themes(): SvelteMap<string, Theme> {
+			return themeState ? themeState.themes : new SvelteMap();
+		},
 
-			try {
-				await themeManager.switchTheme(themeId, state.isDark);
-				state.currentTheme = themeId;
-				state.loadedThemes.add(themeId);
+		get currentThemeId(): string | null {
+			return config ? config.theme : null;
+		},
 
-				// Update cache
-				saveThemeCache({
-					mode: state.themeMode,
-					currentTheme: state.currentTheme,
-					availableThemes: state.availableThemes,
-					isDark: state.isDark,
-				});
+		get currentThemePath(): string | null {
+			if (!themeState || !config) return null;
+			const theme = themeState.themes.get(config.theme);
+			return theme ? theme.path : null;
+		},
 
-				console.log('[ThemeStore] ✓ Switched to:', themeId);
-			} catch (error) {
-				console.error('[ThemeStore] ✗ Switch failed:', error);
-				throw error;
-			} finally {
-				state.isLoading = false;
+		get currentThemeMode(): ThemeMode | null {
+			return config ? config.themeMode : null;
+		},
+
+		get currentTheme(): Theme | null {
+			if (!themeState || !config) return null;
+			return themeState.themes.get(config.theme) || null;
+		},
+
+		setAvailableThemes: (themes: Theme[]) => {
+			if (themeState) {
+				themeState.themes = new SvelteMap(themes.map(theme => [theme.id, theme]));
 			}
 		},
 
-		async loadTheme(themeId: string) {
-			if (state.loadedThemes.has(themeId)) {
-				console.log(`[ThemeStore] Theme ${themeId} already loaded`);
-				return;
-			}
-
-			console.log(`[ThemeStore] Loading theme: ${themeId}`);
-			state.isLoading = true;
-
-			try {
-				await themeManager.loadTheme(themeId);
-				state.loadedThemes.add(themeId);
-				console.log('[ThemeStore] ✓ Loaded:', themeId);
-			} catch (error) {
-				console.error('[ThemeStore] ✗ Load failed:', error);
-				throw error;
-			} finally {
-				state.isLoading = false;
+		setThemeAndMode: ({ theme, mode }: { theme: Theme; mode: ThemeMode }) => {
+			if (themeState) {
+				ThemeService.setTheme(theme, mode, themeState.themes);
 			}
 		},
 
-		/**
-		 * Apply theme mode to document
-		 * This is the single source of truth for light/dark mode classes
-		 */
-		applyThemeMode(mode: 'light' | 'dark' | 'system') {
-			const root = document.documentElement;
+		setTheme: (theme: Theme) => {
+			if (themeState && config.themeMode) {
+				ThemeService.setTheme(theme, config.themeMode, themeState.themes);
+			}
+			ThemeService.setTheme(theme, config.themeMode, themeState!.themes);
+		},
 
-			if (mode === 'system') {
-				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-				root.classList.remove('light', 'dark');
-				root.classList.add(prefersDark ? 'dark' : 'light');
-				state.isDark = prefersDark;
-			} else {
-				root.classList.remove('light', 'dark');
-				root.classList.add(mode);
-				state.isDark = mode === 'dark';
+		setThemeMode: (mode: ThemeMode) => {
+			if (themeState && config.theme) {
+				ThemeService.setTheme(themeState.themes.get(config.theme)!, mode, themeState.themes);
 			}
 		},
 
-		/**
-		 * Update theme mode and persist to config
-		 */
-		async setThemeMode(mode: 'light' | 'dark' | 'system') {
-			if (state.themeMode === mode) return;
-
-			try {
-				await ConfigService.updateThemeMode(mode);
-				state.themeMode = mode;
-				this.applyThemeMode(mode);
-
-				// Update cache
-				saveThemeCache({
-					mode: state.themeMode,
-					currentTheme: state.currentTheme,
-					availableThemes: state.availableThemes,
-					isDark: state.isDark,
-				});
-
-				console.log('[ThemeStore] ✓ Theme mode updated to:', mode);
-			} catch (error) {
-				console.error('[ThemeStore] ✗ Failed to update theme mode:', error);
-				throw error;
-			}
-		},
-
-		setDarkMode(isDark: boolean) {
-			if (state.isDark === isDark) return;
-
-			state.isDark = isDark;
-			const root = document.documentElement;
-
-			if (isDark) {
-				root.classList.add('dark');
-			} else {
-				root.classList.remove('dark');
-			}
-		},
-
-		toggleDarkMode() {
-			this.setDarkMode(!state.isDark);
-		},
+		// Cleanup function to destroy the effect root when no longer needed
+    destroy: () => {
+      if (cleanup) {
+        cleanup();
+        cleanup = null;
+      }
+    }
 	};
 }
-
-export const themeStore = createThemeStore();

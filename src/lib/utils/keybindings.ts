@@ -11,7 +11,11 @@
 // Platform Detection
 // ============================================================================
 
-const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+const isMac = typeof navigator !== 'undefined' && (
+	navigator.userAgent.includes('Mac') ||
+	navigator.userAgent.includes('iPhone') ||
+	navigator.userAgent.includes('iPad')
+);
 
 /**
  * Cross-platform modifier key that represents the primary modifier

@@ -8,41 +8,21 @@
 	} from '$lib/components/ui/card';
 	import { Label } from '$lib/components/ui/label';
 	import { Separator } from '$lib/components/ui/separator';
-	import { themeStore } from '$lib/stores/theme.svelte';
+	import { useThemeState } from '$lib/stores/theme.svelte';
 	import { toast } from 'svelte-sonner';
 	import Icon from '@iconify/svelte';
 	import { slide } from 'svelte/transition';
+
+	let themeState = useThemeState();
+
+	let themes = $derived(themeState.themes.values());
 
 	let switchingTheme = $state(false);
 
 	async function handleThemeSwitch(themeId: string): Promise<void> {
 		if (switchingTheme) return;
-
-		const isLoaded = themeStore.loadedThemes.has(themeId);
-
-		// If theme is not loaded, load it first
-		if (!isLoaded) {
-			switchingTheme = true;
-			try {
-				await themeStore.loadTheme(themeId);
-				toast.success(`Loaded ${themeId} theme`);
-			} catch (error) {
-				toast.error('Failed to load theme');
-				switchingTheme = false;
-				return;
-			}
-		}
-
-		// Now switch to it if it's not already active
-		if (themeStore.currentTheme !== themeId) {
-			try {
-				await themeStore.switchTheme(themeId);
-				toast.success(`Switched to ${themeId} theme`);
-			} catch (error) {
-				toast.error('Failed to switch theme');
-			}
-		}
-
+		switchingTheme = true;
+		themeState.setTheme(themeState.themes.get(themeId)!);
 		switchingTheme = false;
 	}
 </script>
@@ -67,9 +47,9 @@
 			<div class="space-y-3">
 				<Label class="text-base font-medium">Color Theme</Label>
 				<div class="grid grid-cols-2 gap-3 lg:grid-cols-3">
-					{#each themeStore.availableThemes as theme}
-						{@const isActive = themeStore.currentTheme === theme.id}
-						{@const isLoaded = themeStore.loadedThemes.has(theme.id)}
+					{#each themes as theme}
+						{@const isActive = themeState.currentThemeId === theme.id}
+						{@const isLoaded = themeState.themes.get(theme.id)?.linkElement !== undefined}
 
 						<button
 							onclick={() => handleThemeSwitch(theme.id)}
