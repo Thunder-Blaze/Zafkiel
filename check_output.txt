@@ -1,0 +1,768 @@
+
+> zafkiel@0.0.1 check
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: /home/ThunderBlaze/Documents/Projects/AiGen/zafkiel
+Getting Svelte diagnostics...
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/vite.config.ts:8:3
+Error: No overload matches this call.
+  The last overload gave the following error.
+    Type 'Plugin$1<any>[]' is not assignable to type 'PluginOption'.
+      Type 'Plugin$1<any>[]' is not assignable to type 'PluginOption[]'.
+        Type 'Plugin$1<any>' is not assignable to type 'PluginOption'.
+          Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+            Types of property 'hotUpdate' are incompatible.
+              Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                  Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                    Types of parameters 'options' and 'options' are incompatible.
+                      Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                        The types of 'server.config.builder' are incompatible between these types.
+                          Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                            Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                              Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>'.
+                                Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type 'BuilderOptions'.
+                                  Types of property 'buildApp' are incompatible.
+                                    Type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>' is not assignable to type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>'.
+                                      Types of parameters 'builder' and 'builder' are incompatible.
+                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder'.
+                                          Types of property 'environments' are incompatible.
+                                            Type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment>' is not assignable to type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment>'.
+                                              'string' index signatures are incompatible.
+                                                Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment'.
+                                                  Types of property 'plugins' are incompatible.
+                                                    Type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>[]' is not assignable to type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>[]'.
+                                                      Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                        Types of property 'hotUpdate' are incompatible.
+                                                          Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                            Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                              Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                Types of parameters 'options' and 'options' are incompatible.
+                                                                  Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                    The types of 'server.config.builder' are incompatible between these types.
+                                                                      Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                        Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                                                                          Type 'Promise<Plugin$1<any>[]>' is not assignable to type 'PluginOption'.
+                                                                            Type 'Promise<Plugin$1<any>[]>' is not assignable to type 'Promise<Plugin$1<any> | FalsyPlugin | PluginOption[]>'.
+                                                                              Type 'Plugin$1<any>[]' is not assignable to type 'Plugin$1<any> | FalsyPlugin | PluginOption[]'.
+                                                                                Type 'Plugin$1<any>[]' is not assignable to type 'PluginOption[]'.
+                                                                                  Type 'Plugin$1<any>' is not assignable to type 'PluginOption'.
+                                                                                    Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                                                      Types of property 'hotUpdate' are incompatible.
+                                                                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                                                          Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                                                            Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                                              Types of parameters 'options' and 'options' are incompatible.
+                                                                                                Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                                                  The types of 'server.config.builder' are incompatible between these types.
+                                                                                                    Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                                                      Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                                                                                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>'.
+                                                                                                          Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type 'BuilderOptions'.
+                                                                                                            Types of property 'buildApp' are incompatible.
+                                                                                                              Type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>' is not assignable to type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>'.
+                                                                                                                Types of parameters 'builder' and 'builder' are incompatible.
+                                                                                                                  Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder'.
+                                                                                                                    Types of property 'environments' are incompatible.
+                                                                                                                      Type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment>' is not assignable to type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment>'.
+                                                                                                                        'string' index signatures are incompatible.
+                                                                                                                          Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment'.
+                                                                                                                            Types of property 'plugins' are incompatible.
+                                                                                                                              Type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>[]' is not assignable to type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>[]'.
+                                                                                                                                Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                                                                                                  Types of property 'hotUpdate' are incompatible.
+                                                                                                                                    Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                                                                                                      Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                                                                                                        Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                                                                                          Types of parameters 'options' and 'options' are incompatible.
+                                                                                                                                            Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                                                                                              The types of 'server.config.builder' are incompatible between these types.
+                                                                                                                                                Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                                                                                                  Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                                                                                                                                                    Type 'Plugin$1<any> | Plugin$1<any>[]' is not assignable to type 'PluginOption'.
+                                                                                                                                                      Type 'Plugin$1<any>' is not assignable to type 'PluginOption'.
+                                                                                                                                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                                                                                                                          Types of property 'hotUpdate' are incompatible.
+                                                                                                                                                            Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                                                                                                                              Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                                                                                                                                Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                                                                                                                  Types of parameters 'options' and 'options' are incompatible.
+                                                                                                                                                                    Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                                                                                                                      The types of 'server.config.builder' are incompatible between these types.
+                                                                                                                                                                        Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                                                                                                                          Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                                                                                                                                                                            Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>'.
+                                                                                                                                                                              Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type 'BuilderOptions'.
+                                                                                                                                                                                Types of property 'buildApp' are incompatible.
+                                                                                                                                                                                  Type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>' is not assignable to type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>'.
+                                                                                                                                                                                    Types of parameters 'builder' and 'builder' are incompatible.
+                                                                                                                                                                                      Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder'.
+                                                                                                                                                                                        Types of property 'environments' are incompatible.
+                                                                                                                                                                                          Type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment>' is not assignable to type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment>'.
+                                                                                                                                                                                            'string' index signatures are incompatible.
+                                                                                                                                                                                              Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment'.
+                                                                                                                                                                                                Types of property 'plugins' are incompatible.
+                                                                                                                                                                                                  Type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>[]' is not assignable to type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>[]'.
+                                                                                                                                                                                                    Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                                                                                                                                                                      Types of property 'hotUpdate' are incompatible.
+                                                                                                                                                                                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                                                                                                                                                                          Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                                                                                                                                                                            Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                                                                                                                                                              Types of parameters 'options' and 'options' are incompatible.
+                                                                                                                                                                                                                Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                                                                                                                                                                  The types of 'server.config.builder' are incompatible between these types.
+                                                                                                                                                                                                                    Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                                                                                                                                                                      Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'. 
+	plugins: [
+		tailwindcss(),
+		sveltekit(),
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/vite.config.ts:9:3
+Error: No overload matches this call.
+  The last overload gave the following error.
+    Type 'Plugin$1<any>[]' is not assignable to type 'PluginOption'.
+      Type 'Plugin$1<any>[]' is not assignable to type 'PluginOption[]'.
+        Type 'Plugin$1<any>' is not assignable to type 'PluginOption'.
+          Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+            Types of property 'hotUpdate' are incompatible.
+              Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                  Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                    Types of parameters 'options' and 'options' are incompatible.
+                      Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                        The types of 'server.config.builder' are incompatible between these types.
+                          Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                            Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                              Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>'.
+                                Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type 'BuilderOptions'.
+                                  Types of property 'buildApp' are incompatible.
+                                    Type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>' is not assignable to type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>'.
+                                      Types of parameters 'builder' and 'builder' are incompatible.
+                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder'.
+                                          Types of property 'environments' are incompatible.
+                                            Type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment>' is not assignable to type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment>'.
+                                              'string' index signatures are incompatible.
+                                                Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment'.
+                                                  Types of property 'plugins' are incompatible.
+                                                    Type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>[]' is not assignable to type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>[]'.
+                                                      Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                        Types of property 'hotUpdate' are incompatible.
+                                                          Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                            Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                              Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                Types of parameters 'options' and 'options' are incompatible.
+                                                                  Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                    The types of 'server.config.builder' are incompatible between these types.
+                                                                      Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                        Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                                                                          Type 'Promise<Plugin$1<any>[]>' is not assignable to type 'PluginOption'.
+                                                                            Type 'Promise<Plugin$1<any>[]>' is not assignable to type 'Promise<Plugin$1<any> | FalsyPlugin | PluginOption[]>'.
+                                                                              Type 'Plugin$1<any>[]' is not assignable to type 'Plugin$1<any> | FalsyPlugin | PluginOption[]'.
+                                                                                Type 'Plugin$1<any>[]' is not assignable to type 'PluginOption[]'.
+                                                                                  Type 'Plugin$1<any>' is not assignable to type 'PluginOption'.
+                                                                                    Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                                                      Types of property 'hotUpdate' are incompatible.
+                                                                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                                                          Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                                                            Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                                              Types of parameters 'options' and 'options' are incompatible.
+                                                                                                Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                                                  The types of 'server.config.builder' are incompatible between these types.
+                                                                                                    Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                                                      Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                                                                                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>'.
+                                                                                                          Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type 'BuilderOptions'.
+                                                                                                            Types of property 'buildApp' are incompatible.
+                                                                                                              Type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>' is not assignable to type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>'.
+                                                                                                                Types of parameters 'builder' and 'builder' are incompatible.
+                                                                                                                  Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder'.
+                                                                                                                    Types of property 'environments' are incompatible.
+                                                                                                                      Type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment>' is not assignable to type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment>'.
+                                                                                                                        'string' index signatures are incompatible.
+                                                                                                                          Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment'.
+                                                                                                                            Types of property 'plugins' are incompatible.
+                                                                                                                              Type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>[]' is not assignable to type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>[]'.
+                                                                                                                                Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                                                                                                  Types of property 'hotUpdate' are incompatible.
+                                                                                                                                    Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                                                                                                      Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                                                                                                        Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                                                                                          Types of parameters 'options' and 'options' are incompatible.
+                                                                                                                                            Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                                                                                              The types of 'server.config.builder' are incompatible between these types.
+                                                                                                                                                Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                                                                                                  Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                                                                                                                                                    Type 'Plugin$1<any> | Plugin$1<any>[]' is not assignable to type 'PluginOption'.
+                                                                                                                                                      Type 'Plugin$1<any>' is not assignable to type 'PluginOption'.
+                                                                                                                                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                                                                                                                          Types of property 'hotUpdate' are incompatible.
+                                                                                                                                                            Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                                                                                                                              Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                                                                                                                                Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                                                                                                                  Types of parameters 'options' and 'options' are incompatible.
+                                                                                                                                                                    Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                                                                                                                      The types of 'server.config.builder' are incompatible between these types.
+                                                                                                                                                                        Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                                                                                                                          Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                                                                                                                                                                            Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>'.
+                                                                                                                                                                              Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type 'BuilderOptions'.
+                                                                                                                                                                                Types of property 'buildApp' are incompatible.
+                                                                                                                                                                                  Type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>' is not assignable to type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>'.
+                                                                                                                                                                                    Types of parameters 'builder' and 'builder' are incompatible.
+                                                                                                                                                                                      Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder'.
+                                                                                                                                                                                        Types of property 'environments' are incompatible.
+                                                                                                                                                                                          Type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment>' is not assignable to type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment>'.
+                                                                                                                                                                                            'string' index signatures are incompatible.
+                                                                                                                                                                                              Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment'.
+                                                                                                                                                                                                Types of property 'plugins' are incompatible.
+                                                                                                                                                                                                  Type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>[]' is not assignable to type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>[]'.
+                                                                                                                                                                                                    Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                                                                                                                                                                      Types of property 'hotUpdate' are incompatible.
+                                                                                                                                                                                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                                                                                                                                                                          Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                                                                                                                                                                            Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                                                                                                                                                              Types of parameters 'options' and 'options' are incompatible.
+                                                                                                                                                                                                                Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                                                                                                                                                                  The types of 'server.config.builder' are incompatible between these types.
+                                                                                                                                                                                                                    Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                                                                                                                                                                      Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'. 
+		tailwindcss(),
+		sveltekit(),
+		paraglideVitePlugin({
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/vite.config.ts:10:3
+Error: No overload matches this call.
+  The last overload gave the following error.
+    Type 'Plugin$1<any>[]' is not assignable to type 'PluginOption'.
+      Type 'Plugin$1<any>[]' is not assignable to type 'PluginOption[]'.
+        Type 'Plugin$1<any>' is not assignable to type 'PluginOption'.
+          Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+            Types of property 'hotUpdate' are incompatible.
+              Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                  Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                    Types of parameters 'options' and 'options' are incompatible.
+                      Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                        The types of 'server.config.builder' are incompatible between these types.
+                          Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                            Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                              Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>'.
+                                Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type 'BuilderOptions'.
+                                  Types of property 'buildApp' are incompatible.
+                                    Type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>' is not assignable to type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>'.
+                                      Types of parameters 'builder' and 'builder' are incompatible.
+                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder'.
+                                          Types of property 'environments' are incompatible.
+                                            Type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment>' is not assignable to type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment>'.
+                                              'string' index signatures are incompatible.
+                                                Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment'.
+                                                  Types of property 'plugins' are incompatible.
+                                                    Type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>[]' is not assignable to type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>[]'.
+                                                      Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                        Types of property 'hotUpdate' are incompatible.
+                                                          Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                            Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                              Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                Types of parameters 'options' and 'options' are incompatible.
+                                                                  Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                    The types of 'server.config.builder' are incompatible between these types.
+                                                                      Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                        Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                                                                          Type 'Promise<Plugin$1<any>[]>' is not assignable to type 'PluginOption'.
+                                                                            Type 'Promise<Plugin$1<any>[]>' is not assignable to type 'Promise<Plugin$1<any> | FalsyPlugin | PluginOption[]>'.
+                                                                              Type 'Plugin$1<any>[]' is not assignable to type 'Plugin$1<any> | FalsyPlugin | PluginOption[]'.
+                                                                                Type 'Plugin$1<any>[]' is not assignable to type 'PluginOption[]'.
+                                                                                  Type 'Plugin$1<any>' is not assignable to type 'PluginOption'.
+                                                                                    Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                                                      Types of property 'hotUpdate' are incompatible.
+                                                                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                                                          Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                                                            Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                                              Types of parameters 'options' and 'options' are incompatible.
+                                                                                                Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                                                  The types of 'server.config.builder' are incompatible between these types.
+                                                                                                    Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                                                      Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                                                                                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>'.
+                                                                                                          Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type 'BuilderOptions'.
+                                                                                                            Types of property 'buildApp' are incompatible.
+                                                                                                              Type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>' is not assignable to type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>'.
+                                                                                                                Types of parameters 'builder' and 'builder' are incompatible.
+                                                                                                                  Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder'.
+                                                                                                                    Types of property 'environments' are incompatible.
+                                                                                                                      Type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment>' is not assignable to type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment>'.
+                                                                                                                        'string' index signatures are incompatible.
+                                                                                                                          Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment'.
+                                                                                                                            Types of property 'plugins' are incompatible.
+                                                                                                                              Type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>[]' is not assignable to type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>[]'.
+                                                                                                                                Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                                                                                                  Types of property 'hotUpdate' are incompatible.
+                                                                                                                                    Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                                                                                                      Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                                                                                                        Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                                                                                          Types of parameters 'options' and 'options' are incompatible.
+                                                                                                                                            Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                                                                                              The types of 'server.config.builder' are incompatible between these types.
+                                                                                                                                                Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                                                                                                  Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                                                                                                                                                    Type 'Plugin$1<any> | Plugin$1<any>[]' is not assignable to type 'PluginOption'.
+                                                                                                                                                      Type 'Plugin$1<any>' is not assignable to type 'PluginOption'.
+                                                                                                                                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                                                                                                                          Types of property 'hotUpdate' are incompatible.
+                                                                                                                                                            Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                                                                                                                              Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                                                                                                                                Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                                                                                                                  Types of parameters 'options' and 'options' are incompatible.
+                                                                                                                                                                    Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                                                                                                                      The types of 'server.config.builder' are incompatible between these types.
+                                                                                                                                                                        Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                                                                                                                          Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'.
+                                                                                                                                                                            Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>'.
+                                                                                                                                                                              Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type 'BuilderOptions'.
+                                                                                                                                                                                Types of property 'buildApp' are incompatible.
+                                                                                                                                                                                  Type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>' is not assignable to type '(builder: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder) => Promise<void>'.
+                                                                                                                                                                                    Types of parameters 'builder' and 'builder' are incompatible.
+                                                                                                                                                                                      Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").ViteBuilder' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").ViteBuilder'.
+                                                                                                                                                                                        Types of property 'environments' are incompatible.
+                                                                                                                                                                                          Type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment>' is not assignable to type 'Record<string, import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment>'.
+                                                                                                                                                                                            'string' index signatures are incompatible.
+                                                                                                                                                                                              Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuildEnvironment' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuildEnvironment'.
+                                                                                                                                                                                                Types of property 'plugins' are incompatible.
+                                                                                                                                                                                                  Type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>[]' is not assignable to type 'readonly import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>[]'.
+                                                                                                                                                                                                    Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").Plugin<any>' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").Plugin<any>'.
+                                                                                                                                                                                                      Types of property 'hotUpdate' are incompatible.
+                                                                                                                                                                                                        Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").ObjectHook<(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modu...'. Two different types with this name exist, but they are unrelated.
+                                                                                                                                                                                                          Type '(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>' is not assignable to type 'ObjectHook<(this: MinimalPluginContext & { environment: DevEnvironment; }, options: HotUpdateOptions) => void | EnvironmentModuleNode[] | Promise<...>> | undefined'.
+                                                                                                                                                                                                            Type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>' is not assignable to type '(this: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/rollup/dist/rollup").MinimalPluginContext & { ...; }, options: import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions) => void | ... 1 more ... | Promise<...>'.
+                                                                                                                                                                                                              Types of parameters 'options' and 'options' are incompatible.
+                                                                                                                                                                                                                Type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").HotUpdateOptions' is not assignable to type 'import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").HotUpdateOptions'.
+                                                                                                                                                                                                                  The types of 'server.config.builder' are incompatible between these types.
+                                                                                                                                                                                                                    Type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vitest/node_modules/vite/dist/node/index").BuilderOptions>) | undefined' is not assignable to type '(import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions & Required<import("/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/vite/dist/node/index").BuilderOptions>) | undefined'.
+                                                                                                                                                                                                                      Type 'BuilderOptions & Required<BuilderOptions>' is not assignable to type '(BuilderOptions & Required<BuilderOptions>) | undefined'. 
+		sveltekit(),
+		paraglideVitePlugin({
+			project: './project.inlang',
+			outdir: './src/lib/paraglide',
+		}),
+	],
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:1:21
+Error: Could not find a declaration file for module 'express'. '/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/express/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/express` if it exists or add a new declaration (.d.ts) file containing `declare module 'express';` 
+import express from 'express';
+import WebTorrent from 'webtorrent';
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:2:24
+Error: Could not find a declaration file for module 'webtorrent'. '/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/webtorrent/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/webtorrent` if it exists or add a new declaration (.d.ts) file containing `declare module 'webtorrent';` 
+import express from 'express';
+import WebTorrent from 'webtorrent';
+import cors from 'cors';
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:3:18
+Error: Could not find a declaration file for module 'cors'. '/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/node_modules/cors/lib/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/cors` if it exists or add a new declaration (.d.ts) file containing `declare module 'cors';` 
+import WebTorrent from 'webtorrent';
+import cors from 'cors';
+import fs from 'fs';
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:31:26
+Error: Parameter 'req' implicitly has an 'any' type. 
+// Add torrent
+app.get('/add/:magnet', (req, res) => {
+    const magnet = req.params.magnet;
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:31:31
+Error: Parameter 'res' implicitly has an 'any' type. 
+// Add torrent
+app.get('/add/:magnet', (req, res) => {
+    const magnet = req.params.magnet;
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:42:55
+Error: Parameter 'f' implicitly has an 'any' type. 
+        if (existingTorrent.files && existingTorrent.files.length > 0) {
+            return res.json(existingTorrent.files.map(f => ({ name: f.name, length: f.length })));
+        } else {
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:47:57
+Error: Parameter 'f' implicitly has an 'any' type. 
+                console.log(chalk.green(`Metadata fetched for existing: ${existingTorrent.name}`));
+                const files = existingTorrent.files.map(f => ({ name: f.name, length: f.length }));
+                res.json(files);
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:58:56
+Error: Parameter 'f' implicitly has an 'any' type. 
+                if (existingTorrent.files) {
+                    res.json(existingTorrent.files.map(f => ({ name: f.name, length: f.length })));
+                } else {
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:72:21
+Error: Parameter 'magnet' implicitly has an 'any' type. 
+
+function addTorrent(magnet, res) {
+    try {
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:72:29
+Error: Parameter 'res' implicitly has an 'any' type. 
+
+function addTorrent(magnet, res) {
+    try {
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:75:69
+Error: Parameter 'torrent' implicitly has an 'any' type. 
+        console.log('Calling client.add...');
+        const torrent = client.add(magnet, { path: downloadsDir }, (torrent) => {
+            console.log(chalk.green(`Torrent added callback: ${torrent.name}`));
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:77:45
+Error: Parameter 'f' implicitly has an 'any' type. 
+            console.log(chalk.green(`Torrent added callback: ${torrent.name}`));
+            const files = torrent.files.map(f => ({ name: f.name, length: f.length }));
+            if (!res.headersSent) res.json(files);
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:84:30
+Error: Parameter 'err' implicitly has an 'any' type. 
+        torrent.on('ready', () => console.log('Torrent ready'));
+        torrent.on('error', (err) => console.error('Torrent error:', err));
+        torrent.on('download', (bytes) => {
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:85:33
+Error: Parameter 'bytes' implicitly has an 'any' type. 
+        torrent.on('error', (err) => console.error('Torrent error:', err));
+        torrent.on('download', (bytes) => {
+            // console.log('Downloaded bytes:', bytes); // Too noisy
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:88:29
+Error: Parameter 'wire' implicitly has an 'any' type. 
+        });
+        torrent.on('wire', (wire, addr) => console.log('Connected to peer:', addr));
+        torrent.on('noPeers', (announceType) => console.warn('No peers found via', announceType));
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:88:35
+Error: Parameter 'addr' implicitly has an 'any' type. 
+        });
+        torrent.on('wire', (wire, addr) => console.log('Connected to peer:', addr));
+        torrent.on('noPeers', (announceType) => console.warn('No peers found via', announceType));
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:89:32
+Error: Parameter 'announceType' implicitly has an 'any' type. 
+        torrent.on('wire', (wire, addr) => console.log('Connected to peer:', addr));
+        torrent.on('noPeers', (announceType) => console.warn('No peers found via', announceType));
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:93:61
+Error: 'e' is of type 'unknown'. 
+        console.error('Error adding torrent:', e);
+        if (!res.headersSent) res.status(500).json({ error: e.message });
+    }
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:103:37
+Error: Parameter 'req' implicitly has an 'any' type. 
+// Get metadata (files)
+app.get('/metadata/:magnet', async (req, res) => {
+    const magnet = req.params.magnet;
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:103:42
+Error: Parameter 'res' implicitly has an 'any' type. 
+// Get metadata (files)
+app.get('/metadata/:magnet', async (req, res) => {
+    const magnet = req.params.magnet;
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:108:51
+Error: Parameter 'f' implicitly has an 'any' type. 
+    if (existingTorrent) {
+        return res.json(existingTorrent.files.map(f => ({ name: f.name, length: f.length })));
+    }
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:112:65
+Error: Parameter 'torrent' implicitly has an 'any' type. 
+    // If not added, add it temporarily to get metadata then deselect all
+    client.add(magnet, { path: downloadsDir, deselect: true }, (torrent) => {
+        console.log(chalk.green(`Metadata fetched for: ${torrent.name}`));
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:114:41
+Error: Parameter 'f' implicitly has an 'any' type. 
+        console.log(chalk.green(`Metadata fetched for: ${torrent.name}`));
+        const files = torrent.files.map(f => ({ name: f.name, length: f.length }));
+        res.json(files);
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:118:31
+Error: Parameter 'f' implicitly has an 'any' type. 
+        // Deselect all files initially to prevent auto-download
+        torrent.files.forEach(f => f.deselect());
+    });
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:123:45
+Error: Parameter 'req' implicitly has an 'any' type. 
+// Stream file
+app.get('/stream/:magnet/:filename', async (req, res) => {
+    const { magnet, filename } = req.params;
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:123:50
+Error: Parameter 'res' implicitly has an 'any' type. 
+// Stream file
+app.get('/stream/:magnet/:filename', async (req, res) => {
+    const { magnet, filename } = req.params;
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:131:37
+Error: Parameter 'f' implicitly has an 'any' type. 
+
+    const file = torrent.files.find(f => f.name === filename);
+    if (!file) {
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:160:25
+Error: Parameter 'err' implicitly has an 'any' type. 
+
+    stream.on('error', (err) => {
+        console.error('Stream error:', err);
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:167:40
+Error: Parameter 'req' implicitly has an 'any' type. 
+// Stream by index (easier if filename is tricky) or auto-select largest video
+app.get('/stream-auto/:magnet', async (req, res) => {
+    const magnet = req.params.magnet;
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:167:45
+Error: Parameter 'res' implicitly has an 'any' type. 
+// Stream by index (easier if filename is tricky) or auto-select largest video
+app.get('/stream-auto/:magnet', async (req, res) => {
+    const magnet = req.params.magnet;
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:180:44
+Error: Parameter 't' implicitly has an 'any' type. 
+        // Actually, let's just log available torrents and fail gracefully for now.
+        const found = client.torrents.find(t => t.magnetURI === magnet || t.infoHash === magnet); // simplified check
+        if (found && typeof found.on === 'function') {
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:213:28
+Error: Parameter 'torrent' implicitly has an 'any' type. 
+
+function streamLargestFile(torrent, req, res) {
+    // Find largest video file
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:213:37
+Error: Parameter 'req' implicitly has an 'any' type. 
+
+function streamLargestFile(torrent, req, res) {
+    // Find largest video file
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:213:42
+Error: Parameter 'res' implicitly has an 'any' type. 
+
+function streamLargestFile(torrent, req, res) {
+    // Find largest video file
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:215:40
+Error: Parameter 'a' implicitly has an 'any' type. 
+    // Find largest video file
+    const file = torrent.files.reduce((a, b) => a.length > b.length ? a : b);
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:215:43
+Error: Parameter 'b' implicitly has an 'any' type. 
+    // Find largest video file
+    const file = torrent.files.reduce((a, b) => a.length > b.length ? a : b);
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:251:28
+Error: Parameter 'req' implicitly has an 'any' type. 
+// Stats
+app.get('/stats/:magnet', (req, res) => {
+    const torrent = client.get(req.params.magnet);
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/server/torrent-server.js:251:33
+Error: Parameter 'res' implicitly has an 'any' type. 
+// Stats
+app.get('/stats/:magnet', (req, res) => {
+    const torrent = client.get(req.params.magnet);
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/components/player/VideoPlayer.svelte:219:1
+Warn: Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+	bind:this={containerElement}
+	class="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-lg bg-black outline-none"
+	onmousemove={handleMouseMove}
+	onmouseleave={() => (showControls = false)}
+	onclick={handleContainerClick}
+	ondblclick={handleContainerDoubleClick}
+	role="application"
+>
+	<video
+		bind:this={videoElement}
+		{src}
+		{poster}
+		class="h-full w-full object-contain"
+		onplay={handlePlay}
+		onpause={handlePause}
+		onwaiting={handleWaiting}
+		onplaying={handlePlaying}
+		onerror={handleError}
+		ontimeupdate={handleTimeUpdate}
+		onloadedmetadata={handleLoadedMetadata}
+		oncanplay={handleCanPlay}
+		crossorigin="anonymous"
+	>
+		<track kind="captions" />
+	</video>
+
+	{#if isBuffering && !hasError && !showControls}
+		<div class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
+			<Icon icon="solar:refresh-circle-bold-duotone" class="h-12 w-12 animate-spin text-white/80" />
+		</div>
+	{/if}
+
+	{#if hasError}
+		<div class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80">
+			<Icon icon="solar:danger-circle-bold-duotone" class="mb-2 h-12 w-12 text-red-500" />
+			<p class="font-medium text-white">Playback Error</p>
+			<p class="text-sm text-white/70">{errorMessage}</p>
+			<Button
+				variant="outline"
+				size="sm"
+				class="mt-4"
+				onclick={() => {
+					videoElement.load();
+					hasError = false;
+				}}>Retry</Button
+			>
+		</div>
+	{/if}
+
+	{#if !isPlaying && !src && !hasError}
+		<div class="absolute inset-0 flex items-center justify-center bg-black/50">
+			<p class="text-white">No video source selected</p>
+		</div>
+	{/if}
+
+	{#if (showControls || !isPlaying || isLocked) && !hasError}
+		<PlayerControls
+			{isPlaying}
+			{currentTime}
+			{duration}
+			{volume}
+			{title}
+			{subtitle}
+			{isLocked}
+			{showSkipIntro}
+			onPlayPause={togglePlay}
+			onSeek={handleSeek}
+			onVolumeChange={handleVolumeChange}
+			onFullscreen={toggleFullscreen}
+			onLockToggle={toggleLock}
+			{onBack}
+			onSkipIntro={handleSkipIntro}
+		/>
+
+		{#if onOpenExternal && !isLocked}
+			<div class="absolute top-20 right-4 z-40">
+				<Button
+					variant="secondary"
+					size="sm"
+					onclick={onOpenExternal}
+					class="bg-black/50 text-white backdrop-blur-sm hover:bg-black/70"
+				>
+					<Icon icon="solar:external-link-bold" class="mr-2 h-4 w-4" />
+					Open in MPV
+				</Button>
+			</div>
+		{/if}
+	{/if}
+</div>
+
+/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src/lib/components/player/VideoPlayer.svelte:219:1
+Warn: Non-interactive element `<div>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions (svelte)
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+	bind:this={containerElement}
+	class="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-lg bg-black outline-none"
+	onmousemove={handleMouseMove}
+	onmouseleave={() => (showControls = false)}
+	onclick={handleContainerClick}
+	ondblclick={handleContainerDoubleClick}
+	role="application"
+>
+	<video
+		bind:this={videoElement}
+		{src}
+		{poster}
+		class="h-full w-full object-contain"
+		onplay={handlePlay}
+		onpause={handlePause}
+		onwaiting={handleWaiting}
+		onplaying={handlePlaying}
+		onerror={handleError}
+		ontimeupdate={handleTimeUpdate}
+		onloadedmetadata={handleLoadedMetadata}
+		oncanplay={handleCanPlay}
+		crossorigin="anonymous"
+	>
+		<track kind="captions" />
+	</video>
+
+	{#if isBuffering && !hasError && !showControls}
+		<div class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
+			<Icon icon="solar:refresh-circle-bold-duotone" class="h-12 w-12 animate-spin text-white/80" />
+		</div>
+	{/if}
+
+	{#if hasError}
+		<div class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80">
+			<Icon icon="solar:danger-circle-bold-duotone" class="mb-2 h-12 w-12 text-red-500" />
+			<p class="font-medium text-white">Playback Error</p>
+			<p class="text-sm text-white/70">{errorMessage}</p>
+			<Button
+				variant="outline"
+				size="sm"
+				class="mt-4"
+				onclick={() => {
+					videoElement.load();
+					hasError = false;
+				}}>Retry</Button
+			>
+		</div>
+	{/if}
+
+	{#if !isPlaying && !src && !hasError}
+		<div class="absolute inset-0 flex items-center justify-center bg-black/50">
+			<p class="text-white">No video source selected</p>
+		</div>
+	{/if}
+
+	{#if (showControls || !isPlaying || isLocked) && !hasError}
+		<PlayerControls
+			{isPlaying}
+			{currentTime}
+			{duration}
+			{volume}
+			{title}
+			{subtitle}
+			{isLocked}
+			{showSkipIntro}
+			onPlayPause={togglePlay}
+			onSeek={handleSeek}
+			onVolumeChange={handleVolumeChange}
+			onFullscreen={toggleFullscreen}
+			onLockToggle={toggleLock}
+			{onBack}
+			onSkipIntro={handleSkipIntro}
+		/>
+
+		{#if onOpenExternal && !isLocked}
+			<div class="absolute top-20 right-4 z-40">
+				<Button
+					variant="secondary"
+					size="sm"
+					onclick={onOpenExternal}
+					class="bg-black/50 text-white backdrop-blur-sm hover:bg-black/70"
+				>
+					<Icon icon="solar:external-link-bold" class="mr-2 h-4 w-4" />
+					Open in MPV
+				</Button>
+			</div>
+		{/if}
+	{/if}
+</div>
+
+====================================
+svelte-check found 41 errors and 2 warnings in 3 files

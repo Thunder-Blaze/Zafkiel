@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { useStaffById } from '$lib/hooks/useAnilist.svelte';
+	import { useCharacterById } from '$lib/hooks/useAnilist.svelte';
 	import {
 		Card,
 		CardContent,
@@ -13,12 +13,12 @@
 	import CachedImage from '$lib/components/ui/CachedImage.svelte';
 	import Icon from '@iconify/svelte';
 
-	const staffId = $derived(page.params.id ? parseInt(page.params.id) : 0);
-	const staffQuery = $derived(useStaffById(staffId));
+	const characterId = $derived(page.params.id ? parseInt(page.params.id) : 0);
+	const characterQuery = $derived(useCharacterById(characterId));
 
-	const staff = $derived(staffQuery.data?.data);
-	const isLoading = $derived(staffQuery.isLoading);
-	const error = $derived(staffQuery.error);
+	const character = $derived(characterQuery.data?.data);
+	const isLoading = $derived(characterQuery.isLoading);
+	const error = $derived(characterQuery.error);
 
 	function getTitle(name: any): string {
 		if (typeof name === 'string') return name;
@@ -35,8 +35,8 @@
 </script>
 
 <svelte:head>
-	<title>{staff ? getTitle(staff.name) : 'Loading...'} - Zafkiel</title>
-	<meta name="description" content={staff?.description ? stripHtml(staff.description).slice(0, 160) : 'Staff details on Zafkiel'} />
+	<title>{character ? getTitle(character.name) : 'Loading...'} - Zafkiel</title>
+	<meta name="description" content={character?.description ? stripHtml(character.description).slice(0, 160) : 'Character details on Zafkiel'} />
 </svelte:head>
 
 <div class="container mx-auto max-w-7xl px-4 py-8">
@@ -44,29 +44,29 @@
 		<div class="flex min-h-[400px] items-center justify-center">
 			<div class="flex flex-col items-center space-y-4">
 				<Icon icon="solar:refresh-circle-line-duotone" class="h-12 w-12 animate-spin text-primary" />
-				<p class="text-muted-foreground">Loading staff details...</p>
+				<p class="text-muted-foreground">Loading character details...</p>
 			</div>
 		</div>
 	{:else if error}
 		<Card class="border-destructive">
 			<CardContent class="pt-6">
 				<div class="space-y-4 text-center">
-					<h2 class="text-2xl font-bold text-destructive">Error Loading Staff</h2>
-					<p class="text-muted-foreground">{error.message || 'Failed to load staff details'}</p>
-					<Button variant="outline" onclick={() => staffQuery.refetch()}>Try Again</Button>
+					<h2 class="text-2xl font-bold text-destructive">Error Loading Character</h2>
+					<p class="text-muted-foreground">{error.message || 'Failed to load character details'}</p>
+					<Button variant="outline" onclick={() => characterQuery.refetch()}>Try Again</Button>
 				</div>
 			</CardContent>
 		</Card>
-	{:else if staff}
+	{:else if character}
 		<!-- Hero Section -->
 		<div class="relative mb-8">
 			<div class="flex flex-col gap-8 md:flex-row">
 				<!-- Image -->
 				<div class="shrink-0">
-					{#if staff.image?.large}
+					{#if character.image?.large}
 						<CachedImage
-							src={staff.image.large}
-							alt={getTitle(staff.name)}
+							src={character.image.large}
+							alt={getTitle(character.name)}
 							class="mx-auto h-80 w-56 rounded-xl object-cover shadow-2xl md:mx-0"
 						/>
 					{:else}
@@ -82,28 +82,28 @@
 				<div class="flex flex-1 flex-col justify-end space-y-4 pb-4">
 					<div>
 						<h1 class="mb-2 text-4xl font-bold md:text-5xl lg:text-6xl">
-							{getTitle(staff.name)}
+							{getTitle(character.name)}
 						</h1>
-						{#if staff.name?.native}
-							<h2 class="text-xl text-muted-foreground">{staff.name.native}</h2>
+						{#if character.name?.native}
+							<h2 class="text-xl text-muted-foreground">{character.name.native}</h2>
 						{/if}
 
 						<!-- Quick Info -->
 						<div class="mt-6 flex flex-wrap items-center gap-3">
-							{#if staff.favourites}
+							{#if character.favourites}
 								<Badge variant="outline" class="gap-1">
 									<Icon icon="solar:heart-bold" class="h-3 w-3 text-red-500" />
-									{staff.favourites.toLocaleString()} Favorites
+									{character.favourites.toLocaleString()} Favorites
 								</Badge>
 							{/if}
-							{#if staff.gender}
+							{#if character.gender}
 								<Badge variant="secondary">
-									{staff.gender}
+									{character.gender}
 								</Badge>
 							{/if}
-							{#if staff.age}
+							{#if character.age}
 								<Badge variant="secondary">
-									Age: {staff.age}
+									Age: {character.age}
 								</Badge>
 							{/if}
 						</div>
@@ -126,13 +126,7 @@
 						value="media"
 						class="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
 					>
-						Production Roles
-					</TabsTrigger>
-					<TabsTrigger
-						value="characters"
-						class="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-					>
-						Voice Roles
+						Media
 					</TabsTrigger>
 				</TabsList>
 
@@ -141,11 +135,11 @@
 						<!-- Main Content -->
 						<div class="space-y-8 lg:col-span-2">
 							<!-- Description -->
-							{#if staff.description}
+							{#if character.description}
 								<div class="space-y-4">
 									<h3 class="text-lg font-semibold">Description</h3>
 									<div class="prose prose-sm dark:prose-invert max-w-none text-muted-foreground">
-										{@html staff.description}
+										{@html character.description}
 									</div>
 								</div>
 							{/if}
@@ -159,41 +153,26 @@
 									<CardTitle>Information</CardTitle>
 								</CardHeader>
 								<CardContent class="space-y-4">
-									{#if staff.dateOfBirth?.year || staff.dateOfBirth?.month || staff.dateOfBirth?.day}
+									{#if character.dateOfBirth?.year || character.dateOfBirth?.month || character.dateOfBirth?.day}
 										<div class="flex justify-between">
 											<span class="text-sm text-muted-foreground">Birthday</span>
 											<span class="font-medium">
-												{staff.dateOfBirth.day}/{staff.dateOfBirth.month}
-												{#if staff.dateOfBirth.year}/{staff.dateOfBirth.year}{/if}
+												{character.dateOfBirth.day}/{character.dateOfBirth.month}
+												{#if character.dateOfBirth.year}/{character.dateOfBirth.year}{/if}
 											</span>
 										</div>
 									{/if}
-									{#if staff.dateOfDeath?.year || staff.dateOfDeath?.month || staff.dateOfDeath?.day}
-										<div class="flex justify-between">
-											<span class="text-sm text-muted-foreground">Death</span>
-											<span class="font-medium">
-												{staff.dateOfDeath.day}/{staff.dateOfDeath.month}
-												{#if staff.dateOfDeath.year}/{staff.dateOfDeath.year}{/if}
-											</span>
-										</div>
-									{/if}
-									{#if staff.homeTown}
-										<div class="flex justify-between">
-											<span class="text-sm text-muted-foreground">Hometown</span>
-											<span class="font-medium">{staff.homeTown}</span>
-										</div>
-									{/if}
-									{#if staff.bloodType}
+									{#if character.bloodType}
 										<div class="flex justify-between">
 											<span class="text-sm text-muted-foreground">Blood Type</span>
-											<span class="font-medium">{staff.bloodType}</span>
+											<span class="font-medium">{character.bloodType}</span>
 										</div>
 									{/if}
-									{#if staff.siteUrl}
+									{#if character.siteUrl}
 										<div class="flex justify-between">
 											<span class="text-sm text-muted-foreground">AniList Profile</span>
 											<a
-												href={staff.siteUrl}
+												href={character.siteUrl}
 												target="_blank"
 												rel="noopener noreferrer"
 												class="font-medium text-primary hover:underline"
@@ -205,16 +184,18 @@
 								</CardContent>
 							</Card>
 
-							<!-- Years Active -->
-							{#if staff.yearsActive && staff.yearsActive.length > 0}
+							<!-- Alternative Names -->
+							{#if character.name?.alternative && character.name.alternative.length > 0}
 								<Card>
 									<CardHeader>
-										<CardTitle>Years Active</CardTitle>
+										<CardTitle>Alternative Names</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<p class="font-medium">
-											{staff.yearsActive[0]} - {staff.yearsActive.length > 1 ? staff.yearsActive[1] || 'Present' : 'Present'}
-										</p>
+										<div class="flex flex-wrap gap-2">
+											{#each character.name.alternative as name}
+												<Badge variant="outline">{name}</Badge>
+											{/each}
+										</div>
 									</CardContent>
 								</Card>
 							{/if}
@@ -223,9 +204,9 @@
 				</TabsContent>
 
 				<TabsContent value="media" class="mt-6">
-					{#if staff.staffMedia?.edges && staff.staffMedia.edges.length > 0}
+					{#if character.media?.edges && character.media.edges.length > 0}
 						<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-							{#each staff.staffMedia.edges as edge}
+							{#each character.media.edges as edge}
 								{#if edge.node}
 									<a href="/{edge.node.type?.toLowerCase()}/{edge.node.id}" class="group relative block overflow-hidden rounded-lg bg-card transition-all hover:scale-105 hover:shadow-lg">
 										<div class="aspect-[2/3] w-full overflow-hidden">
@@ -245,9 +226,9 @@
 													<p class="line-clamp-2 text-sm font-semibold text-white">
 														{edge.node.title?.userPreferred || edge.node.title?.english}
 													</p>
-													{#if edge.staffRole}
+													{#if edge.characterRole}
 														<Badge variant="secondary" class="mt-1 text-[10px]">
-															{edge.staffRole}
+															{edge.characterRole}
 														</Badge>
 													{/if}
 												</div>
@@ -260,52 +241,8 @@
 					{:else}
 						<div class="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
 							<Icon icon="solar:clapperboard-text-bold-duotone" class="mb-4 h-12 w-12 text-muted-foreground" />
-							<h3 class="text-lg font-semibold">No Production Roles Found</h3>
-							<p class="text-muted-foreground">This staff member doesn't have any production roles listed.</p>
-						</div>
-					{/if}
-				</TabsContent>
-
-				<TabsContent value="characters" class="mt-6">
-					{#if staff.characters?.edges && staff.characters.edges.length > 0}
-						<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-							{#each staff.characters.edges as edge}
-								{#if edge.node}
-									<a href="/character/{edge.node.id}" class="group relative block overflow-hidden rounded-lg bg-card transition-all hover:scale-105 hover:shadow-lg">
-										<div class="aspect-[2/3] w-full overflow-hidden">
-											{#if edge.node.image?.large}
-												<CachedImage
-													src={edge.node.image.large}
-													alt={getTitle(edge.node.name)}
-													class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-												/>
-											{:else}
-												<div class="flex h-full w-full items-center justify-center bg-muted">
-													<Icon icon="solar:user-bold" class="h-12 w-12 text-muted-foreground" />
-												</div>
-											{/if}
-											<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-												<div class="absolute bottom-0 left-0 right-0 p-4">
-													<p class="line-clamp-2 text-sm font-semibold text-white">
-														{getTitle(edge.node.name)}
-													</p>
-													{#if edge.role}
-														<Badge variant="secondary" class="mt-1 text-[10px]">
-															{edge.role}
-														</Badge>
-													{/if}
-												</div>
-											</div>
-										</div>
-									</a>
-								{/if}
-							{/each}
-						</div>
-					{:else}
-						<div class="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-							<Icon icon="solar:microphone-3-bold-duotone" class="mb-4 h-12 w-12 text-muted-foreground" />
-							<h3 class="text-lg font-semibold">No Voice Roles Found</h3>
-							<p class="text-muted-foreground">This staff member doesn't have any voice acting roles listed.</p>
+							<h3 class="text-lg font-semibold">No Media Found</h3>
+							<p class="text-muted-foreground">This character doesn't appear in any media or data is missing.</p>
 						</div>
 					{/if}
 				</TabsContent>
@@ -315,8 +252,8 @@
 		<Card>
 			<CardContent class="pt-6">
 				<div class="space-y-4 text-center">
-					<h2 class="text-2xl font-bold">Staff Not Found</h2>
-					<p class="text-muted-foreground">The requested staff member could not be found.</p>
+					<h2 class="text-2xl font-bold">Character Not Found</h2>
+					<p class="text-muted-foreground">The requested character could not be found.</p>
 					<Button variant="outline" onclick={() => history.back()}>Go Back</Button>
 				</div>
 			</CardContent>

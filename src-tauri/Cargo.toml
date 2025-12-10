@@ -39,3 +39,14 @@ urlencoding = "2.1"
 open = "5.3"
 dotenvy = "0.15"
 rusqlite = { version = "0.32", features = ["bundled"] }
+librqbit = "8.1"
+axum = "0.7"
+tower-http = { version = "0.5", features = ["cors", "fs", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+async-stream = "0.3"
+futures = "0.3"
+tokio-util = { version = "0.7", features = ["io"] }
+tracing-appender = "0.2"
+lazy_static = "1.4"
+matroska = "0.30.0"

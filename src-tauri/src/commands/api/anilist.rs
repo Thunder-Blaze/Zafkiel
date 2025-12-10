@@ -1,7 +1,7 @@
 use crate::api::anilist::{AniListResponse, AniListService};
 use anilist_moe::{
     endpoints::media::{FetchMediaOneOptions, FetchMediaOptions},
-    objects::{media::Media, responses::Page, user::User},
+    objects::{media::Media, responses::Page, user::User, studio::Studio, character::Character, staff::Staff},
 };
 use std::sync::Arc;
 use tauri::State;
@@ -80,6 +80,58 @@ create_anilist_command!(get_media_by_id, media, fetch_one, Media, (
     options: FetchMediaOneOptions => borrow
 ));
 
+#[tauri::command]
+pub async fn get_anime_by_id(
+    id: i32,
+    service: State<'_, AniListState>
+) -> Result<AniListResponse<Media>, String> {
+    log::info!("Executing command: get_anime_by_id");
+    let client = service.client().await;
+    let result = client.media().fetch_one(&FetchMediaOneOptions {
+        id: Some(id),
+        fetch_characters: Some(true),
+        fetch_staff: Some(true),
+        fetch_recommendations: Some(true),
+        fetch_reviews: Some(true),
+        ..Default::default()
+    }).await;
+
+    match result {
+        Ok(media) => {
+            log::info!("Fetched media: ID={:?}, Type={:?}", media.id, media.media_type);
+            Ok(AniListResponse::success(media))
+        },
+        Err(e) => Ok(AniListResponse::error(format!("{:?}", e)))
+    }
+}
+
+#[tauri::command]
+pub async fn get_manga_by_id(
+    id: i32,
+    service: State<'_, AniListState>
+) -> Result<AniListResponse<Media>, String> {
+    log::info!("Executing command: get_manga_by_id");
+    let client = service.client().await;
+    let result = client.media().fetch_one(&FetchMediaOneOptions {
+        id: Some(id),
+        fetch_characters: Some(true),
+        fetch_staff: Some(true),
+        fetch_recommendations: Some(true),
+        fetch_reviews: Some(true),
+        ..Default::default()
+    }).await;
+
+    match result {
+        Ok(media) => {
+            match media.media_type {
+                Some(anilist_moe::enums::media::MediaType::Manga) => Ok(AniListResponse::success(media)),
+                _ => Ok(AniListResponse::error("Manga not found (wrong type)".to_string()))
+            }
+        },
+        Err(e) => Ok(AniListResponse::error(format!("{:?}", e)))
+    }
+}
+
 // ============================================================================
 // Anime Commands
 // ============================================================================
@@ -124,9 +176,22 @@ create_anilist_command!(get_popular_manga, media, get_popular_manga, Page<Vec<Me
 
 create_anilist_command!(get_current_user, user, get_current_user, User);
 
-create_anilist_command!(get_user_by_id, user, get_by_id, User, (
-    id: i32 => ref
-));
+#[tauri::command]
+pub async fn get_user_by_id(
+    id: i32,
+    service: State<'_, AniListState>
+) -> Result<AniListResponse<User>, String> {
+    log::info!("Executing command: get_user_by_id for id: {}", id);
+    let client = service.client().await;
+    let result = client.user().get_by_id(id).await;
+    match result {
+        Ok(user) => Ok(AniListResponse::success(user)),
+        Err(e) => {
+            log::error!("Error fetching user by id {}: {:?}", id, e);
+            Ok(AniListResponse::error(format!("{:?}", e)))
+        }
+    }
+}
 
 create_anilist_command!(get_user_by_name, user, get_by_name, User, (
     name: &str => ref
@@ -136,4 +201,28 @@ create_anilist_command!(search_users, user, search, Page<Vec<User>>, (
     search: &str => ref,
     page: Option<i32> => ref,
     per_page: Option<i32> => ref
+));
+
+// ============================================================================
+// Studio Commands
+// ============================================================================
+
+create_anilist_command!(get_studio_by_id, studio, get_by_id, Studio, (
+    id: i32 => val
+));
+
+// ============================================================================
+// Character Commands
+// ============================================================================
+
+create_anilist_command!(get_character_by_id, character, get_by_id, Character, (
+    id: i32 => val
+));
+
+// ============================================================================
+// Staff Commands
+// ============================================================================
+
+create_anilist_command!(get_staff_by_id, staff, get_by_id, Staff, (
+    id: i32 => val
 ));

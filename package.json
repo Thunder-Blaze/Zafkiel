@@ -16,7 +16,8 @@
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
 		"storybook": "storybook dev -p 6006",
-		"build-storybook": "storybook build"
+		"build-storybook": "storybook build",
+		"torrent-server": "node src/lib/server/torrent-server.js"
 	},
 	"devDependencies": {
 		"@chromatic-com/storybook": "^4.1.1",
@@ -45,6 +46,8 @@
 		"@testing-library/user-event": "^14.6.1",
 		"@types/better-sqlite3": "^7.6.13",
 		"@types/node": "^22.18.12",
+		"@types/range-parser": "^1.2.7",
+		"@types/torrent-stream": "^0.0.9",
 		"bits-ui": "^2.14.0",
 		"clsx": "^2.1.1",
 		"embla-carousel-svelte": "^8.6.0",
@@ -80,8 +83,13 @@
 		"@tanstack/svelte-query-devtools": "^6.0.0",
 		"@tauri-apps/api": "^2.9.0",
 		"better-sqlite3": "^12.4.1",
+		"cors": "^2.8.5",
 		"effect": "^3.18.4",
+		"express": "^5.2.1",
 		"lucide-svelte": "^0.545.0",
-		"runed": "^0.34.0"
+		"range-parser": "^1.2.1",
+		"runed": "^0.34.0",
+		"torrent-stream": "^1.2.1",
+		"webtorrent": "^2.8.5"
 	}
 }

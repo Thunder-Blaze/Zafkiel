@@ -23,9 +23,15 @@
 	let config = useConfigState();
 	let theme = useThemeState();
 
+	import { ExtensionManager } from '$lib/services/ExtensionManager';
+	import { SubsPleaseExtension } from '../extensions/torrent/subsplease';
+
 	// Initialize config, auth, and theme stores on app mount
 	onMount(async () => {
 		try {
+			// Register extensions
+			ExtensionManager.registerProvider(SubsPleaseExtension);
+
 			// Initialize stores sequentially, with theme first
 			await config.init();
 			await theme.init();
@@ -39,8 +45,6 @@
 			isReady = true;
 		}
 	});
-
-
 </script>
 
 <svelte:head>

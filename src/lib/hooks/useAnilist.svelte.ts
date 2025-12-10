@@ -5,11 +5,14 @@
 
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 import type { CreateQueryOptions } from '@tanstack/svelte-query';
-import { animeApi, mangaApi, userApi } from '$lib/services/anilist';
+import { animeApi, mangaApi, userApi, studioApi, characterApi, staffApi } from '$lib/services/anilist';
 import { ClientDatabaseService } from '$lib/services/client-database';
 import type {
 	Media,
 	User,
+	Studio,
+	Character,
+	Staff,
 	PaginationParams,
 	SearchParams,
 	SeasonalAnimeParams,
@@ -53,6 +56,21 @@ export const anilistKeys = {
 		searches: () => [...anilistKeys.user.all, 'search'] as const,
 		search: (params: SearchParams) => [...anilistKeys.user.searches(), params] as const,
 	},
+	// Studio
+	studio: {
+		all: ['studio'] as const,
+		detail: (id: number) => [...anilistKeys.studio.all, 'detail', id] as const,
+	},
+	// Character
+	character: {
+		all: ['character'] as const,
+		detail: (id: number) => [...anilistKeys.character.all, 'detail', id] as const,
+	},
+	// Staff
+	staff: {
+		all: ['staff'] as const,
+		detail: (id: number) => [...anilistKeys.staff.all, 'detail', id] as const,
+	},
 	// Media (generic for both anime and manga)
 	media: {
 		all: ['media'] as const,
@@ -74,6 +92,9 @@ const defaultStaleTime = {
 	seasonal: 60 * 60 * 1000, // 1 hour - seasonal data very stable
 	search: 10 * 60 * 1000,  // 10 minutes - search results moderate stability
 	user: 30 * 60 * 1000,    // 30 minutes - user data changes less frequently
+	studio: 60 * 60 * 1000,  // 1 hour - studio data very stable
+	character: 60 * 60 * 1000, // 1 hour - character data very stable
+	staff: 60 * 60 * 1000,   // 1 hour - staff data very stable
 } as const;
 
 // ============================================================================
@@ -286,6 +307,66 @@ export function useUserSearch(
 		queryFn: () => userApi.search(params),
 		staleTime: defaultStaleTime.search,
 		enabled: params.query.length > 0,
+		...options,
+	}));
+}
+
+// ============================================================================
+// Studio Queries
+// ============================================================================
+
+/**
+ * Get studio by ID with caching
+ */
+export function useStudioById(
+	id: number,
+	options?: Partial<CreateQueryOptions<AniListResponse<Studio>>>
+) {
+	return createQuery(() => ({
+		queryKey: anilistKeys.studio.detail(id),
+		queryFn: () => studioApi.getById(id),
+		staleTime: defaultStaleTime.studio,
+		enabled: id > 0,
+		...options,
+	}));
+}
+
+// ============================================================================
+// Character Queries
+// ============================================================================
+
+/**
+ * Get character by ID with caching
+ */
+export function useCharacterById(
+	id: number,
+	options?: Partial<CreateQueryOptions<AniListResponse<Character>>>
+) {
+	return createQuery(() => ({
+		queryKey: anilistKeys.character.detail(id),
+		queryFn: () => characterApi.getById(id),
+		staleTime: defaultStaleTime.character,
+		enabled: id > 0,
+		...options,
+	}));
+}
+
+// ============================================================================
+// Staff Queries
+// ============================================================================
+
+/**
+ * Get staff by ID with caching
+ */
+export function useStaffById(
+	id: number,
+	options?: Partial<CreateQueryOptions<AniListResponse<Staff>>>
+) {
+	return createQuery(() => ({
+		queryKey: anilistKeys.staff.detail(id),
+		queryFn: () => staffApi.getById(id),
+		staleTime: defaultStaleTime.staff,
+		enabled: id > 0,
 		...options,
 	}));
 }

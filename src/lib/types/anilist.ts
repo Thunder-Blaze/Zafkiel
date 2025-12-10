@@ -259,6 +259,101 @@ export interface User {
 }
 
 // ============================================================================
+// Studio Types
+// ============================================================================
+
+export interface Studio {
+	id: number;
+	name: string;
+	isAnimationStudio: boolean;
+	media?: {
+		nodes?: Media[];
+		edges?: { node?: Media; isMain?: boolean }[];
+		pageInfo?: PageInfo;
+	};
+	siteUrl?: string;
+	isFavourite?: boolean;
+	favourites?: number;
+}
+
+// ============================================================================
+// Character Types
+// ============================================================================
+
+export interface Character {
+	id: number;
+	name: {
+		first?: string;
+		last?: string;
+		full?: string;
+		native?: string;
+		userPreferred?: string;
+		alternative?: string[];
+		alternativeSpoiler?: string[];
+	};
+	image?: {
+		large?: string;
+		medium?: string;
+	};
+	description?: string;
+	gender?: string;
+	dateOfBirth?: MediaDate;
+	age?: string;
+	bloodType?: string;
+	isFavourite?: boolean;
+	isFavouriteBlocked?: boolean;
+	favourites?: number;
+	siteUrl?: string;
+	media?: {
+		nodes?: Media[];
+		edges?: { node?: Media; id?: number; characterRole?: string }[];
+		pageInfo?: PageInfo;
+	};
+}
+
+// ============================================================================
+// Staff Types
+// ============================================================================
+
+export interface Staff {
+	id: number;
+	name: {
+		first?: string;
+		last?: string;
+		full?: string;
+		native?: string;
+		userPreferred?: string;
+		alternative?: string[];
+	};
+	image?: {
+		large?: string;
+		medium?: string;
+	};
+	description?: string;
+	gender?: string;
+	dateOfBirth?: MediaDate;
+	dateOfDeath?: MediaDate;
+	age?: number;
+	yearsActive?: number[];
+	homeTown?: string;
+	bloodType?: string;
+	isFavourite?: boolean;
+	isFavouriteBlocked?: boolean;
+	favourites?: number;
+	siteUrl?: string;
+	staffMedia?: {
+		nodes?: Media[];
+		edges?: { node?: Media; id?: number; staffRole?: string }[];
+		pageInfo?: PageInfo;
+	};
+	characters?: {
+		nodes?: Character[];
+		edges?: { node?: Character; id?: number; role?: string }[];
+		pageInfo?: PageInfo;
+	};
+}
+
+// ============================================================================
 // Request Parameters
 // ============================================================================
 

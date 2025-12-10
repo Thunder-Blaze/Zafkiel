@@ -8,6 +8,9 @@ import type {
 	AniListResponse,
 	Media,
 	User,
+	Studio,
+	Character,
+	Staff,
 	PaginationParams,
 	SeasonalAnimeParams,
 	SearchParams,
@@ -174,6 +177,45 @@ export const userApi = {
 };
 
 // ============================================================================
+// Studio API
+// ============================================================================
+
+export const studioApi = {
+	/**
+	 * Get studio by ID
+	 */
+	getById: async (id: number): Promise<AniListResponse<Studio>> => {
+		return invoke('get_studio_by_id', { id });
+	},
+};
+
+// ============================================================================
+// Character API
+// ============================================================================
+
+export const characterApi = {
+	/**
+	 * Get character by ID
+	 */
+	getById: async (id: number): Promise<AniListResponse<Character>> => {
+		return invoke('get_character_by_id', { id });
+	},
+};
+
+// ============================================================================
+// Staff API
+// ============================================================================
+
+export const staffApi = {
+	/**
+	 * Get staff by ID
+	 */
+	getById: async (id: number): Promise<AniListResponse<Staff>> => {
+		return invoke('get_staff_by_id', { id });
+	},
+};
+
+// ============================================================================
 // Combined API Export
 // ============================================================================
 
@@ -181,4 +223,7 @@ export const anilistApi = {
 	anime: animeApi,
 	manga: mangaApi,
 	user: userApi,
+	studio: studioApi,
+	character: characterApi,
+	staff: staffApi,
 };

@@ -88,7 +88,7 @@
 	const isAdult = $derived(media.isAdult || false);
 	const userStatus = $derived(media?.mediaListEntry?.status);
 	const userProgress = $derived(media?.mediaListEntry?.progress || 0);
-	const link = $derived('/' + media.type?.toLowerCase() + '/' + media.id);
+	const link = $derived('/' + (media.type || 'ANIME').toLowerCase() + '/' + media.id);
 
 	// Format season display
 	const seasonDisplay = $derived(() => {
@@ -96,6 +96,8 @@
 		const seasonName = season.charAt(0) + season.slice(1).toLowerCase();
 		return `${seasonName} ${seasonYear}`;
 	});
+
+	$inspect(media);
 </script>
 
 <!-- svelte-ignore a11y_mouse_events_have_key_events -->
@@ -117,18 +119,14 @@
 			class="absolute top-0 left-0 flex h-full w-full flex-col transition-all"
 			data-sveltekit-preload-data="off"
 		>
-			<CachedImage
-				src={coverImage}
-				alt={title}
-				class="h-full w-full object-cover"
-			/>
+			<CachedImage src={coverImage} alt={title} class="h-full w-full object-cover" />
 		</a>
 
 		<!-- Top badges -->
 		<div class="relative z-10 flex items-center justify-between p-2">
 			<!-- Score Badge -->
 			<div
-				class="flex items-center justify-center rounded-md text-card-foreground px-2 py-0.5 {blurEffectsEnabled
+				class="flex items-center justify-center rounded-md px-2 py-0.5 text-card-foreground {blurEffectsEnabled
 					? 'bg-card/65 backdrop-blur-xl'
 					: 'bg-card'} gap-0.5 font-semibold shadow-lg transition-all duration-200"
 			>
@@ -162,7 +160,9 @@
 					>
 						<div
 							class="h-full rounded-r-md transition-all duration-300"
-							style="width: {(userProgress / ((episodes != null) ? episodes : (chapters != null ? chapters : 0))) * 100}%"
+							style="width: {(userProgress /
+								(episodes != null ? episodes : chapters != null ? chapters : 0)) *
+								100}%"
 							class:bg-primary={userStatus === 'CURRENT' || userStatus === 'REPEATING'}
 							class:bg-secondary={userStatus === 'PAUSED'}
 							class:bg-destructive={userStatus === 'DROPPED'}
@@ -201,8 +201,7 @@
 				? 'right-0'
 				: position === 'right'
 					? 'left-0'
-					: ''} {blurEffectsEnabled
-					? 'backdrop-blur-xl bg-card/95' : 'bg-card'}"
+					: ''} {blurEffectsEnabled ? 'bg-card/95 backdrop-blur-xl' : 'bg-card'}"
 			in:scale={{ duration: animationsEnabled ? 100 : 0, start: 0.85, easing: cubicInOut }}
 		>
 			<!-- Banner Image -->
@@ -236,7 +235,7 @@
 					class="flex h-full w-full flex-col items-start justify-between overflow-hidden rounded-lg p-2"
 				>
 					<!-- Score and 18+ badge on banner -->
-					<div class="flex flex-row-reverse w-full items-center justify-between">
+					<div class="flex w-full flex-row-reverse items-center justify-between">
 						<!-- <div
 							class="flex items-center justify-center rounded-md px-2 py-0.5 {blurEffectsEnabled
 								? 'bg-card/65 backdrop-blur-xl'
@@ -258,7 +257,7 @@
 						{/if} -->
 						{#if studio}
 							<div
-								class="flex items-center text-xs justify-center text-card-foreground rounded-md px-2 py-0.5 {blurEffectsEnabled
+								class="flex items-center justify-center rounded-md px-2 py-0.5 text-xs text-card-foreground {blurEffectsEnabled
 									? 'bg-card/65 backdrop-blur-xl'
 									: 'bg-card'} gap-0.5 shadow-lg"
 							>
@@ -293,7 +292,9 @@
 								>
 									<div
 										class="h-full rounded-r-md transition-all duration-300"
-										style="width: {(userProgress / ((episodes != null) ? episodes : (chapters != null ? chapters : 0))) * 100}%"
+										style="width: {(userProgress /
+											(episodes != null ? episodes : chapters != null ? chapters : 0)) *
+											100}%"
 										class:bg-primary={userStatus === 'CURRENT' || userStatus === 'REPEATING'}
 										class:bg-secondary={userStatus === 'PAUSED'}
 										class:bg-destructive={userStatus === 'DROPPED'}
@@ -327,7 +328,10 @@
 
 				<!-- Description -->
 				<p class="line-clamp-3 text-xs text-muted-foreground">
-					{@html description.replaceAll('<br />', '').replaceAll('<br><br>', '<br>').replaceAll('<br><br>', '<br>')}
+					{@html description
+						.replaceAll('<br />', '')
+						.replaceAll('<br><br>', '<br>')
+						.replaceAll('<br><br>', '<br>')}
 				</p>
 
 				<!-- Action Buttons Strip -->

@@ -1,0 +1,28 @@
+    Checking Zafkiel v0.1.0 (/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/src-tauri)
+error[E0609]: no field `download_speed` on type `TorrentStats`
+   --> src/commands/torrent.rs:157:27
+    |
+157 |             let _ = stats.download_speed;
+    |                           ^^^^^^^^^^^^^^ unknown field
+    |
+    = note: available fields are: `state`, `file_progress`, `error`, `progress_bytes`, `uploaded_bytes` ... and 3 others
+
+error[E0609]: no field `peers` on type `TorrentStats`
+   --> src/commands/torrent.rs:158:27
+    |
+158 |             let _ = stats.peers;
+    |                           ^^^^^ unknown field
+    |
+    = note: available fields are: `state`, `file_progress`, `error`, `progress_bytes`, `uploaded_bytes` ... and 3 others
+
+warning: unused import: `prelude`
+  --> src/lib.rs:14:73
+   |
+14 | use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, prelude::*, Layer};
+   |                                                                         ^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+For more information about this error, try `rustc --explain E0609`.
+warning: `Zafkiel` (lib) generated 1 warning
+error: could not compile `Zafkiel` (lib) due to 2 previous errors; 1 warning emitted

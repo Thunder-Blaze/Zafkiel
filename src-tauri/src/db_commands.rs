@@ -184,6 +184,7 @@ pub async fn cleanup_cache(db: State<'_, Database>) -> Result<(), String> {
 /// Get cached image path by URL
 #[command]
 pub async fn get_cached_image_path(
+    app: AppHandle,
     db: State<'_, Database>,
     url: String,
 ) -> Result<Option<String>, String> {
@@ -198,8 +199,18 @@ pub async fn get_cached_image_path(
     );
 
     match result {
-        Ok(path) => {
-            log::info!("[DB] Found cached image: {} -> {}", url, path);
+        Ok(local_path) => {
+            // Resolve absolute path
+            let app_data_dir = app
+                .path()
+                .app_data_dir()
+                .map_err(|e| format!("Failed to get app data directory: {}", e))?;
+            
+            let cache_dir = app_data_dir.join("cache");
+            let full_path = cache_dir.join(&local_path);
+            let full_path_str = full_path.to_string_lossy().to_string();
+
+            log::info!("[DB] Found cached image: {} -> {}", url, full_path_str);
 
             // Update last_accessed timestamp
             let now = std::time::SystemTime::now()
@@ -212,7 +223,7 @@ pub async fn get_cached_image_path(
                 params![now, url],
             );
 
-            Ok(Some(path))
+            Ok(Some(full_path_str))
         }
         Err(rusqlite::Error::QueryReturnedNoRows) => {
             log::debug!("[DB] Image not cached: {}", url);

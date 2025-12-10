@@ -4,7 +4,8 @@
 	import { Card, CardContent } from '$lib/components/ui/card';
 	import { authLoading, isAuthenticated } from '$lib/stores/auth';
 	import Icon from '@iconify/svelte';
-	import { fade, slide } from 'svelte/transition';
+	import { fade, slide, fly, scale } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
 	import type { PageData } from './$types';
 
 	// Import setting components
@@ -39,6 +40,9 @@
 
 	function setActiveSection(section: string): void {
 		activeSection = section;
+		if (browser) {
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		}
 	}
 
 	const sections = [
@@ -62,34 +66,47 @@
 		</div>
 	</div>
 {:else if $isAuthenticated}
-	<div class="container mx-auto max-w-7xl p-6" transition:fade={{ duration: 300 }}>
+	<div class="container mx-auto max-w-7xl p-4 lg:p-8" transition:fade={{ duration: 300 }}>
 		<!-- Header -->
 		<div class="mb-8" transition:slide={{ duration: 300 }}>
 			<div class="mb-2 flex items-center gap-3">
-				<div class="rounded-lg bg-primary/10 p-2">
-					<Icon icon="solar:settings-bold" class="h-6 w-6 text-primary" />
+				<div class="rounded-xl bg-primary/10 p-3">
+					<Icon icon="solar:settings-bold-duotone" class="h-8 w-8 text-primary" />
 				</div>
-				<h1 class="text-4xl font-bold">Settings</h1>
+				<div>
+					<h1 class="text-3xl font-bold tracking-tight lg:text-4xl">Settings</h1>
+					<p class="text-muted-foreground">Customize your Zafkiel experience</p>
+				</div>
 			</div>
-			<p class="text-foreground/70">Customize your Zafkiel experience</p>
 		</div>
 
-		<div class="grid gap-6 lg:grid-cols-[240px_1fr]">
-			<!-- Sidebar Navigation -->
-			<aside transition:slide={{ duration: 300, delay: 100 }}>
-				<Card class="sticky top-6">
+		<div class="grid gap-8 lg:grid-cols-[280px_1fr]">
+			<!-- Sidebar Navigation (Desktop) -->
+			<aside class="hidden lg:block" transition:slide={{ duration: 300, delay: 100 }}>
+				<Card
+					class="sticky top-24 overflow-hidden border-none bg-background/50 shadow-sm backdrop-blur-xl"
+				>
 					<CardContent class="p-2">
 						<nav class="flex flex-col gap-1">
 							{#each sections as section}
 								<button
 									onclick={() => setActiveSection(section.id)}
-									class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200
+									class="group flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200
 										{activeSection === section.id
-										? 'scale-[1.02] bg-primary/90 text-primary-foreground shadow-lg'
-										: 'text-foreground/70 hover:scale-[1.01] hover:bg-primary/10 hover:text-foreground hover:shadow-md'}"
+										? 'bg-primary text-primary-foreground shadow-md'
+										: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
 								>
-									<Icon icon={section.icon} class="h-4 w-4" />
+									<Icon
+										icon={section.icon}
+										class="h-5 w-5 transition-transform duration-200 group-hover:scale-110"
+									/>
 									{section.label}
+									{#if activeSection === section.id}
+										<div
+											class="ml-auto h-1.5 w-1.5 rounded-full bg-white/50"
+											transition:scale
+										></div>
+									{/if}
 								</button>
 							{/each}
 						</nav>
@@ -97,61 +114,89 @@
 				</Card>
 			</aside>
 
+			<!-- Mobile Navigation (Top Tabs) -->
+			<div
+				class="sticky top-16 z-40 -mx-4 mb-6 overflow-x-auto bg-background/80 px-4 py-2 backdrop-blur-md lg:hidden"
+			>
+				<div class="flex gap-2">
+					{#each sections as section}
+						<button
+							onclick={() => setActiveSection(section.id)}
+							class="flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all
+								{activeSection === section.id
+								? 'border-primary bg-primary text-primary-foreground'
+								: 'border-transparent bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'}"
+						>
+							<Icon icon={section.icon} class="h-4 w-4" />
+							{section.label}
+						</button>
+					{/each}
+				</div>
+			</div>
+
 			<!-- Main Content -->
-			<main class="space-y-6">
-				<!-- General Settings -->
-				{#if activeSection === 'general'}
-					<div class="space-y-6">
-						<InterfaceSettings
-							bind:autoPlayTrailers
-							bind:showSpoilers
-							bind:enableNotifications
-							bind:compactMode
-						/>
-					</div>
-				{/if}
+			<main class="min-h-[500px] space-y-6">
+				{#key activeSection}
+					<div
+						in:slide={{ duration: 300, axis: 'y' }}
+						out:slide={{ duration: 300, axis: 'y' }}
+						class="space-y-6"
+					>
+						<!-- General Settings -->
+						{#if activeSection === 'general'}
+							<div class="space-y-6">
+								<InterfaceSettings
+									bind:autoPlayTrailers
+									bind:showSpoilers
+									bind:enableNotifications
+									bind:compactMode
+								/>
+							</div>
+						{/if}
 
-				<!-- Appearance Settings -->
-				{#if activeSection === 'appearance'}
-					<div class="space-y-6">
-						<UiScaleSettings />
-						<ThemeModeSettings />
-						<ThemeSettings />
-					</div>
-				{/if}
+						<!-- Appearance Settings -->
+						{#if activeSection === 'appearance'}
+							<div class="space-y-6">
+								<UiScaleSettings />
+								<ThemeModeSettings />
+								<ThemeSettings />
+							</div>
+						{/if}
 
-				<!-- Preferences Settings -->
-				{#if activeSection === 'preferences'}
-					<div class="space-y-6">
-						<PreferencesSettings bind:show18Plus bind:showInList bind:selectedGenres />
-					</div>
-				{/if}
+						<!-- Preferences Settings -->
+						{#if activeSection === 'preferences'}
+							<div class="space-y-6">
+								<PreferencesSettings bind:show18Plus bind:showInList bind:selectedGenres />
+							</div>
+						{/if}
 
-				<!-- Playback Settings -->
-				{#if activeSection === 'playback'}
-					<div class="space-y-6">
-						<PlaybackSettings
-							bind:autoSkipIntro
-							bind:autoSkipOutro
-							bind:autoPlayNext
-							bind:preferDub
-						/>
-					</div>
-				{/if}
+						<!-- Playback Settings -->
+						{#if activeSection === 'playback'}
+							<div class="space-y-6">
+								<PlaybackSettings
+									bind:autoSkipIntro
+									bind:autoSkipOutro
+									bind:autoPlayNext
+									bind:preferDub
+								/>
+							</div>
+						{/if}
 
-				<!-- Cache Settings -->
-				{#if activeSection === 'cache'}
-					<div class="space-y-6">
-						<ImageCacheManager initialCachedImages={data.cachedImages} />
-					</div>
-				{/if}
+						<!-- Cache Settings -->
+						{#if activeSection === 'cache'}
+							<div class="space-y-6">
+								<ImageCacheManager />
+							</div>
+						{/if}
 
-				<!-- Account Settings -->
-				{#if activeSection === 'account'}
-					<div class="space-y-6">
-						<AccountSettings />
+						<!-- Account Settings -->
+						{#if activeSection === 'account'}
+							<div class="space-y-6">
+								<AccountSettings />
+							</div>
+						{/if}
 					</div>
-				{/if}
+				{/key}
 			</main>
 		</div>
 	</div>

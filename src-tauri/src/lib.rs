@@ -11,11 +11,66 @@ use auth::anilist::AuthState;
 use database::Database;
 use std::{sync::Arc, vec};
 use tauri::Manager;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, prelude::*, Layer};
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Setup file logging
+    let log_dir = std::path::PathBuf::from("/tmp/zafkiel");
+    std::fs::create_dir_all(&log_dir).expect("Failed to create log directory");
+    
+    // Torrent logs
+    let torrent_appender = tracing_appender::rolling::daily(&log_dir, "torrent.log");
+    let (torrent_nb, _torrent_guard) = tracing_appender::non_blocking(torrent_appender);
+
+    // General logs
+    let file_appender = tracing_appender::rolling::daily(&log_dir, "zafkiel.log");
+    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+
+    // Filters
+    let torrent_filter = tracing_subscriber::filter::Targets::new()
+        .with_target("app_lib::commands::torrent", tracing::Level::DEBUG)
+        .with_target("librqbit", tracing::Level::DEBUG)
+        .with_target("dht", tracing::Level::DEBUG);
+
+    let app_filter = tracing_subscriber::EnvFilter::new("info,zafkiel=debug")
+        .add_directive("app_lib::commands::torrent=off".parse().unwrap())
+        .add_directive("librqbit=off".parse().unwrap())
+        .add_directive("dht=off".parse().unwrap());
+
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_writer(torrent_nb)
+                .with_ansi(false)
+                .with_filter(torrent_filter)
+        )
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_writer(non_blocking)
+                .with_ansi(false)
+                .with_filter(app_filter)
+        )
+        .init();
+
     tauri::Builder::default()
         .setup(|app| {
+            // Clear old logs
+            let log_dir = std::path::PathBuf::from("/tmp/zafkiel");
+            if log_dir.exists() {
+                if let Ok(entries) = std::fs::read_dir(&log_dir) {
+                    for entry in entries.flatten() {
+                        let path = entry.path();
+                        if let Some(ext) = path.extension() {
+                            if ext == "log" {
+                                let _ = std::fs::remove_file(path);
+                            }
+                        }
+                    }
+                }
+            }
+
             // Load environment variables from .env file
             if let Err(e) = dotenvy::dotenv() {
                 log::warn!("[Setup] Failed to load .env file: {}. Make sure .env exists in the project root with ANILIST_CLIENT_ID and ANILIST_CLIENT_SECRET", e);
@@ -23,14 +78,8 @@ pub fn run() {
                 log::info!("[Setup] Successfully loaded .env file");
             }
 
-            if cfg!(debug_assertions) {
-                app.handle().plugin(
-                    tauri_plugin_log::Builder::default()
-                        .level(log::LevelFilter::Debug)
-                        .build(),
-                )?;
-            }
-
+            // Setup file logging - REMOVED (moved to run())
+            
             // Initialize config loader
             let config_loader =
                 config::ConfigLoader::new().expect("Failed to initialize config loader");
@@ -77,6 +126,24 @@ pub fn run() {
             app.manage(database);
             log::info!("[Setup] Database initialized at: {:?}", db_path);
 
+            // Initialize Global Torrent Session
+            let download_dir = app.path().download_dir().unwrap_or(std::path::PathBuf::from("downloads")).join("zafkiel");
+            std::fs::create_dir_all(&download_dir).expect("Failed to create download directory");
+            
+            let session = tauri::async_runtime::block_on(async {
+                librqbit::Session::new(download_dir).await
+            }).expect("Failed to create torrent session");
+            
+            app.manage(session.clone()); // Session::new returns Arc<Session>
+            log::info!("[Setup] Global torrent session initialized");
+
+            // Restore torrents from persistence
+            let app_handle = app.handle().clone();
+            let session_clone = session.clone();
+            tauri::async_runtime::spawn(async move {
+                commands::torrent::restore_torrents(&app_handle, &session_clone).await;
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -111,6 +178,8 @@ pub fn run() {
             // Media commands
             commands::api::anilist::search_media,
             commands::api::anilist::get_media_by_id,
+            commands::api::anilist::get_anime_by_id,
+            commands::api::anilist::get_manga_by_id,
 						// Anime commands
             commands::api::anilist::get_trending_anime,
             commands::api::anilist::get_popular_anime,
@@ -124,6 +193,12 @@ pub fn run() {
             commands::api::anilist::get_user_by_id,
             commands::api::anilist::get_user_by_name,
             commands::api::anilist::search_users,
+            // Studio commands
+            commands::api::anilist::get_studio_by_id,
+            // Character commands
+            commands::api::anilist::get_character_by_id,
+            // Staff commands
+            commands::api::anilist::get_staff_by_id,
             // Image cache commands
             image_cache_commands::download_image,
             image_cache_commands::file_exists,
@@ -144,6 +219,16 @@ pub fn run() {
             db_commands::get_cached_image_path,
             db_commands::cache_image,
             db_commands::remove_cached_image,
+            // Utils
+            commands::utils::fetch_url,
+            commands::torrent::stream_torrent,
+            commands::torrent::stream_torrent_by_id,
+            commands::torrent::open_in_external_player,
+            commands::torrent::get_torrents,
+            commands::torrent::pause_torrent,
+            commands::torrent::resume_torrent,
+            commands::torrent::delete_torrent,
+            commands::torrent::get_stream_base_url,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

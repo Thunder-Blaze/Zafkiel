@@ -32,11 +32,11 @@
 	let searchQuery = $state('');
 
 	// Platform-specific keyboard shortcut display
-	const isMac = browser && (
-		navigator.userAgent.includes('Mac') ||
-		navigator.userAgent.includes('iPhone') ||
-		navigator.userAgent.includes('iPad')
-	);
+	const isMac =
+		browser &&
+		(navigator.userAgent.includes('Mac') ||
+			navigator.userAgent.includes('iPhone') ||
+			navigator.userAgent.includes('iPad'));
 
 	let unlisten: UnlistenFn | null = null;
 
@@ -173,6 +173,7 @@
 	const navItems = [
 		{ path: '/', icon: 'solar:home-bold', label: 'Home' },
 		{ path: '/anime', icon: 'solar:video-library-bold', label: 'Anime' },
+		{ path: '/downloads', icon: 'solar:download-bold', label: 'Downloads' },
 		{ path: '/media-demo', icon: 'solar:gallery-bold', label: 'Demo' },
 		{ path: '/settings', icon: 'solar:settings-bold', label: 'Settings' },
 	];
@@ -263,10 +264,16 @@
 		</div>
 
 		<!-- Center Section: Search Bar -->
-		<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-			<form onsubmit={(e) => { e.preventDefault(); handleSearchSubmit(); }} class="relative">
+		<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+			<form
+				onsubmit={(e) => {
+					e.preventDefault();
+					handleSearchSubmit();
+				}}
+				class="relative"
+			>
 				<div
-					class="flex items-center gap-2 rounded-lg border border-border/60 bg-background/50 px-3 py-1.5 shadow-sm transition-all hover:border-border hover:bg-background focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
+					class="flex items-center gap-2 rounded-lg border border-border/60 bg-background/50 px-3 py-1.5 shadow-sm transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 hover:border-border hover:bg-background"
 				>
 					<Icon icon="solar:magnifer-bold" class="h-4 w-4 text-muted-foreground" />
 
