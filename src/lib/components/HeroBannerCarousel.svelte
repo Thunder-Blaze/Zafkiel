@@ -98,15 +98,15 @@
 				style="background-image: url('{currentItem.bannerImage || currentItem.coverImage?.extraLarge || currentItem.coverImage?.large}')"
 			>
 				<!-- Gradient Overlays -->
-				<div class="absolute inset-0 bg-gradient-to-r from-background/70 via-background/40 to-transparent"></div>
-				<div class="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent"></div>
+				<div class="absolute inset-0 bg-linear-to-r from-background/70 via-background/40 to-transparent"></div>
+				<div class="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent"></div>
 			</div>
 		{/key}
 
 		<!-- Content -->
 		<div class="relative flex h-full flex-col justify-end px-6 pb-6 md:px-8 lg:px-12">
 			{#key currentItem.id}
-				<div 
+				<div
 					in:fly={{ x: direction === 'right' ? 100 : -100, y: 0, duration: 500, delay: 200, easing: cubicOut }}
 					out:fly={{ x: direction === 'right' ? -50 : 50, y: 0, duration: 300, easing: cubicOut }}
 					class="absolute bottom-6 left-6 right-6 max-w-xl space-y-2 md:left-8 md:right-8 lg:left-12 lg:right-12"

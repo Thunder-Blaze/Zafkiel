@@ -100,14 +100,14 @@ pub async fn browse_media(
     service: State<'_, AniListState>
 ) -> Result<AniListResponse<Page<Vec<Media>>>, String> {
     log::info!("Executing command: browse_media with filters");
-    
+
     // Convert string enums to their proper types
     let media_type_enum = media_type.as_ref().and_then(|t| match t.as_str() {
         "ANIME" => Some(MediaType::Anime),
         "MANGA" => Some(MediaType::Manga),
         _ => None,
     });
-    
+
     let season_enum = season.as_ref().and_then(|s| match s.as_str() {
         "WINTER" => Some(MediaSeason::Winter),
         "SPRING" => Some(MediaSeason::Spring),
@@ -115,7 +115,7 @@ pub async fn browse_media(
         "FALL" => Some(MediaSeason::Fall),
         _ => None,
     });
-    
+
     let format_enum = format.as_ref().and_then(|f| match f.as_str() {
         "TV" => Some(MediaFormat::Tv),
         "TV_SHORT" => Some(MediaFormat::TvShort),
@@ -129,7 +129,7 @@ pub async fn browse_media(
         "ONE_SHOT" => Some(MediaFormat::OneShot),
         _ => None,
     });
-    
+
     let status_enum = status.as_ref().and_then(|s| match s.as_str() {
         "FINISHED" => Some(MediaStatus::Finished),
         "RELEASING" => Some(MediaStatus::Releasing),
@@ -138,7 +138,7 @@ pub async fn browse_media(
         "HIATUS" => Some(MediaStatus::Hiatus),
         _ => None,
     });
-    
+
     let source_enum = source.as_ref().and_then(|s| match s.as_str() {
         "ORIGINAL" => Some(MediaSource::Original),
         "MANGA" => Some(MediaSource::Manga),
@@ -157,7 +157,7 @@ pub async fn browse_media(
         "PICTURE_BOOK" => Some(MediaSource::PictureBook),
         _ => None,
     });
-    
+
     let sort_enums = sort_by.as_ref().map(|sorts| {
         sorts.iter().filter_map(|s| match s.as_str() {
             "POPULARITY_DESC" => Some(MediaSort::PopularityDesc),
@@ -183,7 +183,7 @@ pub async fn browse_media(
             _ => None,
         }).collect::<Vec<_>>()
     });
-    
+
     let options = FetchMediaOptions {
         media_type: media_type_enum,
         search,
@@ -206,7 +206,7 @@ pub async fn browse_media(
         per_page,
         ..Default::default()
     };
-    
+
     let client = service.client().await;
     let result = client.media().fetch(&options).await;
     Ok(result.into())

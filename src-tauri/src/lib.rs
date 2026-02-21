@@ -3,8 +3,6 @@ mod auth;
 mod commands;
 mod config;
 mod database;
-mod db_commands;
-mod image_cache_commands;
 
 use api::anilist::AniListService;
 use auth::anilist::AuthState;
@@ -201,25 +199,25 @@ pub fn run() {
             // Staff commands
             commands::api::anilist::get_staff_by_id,
             // Image cache commands
-            image_cache_commands::download_image,
-            image_cache_commands::file_exists,
-            image_cache_commands::delete_file,
-            image_cache_commands::get_cache_stats,
-            image_cache_commands::cleanup_image_cache,
-            image_cache_commands::get_cached_file_path,
+            commands::image_cache::download_image,
+            commands::image_cache::file_exists,
+            commands::image_cache::delete_file,
+            commands::image_cache::get_cache_stats,
+            commands::image_cache::cleanup_image_cache,
+            commands::image_cache::get_cached_file_path,
             // Database commands
-            db_commands::update_local_progress,
-            db_commands::cache_media,
-            db_commands::cache_user,
-            db_commands::add_to_recently_viewed,
-            db_commands::get_recently_viewed,
-            db_commands::search_cached_media,
-            db_commands::cleanup_cache,
-            db_commands::get_all_cached_images,
+            commands::db::update_local_progress,
+            commands::db::cache_media,
+            commands::db::cache_user,
+            commands::db::add_to_recently_viewed,
+            commands::db::get_recently_viewed,
+            commands::db::search_cached_media,
+            commands::db::cleanup_cache,
+            commands::db::get_all_cached_images,
             // Image database commands
-            db_commands::get_cached_image_path,
-            db_commands::cache_image,
-            db_commands::remove_cached_image,
+            commands::db::get_cached_image_path,
+            commands::db::cache_image,
+            commands::db::remove_cached_image,
             // Utils
             commands::utils::fetch_url,
             commands::torrent::stream_torrent,

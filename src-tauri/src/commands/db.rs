@@ -205,7 +205,7 @@ pub async fn get_cached_image_path(
                 .path()
                 .app_data_dir()
                 .map_err(|e| format!("Failed to get app data directory: {}", e))?;
-            
+
             let cache_dir = app_data_dir.join("cache");
             let full_path = cache_dir.join(&local_path);
             let full_path_str = full_path.to_string_lossy().to_string();
