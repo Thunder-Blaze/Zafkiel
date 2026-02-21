@@ -20,7 +20,7 @@
 	// Props - receive initial data from page load
 	let { initialCachedImages = [] }: { initialCachedImages?: CachedImageInfo[] } = $props();
 
-	let cachedImages: CachedImageInfo[] = $state(initialCachedImages);
+	let cachedImages: CachedImageInfo[] = $derived(initialCachedImages);
 
 	let isLoading = $state(false);
 	let isCleaningUp = $state(false);

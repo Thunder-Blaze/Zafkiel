@@ -11,7 +11,7 @@ use auth::anilist::AuthState;
 use database::Database;
 use std::{sync::Arc, vec};
 use tauri::Manager;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, prelude::*, Layer};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, Layer};
 
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -19,7 +19,7 @@ pub fn run() {
     // Setup file logging
     let log_dir = std::path::PathBuf::from("/tmp/zafkiel");
     std::fs::create_dir_all(&log_dir).expect("Failed to create log directory");
-    
+
     // Torrent logs
     let torrent_appender = tracing_appender::rolling::daily(&log_dir, "torrent.log");
     let (torrent_nb, _torrent_guard) = tracing_appender::non_blocking(torrent_appender);
@@ -79,7 +79,7 @@ pub fn run() {
             }
 
             // Setup file logging - REMOVED (moved to run())
-            
+
             // Initialize config loader
             let config_loader =
                 config::ConfigLoader::new().expect("Failed to initialize config loader");
@@ -129,11 +129,11 @@ pub fn run() {
             // Initialize Global Torrent Session
             let download_dir = app.path().download_dir().unwrap_or(std::path::PathBuf::from("downloads")).join("zafkiel");
             std::fs::create_dir_all(&download_dir).expect("Failed to create download directory");
-            
+
             let session = tauri::async_runtime::block_on(async {
                 librqbit::Session::new(download_dir).await
             }).expect("Failed to create torrent session");
-            
+
             app.manage(session.clone()); // Session::new returns Arc<Session>
             log::info!("[Setup] Global torrent session initialized");
 
@@ -177,6 +177,7 @@ pub fn run() {
             // API commands
             // Media commands
             commands::api::anilist::search_media,
+            commands::api::anilist::browse_media,
             commands::api::anilist::get_media_by_id,
             commands::api::anilist::get_anime_by_id,
             commands::api::anilist::get_manga_by_id,

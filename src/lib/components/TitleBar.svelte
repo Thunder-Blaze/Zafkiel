@@ -164,14 +164,13 @@
 
 	function handleSearchSubmit(): void {
 		if (searchQuery.trim()) {
-			// TODO: Implement search functionality
-			$inspect('[TitleBar] Search:', searchQuery);
-			// For now, navigate to search page or show search modal
+			goto(`/search?search=${encodeURIComponent(searchQuery.trim())}`);
+			searchQuery = '';
 		}
 	}
 
 	const navItems = [
-		{ path: '/', icon: 'solar:home-bold', label: 'Home' },
+		{ path: '/search', icon: 'solar:magnifer-bold', label: 'Search' },
 		{ path: '/anime', icon: 'solar:video-library-bold', label: 'Anime' },
 		{ path: '/downloads', icon: 'solar:download-bold', label: 'Downloads' },
 		{ path: '/media-demo', icon: 'solar:gallery-bold', label: 'Demo' },
@@ -182,18 +181,23 @@
 {#if browser && !isFullscreen}
 	<div
 		data-tauri-drag-region
-		class="fixed top-0 right-0 left-0 z-[999999] flex h-12 items-center justify-between border-b border-border/50 bg-background/95 backdrop-blur-xl select-none"
+		class="fixed top-0 right-0 left-0 z-999999 flex h-12 items-center justify-between border-b border-border/50 bg-background/95 backdrop-blur-xl select-none"
 	>
 		<!-- Left Section: Logo + Navigation Buttons + Nav Items -->
 		<div class="flex h-full items-center gap-2 pl-3" data-tauri-drag-region>
 			<!-- Logo -->
-			<div class="flex items-center gap-2 px-2" data-tauri-drag-region>
+			<button
+				type="button"
+				onclick={() => goto('/')}
+				class="flex items-center gap-2 px-2 rounded-lg transition-colors hover:bg-primary/5 active:bg-primary/10 cursor-pointer"
+				title="Go to Home"
+			>
 				<div
-					class="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/20"
+					class="flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-primary to-primary/70 shadow-lg shadow-primary/20"
 				>
 					<Icon icon="solar:clock-circle-bold" class="h-4 w-4 text-primary-foreground" />
 				</div>
-				<div class="flex items-baseline gap-1" data-tauri-drag-region>
+				<div class="flex items-baseline gap-1">
 					<span class="text-lg font-bold tracking-tight">Zafkiel</span>
 					<sup
 						class="-top-2 rounded border border-accent/60 bg-accent px-1 py-1.5 text-[8px] font-semibold text-accent-foreground"
@@ -201,7 +205,7 @@
 						ALPHA
 					</sup>
 				</div>
-			</div>
+			</button>
 
 			<!-- Navigation Controls -->
 			<div class="flex h-full items-center gap-1 border-l border-border/30 pl-2">

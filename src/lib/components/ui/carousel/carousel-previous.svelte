@@ -14,6 +14,26 @@
 	}: WithoutChildren<Props> = $props();
 
 	const emblaCtx = getEmblaContext('<Carousel.Previous/>');
+
+	let holdInterval: ReturnType<typeof setInterval> | null = null;
+
+	function handleMouseDown() {
+		emblaCtx.scrollPrev();
+		holdInterval = setInterval(() => {
+			emblaCtx.scrollPrev();
+		}, 300);
+	}
+
+	function handleMouseUp() {
+		if (holdInterval) {
+			clearInterval(holdInterval);
+			holdInterval = null;
+		}
+	}
+
+	function handleMouseLeave() {
+		handleMouseUp();
+	}
 </script>
 
 <Button
@@ -28,7 +48,9 @@
 			: '-top-12 left-1/2 -translate-x-1/2 rotate-90',
 		className
 	)}
-	onclick={emblaCtx.scrollPrev}
+	onmousedown={handleMouseDown}
+	onmouseup={handleMouseUp}
+	onmouseleave={handleMouseLeave}
 	onkeydown={emblaCtx.handleKeyDown}
 	{...restProps}
 	bind:ref

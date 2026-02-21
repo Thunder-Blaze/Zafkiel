@@ -5,7 +5,7 @@
 
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 import type { CreateQueryOptions } from '@tanstack/svelte-query';
-import { animeApi, mangaApi, userApi, studioApi, characterApi, staffApi } from '$lib/services/anilist';
+import { animeApi, mangaApi, userApi, studioApi, characterApi, staffApi, mediaApi } from '$lib/services/anilist';
 import { ClientDatabaseService } from '$lib/services/client-database';
 import type {
 	Media,
@@ -16,7 +16,9 @@ import type {
 	PaginationParams,
 	SearchParams,
 	SeasonalAnimeParams,
-	AniListResponse
+	BrowseParams,
+	AniListResponse,
+	Page,
 } from '$lib/types/anilist';
 
 // ============================================================================
@@ -77,6 +79,7 @@ export const anilistKeys = {
 		detail: (id: number) => [...anilistKeys.media.all, 'detail', id] as const,
 		search: (params: SearchParams & { type?: 'ANIME' | 'MANGA' }) =>
 			[...anilistKeys.media.all, 'search', params] as const,
+		browse: (params: BrowseParams) => [...anilistKeys.media.all, 'browse', params] as const,
 	},
 } as const;
 
@@ -91,6 +94,7 @@ const defaultStaleTime = {
 	popular: 15 * 60 * 1000, // 15 minutes - popular changes less frequently
 	seasonal: 60 * 60 * 1000, // 1 hour - seasonal data very stable
 	search: 10 * 60 * 1000,  // 10 minutes - search results moderate stability
+	browse: 10 * 60 * 1000,  // 10 minutes - browse results moderate stability
 	user: 30 * 60 * 1000,    // 30 minutes - user data changes less frequently
 	studio: 60 * 60 * 1000,  // 1 hour - studio data very stable
 	character: 60 * 60 * 1000, // 1 hour - character data very stable
@@ -442,6 +446,22 @@ export function useMediaSearch(
 		},
 		staleTime: defaultStaleTime.search,
 		enabled: params.query.length > 0,
+		...options,
+	}));
+}
+
+/**
+ * Browse media with comprehensive filters
+ * Use this for browse pages with filtering, sorting, and search
+ */
+export function useBrowseMedia(
+	params: BrowseParams,
+	options?: Partial<CreateQueryOptions<AniListResponse<Page<Media[]>>>>
+) {
+	return createQuery(() => ({
+		queryKey: anilistKeys.media.browse(params),
+		queryFn: () => mediaApi.browse(params),
+		staleTime: defaultStaleTime.browse,
 		...options,
 	}));
 }

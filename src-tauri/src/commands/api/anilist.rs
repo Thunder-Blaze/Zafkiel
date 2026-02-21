@@ -2,6 +2,7 @@ use crate::api::anilist::{AniListResponse, AniListService};
 use anilist_moe::{
     endpoints::media::{FetchMediaOneOptions, FetchMediaOptions},
     objects::{media::Media, responses::Page, user::User, studio::Studio, character::Character, staff::Staff},
+    enums::media::{MediaType, MediaFormat, MediaStatus, MediaSeason, MediaSort, MediaSource},
 };
 use std::sync::Arc;
 use tauri::State;
@@ -79,6 +80,137 @@ create_anilist_command!(search_media, media, fetch, Page<Vec<Media>>, (
 create_anilist_command!(get_media_by_id, media, fetch_one, Media, (
     options: FetchMediaOneOptions => borrow
 ));
+
+/// Browse anime/manga with comprehensive filters
+#[tauri::command]
+pub async fn browse_media(
+    media_type: Option<String>,
+    search: Option<String>,
+    season: Option<String>,
+    season_year: Option<i32>,
+    format: Option<String>,
+    status: Option<String>,
+    source: Option<String>,
+    genres: Option<Vec<String>>,
+    genres_excluded: Option<Vec<String>>,
+    sort_by: Option<Vec<String>>,
+    is_adult: Option<bool>,
+    page: Option<i32>,
+    per_page: Option<i32>,
+    service: State<'_, AniListState>
+) -> Result<AniListResponse<Page<Vec<Media>>>, String> {
+    log::info!("Executing command: browse_media with filters");
+    
+    // Convert string enums to their proper types
+    let media_type_enum = media_type.as_ref().and_then(|t| match t.as_str() {
+        "ANIME" => Some(MediaType::Anime),
+        "MANGA" => Some(MediaType::Manga),
+        _ => None,
+    });
+    
+    let season_enum = season.as_ref().and_then(|s| match s.as_str() {
+        "WINTER" => Some(MediaSeason::Winter),
+        "SPRING" => Some(MediaSeason::Spring),
+        "SUMMER" => Some(MediaSeason::Summer),
+        "FALL" => Some(MediaSeason::Fall),
+        _ => None,
+    });
+    
+    let format_enum = format.as_ref().and_then(|f| match f.as_str() {
+        "TV" => Some(MediaFormat::Tv),
+        "TV_SHORT" => Some(MediaFormat::TvShort),
+        "MOVIE" => Some(MediaFormat::Movie),
+        "SPECIAL" => Some(MediaFormat::Special),
+        "OVA" => Some(MediaFormat::Ova),
+        "ONA" => Some(MediaFormat::Ona),
+        "MUSIC" => Some(MediaFormat::Music),
+        "MANGA" => Some(MediaFormat::Manga),
+        "NOVEL" => Some(MediaFormat::Novel),
+        "ONE_SHOT" => Some(MediaFormat::OneShot),
+        _ => None,
+    });
+    
+    let status_enum = status.as_ref().and_then(|s| match s.as_str() {
+        "FINISHED" => Some(MediaStatus::Finished),
+        "RELEASING" => Some(MediaStatus::Releasing),
+        "NOT_YET_RELEASED" => Some(MediaStatus::NotYetReleased),
+        "CANCELLED" => Some(MediaStatus::Cancelled),
+        "HIATUS" => Some(MediaStatus::Hiatus),
+        _ => None,
+    });
+    
+    let source_enum = source.as_ref().and_then(|s| match s.as_str() {
+        "ORIGINAL" => Some(MediaSource::Original),
+        "MANGA" => Some(MediaSource::Manga),
+        "LIGHT_NOVEL" => Some(MediaSource::LightNovel),
+        "VISUAL_NOVEL" => Some(MediaSource::VisualNovel),
+        "VIDEO_GAME" => Some(MediaSource::VideoGame),
+        "OTHER" => Some(MediaSource::Other),
+        "NOVEL" => Some(MediaSource::Novel),
+        "DOUJINSHI" => Some(MediaSource::Doujinshi),
+        "ANIME" => Some(MediaSource::Anime),
+        "WEB_NOVEL" => Some(MediaSource::WebNovel),
+        "LIVE_ACTION" => Some(MediaSource::LiveAction),
+        "GAME" => Some(MediaSource::Game),
+        "COMIC" => Some(MediaSource::Comic),
+        "MULTIMEDIA_PROJECT" => Some(MediaSource::MultimediaProject),
+        "PICTURE_BOOK" => Some(MediaSource::PictureBook),
+        _ => None,
+    });
+    
+    let sort_enums = sort_by.as_ref().map(|sorts| {
+        sorts.iter().filter_map(|s| match s.as_str() {
+            "POPULARITY_DESC" => Some(MediaSort::PopularityDesc),
+            "POPULARITY" => Some(MediaSort::Popularity),
+            "TRENDING_DESC" => Some(MediaSort::TrendingDesc),
+            "TRENDING" => Some(MediaSort::Trending),
+            "SCORE_DESC" => Some(MediaSort::ScoreDesc),
+            "SCORE" => Some(MediaSort::Score),
+            "TITLE_ROMAJI" => Some(MediaSort::TitleRomaji),
+            "TITLE_ROMAJI_DESC" => Some(MediaSort::TitleRomajiDesc),
+            "TITLE_ENGLISH" => Some(MediaSort::TitleEnglish),
+            "TITLE_ENGLISH_DESC" => Some(MediaSort::TitleEnglishDesc),
+            "TITLE_NATIVE" => Some(MediaSort::TitleNative),
+            "TITLE_NATIVE_DESC" => Some(MediaSort::TitleNativeDesc),
+            "START_DATE" => Some(MediaSort::StartDate),
+            "START_DATE_DESC" => Some(MediaSort::StartDateDesc),
+            "END_DATE" => Some(MediaSort::EndDate),
+            "END_DATE_DESC" => Some(MediaSort::EndDateDesc),
+            "FAVOURITES_DESC" => Some(MediaSort::FavouritesDesc),
+            "FAVOURITES" => Some(MediaSort::Favourites),
+            "ID" => Some(MediaSort::Id),
+            "ID_DESC" => Some(MediaSort::IdDesc),
+            _ => None,
+        }).collect::<Vec<_>>()
+    });
+    
+    let options = FetchMediaOptions {
+        media_type: media_type_enum,
+        search,
+        season: season_enum,
+        season_year,
+        format: format_enum,
+        status: status_enum,
+        source: source_enum.map(|s| {
+            // Serialize using serde to get the SCREAMING_SNAKE_CASE format
+            serde_json::to_value(s)
+                .ok()
+                .and_then(|v| v.as_str().map(String::from))
+                .unwrap_or_default()
+        }),
+        genre_in: genres,
+        genre_not_in: genres_excluded,
+        sort: sort_enums,
+        is_adult,
+        page,
+        per_page,
+        ..Default::default()
+    };
+    
+    let client = service.client().await;
+    let result = client.media().fetch(&options).await;
+    Ok(result.into())
+}
 
 #[tauri::command]
 pub async fn get_anime_by_id(

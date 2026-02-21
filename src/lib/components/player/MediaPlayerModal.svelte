@@ -28,7 +28,7 @@
 	let currentFileId: number | undefined = $state(undefined);
 	let showPlaylist = $state(true);
 	let loadingFiles = $state(false);
-	let currentSrc = $state(src);
+	let currentSrc = $derived(src);
 	let currentSubtitleTracks: { id: string; label: string; src: string; lang: string }[] = $state(
 		[]
 	);

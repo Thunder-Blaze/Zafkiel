@@ -390,7 +390,7 @@
 
 	{#if !hasError}
 		<div
-			class="will-change-opacity absolute inset-0 z-10 [transform:translateZ(0)] transition-opacity duration-200"
+			class="will-change-opacity absolute inset-0 z-10 transform-[translateZ(0)] transition-opacity duration-200"
 			class:opacity-0={!showControls && isPlaying && !isLocked}
 			class:pointer-events-none={!showControls && isPlaying && !isLocked}
 		>

@@ -370,3 +370,39 @@ export interface SeasonalAnimeParams extends PaginationParams {
 export interface SearchParams extends PaginationParams {
 	query: string;
 }
+
+export type MediaSort =
+	| 'POPULARITY_DESC'
+	| 'POPULARITY'
+	| 'TRENDING_DESC'
+	| 'TRENDING'
+	| 'SCORE_DESC'
+	| 'SCORE'
+	| 'TITLE_ROMAJI'
+	| 'TITLE_ROMAJI_DESC'
+	| 'TITLE_ENGLISH'
+	| 'TITLE_ENGLISH_DESC'
+	| 'TITLE_NATIVE'
+	| 'TITLE_NATIVE_DESC'
+	| 'START_DATE'
+	| 'START_DATE_DESC'
+	| 'END_DATE'
+	| 'END_DATE_DESC'
+	| 'FAVOURITES_DESC'
+	| 'FAVOURITES'
+	| 'ID'
+	| 'ID_DESC';
+
+export interface BrowseParams extends PaginationParams {
+	mediaType?: MediaType;
+	search?: string;
+	season?: MediaSeason;
+	seasonYear?: number;
+	format?: MediaFormat;
+	status?: MediaStatus;
+	source?: MediaSource;
+	genres?: string[];
+	genresExcluded?: string[];
+	sortBy?: MediaSort[];
+	isAdult?: boolean;
+}

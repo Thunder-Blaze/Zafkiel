@@ -14,6 +14,26 @@
 	}: WithoutChildren<Props> = $props();
 
 	const emblaCtx = getEmblaContext('<Carousel.Next/>');
+
+	let holdInterval: ReturnType<typeof setInterval> | null = null;
+
+	function handleMouseDown() {
+		emblaCtx.scrollNext();
+		holdInterval = setInterval(() => {
+			emblaCtx.scrollNext();
+		}, 300);
+	}
+
+	function handleMouseUp() {
+		if (holdInterval) {
+			clearInterval(holdInterval);
+			holdInterval = null;
+		}
+	}
+
+	function handleMouseLeave() {
+		handleMouseUp();
+	}
 </script>
 
 <Button
@@ -28,7 +48,9 @@
 			: '-bottom-12 left-1/2 -translate-x-1/2 rotate-90',
 		className
 	)}
-	onclick={emblaCtx.scrollNext}
+	onmousedown={handleMouseDown}
+	onmouseup={handleMouseUp}
+	onmouseleave={handleMouseLeave}
 	onkeydown={emblaCtx.handleKeyDown}
 	bind:ref
 	{...restProps}

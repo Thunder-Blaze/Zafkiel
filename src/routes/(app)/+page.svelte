@@ -45,9 +45,9 @@
 
 	// Quick actions
 	const quickActions = [
-		{ label: 'Browse', icon: 'solar:magnifer-bold', path: '/anime' },
-		{ label: 'My List', icon: 'solar:clipboard-list-bold', path: '/list' },
-		{ label: 'Trending', icon: 'solar:fire-bold', path: '/trending' },
+		{ label: 'Search', icon: 'solar:magnifer-bold', path: '/search' },
+		{ label: 'Anime', icon: 'solar:videocamera-record-bold', path: '/browse/anime' },
+		{ label: 'Manga', icon: 'solar:book-bold', path: '/browse/manga' },
 		{ label: 'Settings', icon: 'solar:settings-bold', path: '/settings' },
 	];
 
@@ -79,7 +79,7 @@
 			</h1>
 			<!-- Lighter Gradient Overlays for readability -->
 			<div
-				class="absolute inset-0 -z-20 bg-gradient-to-br from-background/70 via-background/20 to-background/50"
+				class="absolute inset-0 -z-20 bg-linear-to-br from-background/70 via-background/20 to-background/50"
 			></div>
 
 			<img
@@ -108,6 +108,7 @@
 				<!-- Stats Grid -->
 				<div class="grid grid-cols-2 gap-1.5">
 					<div>
+						<a href="/test">Test</a>
 						<a href="/anime/16498">AOT</a>
 						<a href="/manga/74347">OPM</a>
 						<a href="/staff/103509">HS</a>

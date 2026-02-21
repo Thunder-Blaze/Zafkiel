@@ -12,11 +12,28 @@
 	}: WithElementRef<HTMLAttributes<HTMLDivElement>> = $props();
 
 	const emblaCtx = getEmblaContext('<Carousel.Content/>');
+
+	let containerRef: HTMLDivElement;
+
+	function handleWheel(e: WheelEvent) {
+		// Only handle horizontal scrolling (shift + wheel or trackpad horizontal scroll)
+		if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+			e.preventDefault();
+			if (e.deltaX > 0) {
+				emblaCtx.scrollNext();
+			} else {
+				emblaCtx.scrollPrev();
+			}
+		}
+		// Ignore vertical scrolling to allow page scroll
+	}
 </script>
 
 <div
+	bind:this={containerRef}
 	data-slot="carousel-content"
 	class="overflow-hidden"
+	onwheel={handleWheel}
 	use:emblaCarouselSvelte={{
 		options: {
 			container: '[data-embla-container]',

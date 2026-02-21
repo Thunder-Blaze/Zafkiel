@@ -14,7 +14,39 @@ import type {
 	PaginationParams,
 	SeasonalAnimeParams,
 	SearchParams,
+	BrowseParams,
+	Page,
 } from '$lib/types/anilist';
+
+// ============================================================================
+// Media Browse API (Generic for both Anime and Manga)
+// ============================================================================
+
+export const mediaApi = {
+	/**
+	 * Browse media with comprehensive filters
+	 */
+	browse: async (params: BrowseParams): Promise<AniListResponse<Page<Media[]>>> => {
+		console.log('[AniList API] Calling browse_media:', params);
+		const response = await invoke('browse_media', {
+			mediaType: params.mediaType ?? null,
+			search: params.search ?? null,
+			season: params.season ?? null,
+			seasonYear: params.seasonYear ?? null,
+			format: params.format ?? null,
+			status: params.status ?? null,
+			source: params.source ?? null,
+			genres: params.genres ?? null,
+			genresExcluded: params.genresExcluded ?? null,
+			sortBy: params.sortBy ?? null,
+			isAdult: params.isAdult ?? null,
+			page: params.page ?? null,
+			perPage: params.perPage ?? null,
+		}) as AniListResponse<Page<Media[]>>;
+		console.log('[AniList API] browse_media response:', response);
+		return response;
+	},
+};
 
 // ============================================================================
 // Anime API
@@ -220,6 +252,7 @@ export const staffApi = {
 // ============================================================================
 
 export const anilistApi = {
+	media: mediaApi,
 	anime: animeApi,
 	manga: mangaApi,
 	user: userApi,
