@@ -467,3 +467,285 @@ pub async fn get_seasonal_anime(
     let result = client.media().fetch(&options).await;
     Ok(result.into())
 }
+
+// ============================================================================
+// Combined Search Command — one GraphQL round-trip for all categories
+// ============================================================================
+
+static SEARCH_ALL_GQL: &str = r#"
+query SearchAll($search: String!, $perPage: Int) {
+  anime: Page(perPage: $perPage) {
+    pageInfo { currentPage hasNextPage lastPage perPage total }
+    media(search: $search, type: ANIME, sort: SEARCH_MATCH) {
+      id type format status meanScore
+      title { romaji english userPreferred }
+      coverImage { medium }
+    }
+  }
+  manga: Page(perPage: $perPage) {
+    pageInfo { currentPage hasNextPage lastPage perPage total }
+    media(search: $search, type: MANGA, sort: SEARCH_MATCH) {
+      id type format status meanScore
+      title { romaji english userPreferred }
+      coverImage { medium }
+    }
+  }
+  characters: Page(perPage: $perPage) {
+    pageInfo { currentPage hasNextPage lastPage perPage total }
+    characters(search: $search, sort: SEARCH_MATCH) {
+      id
+      name { full userPreferred }
+      image { medium }
+    }
+  }
+  staff: Page(perPage: $perPage) {
+    pageInfo { currentPage hasNextPage lastPage perPage total }
+    staff(search: $search, sort: SEARCH_MATCH) {
+      id
+      name { full userPreferred }
+      image { medium }
+    }
+  }
+  studios: Page(perPage: $perPage) {
+    pageInfo { currentPage hasNextPage lastPage perPage total }
+    studios(search: $search) {
+      id name isAnimationStudio
+    }
+  }
+  users: Page(perPage: $perPage) {
+    pageInfo { currentPage hasNextPage lastPage perPage total }
+    users(search: $search) {
+      id name
+      avatar { medium }
+    }
+  }
+}
+"#;
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchTitle {
+    pub romaji: Option<String>,
+    pub english: Option<String>,
+    pub user_preferred: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchCoverImage {
+    pub medium: Option<String>,
+}
+
+/// Lean anime/manga result — only the fields requested in `SEARCH_ALL_GQL`.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchMediaResult {
+    pub id: Option<i32>,
+    /// "ANIME" or "MANGA"
+    #[serde(rename = "type")]
+    pub media_type: Option<String>,
+    /// e.g. "TV", "OVA", "MOVIE" …
+    pub format: Option<String>,
+    /// e.g. "FINISHED", "RELEASING" …
+    pub status: Option<String>,
+    pub mean_score: Option<i32>,
+    pub title: Option<SearchTitle>,
+    pub cover_image: Option<SearchCoverImage>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchPersonName {
+    pub full: Option<String>,
+    pub user_preferred: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchPersonImage {
+    pub medium: Option<String>,
+}
+
+/// Lean character result.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchCharacterResult {
+    pub id: Option<i32>,
+    pub name: Option<SearchPersonName>,
+    pub image: Option<SearchPersonImage>,
+}
+
+/// Lean staff result.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchStaffResult {
+    pub id: Option<i32>,
+    pub name: Option<SearchPersonName>,
+    pub image: Option<SearchPersonImage>,
+}
+
+/// Lean studio result.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchStudioResult {
+    pub id: Option<i32>,
+    pub name: Option<String>,
+    pub is_animation_studio: Option<bool>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchUserAvatar {
+    pub medium: Option<String>,
+}
+
+/// Lean user result.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchUserResult {
+    pub id: Option<i32>,
+    pub name: Option<String>,
+    pub avatar: Option<SearchUserAvatar>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+pub struct SearchAllResults {
+    pub anime:      Page<Vec<SearchMediaResult>>,
+    pub manga:      Page<Vec<SearchMediaResult>>,
+    pub characters: Page<Vec<SearchCharacterResult>>,
+    pub staff:      Page<Vec<SearchStaffResult>>,
+    pub studios:    Page<Vec<SearchStudioResult>>,
+    pub users:      Page<Vec<SearchUserResult>>,
+}
+
+#[tauri::command]
+pub async fn search_all(
+    query: String,
+    per_page: Option<i32>,
+    service: State<'_, AniListState>,
+) -> Result<AniListResponse<SearchAllResults>, String> {
+    log::info!("Executing command: search_all query={}", query);
+    search_all_inner(&query, per_page.unwrap_or(5), &service).await
+}
+
+/// Core logic for `search_all`, decoupled from Tauri `State` so it can be
+/// called directly in integration tests with a real `AniListService`.
+pub(crate) async fn search_all_inner(
+    query: &str,
+    per_page: i32,
+    service: &AniListState,
+) -> Result<AniListResponse<SearchAllResults>, String> {
+    let variables = serde_json::json!({
+        "search": query,
+        "perPage": per_page,
+    });
+
+    let client = service.client().await;
+    let data = match client.query(SEARCH_ALL_GQL, Some(&variables)).await {
+        Ok(v) => v,
+        Err(e) => return Ok(AniListResponse::error(format!("{:?}", e))),
+    };
+
+    match build_search_results(&data["data"]) {
+        Ok(results) => Ok(AniListResponse::success(results)),
+        Err(e) => Ok(AniListResponse::error(e)),
+    }
+}
+
+/// Deserialise the `data` portion of the combined search GraphQL response.
+/// Extracted to a plain function so it can be unit-tested without Tauri State.
+pub(crate) fn build_search_results(d: &serde_json::Value) -> Result<SearchAllResults, String> {
+    fn deser<T>(d: &serde_json::Value, key: &str) -> Result<T, String>
+    where
+        T: for<'de> serde::Deserialize<'de>,
+    {
+        serde_json::from_value(d[key].clone())
+            .map_err(|e| format!("search_all: failed to decode '{}': {}", key, e))
+    }
+
+    Ok(SearchAllResults {
+        anime:      deser(d, "anime")?,
+        manga:      deser(d, "manga")?,
+        characters: deser(d, "characters")?,
+        staff:      deser(d, "staff")?,
+        studios:    deser(d, "studios")?,
+        users:      deser(d, "users")?,
+    })
+}
+
+// ============================================================================
+// Tests
+// ============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::api::anilist::AniListService;
+    use std::sync::Arc;
+
+    /// Integration test: calls the real AniList API via `search_all_inner`.
+    ///
+    /// Requires network access. Searches for "Steins Gate" and asserts that:
+    /// - the call succeeds
+    /// - at least one anime result is returned with a valid id and title
+    /// - all six category lists are present in the response
+    #[tokio::test]
+    async fn test_search_all_live() {
+        let service: AniListState = Arc::new(AniListService::new(None));
+
+        let resp = search_all_inner("Steins Gate", 5, &service)
+            .await
+            .expect("search_all_inner returned Err");
+
+        assert!(resp.success, "Response not successful: {:?}", resp.error);
+
+				println!("Raw response data: {:?}", resp.data);
+
+        let results = resp.data.expect("data is None on a successful response");
+
+        // Anime results — Steins;Gate should always appear
+        assert!(
+            !results.anime.data.is_empty(),
+            "Expected at least one anime result for 'Steins Gate', got zero"
+        );
+
+        let first = &results.anime.data[0];
+        assert!(first.id.is_some(), "First anime result has no id");
+        let title = first
+            .title
+            .as_ref()
+            .and_then(|t| t.user_preferred.as_deref().or(t.romaji.as_deref()))
+            .unwrap_or("");
+        assert!(!title.is_empty(), "First anime result title is empty");
+
+        // Pagination metadata should be present (we request it in the GQL query)
+        let page_info = results.anime.page_info.as_ref()
+            .expect("pageInfo should be returned — it is requested in SEARCH_ALL_GQL");
+        assert!(
+            page_info.total.unwrap_or(0) > 0,
+            "Expected total > 0 for 'Steins Gate' anime search"
+        );
+
+        // The other five category lists must at least be initialized (may be empty for
+        // this specific query, but the keys must deserialise without error)
+        let _ = results.manga;
+        let _ = results.characters;
+        let _ = results.staff;
+        let _ = results.studios;
+        let _ = results.users;
+    }
+
+    /// Sanity check: an empty query string should still return a successful (but
+    /// possibly empty or error) response — not panic or Err out entirely.
+    #[tokio::test]
+    async fn test_search_all_empty_query() {
+        let service: AniListState = Arc::new(AniListService::new(None));
+        let resp = search_all_inner("", 5, &service)
+            .await
+            .expect("search_all_inner must not return Err");
+        // AniList may return an error for blank search — that's fine, just
+        // make sure we handle it gracefully as AniListResponse::error.
+        // The important thing is no panic and no Rust Err.
+        let _ = resp;
+    }
+}

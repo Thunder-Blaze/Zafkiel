@@ -188,6 +188,7 @@ pub fn run() {
             commands::api::anilist::get_birthday_staff,
             commands::api::anilist::search_staff,
             commands::api::anilist::get_seasonal_anime,
+            commands::api::anilist::search_all,
 
             // ─── MediaList ───────────────────────────────────────────────
             commands::api::medialist::fetch_media_list,
