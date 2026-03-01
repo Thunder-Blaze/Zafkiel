@@ -1,6 +1,6 @@
 /**
  * Session Cache Store
- * 
+ *
  * Unified session storage system for caching multiple data types
  * Reduces unnecessary refetches and improves performance
  */
@@ -17,8 +17,20 @@ interface CachedData<T> {
 	timestamp: number;
 }
 
+export interface ListStats {
+	watching: number;
+	completed: number;
+	planning: number;
+}
+
+interface AuthCacheData {
+	isAuthenticated: boolean;
+	user: User | null;
+	listStats?: ListStats | null;
+}
+
 interface SessionCacheState {
-	auth: CachedData<{ isAuthenticated: boolean; user: User | null }> | null;
+	auth: CachedData<AuthCacheData> | null;
 	config: CachedData<AppConfig> | null;
 	themes: CachedData<ThemeConfig> | null;
 }
@@ -114,7 +126,7 @@ function isValidCache<T>(cached: CachedData<T> | null, duration: number): boolea
 // Auth Cache Functions
 // ============================================================================
 
-export function loadAuthCache(): { isAuthenticated: boolean; user: User | null } | null {
+export function loadAuthCache(): AuthCacheData | null {
 	const cache = loadCache();
 	if (!cache?.auth) return null;
 
@@ -127,10 +139,10 @@ export function loadAuthCache(): { isAuthenticated: boolean; user: User | null }
 	return null;
 }
 
-export function saveAuthCache(isAuthenticated: boolean, user: User | null): void {
+export function saveAuthCache(isAuthenticated: boolean, user: User | null, listStats?: ListStats | null): void {
 	const cache = loadCache() || { auth: null, config: null, themes: null };
 	cache.auth = {
-		data: { isAuthenticated, user },
+		data: { isAuthenticated, user, listStats: listStats ?? null },
 		timestamp: Date.now(),
 	};
 	saveCache(cache);

@@ -1,12 +1,16 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { useUserById } from '$lib/hooks/useAnilist.svelte';
+	import { useUserById, useUserReviews, useRecentActivity } from '$lib/hooks/useAnilist.svelte';
+	import type { ActivityUnion, Review } from '$lib/types/anilist';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import CachedImage from '$lib/components/ui/CachedImage.svelte';
+	import ActivityCard from '$lib/components/ActivityCard.svelte';
+	import ReviewCard from '$lib/components/ReviewCard.svelte';
 	import Icon from '@iconify/svelte';
+	import { goto } from '$app/navigation';
 
 	const userId = $derived(page.params.id ? parseInt(page.params.id) : 0);
 	const userQuery = $derived(useUserById(userId));
@@ -15,15 +19,13 @@
 	const isLoading = $derived(userQuery.isLoading);
 	const error = $derived(userQuery.error);
 
-	$effect(() => {
-		console.log('Profile Page Debug:', {
-			userId,
-			isLoading,
-			error,
-			hasUser: !!user,
-			data: userQuery.data,
-		});
-	});
+	// Activity query (filtered by activity having userId)
+	const activityQuery = $derived(useRecentActivity(1, 10));
+	const activities = $derived((activityQuery.data?.data?.data ?? []) as ActivityUnion[]);
+
+	// Reviews query
+	const reviewsQuery = $derived(useUserReviews(userId));
+	const reviews = $derived((reviewsQuery.data?.data?.data ?? []) as Review[]);
 
 	function formatDate(timestamp?: number) {
 		if (!timestamp) return 'Unknown';
@@ -34,7 +36,6 @@
 		if (!minutes) return '0 hours';
 		const hours = Math.floor(minutes / 60);
 		const remainingMinutes = minutes % 60;
-
 		if (hours === 0) return `${remainingMinutes} minutes`;
 		if (remainingMinutes === 0) return `${hours} hours`;
 		return `${hours}h ${remainingMinutes}m`;
@@ -159,6 +160,18 @@
 					>
 						Statistics
 					</TabsTrigger>
+					<TabsTrigger
+						value="activity"
+						class="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+					>
+						Activity
+					</TabsTrigger>
+					<TabsTrigger
+						value="reviews"
+						class="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+					>
+						Reviews
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="overview" class="mt-6">
@@ -204,6 +217,31 @@
 											</a>
 										</div>
 									{/if}
+								</CardContent>
+							</Card>
+
+							<!-- Quick Links -->
+							<Card>
+								<CardHeader>
+									<CardTitle>Lists</CardTitle>
+								</CardHeader>
+								<CardContent class="flex flex-col gap-2">
+									<Button
+										variant="outline"
+										class="w-full justify-start gap-2"
+									onclick={() => goto(`/user/${user.name}/animelist`)}
+									>
+										<Icon icon="solar:play-circle-bold-duotone" class="size-4 text-primary" />
+										Anime List
+									</Button>
+									<Button
+										variant="outline"
+										class="w-full justify-start gap-2"
+										onclick={() => goto(`/user/${user.name}/mangalist`)}
+									>
+										<Icon icon="solar:book-2-bold-duotone" class="size-4 text-primary" />
+										Manga List
+									</Button>
 								</CardContent>
 							</Card>
 						</div>
@@ -289,6 +327,47 @@
 							/>
 							<h3 class="text-lg font-semibold">No Statistics Available</h3>
 							<p class="text-muted-foreground">User statistics are not available.</p>
+						</div>
+					{/if}
+				</TabsContent>
+
+				<!-- Activity Tab -->
+				<TabsContent value="activity" class="mt-6">
+					{#if activityQuery.isLoading}
+						<div class="flex min-h-[200px] items-center justify-center">
+							<Icon icon="solar:refresh-circle-line-duotone" class="h-8 w-8 animate-spin text-primary" />
+						</div>
+					{:else if activities.length === 0}
+						<div class="flex min-h-[200px] flex-col items-center justify-center gap-3 text-center rounded-lg border border-dashed p-8">
+							<Icon icon="solar:widget-2-bold-duotone" class="h-12 w-12 text-muted-foreground" />
+							<p class="text-muted-foreground">No recent activity</p>
+						</div>
+					{:else}
+						<div class="flex flex-col gap-3">
+							{#each activities as activity, i (i)}
+								<ActivityCard {activity} />
+							{/each}
+						</div>
+					{/if}
+				</TabsContent>
+
+				<!-- Reviews Tab -->
+				<TabsContent value="reviews" class="mt-6">
+					{#if reviewsQuery.isLoading}
+						<div class="flex min-h-[200px] items-center justify-center">
+							<Icon icon="solar:refresh-circle-line-duotone" class="h-8 w-8 animate-spin text-primary" />
+						</div>
+					{:else if reviews.length === 0}
+						<div class="flex min-h-[200px] flex-col items-center justify-center gap-3 text-center rounded-lg border border-dashed p-8">
+							<Icon icon="solar:document-text-bold-duotone" class="h-12 w-12 text-muted-foreground" />
+							<h3 class="text-lg font-semibold">No Reviews</h3>
+							<p class="text-muted-foreground">This user hasn't written any reviews yet.</p>
+						</div>
+					{:else}
+						<div class="flex flex-col gap-4">
+							{#each reviews as review (review.id)}
+								<ReviewCard {review} />
+							{/each}
 						</div>
 					{/if}
 				</TabsContent>

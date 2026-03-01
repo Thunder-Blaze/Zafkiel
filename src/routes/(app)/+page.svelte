@@ -2,53 +2,78 @@
 	import Icon from '@iconify/svelte';
 	import { Card } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
 	import { authStore, isAuthenticated, currentUser, authLoading } from '$lib/stores/auth';
+	import { listStats } from '$lib/stores/auth';
 	import { useThemeState } from '$lib/stores/theme.svelte';
 	import Loader from '$lib/components/Loader.svelte';
 	import { goto } from '$app/navigation';
 	import ThemeBadge from '$lib/components/dashboard/ThemeBadge.svelte';
 	import CalendarWidget from '$lib/components/dashboard/CalendarWidget.svelte';
 	import ProfileWidget from '$lib/components/dashboard/ProfileWidget.svelte';
+	import CachedImage from '$lib/components/ui/CachedImage.svelte';
+	import {
+		useMyAnimeList,
+		useFollowingActivity,
+	} from '$lib/hooks/useAnilist.svelte';
 
-	// Stats
-	const stats = [
+	// Real data hooks (only active when authenticated)
+	const watchingQuery = useMyAnimeList('CURRENT', 1, 5);
+	const activityQuery = useFollowingActivity(1, 3);
+
+	// Stats from auth store (fetched in parallel during auth check)
+	const watchingCount = $derived($listStats?.watching ?? 0);
+	const completedCount = $derived($listStats?.completed ?? 0);
+	const planningCount = $derived($listStats?.planning ?? 0);
+	const episodesWatched = $derived($currentUser?.statistics?.anime?.episodesWatched ?? 0);
+
+	// Continue watching strip (top 5 CURRENT entries by last updated)
+	const continueWatching = $derived(
+		(watchingQuery.data?.data?.data ?? [])
+			.slice()
+			.sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
+			.slice(0, 5)
+	);
+
+	// Recent activity
+	const recentActivities = $derived(activityQuery.data?.data?.data ?? []);
+
+	const stats = $derived([
 		{
 			label: 'Watching',
-			value: 12,
+			value: watchingCount,
 			icon: 'solar:play-bold',
 			bgColor: 'bg-primary/10',
 			iconColor: 'text-primary',
 		},
 		{
 			label: 'Completed',
-			value: 48,
+			value: completedCount,
 			icon: 'solar:check-circle-bold',
 			bgColor: 'bg-primary/10',
 			iconColor: 'text-primary',
 		},
 		{
 			label: 'Plan to Watch',
-			value: 23,
+			value: planningCount,
 			icon: 'solar:bookmark-bold',
 			bgColor: 'bg-primary/10',
 			iconColor: 'text-primary',
 		},
 		{
 			label: 'Episodes',
-			value: 1247,
+			value: episodesWatched,
 			icon: 'solar:video-library-bold',
 			bgColor: 'bg-primary/10',
 			iconColor: 'text-primary',
 		},
-	];
+	]);
 
 	// Quick actions
 	const quickActions = [
 		{ label: 'Search', icon: 'solar:magnifer-bold', path: '/search' },
 		{ label: 'Anime', icon: 'solar:videocamera-record-bold', path: '/browse/anime' },
 		{ label: 'Manga', icon: 'solar:book-bold', path: '/browse/manga' },
-		{ label: 'Settings', icon: 'solar:settings-bold', path: '/settings' },
+		{ label: 'My List', icon: 'solar:list-bold', path: '/list' },
 	];
 
 	const fallbackThemeImage = '/images/fallback-theme.png';
@@ -107,13 +132,6 @@
 
 				<!-- Stats Grid -->
 				<div class="grid grid-cols-2 gap-1.5">
-					<div>
-						<a href="/test">Test</a>
-						<a href="/anime/16498">AOT</a>
-						<a href="/manga/74347">OPM</a>
-						<a href="/staff/103509">HS</a>
-						<a href="/user/127222">MS</a>
-					</div>
 					{#each stats as stat}
 						<Card
 							class="group cursor-pointer border-border/50 bg-card/70 px-2.5 py-2 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg"
@@ -178,11 +196,62 @@
 				</Card>
 			</div>
 
-			<!-- BOTTOM RIGHT: Theme Info / Actions -->
 			<div class="absolute right-6 bottom-6">
 				<!-- Theme Badge -->
 				<ThemeBadge />
 			</div>
+
+			<!-- BOTTOM CENTER: Continue Watching -->
+			{#if $isAuthenticated && continueWatching.length > 0}
+				<div class="absolute bottom-6 left-1/2 -translate-x-1/2">
+					<Card class="border-border/50 bg-card/70 p-3 backdrop-blur-md">
+						<div class="mb-2 flex items-center justify-between gap-4">
+							<h2 class="flex items-center gap-1.5 text-xs font-semibold">
+								<Icon icon="solar:play-circle-bold" class="h-3.5 w-3.5 text-primary" />
+								Continue Watching
+							</h2>
+							<button
+								class="text-[10px] text-primary hover:underline"
+								onclick={() => goto('/list')}
+							>View all</button>
+						</div>
+						<div class="flex items-end gap-2">
+							{#each continueWatching as entry}
+								<button
+									class="group flex flex-col items-center gap-1"
+									onclick={() => entry.media?.id && goto(`/anime/${entry.media.id}`)}
+								>
+									<div class="relative overflow-hidden rounded-md transition-transform group-hover:scale-105">
+										{#if entry.media?.coverImage?.medium}
+											<CachedImage
+												src={entry.media.coverImage.medium}
+												alt={entry.media.title?.userPreferred ?? ''}
+												class="h-16 w-11 object-cover"
+											/>
+										{:else}
+											<div class="flex h-16 w-11 items-center justify-center rounded-md bg-muted">
+												<Icon icon="solar:videocamera-record-bold" class="h-5 w-5 text-muted-foreground" />
+											</div>
+										{/if}
+										<!-- Progress indicator -->
+										{#if entry.progress != null && entry.media?.episodes}
+											<div class="absolute bottom-0 left-0 right-0 h-1 bg-black/40">
+												<div
+													class="h-full bg-primary"
+													style="width: {Math.min(100, (entry.progress / entry.media.episodes) * 100)}%"
+												></div>
+											</div>
+										{/if}
+									</div>
+									<p class="w-11 truncate text-center text-[9px] text-muted-foreground">
+										{entry.media?.title?.userPreferred ?? 'Unknown'}
+									</p>
+								</button>
+							{/each}
+						</div>
+					</Card>
+				</div>
+			{/if}
 		</div>
 	</div>
 {/if}

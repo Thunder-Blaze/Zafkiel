@@ -172,8 +172,10 @@
 	const navItems = [
 		{ path: '/search', icon: 'solar:magnifer-bold', label: 'Search' },
 		{ path: '/anime', icon: 'solar:video-library-bold', label: 'Anime' },
+		{ path: '/schedule', icon: 'solar:calendar-bold-duotone', label: 'Schedule' },
+		{ path: '/social', icon: 'solar:users-group-rounded-bold', label: 'Social' },
+		{ path: '/forum', icon: 'solar:chat-square-bold', label: 'Forum' },
 		{ path: '/downloads', icon: 'solar:download-bold', label: 'Downloads' },
-		{ path: '/media-demo', icon: 'solar:gallery-bold', label: 'Demo' },
 		{ path: '/settings', icon: 'solar:settings-bold', label: 'Settings' },
 	];
 </script>
@@ -303,8 +305,17 @@
 			</form>
 		</div>
 
-		<!-- Right Section: Profile + Theme + Window Controls -->
+		<!-- Right Section: Notifications + Profile + Theme + Window Controls -->
 		<div class="flex h-full items-center">
+			<Button
+				variant="ghost"
+				size="icon"
+				class="relative h-8 w-8 {page.url.pathname === '/notifications' ? 'text-primary' : 'text-foreground/70 hover:text-foreground'}"
+				onclick={() => goto('/notifications')}
+				title="Notifications"
+			>
+				<Icon icon="solar:bell-bold" class="h-4 w-4" />
+			</Button>
 			<div class="px-2">
 				<ProfileDropdown />
 			</div>

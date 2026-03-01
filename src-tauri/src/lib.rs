@@ -7,15 +7,18 @@ mod database;
 use api::anilist::AniListService;
 use auth::anilist::AuthState;
 use database::Database;
-use std::{sync::Arc, vec};
+use std::sync::Arc;
 use tauri::Manager;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, Layer};
 
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // Setup file logging
-    let log_dir = std::path::PathBuf::from("/tmp/zafkiel");
+    // Log directory: use XDG-compatible location instead of /tmp so logs
+    // survive reboots. Falls back to /tmp only if the directory can't be
+    // created by the OS path resolver (pre-app-handle stage).
+    let log_dir = directories::ProjectDirs::from("com", "zafkiel", "Zafkiel")
+        .map(|dirs| dirs.data_local_dir().join("logs"))
+        .unwrap_or_else(|| std::path::PathBuf::from("/tmp/zafkiel/logs"));
     std::fs::create_dir_all(&log_dir).expect("Failed to create log directory");
 
     // Torrent logs
@@ -26,7 +29,6 @@ pub fn run() {
     let file_appender = tracing_appender::rolling::daily(&log_dir, "zafkiel.log");
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
 
-    // Filters
     let torrent_filter = tracing_subscriber::filter::Targets::new()
         .with_target("app_lib::commands::torrent", tracing::Level::DEBUG)
         .with_target("librqbit", tracing::Level::DEBUG)
@@ -42,51 +44,35 @@ pub fn run() {
             tracing_subscriber::fmt::layer()
                 .with_writer(torrent_nb)
                 .with_ansi(false)
-                .with_filter(torrent_filter)
+                .with_filter(torrent_filter),
         )
         .with(
             tracing_subscriber::fmt::layer()
                 .with_writer(non_blocking)
                 .with_ansi(false)
-                .with_filter(app_filter)
+                .with_filter(app_filter),
         )
         .init();
 
     tauri::Builder::default()
         .setup(|app| {
-            // Clear old logs
-            let log_dir = std::path::PathBuf::from("/tmp/zafkiel");
-            if log_dir.exists() {
-                if let Ok(entries) = std::fs::read_dir(&log_dir) {
-                    for entry in entries.flatten() {
-                        let path = entry.path();
-                        if let Some(ext) = path.extension() {
-                            if ext == "log" {
-                                let _ = std::fs::remove_file(path);
-                            }
-                        }
-                    }
-                }
-            }
-
             // Load environment variables from .env file
             if let Err(e) = dotenvy::dotenv() {
-                log::warn!("[Setup] Failed to load .env file: {}. Make sure .env exists in the project root with ANILIST_CLIENT_ID and ANILIST_CLIENT_SECRET", e);
+                log::warn!(
+                    "[Setup] Failed to load .env file: {}. \
+                     Make sure .env exists with ANILIST_CLIENT_ID and ANILIST_CLIENT_SECRET",
+                    e
+                );
             } else {
                 log::info!("[Setup] Successfully loaded .env file");
             }
-
-            // Setup file logging - REMOVED (moved to run())
 
             // Initialize config loader
             let config_loader =
                 config::ConfigLoader::new().expect("Failed to initialize config loader");
 
             // Load decrypted token from config if available
-            let token = config_loader
-                .get_anilist_token()
-                .ok()
-                .flatten(); // flatten converts Option<Option<String>> to Option<String>
+            let token = config_loader.get_anilist_token().ok().flatten();
 
             if token.is_some() {
                 log::info!("[Setup] Found existing AniList token in config (decrypted)");
@@ -94,48 +80,50 @@ pub fn run() {
                 log::info!("[Setup] No AniList token found, user needs to authenticate");
             }
 
-            // Store config loader in app state
             app.manage(Arc::new(config_loader));
 
-            // Initialize AniList service with token from config
-            // This maintains a single AniListClient instance in app state
+            // AniList service — simplified, no RwLock (AniListClient is already Clone+Arc internally)
             let anilist_service = AniListService::new(token);
             app.manage(Arc::new(anilist_service));
 
-            // Initialize auth state for OAuth flow
+            // OAuth state
             let auth_state = AuthState::new();
             app.manage(auth_state);
 
-            // Initialize database
+            // Database — now uses R2D2 pool + versioned migrations
             let db_path = app
                 .path()
                 .app_data_dir()
                 .expect("Failed to get app data dir")
                 .join("zafkiel.db");
 
-            log::info!("[Setup] Database path: {:?}", db_path);
-
-            // Create parent directory if it doesn't exist
             if let Some(parent) = db_path.parent() {
-                std::fs::create_dir_all(parent).expect("Failed to create app data directory");
+                std::fs::create_dir_all(parent)
+                    .expect("Failed to create app data directory");
             }
 
-            let database = Database::new(db_path.clone()).expect("Failed to initialize database");
+            let database =
+                Database::new(db_path.clone()).expect("Failed to initialize database");
             app.manage(database);
             log::info!("[Setup] Database initialized at: {:?}", db_path);
 
-            // Initialize Global Torrent Session
-            let download_dir = app.path().download_dir().unwrap_or(std::path::PathBuf::from("downloads")).join("zafkiel");
-            std::fs::create_dir_all(&download_dir).expect("Failed to create download directory");
+            // Torrent session — init on blocking thread to avoid block_on issues
+            let download_dir = app
+                .path()
+                .download_dir()
+                .unwrap_or_else(|_| std::path::PathBuf::from("downloads"))
+                .join("zafkiel");
+            std::fs::create_dir_all(&download_dir)
+                .expect("Failed to create download directory");
 
             let session = tauri::async_runtime::block_on(async {
                 librqbit::Session::new(download_dir).await
-            }).expect("Failed to create torrent session");
+            })
+            .expect("Failed to create torrent session");
 
-            app.manage(session.clone()); // Session::new returns Arc<Session>
+            app.manage(session.clone());
             log::info!("[Setup] Global torrent session initialized");
 
-            // Restore torrents from persistence
             let app_handle = app.handle().clone();
             let session_clone = session.clone();
             tauri::async_runtime::spawn(async move {
@@ -172,19 +160,16 @@ pub fn run() {
             commands::auth::check_auth_status,
             commands::auth::logout,
 
-            // API commands
-            // Media commands
+            // ─── Media / Browse ──────────────────────────────────────────
             commands::api::anilist::search_media,
             commands::api::anilist::browse_media,
             commands::api::anilist::get_media_by_id,
             commands::api::anilist::get_anime_by_id,
             commands::api::anilist::get_manga_by_id,
-						// Anime commands
             commands::api::anilist::get_trending_anime,
             commands::api::anilist::get_popular_anime,
             commands::api::anilist::get_upcoming_anime,
             commands::api::anilist::get_airing_anime,
-            // Manga commands
             commands::api::anilist::get_trending_manga,
             commands::api::anilist::get_popular_manga,
             // User commands
@@ -192,20 +177,90 @@ pub fn run() {
             commands::api::anilist::get_user_by_id,
             commands::api::anilist::get_user_by_name,
             commands::api::anilist::search_users,
-            // Studio commands
+            // Studio / Character / Staff
             commands::api::anilist::get_studio_by_id,
-            // Character commands
             commands::api::anilist::get_character_by_id,
-            // Staff commands
             commands::api::anilist::get_staff_by_id,
-            // Image cache commands
+
+            // ─── MediaList ───────────────────────────────────────────────
+            commands::api::medialist::fetch_media_list,
+            commands::api::medialist::get_my_anime_list,
+            commands::api::medialist::get_my_manga_list,
+            commands::api::medialist::get_user_anime_list,
+            commands::api::medialist::get_user_manga_list,
+            commands::api::medialist::get_watching,
+            commands::api::medialist::get_reading,
+            commands::api::medialist::get_plan_to_watch,
+            commands::api::medialist::get_plan_to_read,
+            commands::api::medialist::get_completed_anime,
+            commands::api::medialist::get_completed_manga,
+            commands::api::medialist::save_media_list_entry,
+            commands::api::medialist::add_anime_to_list,
+            commands::api::medialist::add_manga_to_list,
+            commands::api::medialist::update_media_progress,
+            commands::api::medialist::update_media_score,
+            commands::api::medialist::update_media_status,
+            commands::api::medialist::delete_media_list_entry,
+
+            // ─── Activity ────────────────────────────────────────────────
+            commands::api::activity::fetch_activities,
+            commands::api::activity::get_activity_by_id,
+            commands::api::activity::get_recent_activity,
+            commands::api::activity::get_following_activity,
+            commands::api::activity::fetch_activity_replies,
+            commands::api::activity::save_text_activity,
+            commands::api::activity::save_message_activity,
+            commands::api::activity::save_activity_reply,
+            commands::api::activity::delete_activity,
+            commands::api::activity::delete_activity_reply,
+            commands::api::activity::toggle_activity_subscription,
+
+            // ─── Notifications ───────────────────────────────────────────
+            commands::api::notification::fetch_notifications,
+            commands::api::notification::get_all_notifications,
+            commands::api::notification::get_and_mark_notifications_read,
+
+            // ─── Reviews ─────────────────────────────────────────────────
+            commands::api::review::fetch_reviews,
+            commands::api::review::get_reviews_by_media,
+            commands::api::review::get_reviews_by_user,
+            commands::api::review::get_review_by_id,
+            commands::api::review::get_recent_reviews,
+            commands::api::review::save_review,
+            commands::api::review::delete_review,
+            commands::api::review::rate_review,
+
+            // ─── Recommendations ─────────────────────────────────────────
+            commands::api::recommendation::fetch_recommendations,
+            commands::api::recommendation::get_recommendations_by_media,
+            commands::api::recommendation::save_recommendation,
+
+            // ─── Forum ───────────────────────────────────────────────────
+            commands::api::forum::search_forum_threads,
+            commands::api::forum::get_forum_thread,
+            commands::api::forum::get_recent_forum_threads,
+            commands::api::forum::get_popular_forum_threads,
+            commands::api::forum::get_forum_threads_by_category,
+            commands::api::forum::get_forum_threads_by_user,
+            commands::api::forum::get_subscribed_forum_threads,
+            commands::api::forum::get_thread_comments,
+            commands::api::forum::get_thread_comment_by_id,
+            commands::api::forum::save_forum_thread,
+            commands::api::forum::delete_forum_thread,
+            commands::api::forum::save_thread_comment,
+            commands::api::forum::delete_thread_comment,
+            commands::api::forum::toggle_forum_thread_subscription,
+            commands::api::forum::reply_to_forum_thread,
+
+            // ─── Image cache ─────────────────────────────────────────────
             commands::image_cache::download_image,
             commands::image_cache::file_exists,
             commands::image_cache::delete_file,
             commands::image_cache::get_cache_stats,
             commands::image_cache::cleanup_image_cache,
             commands::image_cache::get_cached_file_path,
-            // Database commands
+
+            // ─── Database ────────────────────────────────────────────────
             commands::db::update_local_progress,
             commands::db::cache_media,
             commands::db::cache_user,
@@ -214,11 +269,11 @@ pub fn run() {
             commands::db::search_cached_media,
             commands::db::cleanup_cache,
             commands::db::get_all_cached_images,
-            // Image database commands
             commands::db::get_cached_image_path,
             commands::db::cache_image,
             commands::db::remove_cached_image,
-            // Utils
+
+            // ─── Utils & Torrent ─────────────────────────────────────────
             commands::utils::fetch_url,
             commands::torrent::stream_torrent,
             commands::torrent::stream_torrent_by_id,

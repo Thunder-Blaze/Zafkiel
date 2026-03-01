@@ -16,6 +16,15 @@ import type {
 	SearchParams,
 	BrowseParams,
 	Page,
+	MediaList,
+	MediaListStatus,
+	ActivityUnion,
+	ActivityReply,
+	NotificationUnion,
+	Thread,
+	ThreadComment,
+	Review,
+	Recommendation,
 } from '$lib/types/anilist';
 
 // ============================================================================
@@ -251,6 +260,269 @@ export const staffApi = {
 // Combined API Export
 // ============================================================================
 
+// ============================================================================
+// Media List API
+// ============================================================================
+
+export const mediaListApi = {
+	fetch: async (options: Record<string, unknown>): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('fetch_media_list', { options });
+	},
+	getMyAnimeList: async (
+		status?: MediaListStatus,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_my_anime_list', { status: status ?? null, page: page ?? null, perPage: perPage ?? null });
+	},
+	getMyMangaList: async (
+		status?: MediaListStatus,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_my_manga_list', { status: status ?? null, page: page ?? null, perPage: perPage ?? null });
+	},
+	getUserAnimeList: async (
+		username: string,
+		status?: MediaListStatus,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_user_anime_list', { username, status: status ?? null, page: page ?? null, perPage: perPage ?? null });
+	},
+	getUserMangaList: async (
+		username: string,
+		status?: MediaListStatus,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_user_manga_list', { username, status: status ?? null, page: page ?? null, perPage: perPage ?? null });
+	},
+	getWatching: async (username?: string, page?: number, perPage?: number): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_watching', { username: username ?? null, page: page ?? null, perPage: perPage ?? null });
+	},
+	getReading: async (username?: string, page?: number, perPage?: number): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_reading', { username: username ?? null, page: page ?? null, perPage: perPage ?? null });
+	},
+	getPlanToWatch: async (username?: string, page?: number, perPage?: number): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_plan_to_watch', { username: username ?? null, page: page ?? null, perPage: perPage ?? null });
+	},
+	getPlanToRead: async (username?: string, page?: number, perPage?: number): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_plan_to_read', { username: username ?? null, page: page ?? null, perPage: perPage ?? null });
+	},
+	getCompletedAnime: async (username?: string, page?: number, perPage?: number): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_completed_anime', { username: username ?? null, page: page ?? null, perPage: perPage ?? null });
+	},
+	getCompletedManga: async (username?: string, page?: number, perPage?: number): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_completed_manga', { username: username ?? null, page: page ?? null, perPage: perPage ?? null });
+	},
+	save: async (options: Record<string, unknown>): Promise<AniListResponse<MediaList>> => {
+		return invoke('save_media_list_entry', { options });
+	},
+	addAnime: async (mediaId: number, status?: MediaListStatus): Promise<AniListResponse<MediaList>> => {
+		return invoke('add_anime_to_list', { mediaId, status: status ?? null });
+	},
+	addManga: async (mediaId: number, status?: MediaListStatus): Promise<AniListResponse<MediaList>> => {
+		return invoke('add_manga_to_list', { mediaId, status: status ?? null });
+	},
+	updateProgress: async (entryId: number, progress: number): Promise<AniListResponse<MediaList>> => {
+		return invoke('update_media_progress', { entryId, progress });
+	},
+	updateScore: async (entryId: number, score: number): Promise<AniListResponse<MediaList>> => {
+		return invoke('update_media_score', { entryId, score });
+	},
+	updateStatus: async (entryId: number, status: MediaListStatus): Promise<AniListResponse<MediaList>> => {
+		return invoke('update_media_status', { entryId, status });
+	},
+	deleteEntry: async (id: number): Promise<AniListResponse<boolean>> => {
+		return invoke('delete_media_list_entry', { id });
+	},
+};
+
+// ============================================================================
+// Activity API
+// ============================================================================
+
+export const activityApi = {
+	fetch: async (options: Record<string, unknown>): Promise<AniListResponse<Page<ActivityUnion[]>>> => {
+		return invoke('fetch_activities', { options });
+	},
+	getById: async (id: number): Promise<AniListResponse<ActivityUnion>> => {
+		return invoke('get_activity_by_id', { id });
+	},
+	getRecent: async (page?: number, perPage?: number): Promise<AniListResponse<Page<ActivityUnion[]>>> => {
+		return invoke('get_recent_activity', { page: page ?? null, perPage: perPage ?? null });
+	},
+	getFollowing: async (page?: number, perPage?: number): Promise<AniListResponse<Page<ActivityUnion[]>>> => {
+		return invoke('get_following_activity', { page: page ?? null, perPage: perPage ?? null });
+	},
+	fetchReplies: async (activityId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<ActivityReply[]>>> => {
+		return invoke('fetch_activity_replies', { activityId, page: page ?? null, perPage: perPage ?? null });
+	},
+	saveText: async (options: Record<string, unknown>): Promise<AniListResponse<ActivityUnion>> => {
+		return invoke('save_text_activity', { options });
+	},
+	saveMessage: async (options: Record<string, unknown>): Promise<AniListResponse<ActivityUnion>> => {
+		return invoke('save_message_activity', { options });
+	},
+	saveReply: async (options: Record<string, unknown>): Promise<AniListResponse<ActivityReply>> => {
+		return invoke('save_activity_reply', { options });
+	},
+	delete: async (id: number): Promise<AniListResponse<boolean>> => {
+		return invoke('delete_activity', { id });
+	},
+	deleteReply: async (id: number): Promise<AniListResponse<boolean>> => {
+		return invoke('delete_activity_reply', { id });
+	},
+	toggleSubscription: async (id: number, subscribe: boolean): Promise<AniListResponse<ActivityUnion>> => {
+		return invoke('toggle_activity_subscription', { id, subscribe });
+	},
+};
+
+// ============================================================================
+// Notification API
+// ============================================================================
+
+export const notificationApi = {
+	fetch: async (page?: number, perPage?: number): Promise<AniListResponse<Page<NotificationUnion[]>>> => {
+		return invoke('fetch_notifications', { page: page ?? null, perPage: perPage ?? null });
+	},
+	getAll: async (page?: number, perPage?: number): Promise<AniListResponse<Page<NotificationUnion[]>>> => {
+		return invoke('get_all_notifications', { page: page ?? null, perPage: perPage ?? null });
+	},
+	getAndMarkRead: async (page?: number, perPage?: number): Promise<AniListResponse<Page<NotificationUnion[]>>> => {
+		return invoke('get_and_mark_notifications_read', { page: page ?? null, perPage: perPage ?? null });
+	},
+};
+
+// ============================================================================
+// Forum API
+// ============================================================================
+
+export const forumApi = {
+	search: async (options: Record<string, unknown>): Promise<AniListResponse<Page<Thread[]>>> => {
+		return invoke('search_forum_threads', { options });
+	},
+	getThread: async (id: number): Promise<AniListResponse<Thread>> => {
+		return invoke('get_forum_thread', { id });
+	},
+	getRecent: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Thread[]>>> => {
+		return invoke('get_recent_forum_threads', { page: page ?? null, perPage: perPage ?? null });
+	},
+	getPopular: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Thread[]>>> => {
+		return invoke('get_popular_forum_threads', { page: page ?? null, perPage: perPage ?? null });
+	},
+	getByCategory: async (categoryId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<Thread[]>>> => {
+		return invoke('get_forum_threads_by_category', { categoryId, page: page ?? null, perPage: perPage ?? null });
+	},
+	getByUser: async (userId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<Thread[]>>> => {
+		return invoke('get_forum_threads_by_user', { userId, page: page ?? null, perPage: perPage ?? null });
+	},
+	getSubscribed: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Thread[]>>> => {
+		return invoke('get_subscribed_forum_threads', { page: page ?? null, perPage: perPage ?? null });
+	},
+	getComments: async (threadId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<ThreadComment[]>>> => {
+		return invoke('get_thread_comments', { threadId, page: page ?? null, perPage: perPage ?? null });
+	},
+	getComment: async (id: number): Promise<AniListResponse<ThreadComment>> => {
+		return invoke('get_thread_comment_by_id', { id });
+	},
+	saveThread: async (options: Record<string, unknown>): Promise<AniListResponse<Thread>> => {
+		return invoke('save_forum_thread', { options });
+	},
+	deleteThread: async (id: number): Promise<AniListResponse<boolean>> => {
+		return invoke('delete_forum_thread', { id });
+	},
+	saveComment: async (options: Record<string, unknown>): Promise<AniListResponse<ThreadComment>> => {
+		return invoke('save_thread_comment', { options });
+	},
+	deleteComment: async (id: number): Promise<AniListResponse<boolean>> => {
+		return invoke('delete_thread_comment', { id });
+	},
+	toggleSubscription: async (threadId: number, subscribe: boolean): Promise<AniListResponse<Thread>> => {
+		return invoke('toggle_forum_thread_subscription', { threadId, subscribe });
+	},
+	replyToThread: async (threadId: number, comment: string): Promise<AniListResponse<ThreadComment>> => {
+		return invoke('reply_to_forum_thread', { threadId, comment });
+	},
+};
+
+// ============================================================================
+// Review API
+// ============================================================================
+
+export const reviewApi = {
+	fetch: async (options: Record<string, unknown>): Promise<AniListResponse<Page<Review[]>>> => {
+		return invoke('fetch_reviews', { options });
+	},
+	getByMedia: async (mediaId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<Review[]>>> => {
+		return invoke('get_reviews_by_media', { mediaId, page: page ?? null, perPage: perPage ?? null });
+	},
+	getByUser: async (userId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<Review[]>>> => {
+		return invoke('get_reviews_by_user', { userId, page: page ?? null, perPage: perPage ?? null });
+	},
+	getById: async (id: number): Promise<AniListResponse<Review>> => {
+		return invoke('get_review_by_id', { id });
+	},
+	getRecent: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Review[]>>> => {
+		return invoke('get_recent_reviews', { page: page ?? null, perPage: perPage ?? null });
+	},
+	save: async (options: Record<string, unknown>): Promise<AniListResponse<Review>> => {
+		return invoke('save_review', { options });
+	},
+	delete: async (id: number): Promise<AniListResponse<boolean>> => {
+		return invoke('delete_review', { id });
+	},
+	rate: async (options: { reviewId: number; rating: string }): Promise<AniListResponse<Review>> => {
+		return invoke('rate_review', { options });
+	},
+};
+
+// ============================================================================
+// Recommendation API
+// ============================================================================
+
+export const recommendationApi = {
+	fetch: async (options: Record<string, unknown>): Promise<AniListResponse<Page<Recommendation[]>>> => {
+		return invoke('fetch_recommendations', { options });
+	},
+	getByMedia: async (mediaId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<Recommendation[]>>> => {
+		return invoke('get_recommendations_by_media', { mediaId, page: page ?? null, perPage: perPage ?? null });
+	},
+	save: async (options: Record<string, unknown>): Promise<AniListResponse<Recommendation>> => {
+		return invoke('save_recommendation', { options });
+	},
+};
+
+// ============================================================================
+// Airing API
+// ============================================================================
+
+export const airingApi = {
+	/**
+	 * Get currently airing anime
+	 */
+	getAiring: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Media[]>>> => {
+		return invoke('get_airing_anime', {
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
+	},
+	/**
+	 * Get upcoming anime
+	 */
+	getUpcoming: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Media[]>>> => {
+		return invoke('get_upcoming_anime', {
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
+	},
+};
+
+// ============================================================================
+// Combined API Export
+// ============================================================================
+
 export const anilistApi = {
 	media: mediaApi,
 	anime: animeApi,
@@ -259,4 +531,11 @@ export const anilistApi = {
 	studio: studioApi,
 	character: characterApi,
 	staff: staffApi,
+	mediaList: mediaListApi,
+	activity: activityApi,
+	notification: notificationApi,
+	forum: forumApi,
+	review: reviewApi,
+	recommendation: recommendationApi,
+	airing: airingApi,
 };

@@ -32,7 +32,7 @@
 <div
 	bind:this={containerRef}
 	data-slot="carousel-content"
-	class="overflow-hidden"
+	class=""
 	onwheel={handleWheel}
 	use:emblaCarouselSvelte={{
 		options: {

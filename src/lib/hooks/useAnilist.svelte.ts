@@ -5,7 +5,7 @@
 
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 import type { CreateQueryOptions } from '@tanstack/svelte-query';
-import { animeApi, mangaApi, userApi, studioApi, characterApi, staffApi, mediaApi } from '$lib/services/anilist';
+import { animeApi, mangaApi, userApi, studioApi, characterApi, staffApi, mediaApi, mediaListApi, activityApi, notificationApi, forumApi, reviewApi, recommendationApi, airingApi } from '$lib/services/anilist';
 import { ClientDatabaseService } from '$lib/services/client-database';
 import type {
 	Media,
@@ -19,6 +19,15 @@ import type {
 	BrowseParams,
 	AniListResponse,
 	Page,
+	MediaList,
+	MediaListStatus,
+	ActivityUnion,
+	ActivityReply,
+	NotificationUnion,
+	Thread,
+	ThreadComment,
+	Review,
+	Recommendation,
 } from '$lib/types/anilist';
 
 // ============================================================================
@@ -651,5 +660,477 @@ export function useCacheUser() {
 			await ClientDatabaseService.cacheUser(user);
 			return { success: true, data: user };
 		},
+	}));
+}
+
+// ============================================================================
+// Query Key Extensions (for new endpoints)
+// ============================================================================
+
+export const mediaListKeys = {
+	all: ['mediaList'] as const,
+	myAnime: (status?: MediaListStatus, page?: number) =>
+		['mediaList', 'myAnime', status ?? 'all', page ?? 1] as const,
+	myManga: (status?: MediaListStatus, page?: number) =>
+		['mediaList', 'myManga', status ?? 'all', page ?? 1] as const,
+	userAnime: (username: string, status?: MediaListStatus, page?: number) =>
+		['mediaList', 'userAnime', username, status ?? 'all', page ?? 1] as const,
+	userManga: (username: string, status?: MediaListStatus, page?: number) =>
+		['mediaList', 'userManga', username, status ?? 'all', page ?? 1] as const,
+} as const;
+
+export const activityKeys = {
+	all: ['activity'] as const,
+	recent: (page?: number) => ['activity', 'recent', page ?? 1] as const,
+	following: (page?: number) => ['activity', 'following', page ?? 1] as const,
+	detail: (id: number) => ['activity', 'detail', id] as const,
+	replies: (activityId: number, page?: number) => ['activity', 'replies', activityId, page ?? 1] as const,
+} as const;
+
+export const notificationKeys = {
+	all: ['notification'] as const,
+	list: (page?: number) => ['notification', 'list', page ?? 1] as const,
+} as const;
+
+export const forumKeys = {
+	all: ['forum'] as const,
+	recent: (page?: number) => ['forum', 'recent', page ?? 1] as const,
+	popular: (page?: number) => ['forum', 'popular', page ?? 1] as const,
+	byCategory: (categoryId: number, page?: number) => ['forum', 'category', categoryId, page ?? 1] as const,
+	byUser: (userId: number, page?: number) => ['forum', 'user', userId, page ?? 1] as const,
+	thread: (id: number) => ['forum', 'thread', id] as const,
+	comments: (threadId: number, page?: number) => ['forum', 'comments', threadId, page ?? 1] as const,
+} as const;
+
+export const reviewKeys = {
+	all: ['review'] as const,
+	recent: (page?: number) => ['review', 'recent', page ?? 1] as const,
+	byMedia: (mediaId: number, page?: number) => ['review', 'media', mediaId, page ?? 1] as const,
+	byUser: (userId: number, page?: number) => ['review', 'user', userId, page ?? 1] as const,
+	detail: (id: number) => ['review', 'detail', id] as const,
+} as const;
+
+export const recommendationKeys = {
+	all: ['recommendation'] as const,
+	byMedia: (mediaId: number, page?: number) => ['recommendation', 'media', mediaId, page ?? 1] as const,
+} as const;
+
+// ============================================================================
+// Media List Hooks
+// ============================================================================
+
+/** Authenticated user's anime list */
+export function useMyAnimeList(status?: MediaListStatus, page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: mediaListKeys.myAnime(status, page),
+		queryFn: () => mediaListApi.getMyAnimeList(status, page, perPage),
+		staleTime: 5 * 60 * 1000,
+	}));
+}
+
+/** Authenticated user's manga list */
+export function useMyMangaList(status?: MediaListStatus, page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: mediaListKeys.myManga(status, page),
+		queryFn: () => mediaListApi.getMyMangaList(status, page, perPage),
+		staleTime: 5 * 60 * 1000,
+	}));
+}
+
+/** Specific user's anime list by username */
+export function useUserAnimeList(username: string, status?: MediaListStatus, page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: mediaListKeys.userAnime(username, status, page),
+		queryFn: () => mediaListApi.getUserAnimeList(username, status, page, perPage),
+		staleTime: 5 * 60 * 1000,
+		enabled: username.length > 0,
+	}));
+}
+
+/** Specific user's manga list by username */
+export function useUserMangaList(username: string, status?: MediaListStatus, page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: mediaListKeys.userManga(username, status, page),
+		queryFn: () => mediaListApi.getUserMangaList(username, status, page, perPage),
+		staleTime: 5 * 60 * 1000,
+		enabled: username.length > 0,
+	}));
+}
+
+/** Save (create/update) a media list entry */
+export function useSaveListEntry() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: (options: Record<string, unknown>) => mediaListApi.save(options),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: mediaListKeys.all });
+			queryClient.invalidateQueries({ queryKey: anilistKeys.user.current() });
+		},
+	}));
+}
+
+/** Add anime to authenticated user's list */
+export function useAddAnimeToList() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: ({ mediaId, status }: { mediaId: number; status?: MediaListStatus }) =>
+			mediaListApi.addAnime(mediaId, status),
+		onSuccess: (_, { mediaId }) => {
+			queryClient.invalidateQueries({ queryKey: mediaListKeys.all });
+			queryClient.invalidateQueries({ queryKey: anilistKeys.media.detail(mediaId) });
+		},
+	}));
+}
+
+/** Add manga to authenticated user's list */
+export function useAddMangaToList() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: ({ mediaId, status }: { mediaId: number; status?: MediaListStatus }) =>
+			mediaListApi.addManga(mediaId, status),
+		onSuccess: (_, { mediaId }) => {
+			queryClient.invalidateQueries({ queryKey: mediaListKeys.all });
+			queryClient.invalidateQueries({ queryKey: anilistKeys.media.detail(mediaId) });
+		},
+	}));
+}
+
+/** Update progress for a list entry */
+export function useUpdateListProgress() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: ({ entryId, progress }: { entryId: number; progress: number }) =>
+			mediaListApi.updateProgress(entryId, progress),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: mediaListKeys.all });
+		},
+	}));
+}
+
+/** Update score for a list entry */
+export function useUpdateListScore() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: ({ entryId, score }: { entryId: number; score: number }) =>
+			mediaListApi.updateScore(entryId, score),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: mediaListKeys.all });
+		},
+	}));
+}
+
+/** Update status for a list entry */
+export function useUpdateListStatus() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: ({ entryId, status }: { entryId: number; status: MediaListStatus }) =>
+			mediaListApi.updateStatus(entryId, status),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: mediaListKeys.all });
+		},
+	}));
+}
+
+/** Delete a media list entry */
+export function useDeleteListEntry() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: (id: number) => mediaListApi.deleteEntry(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: mediaListKeys.all });
+		},
+	}));
+}
+
+// ============================================================================
+// Activity Hooks
+// ============================================================================
+
+/** Recent global activity feed */
+export function useRecentActivity(page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: activityKeys.recent(page),
+		queryFn: () => activityApi.getRecent(page, perPage),
+		staleTime: 2 * 60 * 1000,
+	}));
+}
+
+/** Activity feed from followed users */
+export function useFollowingActivity(page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: activityKeys.following(page),
+		queryFn: () => activityApi.getFollowing(page, perPage),
+		staleTime: 2 * 60 * 1000,
+	}));
+}
+
+/** Single activity by ID */
+export function useActivityById(id: number) {
+	return createQuery(() => ({
+		queryKey: activityKeys.detail(id),
+		queryFn: () => activityApi.getById(id),
+		staleTime: 5 * 60 * 1000,
+		enabled: id > 0,
+	}));
+}
+
+/** Replies to a specific activity */
+export function useActivityReplies(activityId: number, page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: activityKeys.replies(activityId, page),
+		queryFn: () => activityApi.fetchReplies(activityId, page, perPage),
+		staleTime: 2 * 60 * 1000,
+		enabled: activityId > 0,
+	}));
+}
+
+/** Save a text activity post */
+export function useSaveTextActivity() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: (options: Record<string, unknown>) => activityApi.saveText(options),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: activityKeys.all });
+		},
+	}));
+}
+
+/** Reply to an activity */
+export function useSaveActivityReply() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: (options: Record<string, unknown>) => activityApi.saveReply(options),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: activityKeys.all });
+		},
+	}));
+}
+
+/** Delete an activity */
+export function useDeleteActivity() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: (id: number) => activityApi.delete(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: activityKeys.all });
+		},
+	}));
+}
+
+// ============================================================================
+// Notification Hooks
+// ============================================================================
+
+/** All notifications (unread first) */
+export function useNotifications(page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: notificationKeys.list(page),
+		queryFn: () => notificationApi.getAll(page, perPage),
+		staleTime: 60 * 1000, // 1 min — notifications change frequently
+	}));
+}
+
+/** Mark all notifications as read and return them */
+export function useMarkNotificationsRead() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: ({ page, perPage }: { page?: number; perPage?: number } = {}) =>
+			notificationApi.getAndMarkRead(page, perPage),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+			queryClient.invalidateQueries({ queryKey: anilistKeys.user.current() });
+		},
+	}));
+}
+
+// ============================================================================
+// Forum Hooks
+// ============================================================================
+
+/** Recent forum threads */
+export function useRecentForumThreads(page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: forumKeys.recent(page),
+		queryFn: () => forumApi.getRecent(page, perPage),
+		staleTime: 5 * 60 * 1000,
+	}));
+}
+
+/** Popular forum threads */
+export function usePopularForumThreads(page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: forumKeys.popular(page),
+		queryFn: () => forumApi.getPopular(page, perPage),
+		staleTime: 5 * 60 * 1000,
+	}));
+}
+
+/** Threads by category */
+export function useForumThreadsByCategory(categoryId: number, page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: forumKeys.byCategory(categoryId, page),
+		queryFn: () => forumApi.getByCategory(categoryId, page, perPage),
+		staleTime: 5 * 60 * 1000,
+		enabled: categoryId > 0,
+	}));
+}
+
+/** Single forum thread */
+export function useForumThread(id: number) {
+	return createQuery(() => ({
+		queryKey: forumKeys.thread(id),
+		queryFn: () => forumApi.getThread(id),
+		staleTime: 5 * 60 * 1000,
+		enabled: id > 0,
+	}));
+}
+
+/** Comments on a forum thread */
+export function useThreadComments(threadId: number, page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: forumKeys.comments(threadId, page),
+		queryFn: () => forumApi.getComments(threadId, page, perPage),
+		staleTime: 2 * 60 * 1000,
+		enabled: threadId > 0,
+	}));
+}
+
+/** Reply to a thread */
+export function useReplyToThread() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: ({ threadId, comment }: { threadId: number; comment: string }) =>
+			forumApi.replyToThread(threadId, comment),
+		onSuccess: (_, { threadId }) => {
+			queryClient.invalidateQueries({ queryKey: forumKeys.comments(threadId) });
+		},
+	}));
+}
+
+/** Toggle subscription to a thread */
+export function useToggleThreadSubscription() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: ({ threadId, subscribe }: { threadId: number; subscribe: boolean }) =>
+			forumApi.toggleSubscription(threadId, subscribe),
+		onSuccess: (_, { threadId }) => {
+			queryClient.invalidateQueries({ queryKey: forumKeys.thread(threadId) });
+		},
+	}));
+}
+
+// ============================================================================
+// Review Hooks
+// ============================================================================
+
+/** Reviews for a specific media */
+export function useMediaReviews(mediaId: number, page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: reviewKeys.byMedia(mediaId, page),
+		queryFn: () => reviewApi.getByMedia(mediaId, page, perPage),
+		staleTime: 10 * 60 * 1000,
+		enabled: mediaId > 0,
+	}));
+}
+
+/** Reviews by a user */
+export function useUserReviews(userId: number, page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: reviewKeys.byUser(userId, page),
+		queryFn: () => reviewApi.getByUser(userId, page, perPage),
+		staleTime: 10 * 60 * 1000,
+		enabled: userId > 0,
+	}));
+}
+
+/** Recent reviews */
+export function useRecentReviews(page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: reviewKeys.recent(page),
+		queryFn: () => reviewApi.getRecent(page, perPage),
+		staleTime: 10 * 60 * 1000,
+	}));
+}
+
+/** Single review by ID */
+export function useReviewById(id: number) {
+	return createQuery(() => ({
+		queryKey: reviewKeys.detail(id),
+		queryFn: () => reviewApi.getById(id),
+		staleTime: 15 * 60 * 1000,
+		enabled: id > 0,
+	}));
+}
+
+/** Save a review */
+export function useSaveReview() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: (options: Record<string, unknown>) => reviewApi.save(options),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: reviewKeys.all });
+		},
+	}));
+}
+
+/** Rate a review */
+export function useRateReview() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: ({ reviewId, rating }: { reviewId: number; rating: string }) =>
+			reviewApi.rate({ reviewId, rating }),
+		onSuccess: (_, { reviewId }) => {
+			queryClient.invalidateQueries({ queryKey: reviewKeys.detail(reviewId) });
+		},
+	}));
+}
+
+// ============================================================================
+// Recommendation Hooks
+// ============================================================================
+
+/** Recommendations for a media */
+export function useMediaRecommendations(mediaId: number, page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: recommendationKeys.byMedia(mediaId, page),
+		queryFn: () => recommendationApi.getByMedia(mediaId, page, perPage),
+		staleTime: 30 * 60 * 1000,
+		enabled: mediaId > 0,
+	}));
+}
+
+// ============================================================================
+// Re-export supplemental types for convenience
+// ============================================================================
+
+export type {
+	MediaList,
+	MediaListStatus,
+	ActivityUnion,
+	ActivityReply,
+	NotificationUnion,
+	Thread,
+	ThreadComment,
+	Review,
+	Recommendation,
+};
+
+// ============================================================================
+// Airing Queries
+// ============================================================================
+
+export function useAiringAnime(page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: ['airing', 'schedule', page, perPage],
+		queryFn: () => airingApi.getAiring(page, perPage),
+		staleTime: 5 * 60 * 1000, // 5 minutes - airing schedule changes frequently
+	}));
+}
+
+export function useUpcomingAnime(page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: ['airing', 'upcoming', page, perPage],
+		queryFn: () => airingApi.getUpcoming(page, perPage),
+		staleTime: 15 * 60 * 1000,
 	}));
 }

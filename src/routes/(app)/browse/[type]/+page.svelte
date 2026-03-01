@@ -387,7 +387,7 @@
 				</div>
 			{:else if trendingQuery?.data?.data?.data}
 				<Carousel.Root class="w-full px-6 overflow-visible">
-					<Carousel.Content class="-ml-4">
+					<Carousel.Content class="-ml-4 overflow-visible">
 						{#each trendingQuery.data.data.data as media (media.id)}
 							<Carousel.Item class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
 								<MediaCard {media} />

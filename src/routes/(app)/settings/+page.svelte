@@ -17,6 +17,8 @@
 	import AccountSettings from '$lib/components/settings/AccountSettings.svelte';
 	import ThemeModeSettings from '$lib/components/settings/ThemeModeSettings.svelte';
 	import ImageCacheManager from '$lib/components/settings/ImageCacheManager.svelte';
+	import ListSettings from '$lib/components/settings/ListSettings.svelte';
+	import NotificationSettings from '$lib/components/settings/NotificationSettings.svelte';
 
 	// Get data from load function
 	let { data }: { data: PageData } = $props();
@@ -50,6 +52,8 @@
 		{ id: 'appearance', label: 'Appearance', icon: 'solar:pallete-2-bold' },
 		{ id: 'preferences', label: 'Preferences', icon: 'solar:tuning-bold' },
 		{ id: 'playback', label: 'Playback', icon: 'solar:play-circle-bold' },
+		{ id: 'list', label: 'My List', icon: 'solar:list-heart-bold' },
+		{ id: 'notifications', label: 'Notifications', icon: 'solar:bell-bold' },
 		{ id: 'cache', label: 'Cache', icon: 'solar:download-bold' },
 		{ id: 'account', label: 'Account', icon: 'solar:user-bold' },
 	];
@@ -179,6 +183,20 @@
 									bind:autoPlayNext
 									bind:preferDub
 								/>
+							</div>
+						{/if}
+
+						<!-- List Settings -->
+						{#if activeSection === 'list'}
+							<div class="space-y-6">
+								<ListSettings />
+							</div>
+						{/if}
+
+						<!-- Notification Settings -->
+						{#if activeSection === 'notifications'}
+							<div class="space-y-6">
+								<NotificationSettings />
 							</div>
 						{/if}
 

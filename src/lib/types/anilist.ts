@@ -208,6 +208,13 @@ export interface Media {
 		edges?: { isMain?: boolean; node?: MediaStudio }[];
 		nodes?: MediaStudio[];
 	} | null;
+	nextAiringEpisode?: {
+		id?: number;
+		airingAt: number;
+		timeUntilAiring: number;
+		episode: number;
+		mediaId?: number;
+	} | null;
 }
 
 // ============================================================================
@@ -405,4 +412,320 @@ export interface BrowseParams extends PaginationParams {
 	genresExcluded?: string[];
 	sortBy?: MediaSort[];
 	isAdult?: boolean;
+}
+
+// ============================================================================
+// Media List Types (full list management)
+// ============================================================================
+
+export interface MediaList {
+	id: number;
+	userId: number;
+	mediaId: number;
+	status?: MediaListStatus;
+	score?: number;
+	progress?: number;
+	progressVolumes?: number;
+	repeat?: number;
+	priority?: number;
+	private?: boolean;
+	notes?: string;
+	hiddenFromStatusLists?: boolean;
+	customLists?: Record<string, boolean>;
+	startedAt?: MediaDate;
+	completedAt?: MediaDate;
+	updatedAt?: number;
+	createdAt?: number;
+	media?: Media;
+}
+
+export interface MediaListGroup {
+	name?: string;
+	isCustomList?: boolean;
+	isCompletedList?: boolean;
+	entries?: MediaList[];
+}
+
+export interface MediaListCollection {
+	lists?: MediaListGroup[];
+	user?: User;
+	hasNextChunk?: boolean;
+}
+
+// ============================================================================
+// Activity Types
+// ============================================================================
+
+export interface ActivityReply {
+	id: number;
+	userId?: number;
+	activityId?: number;
+	text?: string;
+	likeCount?: number;
+	isLiked?: boolean;
+	createdAt: number;
+	user?: User;
+	likes?: User[];
+}
+
+export interface ListActivity {
+	__typename: 'ListActivity';
+	id: number;
+	userId?: number;
+	replyCount?: number;
+	status?: string;
+	progress?: string;
+	isLocked?: boolean;
+	isSubscribed?: boolean;
+	likeCount?: number;
+	isLiked?: boolean;
+	isPinned?: boolean;
+	siteUrl?: string;
+	createdAt: number;
+	user?: User;
+	media?: Media;
+	replies?: ActivityReply[];
+	likes?: User[];
+}
+
+export interface TextActivity {
+	__typename: 'TextActivity';
+	id: number;
+	userId?: number;
+	replyCount?: number;
+	text?: string;
+	siteUrl?: string;
+	isLocked?: boolean;
+	isSubscribed?: boolean;
+	likeCount?: number;
+	isLiked?: boolean;
+	isPinned?: boolean;
+	createdAt: number;
+	user?: User;
+	replies?: ActivityReply[];
+	likes?: User[];
+}
+
+export interface MessageActivity {
+	__typename: 'MessageActivity';
+	id: number;
+	recipientId?: number;
+	messengerId?: number;
+	replyCount?: number;
+	message?: string;
+	isLocked?: boolean;
+	isSubscribed?: boolean;
+	likeCount?: number;
+	isLiked?: boolean;
+	isPrivate?: boolean;
+	siteUrl?: string;
+	createdAt: number;
+	recipient?: User;
+	messenger?: User;
+	replies?: ActivityReply[];
+	likes?: User[];
+}
+
+export type ActivityUnion = ListActivity | TextActivity | MessageActivity;
+
+// ============================================================================
+// Notification Types
+// ============================================================================
+
+export type NotificationType =
+	| 'ACTIVITY_MESSAGE'
+	| 'ACTIVITY_REPLY'
+	| 'FOLLOWING'
+	| 'ACTIVITY_MENTION'
+	| 'THREAD_COMMENT_MENTION'
+	| 'THREAD_SUBSCRIBED'
+	| 'THREAD_COMMENT_REPLY'
+	| 'AIRING'
+	| 'ACTIVITY_LIKE'
+	| 'ACTIVITY_REPLY_LIKE'
+	| 'THREAD_LIKE'
+	| 'THREAD_COMMENT_LIKE'
+	| 'ACTIVITY_REPLY_SUBSCRIBED'
+	| 'RELATED_MEDIA_ADDITION'
+	| 'MEDIA_DATA_CHANGE'
+	| 'MEDIA_MERGE'
+	| 'MEDIA_DELETION';
+
+// Rust NotificationUnion uses #[serde(tag = "type")] + SCREAMING_SNAKE_CASE
+// so JSON is: { "type": "AIRING", "id": 1, "animeId": 123, ... }
+
+export interface AiringNotification {
+	type: 'AIRING';
+	id: number;
+	animeId?: number;
+	episode?: number;
+	contexts?: string[];
+	createdAt?: number;
+	media?: Media;
+}
+
+export interface FollowingNotification {
+	type: 'FOLLOWING';
+	id: number;
+	userId?: number;
+	context?: string;
+	createdAt?: number;
+	user?: User;
+}
+
+export interface ActivityNotification {
+	type:
+		| 'ACTIVITY_MESSAGE'
+		| 'ACTIVITY_REPLY'
+		| 'ACTIVITY_MENTION'
+		| 'ACTIVITY_LIKE'
+		| 'ACTIVITY_REPLY_LIKE'
+		| 'ACTIVITY_REPLY_SUBSCRIBED';
+	id: number;
+	userId?: number;
+	activityId?: number;
+	context?: string;
+	createdAt?: number;
+	user?: User;
+}
+
+export interface ThreadNotification {
+	type:
+		| 'THREAD_COMMENT_MENTION'
+		| 'THREAD_SUBSCRIBED'
+		| 'THREAD_COMMENT_REPLY'
+		| 'THREAD_LIKE'
+		| 'THREAD_COMMENT_LIKE';
+	id: number;
+	userId?: number;
+	commentId?: number;
+	threadId?: number;
+	context?: string;
+	createdAt?: number;
+	thread?: Thread;
+	comment?: ThreadComment;
+	user?: User;
+}
+
+export interface MediaChangeNotification {
+	type: 'RELATED_MEDIA_ADDITION' | 'MEDIA_DATA_CHANGE' | 'MEDIA_MERGE' | 'MEDIA_DELETION';
+	id: number;
+	mediaId?: number;
+	context?: string;
+	reason?: string;
+	deletedMediaTitle?: string;
+	deletedMediaTitles?: string[];
+	createdAt?: number;
+	media?: Media;
+}
+
+export type NotificationUnion =
+	| AiringNotification
+	| FollowingNotification
+	| ActivityNotification
+	| ThreadNotification
+	| MediaChangeNotification;
+
+// ============================================================================
+// Forum / Thread Types
+// ============================================================================
+
+export interface ThreadCategory {
+	id: number;
+	name: string;
+}
+
+export interface Thread {
+	id: number;
+	title?: string;
+	body?: string;
+	userId?: number;
+	replyUserId?: number;
+	replyCommentId?: number;
+	replyCount?: number;
+	viewCount?: number;
+	isLocked?: boolean;
+	isSticky?: boolean;
+	isSubscribed?: boolean;
+	likeCount?: number;
+	isLiked?: boolean;
+	repliedAt?: number;
+	createdAt?: number;
+	updatedAt?: number;
+	user?: User;
+	replyUser?: User;
+	likes?: User[];
+	siteUrl?: string;
+	categories?: ThreadCategory[];
+	mediaCategories?: Media[];
+}
+
+export interface ThreadComment {
+	id: number;
+	userId?: number;
+	threadId?: number;
+	comment?: string;
+	likeCount?: number;
+	isLiked?: boolean;
+	siteUrl?: string;
+	createdAt?: number;
+	updatedAt?: number;
+	thread?: Thread;
+	user?: User;
+	likes?: User[];
+	childComments?: ThreadComment[];
+	isLocked?: boolean;
+}
+
+// ============================================================================
+// Review Types
+// ============================================================================
+
+export type ReviewRating = 'NO_VOTE' | 'UP_VOTE' | 'DOWN_VOTE';
+
+export interface Review {
+	id: number;
+	userId?: number;
+	mediaId?: number;
+	mediaType?: MediaType;
+	summary?: string;
+	body?: string;
+	rating?: number;
+	ratingAmount?: number;
+	userRating?: ReviewRating;
+	score?: number;
+	private?: boolean;
+	siteUrl?: string;
+	createdAt?: number;
+	updatedAt?: number;
+	user?: User;
+	media?: Media;
+}
+
+// ============================================================================
+// Recommendation Types
+// ============================================================================
+
+export type RecommendationRating = 'NO_RATING' | 'RATE_UP' | 'RATE_DOWN';
+
+export interface Recommendation {
+	id: number;
+	rating?: number;
+	userRating?: RecommendationRating;
+	media?: Media;
+	mediaRecommendation?: Media;
+	user?: User;
+}
+
+// ============================================================================
+// Airing Schedule Types
+// ============================================================================
+
+export interface AiringSchedule {
+	id: number;
+	airingAt: number;
+	timeUntilAiring: number;
+	episode: number;
+	mediaId: number;
+	media?: Media;
 }

@@ -335,7 +335,7 @@
 				</p>
 
 				<!-- Action Buttons Strip -->
-				<ActionButtonStrip {userStatus} />
+				<ActionButtonStrip {userStatus} mediaId={media.id} mediaType={media.type === 'MANGA' ? 'MANGA' : 'ANIME'} />
 
 				<!-- Stats Grid -->
 				<div class="grid grid-cols-2 gap-1.5 rounded-md bg-border p-1.5">

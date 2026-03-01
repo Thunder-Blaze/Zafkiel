@@ -1,6 +1,6 @@
 # Copilot Instructions - Zafkiel Project
 
-This document provides guidelines for GitHub Copilot when working on the Zafkiel cross-platform anime watching application built with SvelteKit, Tauri, and TypeScript.
+This document provides guidelines for GitHub Copilot when working on the Zafkiel cross-platform anime watching application built with Bun, SvelteKit, Tauri, and TypeScript.
 
 ## 🎯 Core Principles
 

@@ -20,14 +20,27 @@
 
 	let open = $state(false);
 
-	// Menu items for authenticated users
-	const authenticatedMenuItems: MenuItemType[] = [
+	// Menu items for authenticated users — reactive so username is always current
+	const authenticatedMenuItems = $derived<MenuItemType[]>([
 		{ icon: 'solar:user-bold', label: 'Profile', action: () => goto('/profile') },
+		{
+			icon: 'solar:play-circle-bold',
+			label: 'Anime List',
+			action: () => goto(`/user/${$currentUser?.name}/animelist`)
+		},
+		{
+			icon: 'solar:book-2-bold',
+			label: 'Manga List',
+			action: () => goto(`/user/${$currentUser?.name}/mangalist`)
+		},
+		{ icon: 'solar:users-group-rounded-bold', label: 'Social', action: () => goto('/social') },
+		{ icon: 'solar:bell-bold', label: 'Notifications', action: () => goto('/notifications') },
+		{ icon: 'solar:chat-square-bold', label: 'Forum', action: () => goto('/forum') },
+		{ type: 'separator' as const },
 		{ icon: 'solar:settings-bold', label: 'Settings', action: () => goto('/settings') },
-		{ icon: 'solar:star-bold', label: 'Favorites', action: () => goto('/favorites') },
 		{ type: 'separator' as const },
 		{ icon: 'solar:logout-2-bold', label: 'Logout', action: () => goto('/logout'), danger: true },
-	];
+	]);
 
 	// Menu items for guest users
 	const guestMenuItems: MenuItemType[] = [
