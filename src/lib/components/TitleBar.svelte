@@ -167,6 +167,20 @@
 		searchOpen = true;
 	}
 
+	$effect(() => {
+		if (searchOpen && searchInput) {
+			// Tick lets the DOM render first
+			queueMicrotask(() => searchInput?.focus());
+		}
+	});
+
+	function handleSearchKeydown(e: KeyboardEvent): void {
+		if (e.key === 'Escape') {
+			searchOpen = false;
+			searchQuery = '';
+		}
+	}
+
 	function handleSearchSubmit(): void {
 		if (searchQuery.trim()) {
 			searchOpen = false;
@@ -266,60 +280,66 @@
 						<Icon icon="solar:alt-arrow-down-linear" class="h-3 w-3 transition-transform {browseOpen ? 'rotate-180' : ''}" />
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Content
-						class="z-50 w-72 rounded-xl border border-border/50 bg-background/95 p-3 shadow-xl backdrop-blur-xl"
+						class="z-50 w-72 rounded-xl border border-border/40 bg-background/95 p-3.5 shadow-xl backdrop-blur-xl"
 						sideOffset={8}
 						align="start"
 					>
-						<!-- Anime section -->
-						<div class="mb-3">
-							<button
-								class="mb-1.5 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-semibold transition-colors hover:bg-muted"
-								onclick={() => { browseOpen = false; goto('/search/anime'); }}
-							>
-								<Icon icon="solar:play-circle-bold-duotone" class="h-4 w-4 text-primary" />
-								Anime
-							</button>
-							<div class="flex gap-1 pl-6">
-								<button onclick={() => { browseOpen = false; goto('/search/anime'); }} class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Top 100</button>
-								<button onclick={() => { browseOpen = false; goto('/search/anime'); }} class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Trending</button>
-								<button onclick={() => { browseOpen = false; goto('/search/anime'); }} class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Top Movies</button>
+						<!-- Anime -->
+						<div class="mb-2.5 flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-2.5">
+							<Icon icon="solar:play-circle-bold-duotone" class="h-5 w-5 shrink-0 text-primary" />
+							<div class="flex flex-col">
+								<button
+									onclick={() => { browseOpen = false; goto('/search/anime'); }}
+									class="mb-1 text-left text-sm font-semibold text-foreground transition-colors hover:text-primary"
+								>
+									Anime
+								</button>
+							<div class="flex items-center whitespace-nowrap text-xs text-muted-foreground">
+									<button onclick={() => { browseOpen = false; goto('/browse/anime?sort=POPULARITY_DESC'); }} class="py-0.5 transition-colors hover:text-foreground">Top 100</button>
+									<span class="mx-2 opacity-30">·</span>
+									<button onclick={() => { browseOpen = false; goto('/browse/anime?sort=TRENDING_DESC'); }} class="py-0.5 transition-colors hover:text-foreground">Trending</button>
+									<span class="mx-2 opacity-30">·</span>
+									<button onclick={() => { browseOpen = false; goto('/browse/anime?format=MOVIE&sort=SCORE_DESC'); }} class="py-0.5 transition-colors hover:text-foreground">Top Movies</button>
+								</div>
 							</div>
 						</div>
 
-						<!-- Manga section -->
-						<div class="mb-3">
-							<button
-								class="mb-1.5 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-semibold transition-colors hover:bg-muted"
-								onclick={() => { browseOpen = false; goto('/search/manga'); }}
-							>
-								<Icon icon="solar:book-2-bold-duotone" class="h-4 w-4 text-primary" />
-								Manga
-							</button>
-							<div class="flex gap-1 pl-6">
-								<button onclick={() => { browseOpen = false; goto('/search/manga'); }} class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Top 100</button>
-								<button onclick={() => { browseOpen = false; goto('/search/manga'); }} class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Trending</button>
-								<button onclick={() => { browseOpen = false; goto('/search/manga'); }} class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Top Manhwa</button>
+						<!-- Manga -->
+						<div class="mb-1.5 flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-2.5">
+							<Icon icon="solar:book-2-bold-duotone" class="h-5 w-5 shrink-0 text-primary" />
+							<div class="flex flex-col">
+								<button
+									onclick={() => { browseOpen = false; goto('/search/manga'); }}
+									class="mb-1 text-left text-sm font-semibold text-foreground transition-colors hover:text-primary"
+								>
+									Manga
+								</button>
+							<div class="flex items-center whitespace-nowrap text-xs text-muted-foreground">
+									<button onclick={() => { browseOpen = false; goto('/browse/manga?sort=POPULARITY_DESC'); }} class="py-0.5 transition-colors hover:text-foreground">Top 100</button>
+									<span class="mx-2 opacity-30">·</span>
+									<button onclick={() => { browseOpen = false; goto('/browse/manga?sort=TRENDING_DESC'); }} class="py-0.5 transition-colors hover:text-foreground">Trending</button>
+									<span class="mx-2 opacity-30">·</span>
+									<button onclick={() => { browseOpen = false; goto('/browse/manga?country=KR&sort=POPULARITY_DESC'); }} class="py-0.5 transition-colors hover:text-foreground">Top Manhwa</button>
+								</div>
 							</div>
 						</div>
 
-						<DropdownMenu.Separator class="my-2 h-px bg-border/50" />
-
-						<!-- Other sections grid -->
-						<div class="grid grid-cols-2 gap-1">
-							<button onclick={() => { browseOpen = false; goto('/search/staff'); }} class="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-								<Icon icon="solar:users-group-two-rounded-bold-duotone" class="h-4 w-4" />
+						<!-- Other -->
+						<div class="grid grid-cols-[auto_auto] justify-between gap-x-2">
+							<button onclick={() => { browseOpen = false; goto('/search/staff'); }} class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+								<Icon icon="solar:users-group-two-rounded-bold-duotone" class="h-3.5 w-3.5" />
 								Staff
 							</button>
-							<button onclick={() => { browseOpen = false; goto('/search/characters'); }} class="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-								<Icon icon="solar:user-circle-bold-duotone" class="h-4 w-4" />
+							<button onclick={() => { browseOpen = false; goto('/search/characters'); }} class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+								<Icon icon="solar:user-circle-bold-duotone" class="h-3.5 w-3.5" />
 								Characters
 							</button>
-							<button onclick={() => { browseOpen = false; goto('/search/reviews'); }} class="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-								<Icon icon="solar:star-bold-duotone" class="h-4 w-4" />
+							<button onclick={() => { browseOpen = false; goto('/search/reviews'); }} class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+								<Icon icon="solar:star-bold-duotone" class="h-3.5 w-3.5" />
 								Reviews
 							</button>
-							<button onclick={() => { browseOpen = false; goto('/search/recommendations'); }} class="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-								<Icon icon="solar:like-bold-duotone" class="h-4 w-4" />
+							<button onclick={() => { browseOpen = false; goto('/search/recommendations'); }} class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+								<Icon icon="solar:like-bold-duotone" class="h-3.5 w-3.5" />
 								Recommendations
 							</button>
 						</div>
@@ -344,52 +364,22 @@
 			</div>
 		</div>
 
-		<!-- Search popup overlay -->
-		{#if searchOpen}
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div
-				class="fixed inset-0 z-1000000 flex items-start justify-center bg-black/50 pt-24 backdrop-blur-sm"
-				onclick={(e) => { if (e.target === e.currentTarget) searchOpen = false; }}
-			>
-				<div class="w-full max-w-xl rounded-xl border border-border/50 bg-background shadow-2xl">
-					<form
-						onsubmit={(e) => { e.preventDefault(); handleSearchSubmit(); }}
-						class="flex items-center gap-3 px-4 py-3"
-					>
-						<Icon icon="solar:magnifer-bold" class="h-5 w-5 shrink-0 text-muted-foreground" />
-						<input
-							bind:this={searchInput}
-							bind:value={searchQuery}
-							type="text"
-							placeholder="Search..."
-							class="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
-						/>
-						<button
-							type="button"
-							onclick={() => searchOpen = false}
-							class="rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
-							aria-label="Close search"
-						>
-							<Icon icon="solar:close-circle-bold" class="h-5 w-5" />
-						</button>
-					</form>
-				</div>
-			</div>
-		{/if}
-
 		<!-- Right Section: Search icon + Notifications + Profile + Theme + Window Controls -->
 		<div class="flex h-full items-center">
-			<!-- Search icon button -->
-			<Button
-				variant="ghost"
-				size="icon"
-				class="h-8 w-8 text-foreground/70 hover:text-foreground"
+			<!-- Fake search bar -->
+			<button
+				type="button"
 				onclick={() => (searchOpen = true)}
 				title="Search ({isMac ? '⌘K' : 'Ctrl+K'})"
+				class="flex h-8 w-48 items-center gap-2 rounded-md bg-muted/40 px-3 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
 			>
-				<Icon icon="solar:magnifer-bold" class="h-4 w-4" />
-			</Button>
+				<Icon icon="solar:magnifer-bold" class="h-3.5 w-3.5 shrink-0" />
+				<span class="flex-1 text-left text-xs">Search…</span>
+				<span class="flex items-center gap-0.5">
+					<kbd class="rounded border border-border/50 bg-background/50 px-1.5 py-0.5 font-mono text-[10px] leading-none">{isMac ? '⌘' : 'Ctrl'}</kbd>
+					<kbd class="rounded border border-border/50 bg-background/50 px-1.5 py-0.5 font-mono text-[10px] leading-none">K</kbd>
+				</span>
+			</button>
 			<Button
 				variant="ghost"
 				size="icon"
@@ -444,6 +434,58 @@
 	</div>
 
 	<div class="h-12"></div>
+{/if}
+
+<!-- Search portal — rendered outside the titlebar stacking context -->
+{#if browser && searchOpen}
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<div
+		class="fixed inset-0 z-[1000000] flex items-start justify-center bg-black/60 pt-16 backdrop-blur-md"
+		onclick={(e) => { if (e.target === e.currentTarget) { searchOpen = false; searchQuery = ''; } }}
+		onkeydown={handleSearchKeydown}
+	>
+		<div class="w-full max-w-2xl overflow-hidden rounded-2xl border border-border/50 bg-background shadow-2xl">
+			<!-- Input row -->
+			<form
+				onsubmit={(e) => { e.preventDefault(); handleSearchSubmit(); }}
+				class="flex items-center gap-3 border-b border-border/40 px-5 py-4"
+			>
+				<Icon icon="solar:magnifer-bold" class="h-5 w-5 shrink-0 text-muted-foreground" />
+				<input
+					bind:this={searchInput}
+					bind:value={searchQuery}
+					type="text"
+					placeholder="Search anime, manga, characters…"
+					class="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground/60"
+				/>
+				{#if searchQuery}
+					<button
+						type="button"
+						onclick={() => (searchQuery = '')}
+						class="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+						aria-label="Clear"
+					>
+						<Icon icon="solar:close-circle-bold" class="h-4 w-4" />
+					</button>
+				{/if}
+			</form>
+			<!-- Footer hint row -->
+			<div class="flex items-center justify-between px-5 py-2.5">
+				<div class="flex items-center gap-4 text-xs text-muted-foreground">
+					<span class="flex items-center gap-1.5">
+						<kbd class="rounded border border-border/60 bg-muted px-1.5 py-0.5 font-mono text-[10px]">↵</kbd>
+						to search
+					</span>
+					<span class="flex items-center gap-1.5">
+						<kbd class="rounded border border-border/60 bg-muted px-1.5 py-0.5 font-mono text-[10px]">Esc</kbd>
+						to close
+					</span>
+				</div>
+				<span class="text-xs text-muted-foreground/50">Powered by AniList</span>
+			</div>
+		</div>
+	</div>
 {/if}
 
 <style>

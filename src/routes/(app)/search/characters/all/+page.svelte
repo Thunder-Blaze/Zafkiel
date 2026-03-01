@@ -97,7 +97,7 @@
 					<Icon icon="solar:user-bold-duotone" class="h-10 w-10 opacity-20" />
 				</div>
 			{/if}
-			<div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+			<div class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent"></div>
 			{#if char.favourites}
 				<div class="absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
 					<Icon icon="solar:heart-bold" class="h-2.5 w-2.5 text-red-400" />
@@ -185,7 +185,7 @@
 			</div>
 		</div>
 	{:else}
-		<div class="grid gap-5 p-0.5 [grid-template-columns:repeat(auto-fill,minmax(10rem,1fr))]">
+		<div class="grid gap-5 p-0.5 grid-cols-[repeat(auto-fill,minmax(10rem,1fr))]">
 			{#each activeItems as char, i}
 				{@render charCard(
 					char,

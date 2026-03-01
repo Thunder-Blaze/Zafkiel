@@ -99,6 +99,7 @@ pub async fn browse_media(
     genres_excluded: Option<Vec<String>>,
     sort_by: Option<Vec<String>>,
     is_adult: Option<bool>,
+    country_of_origin: Option<String>,
     page: Option<i32>,
     per_page: Option<i32>,
     service: State<'_, AniListState>
@@ -206,6 +207,7 @@ pub async fn browse_media(
         genre_not_in: genres_excluded,
         sort: sort_enums,
         is_adult,
+        country_of_origin,
         page,
         per_page,
         ..Default::default()

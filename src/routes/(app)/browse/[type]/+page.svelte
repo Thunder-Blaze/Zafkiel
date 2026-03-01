@@ -30,10 +30,22 @@
 	let selectedSource = $state<MediaSource | ''>('');
 	let selectedGenres = $state<string[]>([]);
 	let excludedGenres = $state<string[]>([]);
+	let countryOfOrigin = $state('');
 	let sortBy = $state<MediaSort>('POPULARITY_DESC');
 	let currentPage = $state<number>(1);
 	let showAdult = $state<boolean>(false);
 	let showFilters = $state(false);
+
+	// Initialize from URL params (allows deep-linking from browse dropdown)
+	$effect(() => {
+		const params = page.url.searchParams;
+		const urlSort = params.get('sort') as MediaSort | null;
+		if (urlSort) sortBy = urlSort;
+		const urlFormat = params.get('format') as MediaFormat | null;
+		if (urlFormat) selectedFormat = urlFormat;
+		const urlCountry = params.get('country');
+		if (urlCountry) countryOfOrigin = urlCountry;
+	});
 
 	// Handle header search submission
 	function handleHeaderSearch(e: Event) {
@@ -54,23 +66,25 @@
 		source: selectedSource || undefined,
 		genres: selectedGenres.filter(g => g).length > 0 ? selectedGenres.filter(g => g) : undefined,
 		genresExcluded: excludedGenres.filter(g => g).length > 0 ? excludedGenres.filter(g => g) : undefined,
+		countryOfOrigin: countryOfOrigin || undefined,
 		sortBy: sortBy !== 'POPULARITY_DESC' ? [sortBy] : undefined,
 		isAdult: showAdult ? true : undefined,
 		page: currentPage,
 		perPage: 50,
 	});
 
-	// Fetch data using the hook
-	const query = $derived(useBrowseMedia(browseParams));
+	// Filters active flag (must be computed before section queries)
+	const hasFilters = $derived(
+		!!searchQuery || !!selectedFormat || !!selectedStatus || !!selectedSeason ||
+		!!selectedYear || !!selectedSource || selectedGenres.filter(g => g).length > 0 ||
+		excludedGenres.filter(g => g).length > 0 || sortBy !== 'POPULARITY_DESC' ||
+		!!countryOfOrigin
+	);
+
+	// Filtered results query — reactive getter so params update without re-creating the hook
+	const query = useBrowseMedia(() => browseParams);
 	const mediaList = $derived(query.data?.data?.data || []);
 	const pageInfo = $derived(query.data?.data?.pageInfo);
-
-	// Section queries (only when no filters applied)
-	const hasFilters = $derived(
-		searchQuery || selectedFormat || selectedStatus || selectedSeason ||
-		selectedYear || selectedSource || selectedGenres.filter(g => g).length > 0 ||
-		excludedGenres.filter(g => g).length > 0 || sortBy !== 'POPULARITY_DESC'
-	);
 
 	// Get current season
 	const getCurrentSeason = (): MediaSeason => {
@@ -94,58 +108,30 @@
 	const currentYear = new Date().getFullYear();
 	const nextSeason = getNextSeason();
 
-	// Trending query
-	const trendingQuery = $derived(
-		!hasFilters ? useBrowseMedia({
-			mediaType: type,
-			sortBy: ['TRENDING_DESC'],
-			page: 1,
-			perPage: 20,
-		}) : null
+	// Section queries — use reactive params + enabled so no hooks are called conditionally
+	const trendingQuery = useBrowseMedia(
+		() => ({ mediaType: type, sortBy: ['TRENDING_DESC'] as MediaSort[], page: 1, perPage: 20 }),
+		() => ({ enabled: !hasFilters })
 	);
 
-	// Popular This Season query
-	const popularSeasonQuery = $derived(
-		!hasFilters && type === 'ANIME' ? useBrowseMedia({
-			mediaType: 'ANIME',
-			season: currentSeason,
-			seasonYear: currentYear,
-			sortBy: ['POPULARITY_DESC'],
-			page: 1,
-			perPage: 20,
-		}) : null
+	const popularSeasonQuery = useBrowseMedia(
+		() => ({ mediaType: 'ANIME' as const, season: currentSeason, seasonYear: currentYear, sortBy: ['POPULARITY_DESC'] as MediaSort[], page: 1, perPage: 20 }),
+		() => ({ enabled: !hasFilters && type === 'ANIME' })
 	);
 
-	// Upcoming Next Season query
-	const upcomingQuery = $derived(
-		!hasFilters && type === 'ANIME' ? useBrowseMedia({
-			mediaType: 'ANIME',
-			season: nextSeason.season,
-			seasonYear: nextSeason.year,
-			sortBy: ['POPULARITY_DESC'],
-			page: 1,
-			perPage: 20,
-		}) : null
+	const upcomingQuery = useBrowseMedia(
+		() => ({ mediaType: 'ANIME' as const, season: nextSeason.season, seasonYear: nextSeason.year, sortBy: ['POPULARITY_DESC'] as MediaSort[], page: 1, perPage: 20 }),
+		() => ({ enabled: !hasFilters && type === 'ANIME' })
 	);
 
-	// All Time Popular query
-	const allTimePopularQuery = $derived(
-		!hasFilters ? useBrowseMedia({
-			mediaType: type,
-			sortBy: ['POPULARITY_DESC'],
-			page: 1,
-			perPage: 20,
-		}) : null
+	const allTimePopularQuery = useBrowseMedia(
+		() => ({ mediaType: type, sortBy: ['POPULARITY_DESC'] as MediaSort[], page: 1, perPage: 20 }),
+		() => ({ enabled: !hasFilters })
 	);
 
-	// Top Rated query
-	const topRatedQuery = $derived(
-		!hasFilters ? useBrowseMedia({
-			mediaType: type,
-			sortBy: ['SCORE_DESC'],
-			page: 1,
-			perPage: 20,
-		}) : null
+	const topRatedQuery = useBrowseMedia(
+		() => ({ mediaType: type, sortBy: ['SCORE_DESC'] as MediaSort[], page: 1, perPage: 20 }),
+		() => ({ enabled: !hasFilters })
 	);
 
 	// Available options for filters
@@ -294,70 +280,85 @@
 						type="text"
 						placeholder="Search"
 						bind:value={headerSearchQuery}
-						class="w-full rounded-lg border border-border bg-background px-4 py-2 pl-10 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+						class="w-full rounded-lg border border-border bg-muted/60 px-4 py-2 pl-10 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
 					/>
 					<Icon icon="solar:magnifer-bold" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 				</form>
 
 				<!-- Genres -->
-				<select
-					bind:value={selectedGenres[0]}
-					onchange={() => { if (selectedGenres[0]) selectedGenres = [selectedGenres[0]]; else selectedGenres = []; currentPage = 1; }}
-					class="rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-				>
-					<option value="">Genres</option>
-					{#each allGenres as genre}
-						<option value={genre}>{genre}</option>
-					{/each}
-				</select>
+				<div class="relative">
+					<select
+						bind:value={selectedGenres[0]}
+						onchange={() => { if (selectedGenres[0]) selectedGenres = [selectedGenres[0]]; else selectedGenres = []; currentPage = 1; }}
+						class="h-9 appearance-none cursor-pointer rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+					>
+						<option value="">Genres</option>
+						{#each allGenres as genre}
+							<option value={genre}>{genre}</option>
+						{/each}
+					</select>
+					<Icon icon="solar:alt-arrow-down-bold" class="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+				</div>
 
 				<!-- Year -->
-				<select
-					bind:value={selectedYear}
-					onchange={() => (currentPage = 1)}
-					class="rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-				>
-					<option value="">Year</option>
-					{#each years.slice(0, 20) as year}
-						<option value={year.toString()}>{year}</option>
-					{/each}
-				</select>
+				<div class="relative">
+					<select
+						bind:value={selectedYear}
+						onchange={() => (currentPage = 1)}
+						class="h-9 appearance-none cursor-pointer rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+					>
+						<option value="">Year</option>
+						{#each years.slice(0, 20) as year}
+							<option value={year.toString()}>{year}</option>
+						{/each}
+					</select>
+					<Icon icon="solar:alt-arrow-down-bold" class="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+				</div>
 
 				<!-- Season -->
-				<select
-					bind:value={selectedSeason}
-					onchange={() => (currentPage = 1)}
-					class="rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-				>
-					<option value="">Season</option>
-					{#each seasons as season}
-						<option value={season}>{season.charAt(0) + season.slice(1).toLowerCase()}</option>
-					{/each}
-				</select>
+				<div class="relative">
+					<select
+						bind:value={selectedSeason}
+						onchange={() => (currentPage = 1)}
+						class="h-9 appearance-none cursor-pointer rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+					>
+						<option value="">Season</option>
+						{#each seasons as season}
+							<option value={season}>{season.charAt(0) + season.slice(1).toLowerCase()}</option>
+						{/each}
+					</select>
+					<Icon icon="solar:alt-arrow-down-bold" class="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+				</div>
 
 				<!-- Format -->
-				<select
-					bind:value={selectedFormat}
-					onchange={() => (currentPage = 1)}
-					class="rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-				>
-					<option value="">Format</option>
-					{#each formats as format}
-						<option value={format}>{format.replace(/_/g, ' ')}</option>
-					{/each}
-				</select>
+				<div class="relative">
+					<select
+						bind:value={selectedFormat}
+						onchange={() => (currentPage = 1)}
+						class="h-9 appearance-none cursor-pointer rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+					>
+						<option value="">Format</option>
+						{#each formats as format}
+							<option value={format}>{format.replace(/_/g, ' ')}</option>
+						{/each}
+					</select>
+					<Icon icon="solar:alt-arrow-down-bold" class="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+				</div>
 
 				<!-- Status -->
-				<select
-					bind:value={selectedStatus}
-					onchange={() => (currentPage = 1)}
-					class="rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-				>
-					<option value="">Airing Status</option>
-					{#each statuses as status}
-						<option value={status}>{status.replace(/_/g, ' ')}</option>
-					{/each}
-				</select>
+				<div class="relative">
+					<select
+						bind:value={selectedStatus}
+						onchange={() => (currentPage = 1)}
+						class="h-9 appearance-none cursor-pointer rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+					>
+						<option value="">Airing Status</option>
+						{#each statuses as status}
+							<option value={status}>{status.replace(/_/g, ' ')}</option>
+						{/each}
+					</select>
+					<Icon icon="solar:alt-arrow-down-bold" class="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+				</div>
 
 				<!-- Advanced Filters Toggle -->
 				<Button variant="outline" size="sm" onclick={() => (showFilters = !showFilters)}>
@@ -419,8 +420,8 @@
 						<Icon icon="svg-spinners:3-dots-scale" class="h-8 w-8 text-primary" />
 					</div>
 				{:else if popularSeasonQuery?.data?.data?.data}
-					<Carousel.Root class="w-full px-6">
-						<Carousel.Content class="-ml-4">
+				<Carousel.Root class="w-full px-6 overflow-visible">
+					<Carousel.Content class="-ml-4 overflow-visible">
 							{#each popularSeasonQuery.data.data.data as media (media.id)}
 								<Carousel.Item class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
 									<MediaCard {media} />
@@ -451,8 +452,8 @@
 						<Icon icon="svg-spinners:3-dots-scale" class="h-8 w-8 text-primary" />
 					</div>
 				{:else if upcomingQuery?.data?.data?.data}
-					<Carousel.Root class="w-full px-6">
-						<Carousel.Content class="-ml-4">
+				<Carousel.Root class="w-full px-6 overflow-visible">
+					<Carousel.Content class="-ml-4 overflow-visible">
 							{#each upcomingQuery.data.data.data as media (media.id)}
 								<Carousel.Item class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
 									<MediaCard {media} />
@@ -484,8 +485,8 @@
 					<Icon icon="svg-spinners:3-dots-scale" class="h-8 w-8 text-primary" />
 				</div>
 			{:else if allTimePopularQuery?.data?.data?.data}
-				<Carousel.Root class="w-full px-6">
-					<Carousel.Content class="-ml-4">
+				<Carousel.Root class="w-full px-6 overflow-visible">
+					<Carousel.Content class="-ml-4 overflow-visible">
 						{#each allTimePopularQuery.data.data.data as media (media.id)}
 							<Carousel.Item class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
 								<MediaCard {media} />
@@ -516,8 +517,8 @@
 					<Icon icon="svg-spinners:3-dots-scale" class="h-8 w-8 text-primary" />
 				</div>
 			{:else if topRatedQuery?.data?.data?.data}
-				<Carousel.Root class="w-full px-6">
-					<Carousel.Content class="-ml-4">
+				<Carousel.Root class="w-full px-6 overflow-visible">
+					<Carousel.Content class="-ml-4 overflow-visible">
 						{#each topRatedQuery.data.data.data as media (media.id)}
 							<Carousel.Item class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
 								<MediaCard {media} />

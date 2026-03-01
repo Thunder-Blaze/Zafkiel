@@ -58,7 +58,7 @@
 		genresExcluded: excludedGenres.length > 0 ? excludedGenres : undefined,
 		sortBy: [sortBy],
 		page: currentPage,
-		perPage: 50,
+		perPage: 20,
 	});
 
 	// Update URL when filters change
@@ -434,13 +434,6 @@
 				<p class="text-sm text-muted-foreground">Try adjusting your search or filters</p>
 			</div>
 		{:else}
-			<!-- Results Header -->
-			<div class="mb-4 flex items-center justify-between">
-				<p class="text-sm text-muted-foreground">
-					{pageInfo?.total ? `${pageInfo.total.toLocaleString()} results` : 'Loading...'}
-				</p>
-			</div>
-
 			<!-- Media Grid -->
 			<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
 				{#each mediaList as media (media.id)}

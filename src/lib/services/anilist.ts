@@ -49,6 +49,7 @@ export const mediaApi = {
 			genresExcluded: params.genresExcluded ?? null,
 			sortBy: params.sortBy ?? null,
 			isAdult: params.isAdult ?? null,
+			countryOfOrigin: params.countryOfOrigin ?? null,
 			page: params.page ?? null,
 			perPage: params.perPage ?? null,
 		}) as AniListResponse<Page<Media[]>>;
@@ -121,10 +122,21 @@ export const animeApi = {
 	 * Get popular anime
 	 */
 	getPopular: async (params?: PaginationParams): Promise<AniListResponse<Media[]>> => {
-		return invoke('get_popular_anime', {
-			page: params?.page ?? null,
-			perPage: params?.perPage ?? null,
-		});
+		try {
+			const response = await invoke('get_popular_anime', {
+				page: params?.page ?? null,
+				perPage: params?.perPage ?? null,
+			}) as { success: boolean; data?: { data: Media[] }; error?: string };
+
+			if (!response.success) {
+				return { success: false, error: response.error || 'Backend returned error', data: [] };
+			}
+
+			return { success: true, data: response.data?.data ?? [] };
+		} catch (error) {
+			console.error('[AniList API] Error in anime getPopular:', error);
+			return { success: false, error: error instanceof Error ? error.message : 'Unknown error', data: [] };
+		}
 	},
 
 	/**
@@ -167,20 +179,42 @@ export const mangaApi = {
 	 * Get trending manga
 	 */
 	getTrending: async (params?: PaginationParams): Promise<AniListResponse<Media[]>> => {
-		return invoke('get_trending_manga', {
-			page: params?.page ?? null,
-			perPage: params?.perPage ?? null,
-		});
+		try {
+			const response = await invoke('get_trending_manga', {
+				page: params?.page ?? null,
+				perPage: params?.perPage ?? null,
+			}) as { success: boolean; data?: { data: Media[] }; error?: string };
+
+			if (!response.success) {
+				return { success: false, error: response.error || 'Backend returned error', data: [] };
+			}
+
+			return { success: true, data: response.data?.data ?? [] };
+		} catch (error) {
+			console.error('[AniList API] Error in manga getTrending:', error);
+			return { success: false, error: error instanceof Error ? error.message : 'Unknown error', data: [] };
+		}
 	},
 
 	/**
 	 * Get popular manga
 	 */
 	getPopular: async (params?: PaginationParams): Promise<AniListResponse<Media[]>> => {
-		return invoke('get_popular_manga', {
-			page: params?.page ?? null,
-			perPage: params?.perPage ?? null,
-		});
+		try {
+			const response = await invoke('get_popular_manga', {
+				page: params?.page ?? null,
+				perPage: params?.perPage ?? null,
+			}) as { success: boolean; data?: { data: Media[] }; error?: string };
+
+			if (!response.success) {
+				return { success: false, error: response.error || 'Backend returned error', data: [] };
+			}
+
+			return { success: true, data: response.data?.data ?? [] };
+		} catch (error) {
+			console.error('[AniList API] Error in manga getPopular:', error);
+			return { success: false, error: error instanceof Error ? error.message : 'Unknown error', data: [] };
+		}
 	},
 };
 

@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { onNavigate } from '$app/navigation';
+	import { browser } from '$app/environment';
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import ThemedToaster from '$lib/components/ThemedToaster.svelte';
@@ -16,6 +18,9 @@
 	import Loader from '$lib/components/Loader.svelte';
 	import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 
+	import { ExtensionManager } from '$lib/services/ExtensionManager';
+	import { SubsPleaseExtension } from '../extensions/torrent/subsplease';
+
 	let { children }: { children: any } = $props();
 
 	let isReady = $state(false);
@@ -23,8 +28,19 @@
 	let config = useConfigState();
 	let theme = useThemeState();
 
-	import { ExtensionManager } from '$lib/services/ExtensionManager';
-	import { SubsPleaseExtension } from '../extensions/torrent/subsplease';
+	// View transitions gated on config.animations
+	if (browser) {
+		onNavigate((navigation) => {
+			if (!document.startViewTransition) return;
+			if (!isReady || !config.animations) return;
+			return new Promise((resolve) => {
+				document.startViewTransition(async () => {
+					resolve();
+					await navigation.complete;
+				});
+			});
+		});
+	}
 
 	// Initialize config, auth, and theme stores on app mount
 	onMount(async () => {
@@ -59,8 +75,19 @@
 	{/snippet}
 
 	{#snippet failed(error, reset)}
-		<p>There was some Error</p>
-		<button onclick={reset}>Reload</button>
+		{@const message = error instanceof Error ? error.message : String(error)}
+		{@const stack = error instanceof Error ? (error.stack ?? '') : ''}
+		<div class="flex h-screen flex-col items-center justify-center gap-4 p-8">
+			<p class="text-lg font-semibold text-destructive">Something went wrong</p>
+			<pre class="max-h-64 w-full max-w-2xl overflow-auto rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-xs text-destructive">{message}</pre>
+			{#if stack}
+				<details class="w-full max-w-2xl">
+					<summary class="cursor-pointer text-xs text-muted-foreground hover:text-foreground">Stack trace</summary>
+					<pre class="mt-2 max-h-48 overflow-auto rounded border border-border bg-muted/50 p-3 text-xs text-muted-foreground">{stack}</pre>
+				</details>
+			{/if}
+			<button onclick={reset} class="rounded bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90">Reload</button>
+		</div>
 	{/snippet}
 
 	{#if isReady}

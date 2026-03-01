@@ -548,19 +548,35 @@ export function useMediaSearch(
 }
 
 /**
- * Browse media with comprehensive filters
- * Use this for browse pages with filtering, sorting, and search
+ * Browse media with comprehensive filters.
+ * Accepts static params or a reactive getter `() => BrowseParams` so the
+ * query automatically re-fetches when params change without violating the
+ * rules of hooks (no calling inside $derived).
+ * Options can also be a reactive getter for e.g. `() => ({ enabled: ... })`.
  */
 export function useBrowseMedia(
-	params: BrowseParams,
-	options?: Partial<CreateQueryOptions<AniListResponse<Page<Media[]>>>>
+	getParams: BrowseParams | (() => BrowseParams),
+	getOptions?:
+		| Partial<CreateQueryOptions<AniListResponse<Page<Media[]>>>>
+		| (() => Partial<CreateQueryOptions<AniListResponse<Page<Media[]>>>>)
 ) {
-	return createQuery(() => ({
-		queryKey: anilistKeys.media.browse(params),
-		queryFn: () => mediaApi.browse(params),
-		staleTime: defaultStaleTime.browse,
-		...options,
-	}));
+	const resolveParams =
+		typeof getParams === 'function' ? getParams : () => getParams;
+	const resolveOptions =
+		getOptions === undefined
+			? () => ({})
+			: typeof getOptions === 'function'
+				? getOptions
+				: () => getOptions;
+	return createQuery(() => {
+		const p = resolveParams();
+		return {
+			queryKey: anilistKeys.media.browse(p),
+			queryFn: () => mediaApi.browse(p),
+			staleTime: defaultStaleTime.browse,
+			...resolveOptions(),
+		};
+	});
 }
 
 // ============================================================================

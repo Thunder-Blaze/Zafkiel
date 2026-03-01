@@ -2,7 +2,20 @@
 
 @import 'tw-animate-css';
 
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation-duration: 200ms;
+}
+
 /* Theme CSS is loaded dynamically via app.html script for instant loading */
+
+/* Hide scrollbar visually while keeping scroll functionality */
+.no-scrollbar {
+	scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
 
 @custom-variant dark (&:is(.dark *));
 

@@ -412,6 +412,7 @@ export interface BrowseParams extends PaginationParams {
 	genresExcluded?: string[];
 	sortBy?: MediaSort[];
 	isAdult?: boolean;
+	countryOfOrigin?: string;
 }
 
 // ============================================================================
