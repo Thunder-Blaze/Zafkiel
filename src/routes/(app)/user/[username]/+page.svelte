@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { useUserById, useUserReviews, useRecentActivity } from '$lib/hooks/useAnilist.svelte';
+	import { useUserByName, useUserReviews, useRecentActivity } from '$lib/hooks/useAnilist.svelte';
 	import type { ActivityUnion, Review } from '$lib/types/anilist';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
@@ -12,8 +12,8 @@
 	import Icon from '@iconify/svelte';
 	import { goto } from '$app/navigation';
 
-	const userId = $derived(page.params.id ? parseInt(page.params.id) : 0);
-	const userQuery = $derived(useUserById(userId));
+	const userName = $derived(page.params.username ?? '');
+	const userQuery = $derived(useUserByName(userName));
 
 	const user = $derived(userQuery.data?.data);
 	const isLoading = $derived(userQuery.isLoading);
@@ -24,7 +24,7 @@
 	const activities = $derived((activityQuery.data?.data?.data ?? []) as ActivityUnion[]);
 
 	// Reviews query
-	const reviewsQuery = $derived(useUserReviews(userId));
+	const reviewsQuery = $derived(useUserReviews(user?.id ?? 0));
 	const reviews = $derived((reviewsQuery.data?.data?.data ?? []) as Review[]);
 
 	function formatDate(timestamp?: number) {

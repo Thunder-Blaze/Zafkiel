@@ -65,7 +65,7 @@
 	>
 		<!-- Avatar -->
 		<div
-			class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary to-primary/70 shadow-md"
+			class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-primary to-primary/70 shadow-md"
 		>
 			{#if $isAuthenticated && $currentUser?.avatar}
 				{@const avatarUrl = getAvatarUrl($currentUser.avatar)}

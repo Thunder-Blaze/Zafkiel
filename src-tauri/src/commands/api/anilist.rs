@@ -1,8 +1,12 @@
 use crate::api::anilist::{AniListResponse, AniListService};
 use anilist_moe::{
     endpoints::media::{FetchMediaOneOptions, FetchMediaOptions},
+    endpoints::character::FetchCharacterOptions,
+    endpoints::staff::FetchStaffOptions,
     objects::{media::Media, responses::Page, user::User, studio::Studio, character::Character, staff::Staff},
     enums::media::{MediaType, MediaFormat, MediaStatus, MediaSeason, MediaSort, MediaSource},
+    enums::character::CharacterSort,
+    enums::staff::StaffSort,
 };
 use std::sync::Arc;
 use tauri::State;
@@ -351,6 +355,37 @@ create_anilist_command!(get_character_by_id, character, get_by_id, Character, (
     id: i32 => val
 ));
 
+create_anilist_command!(get_popular_characters, character, get_most_favorited, Page<Vec<Character>>, (
+    page: Option<i32> => ref,
+    per_page: Option<i32> => ref
+));
+
+create_anilist_command!(get_birthday_characters, character, get_today_birthday, Page<Vec<Character>>, (
+    page: Option<i32> => ref,
+    per_page: Option<i32> => ref
+));
+
+#[tauri::command]
+pub async fn search_characters(
+    query: &str,
+    page: Option<i32>,
+    per_page: Option<i32>,
+    is_birthday: Option<bool>,
+    service: State<'_, AniListState>,
+) -> Result<AniListResponse<Page<Vec<Character>>>, String> {
+    log::info!("Executing command: search_characters is_birthday={:?}", is_birthday);
+    let client = service.client().await;
+    let result = client.character().fetch(&FetchCharacterOptions {
+        search: Some(query.to_string()),
+        page,
+        per_page,
+        is_birthday,
+        sort: Some(vec![CharacterSort::SearchMatch]),
+        ..Default::default()
+    }).await;
+    Ok(result.into())
+}
+
 // ============================================================================
 // Staff Commands
 // ============================================================================
@@ -358,3 +393,75 @@ create_anilist_command!(get_character_by_id, character, get_by_id, Character, (
 create_anilist_command!(get_staff_by_id, staff, get_by_id, Staff, (
     id: i32 => val
 ));
+
+create_anilist_command!(get_popular_staff, staff, get_most_favorited, Page<Vec<Staff>>, (
+    page: Option<i32> => ref,
+    per_page: Option<i32> => ref
+));
+
+create_anilist_command!(get_birthday_staff, staff, get_today_birthday, Page<Vec<Staff>>, (
+    page: Option<i32> => ref,
+    per_page: Option<i32> => ref
+));
+
+#[tauri::command]
+pub async fn search_staff(
+    query: &str,
+    page: Option<i32>,
+    per_page: Option<i32>,
+    is_birthday: Option<bool>,
+    service: State<'_, AniListState>,
+) -> Result<AniListResponse<Page<Vec<Staff>>>, String> {
+    log::info!("Executing command: search_staff is_birthday={:?}", is_birthday);
+    let client = service.client().await;
+    let result = client.staff().fetch(&FetchStaffOptions {
+        search: Some(query.to_string()),
+        sort: Some(vec![StaffSort::SearchMatch]),
+        page,
+        per_page,
+        is_birthday,
+        ..Default::default()
+    }).await;
+    Ok(result.into())
+}
+
+// ============================================================================
+// Seasonal Anime Commands
+// ============================================================================
+
+#[tauri::command]
+pub async fn get_seasonal_anime(
+    season: String,
+    year: i32,
+    page: Option<i32>,
+    per_page: Option<i32>,
+    service: State<'_, AniListState>,
+) -> Result<AniListResponse<Page<Vec<Media>>>, String> {
+    use anilist_moe::enums::media::MediaType;
+    log::info!("Executing command: get_seasonal_anime season={} year={}", season, year);
+
+    let season_enum = match season.as_str() {
+        "WINTER" => MediaSeason::Winter,
+        "SPRING" => MediaSeason::Spring,
+        "SUMMER" => MediaSeason::Summer,
+        "FALL"   => MediaSeason::Fall,
+        _        => MediaSeason::Spring,
+    };
+
+    use anilist_moe::endpoints::media::FetchMediaOptions;
+    use anilist_moe::enums::media::MediaSort;
+
+    let options = FetchMediaOptions {
+        media_type: Some(MediaType::Anime),
+        season: Some(season_enum),
+        season_year: Some(year),
+        sort: Some(vec![MediaSort::PopularityDesc]),
+        page,
+        per_page,
+        ..Default::default()
+    };
+
+    let client = service.client().await;
+    let result = client.media().fetch(&options).await;
+    Ok(result.into())
+}

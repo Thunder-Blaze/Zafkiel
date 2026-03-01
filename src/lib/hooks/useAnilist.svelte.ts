@@ -76,11 +76,15 @@ export const anilistKeys = {
 	character: {
 		all: ['character'] as const,
 		detail: (id: number) => [...anilistKeys.character.all, 'detail', id] as const,
+		popular: (params?: PaginationParams) => [...anilistKeys.character.all, 'popular', params || {}] as const,
+		birthday: (params?: PaginationParams) => [...anilistKeys.character.all, 'birthday', params || {}] as const,
 	},
 	// Staff
 	staff: {
 		all: ['staff'] as const,
 		detail: (id: number) => [...anilistKeys.staff.all, 'detail', id] as const,
+		popular: (params?: PaginationParams) => [...anilistKeys.staff.all, 'popular', params || {}] as const,
+		birthday: (params?: PaginationParams) => [...anilistKeys.staff.all, 'birthday', params || {}] as const,
 	},
 	// Media (generic for both anime and manga)
 	media: {
@@ -181,7 +185,7 @@ export function usePopularAnime(
  */
 export function useSeasonalAnime(
 	params: SeasonalAnimeParams,
-	options?: Partial<CreateQueryOptions<AniListResponse<Media[]>>>
+	options?: Partial<CreateQueryOptions<AniListResponse<Page<Media[]>>>>
 ) {
 	return createQuery(() => ({
 		queryKey: anilistKeys.anime.seasonal(params),
@@ -364,6 +368,48 @@ export function useCharacterById(
 	}));
 }
 
+/**
+ * Get most favourited characters with caching
+ */
+export function usePopularCharacters(
+	params?: PaginationParams,
+	options?: Partial<CreateQueryOptions<AniListResponse<Page<Character[]>>>>
+) {
+	return createQuery(() => ({
+		queryKey: anilistKeys.character.popular(params),
+		queryFn: () => characterApi.getPopular(params),
+		staleTime: defaultStaleTime.popular,
+		...options,
+	}));
+}
+
+/**
+ * Get characters with birthday today with caching
+ */
+export function useBirthdayCharacters(
+	params?: PaginationParams,
+	options?: Partial<CreateQueryOptions<AniListResponse<Page<Character[]>>>>
+) {
+	return createQuery(() => ({
+		queryKey: anilistKeys.character.birthday(params),
+		queryFn: () => characterApi.getBirthdayToday(params),
+		staleTime: defaultStaleTime.trending,
+		...options,
+	}));
+}
+
+/**
+ * Search characters by name
+ */
+export function useSearchCharacters(query: string, params?: PaginationParams) {
+	return createQuery(() => ({
+		queryKey: ['character', 'search', query, params?.page ?? 1, params?.perPage ?? 20],
+		queryFn: () => characterApi.search(query, params),
+		staleTime: 5 * 60 * 1000,
+		enabled: query.trim().length > 0,
+	}));
+}
+
 // ============================================================================
 // Staff Queries
 // ============================================================================
@@ -381,6 +427,48 @@ export function useStaffById(
 		staleTime: defaultStaleTime.staff,
 		enabled: id > 0,
 		...options,
+	}));
+}
+
+/**
+ * Get most favourited staff with caching
+ */
+export function usePopularStaff(
+	params?: PaginationParams,
+	options?: Partial<CreateQueryOptions<AniListResponse<Page<Staff[]>>>>
+) {
+	return createQuery(() => ({
+		queryKey: anilistKeys.staff.popular(params),
+		queryFn: () => staffApi.getPopular(params),
+		staleTime: defaultStaleTime.popular,
+		...options,
+	}));
+}
+
+/**
+ * Get staff with birthday today with caching
+ */
+export function useBirthdayStaff(
+	params?: PaginationParams,
+	options?: Partial<CreateQueryOptions<AniListResponse<Page<Staff[]>>>>
+) {
+	return createQuery(() => ({
+		queryKey: anilistKeys.staff.birthday(params),
+		queryFn: () => staffApi.getBirthdayToday(params),
+		staleTime: defaultStaleTime.trending,
+		...options,
+	}));
+}
+
+/**
+ * Search staff by name
+ */
+export function useSearchStaff(query: string, params?: PaginationParams) {
+	return createQuery(() => ({
+		queryKey: ['staff', 'search', query, params?.page ?? 1, params?.perPage ?? 20],
+		queryFn: () => staffApi.search(query, params),
+		staleTime: 5 * 60 * 1000,
+		enabled: query.trim().length > 0,
 	}));
 }
 
@@ -1048,6 +1136,17 @@ export function useRecentReviews(page?: number, perPage?: number) {
 	return createQuery(() => ({
 		queryKey: reviewKeys.recent(page),
 		queryFn: () => reviewApi.getRecent(page, perPage),
+		staleTime: 10 * 60 * 1000,
+	}));
+}
+
+/**
+ * Global recommendations sorted by rating
+ */
+export function useGlobalRecommendations(page?: number, perPage?: number) {
+	return createQuery(() => ({
+		queryKey: ['recommendation', 'global', page ?? 1, perPage ?? 25],
+		queryFn: () => recommendationApi.getGlobal(page, perPage),
 		staleTime: 10 * 60 * 1000,
 	}));
 }

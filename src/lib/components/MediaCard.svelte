@@ -196,7 +196,7 @@
 
 	{#if hoverCardEnabled && debouncedHovering.current}
 		<div
-			class="group/animecard absolute z-30 flex h-auto w-[140%] flex-col gap-2 rounded-md text-card-foreground shadow-[0px_0px_20px_20px_rgba(0,_0,_0,_0.4)] ring-[12px] ring-card transition-all {position ===
+			class="group/animecard absolute z-30 flex h-auto w-[140%] flex-col gap-2 rounded-md text-card-foreground shadow-[0px_0px_20px_20px_rgba(0,0,0,0.4)] ring-12 ring-card transition-all {position ===
 			'left'
 				? 'right-0'
 				: position === 'right'

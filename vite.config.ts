@@ -7,8 +7,8 @@ import { sveltekit } from '@sveltejs/kit/vite';
 export default defineConfig({
 	// @ts-ignore
 	plugins: [
-		tailwindcss(),
 		sveltekit(),
+		tailwindcss(),
 		paraglideVitePlugin({
 			project: './project.inlang',
 			outdir: './src/lib/paraglide',

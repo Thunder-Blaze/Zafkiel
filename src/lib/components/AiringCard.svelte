@@ -48,7 +48,7 @@
 	onclick={() => goto(href)}
 >
 	<!-- Cover image -->
-	<div class="relative aspect-[2/3] w-full overflow-hidden bg-muted">
+	<div class="relative aspect-2/3 w-full overflow-hidden bg-muted">
 		<CachedImage
 			src={cover}
 			alt={title}
@@ -85,7 +85,7 @@
 		<!-- Bottom overlay: countdown -->
 		{#if countdown}
 			<div
-				class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-2 pb-2 pt-6"
+				class="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 via-black/40 to-transparent px-2 pb-2 pt-6"
 			>
 				<div class="flex items-center gap-1 text-xs text-white">
 					<Icon icon="solar:clock-circle-bold-duotone" class="size-3 shrink-0" />

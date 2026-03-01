@@ -180,7 +180,14 @@ pub fn run() {
             // Studio / Character / Staff
             commands::api::anilist::get_studio_by_id,
             commands::api::anilist::get_character_by_id,
+            commands::api::anilist::get_popular_characters,
+            commands::api::anilist::get_birthday_characters,
+            commands::api::anilist::search_characters,
             commands::api::anilist::get_staff_by_id,
+            commands::api::anilist::get_popular_staff,
+            commands::api::anilist::get_birthday_staff,
+            commands::api::anilist::search_staff,
+            commands::api::anilist::get_seasonal_anime,
 
             // ─── MediaList ───────────────────────────────────────────────
             commands::api::medialist::fetch_media_list,

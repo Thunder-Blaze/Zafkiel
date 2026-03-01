@@ -130,8 +130,13 @@ export const animeApi = {
 	/**
 	 * Get seasonal anime
 	 */
-	getSeasonal: async (params: SeasonalAnimeParams): Promise<AniListResponse<Media[]>> => {
-		return invoke('get_seasonal_anime', { params });
+	getSeasonal: async (params: SeasonalAnimeParams): Promise<AniListResponse<Page<Media[]>>> => {
+		return invoke('get_seasonal_anime', {
+			season: params.season,
+			year: params.year,
+			page: params.page ?? null,
+			perPage: params.perPage ?? null,
+		});
 	},
 };
 
@@ -241,6 +246,38 @@ export const characterApi = {
 	getById: async (id: number): Promise<AniListResponse<Character>> => {
 		return invoke('get_character_by_id', { id });
 	},
+
+	/**
+	 * Get most favourited characters
+	 */
+	getPopular: async (params?: PaginationParams): Promise<AniListResponse<Page<Character[]>>> => {
+		return invoke('get_popular_characters', {
+			page: params?.page ?? null,
+			perPage: params?.perPage ?? null,
+		});
+	},
+
+	/**
+	 * Get characters with birthday today
+	 */
+	getBirthdayToday: async (params?: PaginationParams): Promise<AniListResponse<Page<Character[]>>> => {
+		return invoke('get_birthday_characters', {
+			page: params?.page ?? null,
+			perPage: params?.perPage ?? null,
+		});
+	},
+
+	/**
+	 * Search characters by name, optionally filtered to today's birthdays
+	 */
+	search: async (query: string, params?: PaginationParams & { isBirthday?: boolean }): Promise<AniListResponse<Page<Character[]>>> => {
+		return invoke('search_characters', {
+			query,
+			page: params?.page ?? null,
+			perPage: params?.perPage ?? null,
+			isBirthday: params?.isBirthday ?? null,
+		});
+	},
 };
 
 // ============================================================================
@@ -253,6 +290,38 @@ export const staffApi = {
 	 */
 	getById: async (id: number): Promise<AniListResponse<Staff>> => {
 		return invoke('get_staff_by_id', { id });
+	},
+
+	/**
+	 * Get most favourited staff
+	 */
+	getPopular: async (params?: PaginationParams): Promise<AniListResponse<Page<Staff[]>>> => {
+		return invoke('get_popular_staff', {
+			page: params?.page ?? null,
+			perPage: params?.perPage ?? null,
+		});
+	},
+
+	/**
+	 * Get staff with birthday today
+	 */
+	getBirthdayToday: async (params?: PaginationParams): Promise<AniListResponse<Page<Staff[]>>> => {
+		return invoke('get_birthday_staff', {
+			page: params?.page ?? null,
+			perPage: params?.perPage ?? null,
+		});
+	},
+
+	/**
+	 * Search staff by name, optionally filtered to today's birthdays
+	 */
+	search: async (query: string, params?: PaginationParams & { isBirthday?: boolean }): Promise<AniListResponse<Page<Staff[]>>> => {
+		return invoke('search_staff', {
+			query,
+			page: params?.page ?? null,
+			perPage: params?.perPage ?? null,
+			isBirthday: params?.isBirthday ?? null,
+		});
 	},
 };
 
@@ -488,6 +557,14 @@ export const recommendationApi = {
 	},
 	getByMedia: async (mediaId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<Recommendation[]>>> => {
 		return invoke('get_recommendations_by_media', { mediaId, page: page ?? null, perPage: perPage ?? null });
+	},
+	/**
+	 * Get global recommendations sorted by rating (no mediaId filter)
+	 */
+	getGlobal: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Recommendation[]>>> => {
+		return invoke('fetch_recommendations', {
+			options: { per_page: perPage ?? 25, page: page ?? 1 }
+		});
 	},
 	save: async (options: Record<string, unknown>): Promise<AniListResponse<Recommendation>> => {
 		return invoke('save_recommendation', { options });

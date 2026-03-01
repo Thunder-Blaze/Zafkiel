@@ -7,6 +7,7 @@
 	import ProfileDropdown from '$lib/components/ProfileDropdown.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { DropdownMenu } from 'bits-ui';
 	import { Window, getCurrentWindow } from '@tauri-apps/api/window';
 	import type { UnlistenFn } from '@tauri-apps/api/event';
 	import {
@@ -30,6 +31,10 @@
 	// Search bar
 	let searchInput = $state<HTMLInputElement | null>(null);
 	let searchQuery = $state('');
+
+	// Browse dropdown & search popup
+	let browseOpen = $state(false);
+	let searchOpen = $state(false);
 
 	// Platform-specific keyboard shortcut display
 	const isMac =
@@ -159,20 +164,18 @@
 	}
 
 	function focusSearch(): void {
-		searchInput?.focus();
+		searchOpen = true;
 	}
 
 	function handleSearchSubmit(): void {
 		if (searchQuery.trim()) {
+			searchOpen = false;
 			goto(`/search?search=${encodeURIComponent(searchQuery.trim())}`);
 			searchQuery = '';
 		}
 	}
 
 	const navItems = [
-		{ path: '/search', icon: 'solar:magnifer-bold', label: 'Search' },
-		{ path: '/anime', icon: 'solar:video-library-bold', label: 'Anime' },
-		{ path: '/schedule', icon: 'solar:calendar-bold-duotone', label: 'Schedule' },
 		{ path: '/social', icon: 'solar:users-group-rounded-bold', label: 'Social' },
 		{ path: '/forum', icon: 'solar:chat-square-bold', label: 'Forum' },
 		{ path: '/downloads', icon: 'solar:download-bold', label: 'Downloads' },
@@ -250,8 +253,80 @@
 				</Button>
 			</div>
 
-			<!-- Nav Items -->
+			<!-- Browse dropdown + remaining Nav Items -->
 			<div class="ml-2 flex h-full items-center gap-1">
+				<!-- Browse dropdown -->
+				<DropdownMenu.Root bind:open={browseOpen}>
+					<DropdownMenu.Trigger
+						class="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors
+							{browseOpen ? 'bg-primary/10 text-primary' : 'text-foreground/70 hover:bg-foreground/5 hover:text-foreground'}"
+					>
+						<Icon icon="solar:compass-bold-duotone" class="h-4 w-4" />
+						Browse
+						<Icon icon="solar:alt-arrow-down-linear" class="h-3 w-3 transition-transform {browseOpen ? 'rotate-180' : ''}" />
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content
+						class="z-50 w-72 rounded-xl border border-border/50 bg-background/95 p-3 shadow-xl backdrop-blur-xl"
+						sideOffset={8}
+						align="start"
+					>
+						<!-- Anime section -->
+						<div class="mb-3">
+							<button
+								class="mb-1.5 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-semibold transition-colors hover:bg-muted"
+								onclick={() => { browseOpen = false; goto('/search/anime'); }}
+							>
+								<Icon icon="solar:play-circle-bold-duotone" class="h-4 w-4 text-primary" />
+								Anime
+							</button>
+							<div class="flex gap-1 pl-6">
+								<button onclick={() => { browseOpen = false; goto('/search/anime'); }} class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Top 100</button>
+								<button onclick={() => { browseOpen = false; goto('/search/anime'); }} class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Trending</button>
+								<button onclick={() => { browseOpen = false; goto('/search/anime'); }} class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Top Movies</button>
+							</div>
+						</div>
+
+						<!-- Manga section -->
+						<div class="mb-3">
+							<button
+								class="mb-1.5 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-semibold transition-colors hover:bg-muted"
+								onclick={() => { browseOpen = false; goto('/search/manga'); }}
+							>
+								<Icon icon="solar:book-2-bold-duotone" class="h-4 w-4 text-primary" />
+								Manga
+							</button>
+							<div class="flex gap-1 pl-6">
+								<button onclick={() => { browseOpen = false; goto('/search/manga'); }} class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Top 100</button>
+								<button onclick={() => { browseOpen = false; goto('/search/manga'); }} class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Trending</button>
+								<button onclick={() => { browseOpen = false; goto('/search/manga'); }} class="rounded px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">Top Manhwa</button>
+							</div>
+						</div>
+
+						<DropdownMenu.Separator class="my-2 h-px bg-border/50" />
+
+						<!-- Other sections grid -->
+						<div class="grid grid-cols-2 gap-1">
+							<button onclick={() => { browseOpen = false; goto('/search/staff'); }} class="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+								<Icon icon="solar:users-group-two-rounded-bold-duotone" class="h-4 w-4" />
+								Staff
+							</button>
+							<button onclick={() => { browseOpen = false; goto('/search/characters'); }} class="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+								<Icon icon="solar:user-circle-bold-duotone" class="h-4 w-4" />
+								Characters
+							</button>
+							<button onclick={() => { browseOpen = false; goto('/search/reviews'); }} class="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+								<Icon icon="solar:star-bold-duotone" class="h-4 w-4" />
+								Reviews
+							</button>
+							<button onclick={() => { browseOpen = false; goto('/search/recommendations'); }} class="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+								<Icon icon="solar:like-bold-duotone" class="h-4 w-4" />
+								Recommendations
+							</button>
+						</div>
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
+
+				<!-- Remaining nav items -->
 				{#each navItems as item}
 					{@const isActive = page.url.pathname === item.path}
 					<Button
@@ -269,44 +344,52 @@
 			</div>
 		</div>
 
-		<!-- Center Section: Search Bar -->
-		<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-			<form
-				onsubmit={(e) => {
-					e.preventDefault();
-					handleSearchSubmit();
-				}}
-				class="relative"
+		<!-- Search popup overlay -->
+		{#if searchOpen}
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				class="fixed inset-0 z-1000000 flex items-start justify-center bg-black/50 pt-24 backdrop-blur-sm"
+				onclick={(e) => { if (e.target === e.currentTarget) searchOpen = false; }}
 			>
-				<div
-					class="flex items-center gap-2 rounded-lg border border-border/60 bg-background/50 px-3 py-1.5 shadow-sm transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 hover:border-border hover:bg-background"
-				>
-					<Icon icon="solar:magnifer-bold" class="h-4 w-4 text-muted-foreground" />
-
-					<input
-						bind:this={searchInput}
-						bind:value={searchQuery}
-						type="text"
-						placeholder="Search"
-						class="w-64 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-					/>
-
-					<div
-						class="flex items-center gap-0.5 rounded border border-border/50 bg-muted/30 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+				<div class="w-full max-w-xl rounded-xl border border-border/50 bg-background shadow-2xl">
+					<form
+						onsubmit={(e) => { e.preventDefault(); handleSearchSubmit(); }}
+						class="flex items-center gap-3 px-4 py-3"
 					>
-						{#if isMac}
-							<span>⌘</span>
-							<span>K</span>
-						{:else}
-							<span>Ctrl+K</span>
-						{/if}
-					</div>
+						<Icon icon="solar:magnifer-bold" class="h-5 w-5 shrink-0 text-muted-foreground" />
+						<input
+							bind:this={searchInput}
+							bind:value={searchQuery}
+							type="text"
+							placeholder="Search..."
+							class="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+						/>
+						<button
+							type="button"
+							onclick={() => searchOpen = false}
+							class="rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
+							aria-label="Close search"
+						>
+							<Icon icon="solar:close-circle-bold" class="h-5 w-5" />
+						</button>
+					</form>
 				</div>
-			</form>
-		</div>
+			</div>
+		{/if}
 
-		<!-- Right Section: Notifications + Profile + Theme + Window Controls -->
+		<!-- Right Section: Search icon + Notifications + Profile + Theme + Window Controls -->
 		<div class="flex h-full items-center">
+			<!-- Search icon button -->
+			<Button
+				variant="ghost"
+				size="icon"
+				class="h-8 w-8 text-foreground/70 hover:text-foreground"
+				onclick={() => (searchOpen = true)}
+				title="Search ({isMac ? '⌘K' : 'Ctrl+K'})"
+			>
+				<Icon icon="solar:magnifer-bold" class="h-4 w-4" />
+			</Button>
 			<Button
 				variant="ghost"
 				size="icon"

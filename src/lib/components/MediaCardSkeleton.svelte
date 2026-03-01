@@ -5,7 +5,7 @@
 {#each Array(count) as _}
 	<div class="flex flex-col overflow-hidden rounded-lg border bg-card">
 		<!-- Cover placeholder -->
-		<div class="aspect-[2/3] w-full animate-pulse bg-muted"></div>
+		<div class="aspect-2/3 w-full animate-pulse bg-muted"></div>
 		<!-- Info placeholder -->
 		<div class="space-y-2 p-2">
 			<div class="h-3 w-full animate-pulse rounded bg-muted"></div>
