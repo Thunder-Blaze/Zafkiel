@@ -363,12 +363,12 @@
 				<ul class="flex flex-col gap-2">
 					{#each notifications as notif (notif.id)}
 						{@const info = getNotifInfo(notif)}
-						<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-						<!-- svelte-ignore a11y-click-events-have-key-events -->
-						<li
-							class="group relative flex cursor-pointer items-center gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-card/80"
-							onclick={(e) => handleRowClick(e, info)}
-						>
+						<li class="group relative rounded-lg border bg-card transition-colors hover:bg-card/80">
+							<button
+								type="button"
+								class="flex w-full cursor-pointer items-center gap-3 p-4 text-left"
+								onclick={(e) => handleRowClick(e, info)}
+							>
 							<!-- Cover image (media notifications) or Avatar (user notifications) -->
 						<div class="relative shrink-0">
 								{#if info.coverImage}
@@ -426,7 +426,8 @@
 									class="size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
 								/>
 							{/if}
-						</li>
+						</button>
+					</li>
 					{/each}
 				</ul>
 

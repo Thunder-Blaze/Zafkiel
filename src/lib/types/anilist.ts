@@ -730,3 +730,77 @@ export interface AiringSchedule {
 	mediaId: number;
 	media?: Media;
 }
+
+// ============================================================================
+// Combined Search Types  (mirror of the lean Rust structs in anilist.rs)
+// ============================================================================
+
+export interface SearchTitle {
+	romaji: string | null;
+	english: string | null;
+	userPreferred: string | null;
+}
+
+export interface SearchCoverImage {
+	medium: string | null;
+}
+
+/** Lean anime/manga result — only the fields returned by search_all */
+export interface SearchMediaResult {
+	id: number | null;
+	/** "ANIME" | "MANGA" */
+	type: string | null;
+	/** "TV" | "OVA" | "MOVIE" | … */
+	format: string | null;
+	/** "FINISHED" | "RELEASING" | … */
+	status: string | null;
+	meanScore: number | null;
+	title: SearchTitle | null;
+	coverImage: SearchCoverImage | null;
+}
+
+export interface SearchPersonName {
+	full: string | null;
+	userPreferred: string | null;
+}
+
+export interface SearchPersonImage {
+	medium: string | null;
+}
+
+export interface SearchCharacterResult {
+	id: number | null;
+	name: SearchPersonName | null;
+	image: SearchPersonImage | null;
+}
+
+export interface SearchStaffResult {
+	id: number | null;
+	name: SearchPersonName | null;
+	image: SearchPersonImage | null;
+}
+
+export interface SearchStudioResult {
+	id: number | null;
+	name: string | null;
+	isAnimationStudio: boolean | null;
+}
+
+export interface SearchUserAvatar {
+	medium: string | null;
+}
+
+export interface SearchUserResult {
+	id: number | null;
+	name: string | null;
+	avatar: SearchUserAvatar | null;
+}
+
+export interface SearchAllResults {
+	anime: { pageInfo?: PageInfo; data: SearchMediaResult[] };
+	manga: { pageInfo?: PageInfo; data: SearchMediaResult[] };
+	characters: { pageInfo?: PageInfo; data: SearchCharacterResult[] };
+	staff: { pageInfo?: PageInfo; data: SearchStaffResult[] };
+	studios: { pageInfo?: PageInfo; data: SearchStudioResult[] };
+	users: { pageInfo?: PageInfo; data: SearchUserResult[] };
+}

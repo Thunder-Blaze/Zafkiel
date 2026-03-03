@@ -634,6 +634,23 @@ export const airingApi = {
 // Combined API Export
 // ============================================================================
 
+// ============================================================================
+// Combined Search API
+// ============================================================================
+
+export const searchApi = {
+	/**
+	 * Search all categories (anime, manga, characters, staff, studios, users)
+	 * in a single GraphQL request to minimise rate-limit usage.
+	 */
+	searchAll: async (
+		query: string,
+		perPage = 5
+	): Promise<import('$lib/types/anilist').AniListResponse<import('$lib/types/anilist').SearchAllResults>> => {
+		return invoke('search_all', { query, perPage });
+	},
+};
+
 export const anilistApi = {
 	media: mediaApi,
 	anime: animeApi,
@@ -649,4 +666,5 @@ export const anilistApi = {
 	review: reviewApi,
 	recommendation: recommendationApi,
 	airing: airingApi,
+	search: searchApi,
 };
