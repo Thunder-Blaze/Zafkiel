@@ -25,7 +25,7 @@ tauri = { version = "2.8.5", features = ["protocol-asset", "devtools"] }
 tauri-plugin-log = "2.7.0"
 # Switching to local path for easier development
 # anilist_moe = "0.2.0"
-anilist_moe = { path = "../../../anilist-moe" }
+anilist_moe = "0.3.2"
 ron = "0.8"
 aes-gcm = "0.11.0-rc.1"
 base64 = "0.22"

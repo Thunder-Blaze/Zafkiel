@@ -108,7 +108,7 @@
 			></div>
 
 			<img
-				src="{themeState.currentThemePath}/theme.png"
+				src={themeState.currentThemeImagePath || fallbackThemeImage}
 				onerror={(e) => {
 					if ((e.target as HTMLImageElement)?.src)
 						(e.target as HTMLImageElement).src = fallbackThemeImage;

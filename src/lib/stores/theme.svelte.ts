@@ -61,6 +61,12 @@ export const useThemeState = () => {
 			return theme ? theme.path : null;
 		},
 
+		get currentThemeImagePath(): string | null {
+			if (!themeState || !config) return null;
+			const theme = themeState.themes.get(config.theme);
+			return theme ? theme.themeImagePath : null;
+		},
+
 		get currentThemeMode(): ThemeMode | null {
 			return config ? config.themeMode : null;
 		},

@@ -234,6 +234,26 @@ pub fn get_config_path(config: State<ConfigState>) -> ConfigResponse<String> {
     ConfigResponse::success(path.to_string_lossy().to_string())
 }
 
+/// Converts a filesystem `Path` to a plain UTF-8 string that Tauri's
+/// `convertFileSrc` can consume on every OS.
+///
+/// On Windows, `fs::read_dir` can return paths with the verbatim
+/// extended-length prefix `\\?\` (e.g. `\\?\D:\...`). That prefix gets
+/// URL-encoded verbatim and produces a broken asset URL.  Stripping it
+/// before handing the string to the frontend fixes the issue without
+/// needing an extra crate.
+fn normalize_path_for_asset(path: &std::path::Path) -> String {
+    let s: String = path.to_string_lossy().into_owned();
+    #[cfg(windows)]
+    {
+        // strip_prefix needs exactly 4 chars: \ \ ? \
+        if let Some(stripped) = s.strip_prefix("\\\\?\\") {
+            return stripped.to_string();
+        }
+    }
+    s
+}
+
 #[tauri::command]
 pub fn get_themes_with_paths(app: tauri::AppHandle) -> ConfigResponse<HashMap<String, String>> {
     let mut themes = HashMap::new();
@@ -269,10 +289,10 @@ pub fn get_themes_with_paths(app: tauri::AppHandle) -> ConfigResponse<HashMap<St
 
                                 // 4. Check if 'index.css' actually exists
                                 if css_path.is_file() {
-                                    // 5. Insert the theme name and the path to the css file
+                                    // 5. Insert the theme name and the normalised path
                                     themes.insert(
                                         theme_name.to_string(),
-                                        path.to_string_lossy().into(),
+                                        normalize_path_for_asset(&path),
                                     );
                                 }
                             }
@@ -300,10 +320,10 @@ pub fn get_themes_with_paths(app: tauri::AppHandle) -> ConfigResponse<HashMap<St
 
                                 // 4. Check if 'index.css' actually exists
                                 if css_path.is_file() {
-                                    // 5. Insert the theme name and the path to the css file
+                                    // 5. Insert the theme name and the normalised path
                                     themes.insert(
                                         theme_name.to_string(),
-                                        path.to_string_lossy().into(),
+                                        normalize_path_for_asset(&path),
                                     );
                                 }
                             }

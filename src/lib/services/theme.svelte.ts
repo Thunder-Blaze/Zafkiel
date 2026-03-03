@@ -8,6 +8,8 @@ export interface Theme {
 	id: string;
 	name: string;
 	path: string;
+	cssPath: string;
+	themeImagePath: string;
 	linkElement?: HTMLLinkElement;
 }
 
@@ -34,15 +36,31 @@ export const formatThemeName = (id: string): string => {
 		.join(' ');
 }
 
+const ensureTrailingSlash = (url: string): string => (url.endsWith('/') ? url : `${url}/`);
+
+const resolveThemeAssetUrl = (baseUrl: string, fileName: string): string => {
+	return new URL(fileName, ensureTrailingSlash(baseUrl)).toString();
+};
+
 export const listThemes = async (): Promise<Themes> => {
 	console.log('[ThemeManager] Listing available themes...');
 	try {
-		const themes = (await invoke<TauriResponse<SvelteMap<string, string>>>('get_themes_with_paths')).data;
-		console.log(`[ThemeManager] ✓ Found ${themes.size} themes:`, themes);
+		const themes = (await invoke<TauriResponse<Record<string, string>>>('get_themes_with_paths')).data;
+		const themeEntries = Object.entries(themes);
+		console.log(`[ThemeManager] ✓ Found ${themeEntries.length} themes:`, themes);
 
-		const formattedThemes: Themes = new SvelteMap(Array.from(Object.entries(themes).map(([id, path]) => {
-			return [id, { id, name: formatThemeName(id), path: convertFileSrc(path) }];
-		})));
+		const formattedThemes: Themes = new SvelteMap(
+			themeEntries.map(([id, fileSystemPath]) => {
+				const basePath = convertFileSrc(fileSystemPath);
+				const cssPath = resolveThemeAssetUrl(basePath, 'index.css');
+				const themeImagePath = resolveThemeAssetUrl(basePath, 'theme.png');
+
+				return [
+					id,
+					{ id, name: formatThemeName(id), path: basePath, cssPath, themeImagePath },
+				];
+			})
+		);
 
 		console.log('[ThemeManager] ✓ Formatted theme list:', formattedThemes);
 		return formattedThemes;
@@ -63,7 +81,7 @@ export const loadTheme = async (theme: Theme, loadedThemes: &Themes): Promise<vo
 	try {
 		const link = document.createElement('link');
 		link.rel = 'stylesheet';
-		link.href = `${theme.path}/index.css`;
+		link.href = theme.cssPath;
 		link.dataset.themeId = theme.id;
 
 		await new Promise<void>((resolve, reject) => {
