@@ -89,7 +89,14 @@
 	// ── Ken Burns ─────────────────────────────────────────────────────────────────
 	function startKenBurns(el: HTMLDivElement) {
 		if (kenBurnsTween) kenBurnsTween.kill();
-		kenBurnsTween = gsap.to(el, { scale: 1.07, x: '1.5%', duration: 14, ease: 'none', yoyo: true, repeat: -1 });
+		kenBurnsTween = gsap.to(el, {
+			scale: 1.07,
+			x: '1.5%',
+			duration: 14,
+			ease: 'none',
+			yoyo: true,
+			repeat: -1,
+		});
 	}
 
 	// ── Progress bar ─────────────────────────────────────────────────────────────
@@ -97,7 +104,11 @@
 		if (progressTween) progressTween.kill();
 		if (!progressBarEl) return;
 		gsap.set(progressBarEl, { width: '0%' });
-		progressTween = gsap.to(progressBarEl, { width: '100%', duration: autoplayInterval / 1000, ease: 'none' });
+		progressTween = gsap.to(progressBarEl, {
+			width: '100%',
+			duration: autoplayInterval / 1000,
+			ease: 'none',
+		});
 		if (isPaused) progressTween.pause();
 	}
 
@@ -115,8 +126,25 @@
 			startKenBurns(bgSlotA);
 
 			const els = getContentEls();
-			gsap.fromTo(els, { opacity: 0, y: 20, filter: 'blur(6px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.65, ease: 'power3.out', stagger: { amount: 0.32 }, delay: 0.1 });
-			if (coverWrapper) gsap.fromTo(coverWrapper, { opacity: 0, y: 28, scale: 0.88 }, { opacity: 1, y: 0, scale: 1, duration: 0.75, ease: 'back.out(1.6)', delay: 0.2 });
+			gsap.fromTo(
+				els,
+				{ opacity: 0, y: 20, filter: 'blur(6px)' },
+				{
+					opacity: 1,
+					y: 0,
+					filter: 'blur(0px)',
+					duration: 0.65,
+					ease: 'power3.out',
+					stagger: { amount: 0.32 },
+					delay: 0.1,
+				}
+			);
+			if (coverWrapper)
+				gsap.fromTo(
+					coverWrapper,
+					{ opacity: 0, y: 28, scale: 0.88 },
+					{ opacity: 1, y: 0, scale: 1, duration: 0.75, ease: 'back.out(1.6)', delay: 0.2 }
+				);
 			startProgress();
 		});
 	});
@@ -126,7 +154,11 @@
 		const idx = currentIndex;
 		const newItem = items[idx];
 		if (!newItem || !displayedItem || idx === prevIndex) return;
-		if (!animEnabled) { prevIndex = idx; displayedItem = newItem; return; }
+		if (!animEnabled) {
+			prevIndex = idx;
+			displayedItem = newItem;
+			return;
+		}
 
 		prevIndex = idx;
 		const dir = direction === 'right' ? 1 : -1;
@@ -142,8 +174,16 @@
 			if (kenBurnsTween) kenBurnsTween.kill();
 
 			// EXIT
-			gsap.to(els, { opacity: 0, x: -24 * dir, filter: 'blur(5px)', duration: 0.22, ease: 'power2.in', stagger: { amount: 0.1 } });
-			if (coverWrapper) gsap.to(coverWrapper, { opacity: 0, scale: 0.9, y: 14, duration: 0.22, ease: 'power2.in' });
+			gsap.to(els, {
+				opacity: 0,
+				x: -24 * dir,
+				filter: 'blur(5px)',
+				duration: 0.22,
+				ease: 'power2.in',
+				stagger: { amount: 0.1 },
+			});
+			if (coverWrapper)
+				gsap.to(coverWrapper, { opacity: 0, scale: 0.9, y: 14, duration: 0.22, ease: 'power2.in' });
 
 			// BACKGROUND CROSSFADE
 			if (inactiveSlot) {
@@ -163,7 +203,10 @@
 
 			activeBgSlot = activeBgSlot === 'a' ? 'b' : 'a';
 			const newActive = activeBgSlot === 'a' ? bgSlotA : bgSlotB;
-			if (newActive) { gsap.set(newActive, { zIndex: 2 }); startKenBurns(newActive); }
+			if (newActive) {
+				gsap.set(newActive, { zIndex: 2 });
+				startKenBurns(newActive);
+			}
 
 			displayedItem = newItem;
 			await tick();
@@ -171,8 +214,23 @@
 			// ENTER
 			gsap.set(els, { opacity: 0, x: 28 * dir, filter: 'blur(6px)' });
 			if (coverWrapper) gsap.set(coverWrapper, { opacity: 0, y: 22, scale: 0.88 });
-			gsap.to(els, { opacity: 1, x: 0, filter: 'blur(0px)', duration: 0.52, ease: 'power3.out', stagger: { amount: 0.28 } });
-			if (coverWrapper) gsap.to(coverWrapper, { opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'back.out(1.7)', delay: 0.1 });
+			gsap.to(els, {
+				opacity: 1,
+				x: 0,
+				filter: 'blur(0px)',
+				duration: 0.52,
+				ease: 'power3.out',
+				stagger: { amount: 0.28 },
+			});
+			if (coverWrapper)
+				gsap.to(coverWrapper, {
+					opacity: 1,
+					y: 0,
+					scale: 1,
+					duration: 0.65,
+					ease: 'back.out(1.7)',
+					delay: 0.1,
+				});
 
 			isAnimating = false;
 		})();
@@ -218,8 +276,14 @@
 		startProgress();
 	}
 
-	function handleMouseEnter() { isPaused = true; progressTween?.pause(); }
-	function handleMouseLeave() { isPaused = false; progressTween?.resume(); }
+	function handleMouseEnter() {
+		isPaused = true;
+		progressTween?.pause();
+	}
+	function handleMouseLeave() {
+		isPaused = false;
+		progressTween?.resume();
+	}
 
 	async function handleAddToList(status: MediaListStatus) {
 		if (!displayedItem) return;
@@ -236,8 +300,16 @@
 		onmouseleave={handleMouseLeave}
 	>
 		<!-- Background slots -->
-		<div bind:this={bgSlotA} class="absolute inset-0 bg-cover bg-center" style="z-index:1;will-change:transform,opacity"></div>
-		<div bind:this={bgSlotB} class="absolute inset-0 bg-cover bg-center opacity-0" style="z-index:0;will-change:transform,opacity"></div>
+		<div
+			bind:this={bgSlotA}
+			class="absolute inset-0 bg-cover bg-center"
+			style="z-index:1;will-change:transform,opacity"
+		></div>
+		<div
+			bind:this={bgSlotB}
+			class="absolute inset-0 bg-cover bg-center opacity-0"
+			style="z-index:0;will-change:transform,opacity"
+		></div>
 
 		<!-- Shimmer sweep -->
 		<div
@@ -247,18 +319,24 @@
 		></div>
 
 		<!-- Gradient overlays -->
-		<div class="pointer-events-none absolute inset-0 z-[4] bg-linear-to-r from-background/92 via-background/55 to-background/5"></div>
-		<div class="pointer-events-none absolute inset-0 z-[4] bg-linear-to-t from-background/88 via-transparent to-transparent"></div>
+		<div
+			class="pointer-events-none absolute inset-0 z-[4] bg-linear-to-r from-background/92 via-background/55 to-background/5"
+		></div>
+		<div
+			class="pointer-events-none absolute inset-0 z-[4] bg-linear-to-t from-background/88 via-transparent to-transparent"
+		></div>
 
 		<!-- Content -->
-		<div class="relative z-[5] grid h-full grid-cols-[1fr_auto] items-end gap-4 px-8 pb-10 lg:px-14">
+		<div
+			class="relative z-[5] grid h-full grid-cols-[1fr_auto] items-end gap-4 px-8 pb-10 lg:px-14"
+		>
 			<div class="flex min-w-0 flex-col gap-2.5">
-
 				<!-- Badge -->
 				<div bind:this={badgeEl}>
 					{#if mediaType === 'anime' && displayedItem.season && displayedItem.seasonYear}
 						<p class="text-[11px] font-bold tracking-widest text-primary uppercase">
-							{seasonLabel(displayedItem.season)} {displayedItem.seasonYear}
+							{seasonLabel(displayedItem.season)}
+							{displayedItem.seasonYear}
 						</p>
 					{:else if displayedItem.format}
 						<p class="text-[11px] font-bold tracking-widest text-primary/80 uppercase">
@@ -270,7 +348,10 @@
 				</div>
 
 				<!-- Title -->
-				<h1 bind:this={titleEl} class="line-clamp-1 text-3xl font-bold leading-tight drop-shadow-lg md:text-4xl">
+				<h1
+					bind:this={titleEl}
+					class="line-clamp-1 text-3xl leading-tight font-bold drop-shadow-lg md:text-4xl"
+				>
 					{mediaTitle(displayedItem)}
 				</h1>
 
@@ -299,7 +380,9 @@
 						{/if}
 					{/if}
 					{#each (displayedItem.genres ?? []).slice(0, 3) as genre}
-						<span class="rounded-md border border-border/40 bg-background/40 px-2.5 py-0.5 text-[11px] backdrop-blur-sm">
+						<span
+							class="rounded-md border border-border/40 bg-background/40 px-2.5 py-0.5 text-[11px] backdrop-blur-sm"
+						>
 							{genre}
 						</span>
 					{/each}
@@ -345,8 +428,14 @@
 							</Button>
 							{#if addToListOpen}
 								<!-- svelte-ignore a11y_no_static_element_interactions -->
-								<div class="fixed inset-0 z-40" onclick={() => (addToListOpen = false)} aria-hidden="true"></div>
-								<div class="absolute left-0 top-full z-50 mt-1.5 min-w-[190px] overflow-hidden rounded-lg border border-border bg-popover py-1 shadow-xl">
+								<div
+									class="fixed inset-0 z-40"
+									onclick={() => (addToListOpen = false)}
+									aria-hidden="true"
+								></div>
+								<div
+									class="absolute top-full left-0 z-50 mt-1.5 min-w-[190px] overflow-hidden rounded-lg border border-border bg-popover py-1 shadow-xl"
+								>
 									{#each statusOptions as opt}
 										<button
 											onclick={() => handleAddToList(opt.value)}

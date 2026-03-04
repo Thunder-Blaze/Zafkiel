@@ -179,13 +179,16 @@
 					</div>
 				</div>
 			{:else}
-				<div use:gsapStagger class="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-5 p-0.5">
+				<div
+					use:gsapStagger
+					class="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-5 p-0.5"
+				>
 					{#each searchResults as char}{@render charCard(char)}{/each}
 				</div>
 			{/if}
 		</section>
 	{:else}
-	<!-- Birthday Today -->
+		<!-- Birthday Today -->
 		<section use:gsapReveal>
 			<div class="mb-4 flex items-center justify-between">
 				<div class="flex items-center gap-2">
@@ -223,7 +226,7 @@
 			{/if}
 		</section>
 
-	<!-- Most Favourited -->
+		<!-- Most Favourited -->
 		<section use:gsapReveal>
 			<div class="mb-4 flex items-center justify-between">
 				<div class="flex items-center gap-2">

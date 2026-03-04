@@ -52,8 +52,13 @@ export function staggerChildren(
 	}
 ) {
 	if (!browser || !container) return;
-	const { delay = 0, stagger = 0.07, duration = 0.5, y = 20, selector = ':scope > *' } =
-		options ?? {};
+	const {
+		delay = 0,
+		stagger = 0.07,
+		duration = 0.5,
+		y = 20,
+		selector = ':scope > *',
+	} = options ?? {};
 	gsap.fromTo(
 		container.querySelectorAll(selector),
 		{ opacity: 0, y },
@@ -316,7 +321,14 @@ export function gsapReveal(
 		(entries) => {
 			entries.forEach((entry) => {
 				if (entry.isIntersecting) {
-					gsap.to(node, { opacity: 1, y: 0, duration, delay, ease: ease.smooth, clearProps: 'all' });
+					gsap.to(node, {
+						opacity: 1,
+						y: 0,
+						duration,
+						delay,
+						ease: ease.smooth,
+						clearProps: 'all',
+					});
 					observer.disconnect();
 				}
 			});
@@ -348,8 +360,13 @@ export function gsapStagger(
 ) {
 	if (!browser) return {};
 
-	const { selector = ':scope > *', y = 20, stagger = 0.07, duration = 0.5, delay = 0 } =
-		params ?? {};
+	const {
+		selector = ':scope > *',
+		y = 20,
+		stagger = 0.07,
+		duration = 0.5,
+		delay = 0,
+	} = params ?? {};
 	const children = Array.from(node.querySelectorAll(selector)) as Element[];
 	if (!children.length) return {};
 

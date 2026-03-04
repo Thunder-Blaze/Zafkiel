@@ -64,7 +64,9 @@
 	}
 
 	function getContentEls(): HTMLElement[] {
-		return [badgeEl, titleEl, metaEl, genresEl, descEl, actionsEl].filter((e): e is HTMLElement => !!e);
+		return [badgeEl, titleEl, metaEl, genresEl, descEl, actionsEl].filter(
+			(e): e is HTMLElement => !!e
+		);
 	}
 
 	// ── Ken Burns on active background ──────────────────────────────────────────
@@ -97,7 +99,15 @@
 			gsap.fromTo(
 				contentEls,
 				{ opacity: 0, y: 20, filter: 'blur(6px)' },
-				{ opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.65, ease: 'power3.out', stagger: { amount: 0.32 }, delay: 0.1 }
+				{
+					opacity: 1,
+					y: 0,
+					filter: 'blur(0px)',
+					duration: 0.65,
+					ease: 'power3.out',
+					stagger: { amount: 0.32 },
+					delay: 0.1,
+				}
 			);
 			if (coverWrapper) {
 				gsap.fromTo(
@@ -115,7 +125,11 @@
 		const newItem = items[idx];
 
 		if (!newItem || !displayedItem || idx === prevIndex) return;
-		if (!animEnabled) { prevIndex = idx; displayedItem = newItem; return; }
+		if (!animEnabled) {
+			prevIndex = idx;
+			displayedItem = newItem;
+			return;
+		}
 
 		prevIndex = idx;
 		const dir = direction === 'right' ? 1 : -1;
@@ -132,11 +146,15 @@
 
 			// ── EXIT ──────────────────────────────────────────────────────────────
 			gsap.to(contentEls, {
-				opacity: 0, x: -24 * dir, filter: 'blur(5px)',
-				duration: 0.22, ease: 'power2.in',
+				opacity: 0,
+				x: -24 * dir,
+				filter: 'blur(5px)',
+				duration: 0.22,
+				ease: 'power2.in',
 				stagger: { amount: 0.1, from: dir === 1 ? 'start' : 'end' },
 			});
-			if (coverWrapper) gsap.to(coverWrapper, { opacity: 0, scale: 0.9, y: 14, duration: 0.22, ease: 'power2.in' });
+			if (coverWrapper)
+				gsap.to(coverWrapper, { opacity: 0, scale: 0.9, y: 14, duration: 0.22, ease: 'power2.in' });
 
 			// ── BACKGROUND CROSSFADE ──────────────────────────────────────────────
 			if (inactiveSlot) {
@@ -156,7 +174,10 @@
 
 			activeBgSlot = activeBgSlot === 'a' ? 'b' : 'a';
 			const newActiveSlot = activeBgSlot === 'a' ? bgSlotA : bgSlotB;
-			if (newActiveSlot) { gsap.set(newActiveSlot, { zIndex: 2 }); startKenBurns(newActiveSlot); }
+			if (newActiveSlot) {
+				gsap.set(newActiveSlot, { zIndex: 2 });
+				startKenBurns(newActiveSlot);
+			}
 
 			displayedItem = newItem;
 			await tick();
@@ -166,12 +187,22 @@
 			if (coverWrapper) gsap.set(coverWrapper, { opacity: 0, y: 22, scale: 0.88 });
 
 			gsap.to(contentEls, {
-				opacity: 1, x: 0, filter: 'blur(0px)',
-				duration: 0.52, ease: 'power3.out',
+				opacity: 1,
+				x: 0,
+				filter: 'blur(0px)',
+				duration: 0.52,
+				ease: 'power3.out',
 				stagger: { amount: 0.28, from: 'start' },
 			});
 			if (coverWrapper) {
-				gsap.to(coverWrapper, { opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'back.out(1.7)', delay: 0.1 });
+				gsap.to(coverWrapper, {
+					opacity: 1,
+					y: 0,
+					scale: 1,
+					duration: 0.65,
+					ease: 'back.out(1.7)',
+					delay: 0.1,
+				});
 			}
 			isAnimating = false;
 		})();
@@ -182,7 +213,11 @@
 		if (progressTween) progressTween.kill();
 		if (!progressBarEl) return;
 		gsap.set(progressBarEl, { width: '0%' });
-		progressTween = gsap.to(progressBarEl, { width: '100%', duration: autoplayInterval / 1000, ease: 'none' });
+		progressTween = gsap.to(progressBarEl, {
+			width: '100%',
+			duration: autoplayInterval / 1000,
+			ease: 'none',
+		});
 		if (isPaused) progressTween.pause();
 	}
 
@@ -227,8 +262,14 @@
 		};
 	});
 
-	function handleMouseEnter() { isPaused = true; progressTween?.pause(); }
-	function handleMouseLeave() { isPaused = false; progressTween?.resume(); }
+	function handleMouseEnter() {
+		isPaused = true;
+		progressTween?.pause();
+	}
+	function handleMouseLeave() {
+		isPaused = false;
+		progressTween?.resume();
+	}
 </script>
 
 {#if items.length > 0 && displayedItem}
@@ -239,34 +280,61 @@
 		onmouseleave={handleMouseLeave}
 	>
 		<!-- Background slot A -->
-		<div bind:this={bgSlotA} class="absolute inset-0 bg-cover bg-center" style="z-index:1;will-change:transform,opacity"></div>
+		<div
+			bind:this={bgSlotA}
+			class="absolute inset-0 bg-cover bg-center"
+			style="z-index:1;will-change:transform,opacity"
+		></div>
 		<!-- Background slot B -->
-		<div bind:this={bgSlotB} class="absolute inset-0 bg-cover bg-center opacity-0" style="z-index:0;will-change:transform,opacity"></div>
+		<div
+			bind:this={bgSlotB}
+			class="absolute inset-0 bg-cover bg-center opacity-0"
+			style="z-index:0;will-change:transform,opacity"
+		></div>
 
 		<!-- Shimmer sweep -->
-		<div bind:this={shimmerEl} class="pointer-events-none absolute inset-0 z-[3]"
-			style="background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.07) 50%,transparent 65%);transform:translateX(-110%)"></div>
+		<div
+			bind:this={shimmerEl}
+			class="pointer-events-none absolute inset-0 z-[3]"
+			style="background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.07) 50%,transparent 65%);transform:translateX(-110%)"
+		></div>
 
 		<!-- Gradient overlays -->
-		<div class="pointer-events-none absolute inset-0 z-[4] bg-linear-to-r from-background/92 via-background/55 to-background/5"></div>
-		<div class="pointer-events-none absolute inset-0 z-[4] bg-linear-to-t from-background/88 via-transparent to-transparent"></div>
+		<div
+			class="pointer-events-none absolute inset-0 z-[4] bg-linear-to-r from-background/92 via-background/55 to-background/5"
+		></div>
+		<div
+			class="pointer-events-none absolute inset-0 z-[4] bg-linear-to-t from-background/88 via-transparent to-transparent"
+		></div>
 
 		<!-- Content -->
-		<div class="relative z-[5] grid h-full grid-cols-[1fr_auto] items-end gap-4 px-8 pb-10 lg:px-14">
+		<div
+			class="relative z-[5] grid h-full grid-cols-[1fr_auto] items-end gap-4 px-8 pb-10 lg:px-14"
+		>
 			<!-- Left text -->
 			<div class="flex min-w-0 flex-col gap-2.5">
 				<div bind:this={badgeEl}>
 					{#if displayedItem.season && displayedItem.seasonYear}
-						<p class="text-[11px] font-bold tracking-widest text-primary uppercase">{displayedItem.season} {displayedItem.seasonYear}</p>
+						<p class="text-[11px] font-bold tracking-widest text-primary uppercase">
+							{displayedItem.season}
+							{displayedItem.seasonYear}
+						</p>
 					{:else if displayedItem.format}
-						<p class="text-[11px] font-bold tracking-widest text-primary/80 uppercase">{displayedItem.format.replace(/_/g, ' ')}</p>
+						<p class="text-[11px] font-bold tracking-widest text-primary/80 uppercase">
+							{displayedItem.format.replace(/_/g, ' ')}
+						</p>
 					{:else}
 						<div class="h-4"></div>
 					{/if}
 				</div>
 
-				<h2 bind:this={titleEl} class="line-clamp-1 text-3xl font-bold leading-tight drop-shadow-lg md:text-4xl">
-					{displayedItem.title?.english || displayedItem.title?.romaji || displayedItem.title?.native}
+				<h2
+					bind:this={titleEl}
+					class="line-clamp-1 text-3xl leading-tight font-bold drop-shadow-lg md:text-4xl"
+				>
+					{displayedItem.title?.english ||
+						displayedItem.title?.romaji ||
+						displayedItem.title?.native}
 				</h2>
 
 				<div bind:this={metaEl} class="flex flex-wrap items-center gap-2 text-sm">
@@ -277,7 +345,9 @@
 						</span>
 					{/if}
 					{#if displayedItem.format}
-						<span class="rounded bg-foreground/10 px-2 py-0.5 text-xs font-medium">{displayedItem.format.replace(/_/g, ' ')}</span>
+						<span class="rounded bg-foreground/10 px-2 py-0.5 text-xs font-medium"
+							>{displayedItem.format.replace(/_/g, ' ')}</span
+						>
 					{/if}
 					{#if displayedItem.episodes}
 						<span class="text-xs text-muted-foreground">{displayedItem.episodes} eps</span>
@@ -286,13 +356,18 @@
 
 				<div bind:this={genresEl} class="flex flex-wrap gap-1.5">
 					{#each (displayedItem.genres ?? []).slice(0, 4) as genre}
-						<span class="rounded-md border border-border/40 bg-background/40 px-2.5 py-0.5 text-[11px] font-medium backdrop-blur-sm">{genre}</span>
+						<span
+							class="rounded-md border border-border/40 bg-background/40 px-2.5 py-0.5 text-[11px] font-medium backdrop-blur-sm"
+							>{genre}</span
+						>
 					{/each}
 				</div>
 
 				<div bind:this={descEl} class="h-[2.6em]">
 					{#if displayedItem.description}
-						<p class="line-clamp-2 max-w-lg text-xs leading-relaxed text-muted-foreground">{formatDescription(displayedItem.description)}</p>
+						<p class="line-clamp-2 max-w-lg text-xs leading-relaxed text-muted-foreground">
+							{formatDescription(displayedItem.description)}
+						</p>
 					{/if}
 				</div>
 

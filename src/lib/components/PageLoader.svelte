@@ -90,7 +90,7 @@
 		</div>
 	{:else if type === 'character' || type === 'staff'}
 		<!-- Hero area -->
-		<div class="flex flex-col items-center gap-6 pb-6 pt-4 md:flex-row md:items-start">
+		<div class="flex flex-col items-center gap-6 pt-4 pb-6 md:flex-row md:items-start">
 			<!-- Image -->
 			<div class="skel h-52 w-36 shrink-0 rounded-2xl bg-muted/80 md:h-64 md:w-44"></div>
 			<!-- Details -->

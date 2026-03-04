@@ -4,7 +4,12 @@
 	import { Button } from '$lib/components/ui/button';
 	import MediaCard from '$lib/components/MediaCard.svelte';
 	import SearchHeroCarousel from '$lib/components/SearchHeroCarousel.svelte';
-	import { useTrendingAnime, usePopularAnime, useBrowseMedia, useAddAnimeToList } from '$lib/hooks/useAnilist.svelte';
+	import {
+		useTrendingAnime,
+		usePopularAnime,
+		useBrowseMedia,
+		useAddAnimeToList,
+	} from '$lib/hooks/useAnilist.svelte';
 	import type { Media, MediaListStatus } from '$lib/types/anilist';
 	import { hscroll } from '$lib/utils/actions';
 	import { toast } from 'svelte-sonner';
@@ -63,7 +68,7 @@
 		items={heroes}
 		mediaType="anime"
 		{statusOptions}
-		addToListPending={addToListPending}
+		{addToListPending}
 		onAddToList={handleAddToList}
 	/>
 

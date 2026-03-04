@@ -40,8 +40,16 @@
 	<div class="flex flex-col items-center gap-6">
 		<!-- Logo / brand mark -->
 		<div data-loader-item class="flex items-center gap-3">
-			<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
-				<svg viewBox="0 0 24 24" class="h-5 w-5 text-primary" fill="none" stroke="currentColor" stroke-width="2">
+			<div
+				class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20"
+			>
+				<svg
+					viewBox="0 0 24 24"
+					class="h-5 w-5 text-primary"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
 					<polygon points="5,3 19,12 5,21" stroke-linejoin="round" stroke-linecap="round" />
 				</svg>
 			</div>
