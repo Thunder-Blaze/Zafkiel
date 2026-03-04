@@ -15,6 +15,17 @@
 	// Position of the dropdown panel
 	let pos = $state({ top: 0, left: 0 });
 
+	// Portal action — moves element to document.body so backdrop-filter works
+	// outside of TitleBar's compositing stacking context
+	function portal(node: HTMLElement) {
+		document.body.appendChild(node);
+		return {
+			destroy() {
+				node.parentNode?.removeChild(node);
+			}
+		};
+	}
+
 	function updatePosition() {
 		if (!triggerEl) return;
 		const rect = triggerEl.getBoundingClientRect();
@@ -73,9 +84,10 @@
 	<Icon icon="solar:alt-arrow-down-linear" class="h-3 w-3 transition-transform {open ? 'rotate-180' : ''}" />
 </button>
 
-<!-- Dropdown panel — rendered at document level so it floats above everything -->
+<!-- Dropdown panel — portaled to document.body so backdrop-filter works outside TitleBar stacking context -->
 {#if open && browser}
 	<div
+		use:portal
 		bind:this={menuEl}
 		class="fixed z-[999999]"
 		style="top: {pos.top}px; left: {pos.left}px;"
@@ -83,11 +95,10 @@
 	>
 		<div
 			class="w-72 rounded-xl border border-border/40 p-3.5 shadow-xl
-				{blurEffectsEnabled ? 'bg-popover/85' : 'bg-popover'}"
-			style={blurEffectsEnabled ? 'backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);' : ''}
+				{blurEffectsEnabled ? 'bg-popover/85 backdrop-blur-xl' : 'bg-popover'}"
 		>
 			<!-- Anime -->
-			<div class="mb-2.5 flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-2.5">
+			<div class="mb-2.5 flex items-center gap-3 rounded-lg bg-foreground/5 px-3 py-2.5">
 				<Icon icon="solar:play-circle-bold-duotone" class="h-5 w-5 shrink-0 text-primary" />
 				<div class="flex flex-col">
 					<button
@@ -107,7 +118,7 @@
 			</div>
 
 			<!-- Manga -->
-			<div class="mb-1.5 flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-2.5">
+			<div class="mb-1.5 flex items-center gap-3 rounded-lg bg-foreground/5 px-3 py-2.5">
 				<Icon icon="solar:book-2-bold-duotone" class="h-5 w-5 shrink-0 text-primary" />
 				<div class="flex flex-col">
 					<button

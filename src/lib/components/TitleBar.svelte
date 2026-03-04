@@ -287,6 +287,15 @@
 		{ path: '/downloads', icon: 'solar:download-bold', label: 'Downloads' },
 		{ path: '/settings', icon: 'solar:settings-bold', label: 'Settings' },
 	];
+
+	// Track window width to hide wide-only nav items at narrow widths
+	let windowWidth = $state(browser ? window.innerWidth : 1920);
+	$effect(() => {
+		if (!browser) return;
+		const onResize = () => { windowWidth = window.innerWidth; };
+		window.addEventListener('resize', onResize);
+		return () => window.removeEventListener('resize', onResize);
+	});
 </script>
 
 {#if browser && !isFullscreen}
@@ -364,20 +373,22 @@
 				<!-- Browse dropdown -->
 				<BrowseDropdown />
 
-				<!-- Remaining nav items -->
+				<!-- Remaining nav items (Social/Forum/Settings hidden below 1366px) -->
 				{#each navItems as item}
-					{@const isActive = page.url.pathname === item.path}
-					<Button
-						variant="ghost"
-						size="sm"
-						class="h-8 gap-2 {isActive
-							? 'bg-primary/10 text-primary'
-							: 'text-foreground/70 hover:text-foreground'}"
-						onclick={() => goto(item.path)}
-					>
-						<Icon icon={item.icon} class="h-4 w-4" />
-						<span class="text-xs font-medium">{item.label}</span>
-					</Button>
+					{#if item.path === '/downloads' || windowWidth >= 1366}
+						{@const isActive = page.url.pathname === item.path}
+						<Button
+							variant="ghost"
+							size="sm"
+							class="h-8 gap-2 {isActive
+								? 'bg-primary/10 text-primary'
+								: 'text-foreground/70 hover:text-foreground'}"
+							onclick={() => goto(item.path)}
+						>
+							<Icon icon={item.icon} class="h-4 w-4" />
+							<span class="text-xs font-medium">{item.label}</span>
+						</Button>
+					{/if}
 				{/each}
 			</div>
 		</div>
