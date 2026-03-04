@@ -10,6 +10,7 @@
 	import ActivityCard from '$lib/components/ActivityCard.svelte';
 	import ReviewCard from '$lib/components/ReviewCard.svelte';
 	import Icon from '@iconify/svelte';
+	import PageLoader from '$lib/components/PageLoader.svelte';
 	import { goto } from '$app/navigation';
 
 	const userId = $derived(page.params.id ? parseInt(page.params.id) : 0);
@@ -57,15 +58,7 @@
 
 <div class="container mx-auto max-w-7xl px-4 py-8">
 	{#if isLoading}
-		<div class="flex min-h-[400px] items-center justify-center">
-			<div class="flex flex-col items-center space-y-4">
-				<Icon
-					icon="solar:refresh-circle-line-duotone"
-					class="h-12 w-12 animate-spin text-primary"
-				/>
-				<p class="text-muted-foreground">Loading user profile...</p>
-			</div>
-		</div>
+		<PageLoader type="user" />
 	{:else if error || (userQuery.data && !userQuery.data.success)}
 		<Card class="border-destructive">
 			<CardContent class="pt-6">

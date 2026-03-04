@@ -5,6 +5,8 @@
 	import ActivityCard from '$lib/components/ActivityCard.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '@iconify/svelte';
+	import { gsapReveal, gsapStagger } from '$lib/utils/gsap-animations';
+	import PageLoader from '$lib/components/PageLoader.svelte';
 
 	type FeedTab = 'global' | 'following';
 	let activeTab = $state<FeedTab>('global');
@@ -53,7 +55,7 @@
 
 <div class="container mx-auto max-w-3xl px-4 py-6">
 	<!-- Header -->
-	<div class="mb-6 flex items-center justify-between">
+	<div use:gsapReveal class="mb-6 flex items-center justify-between">
 		<h1 class="text-2xl font-bold">Activity Feed</h1>
 	</div>
 
@@ -81,9 +83,7 @@
 
 	<!-- Content -->
 	{#if isLoading}
-		<div class="flex min-h-[300px] items-center justify-center">
-			<Icon icon="solar:refresh-circle-line-duotone" class="h-10 w-10 animate-spin text-primary" />
-		</div>
+		<PageLoader type="default" />
 	{:else if activeTab === 'following' && !$isAuthenticated}
 		<div class="flex min-h-[300px] flex-col items-center justify-center gap-4 text-center">
 			<Icon icon="solar:users-group-rounded-bold-duotone" class="h-12 w-12 text-muted-foreground" />
@@ -107,7 +107,7 @@
 			</p>
 		</div>
 	{:else}
-		<div class="flex flex-col gap-3">
+		<div use:gsapStagger class="flex flex-col gap-3">
 			{#each activities as activity, i (i)}
 				<ActivityCard {activity} />
 			{/each}

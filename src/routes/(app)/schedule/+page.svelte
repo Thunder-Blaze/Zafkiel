@@ -7,6 +7,8 @@
 	import { Tabs, TabsList, TabsTrigger, TabsContent } from '$lib/components/ui/tabs';
 	import { Badge } from '$lib/components/ui/badge';
 	import Icon from '@iconify/svelte';
+	import { gsapReveal, gsapStagger } from '$lib/utils/gsap-animations';
+	import PageLoader from '$lib/components/PageLoader.svelte';
 
 	const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 	const today = new Date().getDay();
@@ -53,7 +55,7 @@
 
 <div class="container mx-auto max-w-7xl px-4 py-8">
 	<!-- Header -->
-	<div class="mb-8 flex items-center gap-3">
+	<div use:gsapReveal class="mb-8 flex items-center gap-3">
 		<div class="flex size-10 items-center justify-center rounded-xl bg-primary/10">
 			<Icon icon="solar:calendar-bold-duotone" class="size-6 text-primary" />
 		</div>
@@ -78,12 +80,7 @@
 		<!-- Airing Tab -->
 		<TabsContent value="airing">
 			{#if airingQuery.isLoading}
-				<div class="flex items-center justify-center p-16">
-					<Icon
-						icon="solar:refresh-circle-line-duotone"
-						class="h-10 w-10 animate-spin text-primary"
-					/>
-				</div>
+				<PageLoader type="default" />
 			{:else if airingQuery.error}
 				<div
 					class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-12 text-center"
@@ -95,7 +92,7 @@
 			{:else}
 				<!-- Day-grouped sections -->
 				{#each airingByDay as group (group.day)}
-					<section class="mb-8">
+					<section use:gsapReveal class="mb-8">
 						<div class="mb-4 flex items-center gap-3">
 							<h2 class="text-lg font-semibold">{group.day}</h2>
 							{#if group.isToday}
@@ -197,12 +194,7 @@
 		<!-- Upcoming Tab -->
 		<TabsContent value="upcoming">
 			{#if upcomingQuery.isLoading}
-				<div class="flex items-center justify-center p-16">
-					<Icon
-						icon="solar:refresh-circle-line-duotone"
-						class="h-10 w-10 animate-spin text-primary"
-					/>
-				</div>
+				<PageLoader type="default" />
 			{:else if upcomingQuery.error}
 				<div
 					class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-12 text-center"
@@ -221,6 +213,7 @@
 				</div>
 			{:else}
 				<div
+					use:gsapStagger
 					class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
 				>
 					{#each upcomingItems as anime (anime.id)}

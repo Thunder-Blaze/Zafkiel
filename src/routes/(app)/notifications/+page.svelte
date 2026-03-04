@@ -4,6 +4,8 @@
 	import CachedImage from '$lib/components/ui/CachedImage.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '@iconify/svelte';
+	import { gsapReveal, gsapStagger } from '$lib/utils/gsap-animations';
+	import PageLoader from '$lib/components/PageLoader.svelte';
 	import { goto } from '$app/navigation';
 
 	type FilterCategory = 'ALL' | 'AIRING' | 'ACTIVITY' | 'FORUM' | 'FOLLOWS' | 'MEDIA';
@@ -272,7 +274,7 @@
 
 <div class="container mx-auto max-w-5xl px-4 py-6">
 	<!-- Page header -->
-	<div class="mb-6 flex items-center justify-between">
+	<div use:gsapReveal class="mb-6 flex items-center justify-between">
 		<h1 class="text-2xl font-bold">Notifications</h1>
 		<Button
 			variant="outline"
@@ -329,12 +331,7 @@
 
 			<!-- Loading -->
 			{#if isLoading}
-				<div class="flex min-h-[300px] items-center justify-center">
-					<Icon
-						icon="solar:refresh-circle-line-duotone"
-						class="h-10 w-10 animate-spin text-primary"
-					/>
-				</div>
+				<PageLoader type="default" />
 
 				<!-- Error -->
 			{:else if notifQuery.error || (notifQuery.data && !notifQuery.data.success)}
@@ -358,7 +355,7 @@
 
 				<!-- Notification list -->
 			{:else}
-				<ul class="flex flex-col gap-2">
+				<ul use:gsapStagger class="flex flex-col gap-2">
 					{#each notifications as notif (notif.id)}
 						{@const info = getNotifInfo(notif)}
 						<li class="group relative rounded-lg border bg-card transition-colors hover:bg-card/80">

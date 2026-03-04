@@ -7,6 +7,7 @@
 	import Icon from '@iconify/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Carousel from '$lib/components/ui/carousel';
+	import { gsapReveal, gsapStagger } from '$lib/utils/gsap-animations';
 	import type {
 		BrowseParams,
 		MediaFormat,
@@ -414,7 +415,7 @@
 		<!-- Carousel Sections (only show when no filters applied) -->
 		{#if !hasFilters}
 			<!-- Trending Now -->
-			<section class="mb-8">
+			<section class="mb-8" use:gsapReveal>
 				<div class="mb-4 flex items-center justify-between px-6">
 					<h2 class="text-2xl font-bold">Trending Now</h2>
 					<Button
@@ -449,7 +450,7 @@
 
 			<!-- Popular This Season (Anime only) -->
 			{#if type === 'ANIME'}
-				<section class="mb-8">
+				<section class="mb-8" use:gsapReveal>
 					<div class="mb-4 flex items-center justify-between px-6">
 						<h2 class="text-2xl font-bold">Popular This Season</h2>
 						<Button
@@ -486,7 +487,7 @@
 				</section>
 
 				<!-- Upcoming Next Season -->
-				<section class="mb-8">
+				<section class="mb-8" use:gsapReveal>
 					<div class="mb-4 flex items-center justify-between px-6">
 						<h2 class="text-2xl font-bold">
 							Upcoming {nextSeason.season.charAt(0) + nextSeason.season.slice(1).toLowerCase()}

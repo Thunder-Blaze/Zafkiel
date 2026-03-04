@@ -7,6 +7,7 @@
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import CachedImage from '$lib/components/ui/CachedImage.svelte';
 	import Icon from '@iconify/svelte';
+	import PageLoader from '$lib/components/PageLoader.svelte';
 
 	const staffId = $derived(page.params.id ? parseInt(page.params.id) : 0);
 	const staffQuery = $derived(useStaffById(staffId));
@@ -41,15 +42,7 @@
 
 <div class="container mx-auto max-w-7xl px-4 py-8">
 	{#if isLoading}
-		<div class="flex min-h-[400px] items-center justify-center">
-			<div class="flex flex-col items-center space-y-4">
-				<Icon
-					icon="solar:refresh-circle-line-duotone"
-					class="h-12 w-12 animate-spin text-primary"
-				/>
-				<p class="text-muted-foreground">Loading staff details...</p>
-			</div>
-		</div>
+		<PageLoader type="staff" />
 	{:else if error}
 		<Card class="border-destructive">
 			<CardContent class="pt-6">

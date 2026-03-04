@@ -12,6 +12,8 @@
 	import ProfileWidget from '$lib/components/dashboard/ProfileWidget.svelte';
 	import CachedImage from '$lib/components/ui/CachedImage.svelte';
 	import { useMyAnimeList, useFollowingActivity } from '$lib/hooks/useAnilist.svelte';
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 
 	// Real data hooks (only active when authenticated)
 	const watchingQuery = useMyAnimeList('CURRENT', 1, 5);
@@ -75,6 +77,32 @@
 
 	const fallbackThemeImage = '/images/fallback-theme.png';
 	const themeState = useThemeState();
+
+	// GSAP entrance animations for dashboard panels
+	onMount(async () => {
+		if (!browser) return;
+		// Wait for auth state to settle a bit before animating
+		const { gsap } = await import('gsap');
+		// Short delay so panels are in the DOM
+		setTimeout(() => {
+			const panels = document.querySelectorAll('[data-dash-panel]');
+			if (panels.length) {
+				gsap.fromTo(
+					panels,
+					{ opacity: 0, y: 20, scale: 0.97 },
+					{
+						opacity: 1,
+						y: 0,
+						scale: 1,
+						duration: 0.5,
+						stagger: 0.08,
+						ease: 'power3.out',
+						clearProps: 'all',
+					}
+				);
+			}
+		}, 100);
+	});
 </script>
 
 {#if $authLoading}
@@ -118,7 +146,7 @@
 		<!-- Content Layer -->
 		<div class="relative h-full w-full p-6">
 			<!-- TOP LEFT: Welcome + Stats -->
-			<div class="absolute top-6 left-6 space-y-2">
+			<div data-dash-panel class="absolute top-6 left-6 space-y-2">
 				<!-- Welcome Card -->
 				<Card class="border-border/50 bg-card/70 px-4 py-3 backdrop-blur-md">
 					<h1 class="text-lg font-bold tracking-tight">Welcome back! 👋</h1>
@@ -152,7 +180,7 @@
 			</div>
 
 			<!-- TOP RIGHT: Calendar + Profile -->
-			<div class="absolute top-6 right-6 flex flex-col items-end gap-4">
+			<div data-dash-panel class="absolute top-6 right-6 flex flex-col items-end gap-4">
 				<!-- Calendar Widget -->
 				<CalendarWidget />
 
@@ -166,7 +194,7 @@
 			</div>
 
 			<!-- BOTTOM LEFT: Quick Actions -->
-			<div class="absolute bottom-6 left-6">
+			<div data-dash-panel class="absolute bottom-6 left-6">
 				<Card class="border-border/50 bg-card/70 p-4 backdrop-blur-md">
 					<h2 class="mb-2.5 flex items-center gap-1.5 text-sm font-semibold">
 						<Icon icon="solar:widget-4-bold" class="h-3.5 w-3.5 text-primary" />
@@ -200,7 +228,7 @@
 
 			<!-- BOTTOM CENTER: Continue Watching -->
 			{#if $isAuthenticated && continueWatching.length > 0}
-				<div class="absolute bottom-6 left-1/2 -translate-x-1/2">
+				<div data-dash-panel class="absolute bottom-6 left-1/2 -translate-x-1/2">
 					<Card class="border-border/50 bg-card/70 p-3 backdrop-blur-md">
 						<div class="mb-2 flex items-center justify-between gap-4">
 							<h2 class="flex items-center gap-1.5 text-xs font-semibold">

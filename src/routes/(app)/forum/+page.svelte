@@ -4,6 +4,8 @@
 	import ThreadCard from '$lib/components/ThreadCard.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '@iconify/svelte';
+	import { gsapReveal, gsapStagger } from '$lib/utils/gsap-animations';
+	import PageLoader from '$lib/components/PageLoader.svelte';
 
 	type ForumTab = 'recent' | 'popular';
 	let activeTab = $state<ForumTab>('recent');
@@ -29,7 +31,7 @@
 
 <div class="container mx-auto max-w-4xl px-4 py-6">
 	<!-- Header -->
-	<div class="mb-6 flex items-center justify-between">
+	<div use:gsapReveal class="mb-6 flex items-center justify-between">
 		<h1 class="text-2xl font-bold">AniList Forum</h1>
 	</div>
 
@@ -57,9 +59,7 @@
 
 	<!-- Content -->
 	{#if isLoading}
-		<div class="flex min-h-[300px] items-center justify-center">
-			<Icon icon="solar:refresh-circle-line-duotone" class="h-10 w-10 animate-spin text-primary" />
-		</div>
+		<PageLoader type="default" />
 	{:else if activeQuery.error || (activeQuery.data && !activeQuery.data.success)}
 		<div class="flex min-h-[300px] flex-col items-center justify-center gap-4 text-center">
 			<Icon icon="solar:danger-triangle-bold-duotone" class="h-12 w-12 text-destructive" />
@@ -74,7 +74,7 @@
 			<h3 class="text-lg font-semibold">No threads found</h3>
 		</div>
 	{:else}
-		<div class="flex flex-col gap-3">
+		<div use:gsapStagger class="flex flex-col gap-3">
 			{#each threads as thread (thread.id)}
 				<ThreadCard {thread} />
 			{/each}

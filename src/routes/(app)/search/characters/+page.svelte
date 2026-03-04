@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
+	import { gsapReveal, gsapStagger } from '$lib/utils/gsap-animations';
 	import { createQuery } from '@tanstack/svelte-query';
 	import CachedImage from '$lib/components/ui/CachedImage.svelte';
 	import { characterApi } from '$lib/services/anilist';
@@ -178,14 +179,14 @@
 					</div>
 				</div>
 			{:else}
-				<div class="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-5 p-0.5">
+				<div use:gsapStagger class="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-5 p-0.5">
 					{#each searchResults as char}{@render charCard(char)}{/each}
 				</div>
 			{/if}
 		</section>
 	{:else}
-		<!-- Birthday Today -->
-		<section>
+	<!-- Birthday Today -->
+		<section use:gsapReveal>
 			<div class="mb-4 flex items-center justify-between">
 				<div class="flex items-center gap-2">
 					<Icon icon="solar:gift-bold-duotone" class="h-5 w-5 text-pink-400" />
@@ -222,8 +223,8 @@
 			{/if}
 		</section>
 
-		<!-- Most Favourited -->
-		<section>
+	<!-- Most Favourited -->
+		<section use:gsapReveal>
 			<div class="mb-4 flex items-center justify-between">
 				<div class="flex items-center gap-2">
 					<Icon icon="solar:heart-bold-duotone" class="h-5 w-5 text-red-400" />

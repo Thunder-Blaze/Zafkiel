@@ -6,6 +6,8 @@
 	import Icon from '@iconify/svelte';
 	import { fade, slide, fly, scale } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
+	import { gsapReveal } from '$lib/utils/gsap-animations';
+	import PageLoader from '$lib/components/PageLoader.svelte';
 	import type { PageData } from './$types';
 
 	// Import setting components
@@ -61,18 +63,12 @@
 
 {#if $authLoading}
 	<div class="flex min-h-screen items-center justify-center" transition:fade={{ duration: 200 }}>
-		<div class="space-y-4 text-center">
-			<Icon
-				icon="solar:refresh-circle-line-duotone"
-				class="mx-auto h-12 w-12 animate-spin text-primary"
-			/>
-			<p class="text-foreground/60">Loading settings...</p>
-		</div>
+		<PageLoader type="default" />
 	</div>
 {:else if $isAuthenticated}
 	<div class="container mx-auto max-w-7xl p-4 lg:p-8" transition:fade={{ duration: 300 }}>
 		<!-- Header -->
-		<div class="mb-8" transition:slide={{ duration: 300 }}>
+		<div use:gsapReveal class="mb-8" transition:slide={{ duration: 300 }}>
 			<div class="mb-2 flex items-center gap-3">
 				<div class="rounded-xl bg-primary/10 p-3">
 					<Icon icon="solar:settings-bold-duotone" class="h-8 w-8 text-primary" />

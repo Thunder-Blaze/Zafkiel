@@ -17,6 +17,7 @@
 
 	import TorrentsList from './anime/TorrentsList.svelte';
 	import RecommendationCard from '$lib/components/RecommendationCard.svelte';
+	import PageLoader from '$lib/components/PageLoader.svelte';
 
 	const animeId = $derived(page.params.id ? parseInt(page.params.id) : 0);
 	const animeQuery = $derived(useAnimeById(animeId));
@@ -80,11 +81,8 @@
 </script>
 
 {#if isLoading}
-	<div class="flex min-h-[400px] items-center justify-center">
-		<div class="flex flex-col items-center space-y-4">
-			<Icon icon="solar:refresh-circle-line-duotone" class="h-12 w-12 animate-spin text-primary" />
-			<p class="text-muted-foreground">Loading anime details...</p>
-		</div>
+	<div class="container mx-auto max-w-7xl px-4 py-8">
+		<PageLoader type="anime" />
 	</div>
 {:else if error || (animeQuery.data && !animeQuery.data.success)}
 	<div class="container mx-auto max-w-7xl px-4 py-8">

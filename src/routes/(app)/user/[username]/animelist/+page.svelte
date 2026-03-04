@@ -9,6 +9,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '@iconify/svelte';
 	import { goto } from '$app/navigation';
+	import { gsapReveal, gsapStagger } from '$lib/utils/gsap-animations';
 
 	const username = $derived(page.params.username ?? '');
 
@@ -44,7 +45,7 @@
 
 <div class="container mx-auto max-w-7xl px-4 py-6">
 	<!-- Header -->
-	<div class="mb-6 flex items-center justify-between">
+	<div use:gsapReveal class="mb-6 flex items-center justify-between">
 		<div>
 			<h1 class="text-2xl font-bold">{username}'s Anime List</h1>
 		</div>
@@ -133,7 +134,7 @@
 		</div>
 	{:else}
 		{#if viewMode === 'list'}
-			<div class="overflow-hidden rounded-lg border bg-card" role="table">
+			<div use:gsapStagger class="overflow-hidden rounded-lg border bg-card" role="table">
 				<div
 					class="flex items-center gap-3 border-b bg-muted/40 px-3 py-2 text-xs font-medium text-muted-foreground"
 					role="rowheader"
@@ -149,7 +150,7 @@
 				{/each}
 			</div>
 		{:else}
-			<div class="flex flex-wrap justify-start gap-4">
+			<div use:gsapStagger class="flex flex-wrap justify-start gap-4">
 				{#each entries as entry (entry.id)}
 					{#if entry.media}
 						<MediaCard media={entry.media} />

@@ -35,14 +35,16 @@
 	// View transitions gated on config.animations
 	if (browser) {
 		onNavigate((navigation) => {
-			if (!document.startViewTransition) return;
 			if (!isReady || !config.animations) return;
-			return new Promise((resolve) => {
-				document.startViewTransition(async () => {
-					resolve();
-					await navigation.complete;
+			// Use View Transitions API when available
+			if (document.startViewTransition) {
+				return new Promise((resolve) => {
+					document.startViewTransition(async () => {
+						resolve();
+						await navigation.complete;
+					});
 				});
-			});
+			}
 		});
 	}
 

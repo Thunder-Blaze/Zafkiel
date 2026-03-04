@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
+	import { gsapReveal, gsapStagger } from '$lib/utils/gsap-animations';
 	import { createQuery } from '@tanstack/svelte-query';
 	import CachedImage from '$lib/components/ui/CachedImage.svelte';
 	import { staffApi } from '$lib/services/anilist';
@@ -175,7 +176,7 @@
 		</section>
 	{:else}
 		<!-- Birthday Today -->
-		<section>
+		<section use:gsapReveal>
 			<div class="mb-4 flex items-center justify-between">
 				<div class="flex items-center gap-2">
 					<Icon icon="solar:gift-bold-duotone" class="h-5 w-5 text-pink-400" />
@@ -213,7 +214,7 @@
 		</section>
 
 		<!-- Most Favourited -->
-		<section>
+		<section use:gsapReveal>
 			<div class="mb-4 flex items-center justify-between">
 				<div class="flex items-center gap-2">
 					<Icon icon="solar:heart-bold-duotone" class="h-5 w-5 text-red-400" />

@@ -4,7 +4,37 @@
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-	animation-duration: 200ms;
+	animation-duration: 250ms;
+}
+
+::view-transition-old(root) {
+	animation-name: vt-fade-out;
+}
+
+::view-transition-new(root) {
+	animation-name: vt-slide-in;
+}
+
+@keyframes vt-fade-out {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+	to {
+		opacity: 0;
+		transform: translateY(-6px);
+	}
+}
+
+@keyframes vt-slide-in {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 /* Theme CSS is loaded dynamically via app.html script for instant loading */
