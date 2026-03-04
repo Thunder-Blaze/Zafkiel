@@ -237,3 +237,28 @@ pub async fn reply_to_forum_thread(
     let result = client.forum().reply_to_thread(thread_id, &comment).await;
     Ok(result.into())
 }
+
+/// Reply to a specific thread comment (nested reply)
+#[tauri::command]
+pub async fn reply_to_thread_comment(
+    thread_id: i32,
+    parent_comment_id: i32,
+    comment: String,
+    service: State<'_, AniListState>,
+) -> Result<AniListResponse<ThreadComment>, String> {
+    log::info!(
+        "reply_to_thread_comment: thread_id={}, parent={}",
+        thread_id, parent_comment_id
+    );
+    let client = service.client().await;
+    let result = client
+        .forum()
+        .save_comment(&SaveThreadCommentOptions {
+            thread_id: Some(thread_id),
+            parent_comment_id: Some(parent_comment_id),
+            comment: Some(comment),
+            ..Default::default()
+        })
+        .await;
+    Ok(result.into())
+}

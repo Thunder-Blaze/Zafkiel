@@ -7,7 +7,7 @@
 	import ProfileDropdown from '$lib/components/ProfileDropdown.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { DropdownMenu } from 'bits-ui';
+	import BrowseDropdown from '$lib/components/BrowseDropdown.svelte';
 	import type { Window as TauriWindow } from '@tauri-apps/api/window';
 	import { getCurrentWindow } from '@tauri-apps/api/window';
 	import type { UnlistenFn } from '@tauri-apps/api/event';
@@ -34,7 +34,6 @@
 	let searchQuery = $state('');
 
 	// Browse dropdown & search popup
-	let browseOpen = $state(false);
 	let searchOpen = $state(false);
 
 	// Platform-specific keyboard shortcut display
@@ -363,81 +362,7 @@
 			<!-- Browse dropdown + remaining Nav Items -->
 			<div class="ml-2 flex h-full items-center gap-1">
 				<!-- Browse dropdown -->
-				<DropdownMenu.Root bind:open={browseOpen}>
-					<DropdownMenu.Trigger
-						class="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors
-							{browseOpen ? 'bg-primary/10 text-primary' : 'text-foreground/70 hover:bg-foreground/5 hover:text-foreground'}"
-					>
-						<Icon icon="solar:compass-bold-duotone" class="h-4 w-4" />
-						Browse
-						<Icon icon="solar:alt-arrow-down-linear" class="h-3 w-3 transition-transform {browseOpen ? 'rotate-180' : ''}" />
-					</DropdownMenu.Trigger>
-					<DropdownMenu.Content
-						class="z-50 w-72 rounded-xl border border-border/40 bg-background/95 p-3.5 shadow-xl backdrop-blur-xl"
-						sideOffset={8}
-						align="start"
-					>
-						<!-- Anime -->
-						<div class="mb-2.5 flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-2.5">
-							<Icon icon="solar:play-circle-bold-duotone" class="h-5 w-5 shrink-0 text-primary" />
-							<div class="flex flex-col">
-								<button
-									onclick={() => { browseOpen = false; goto('/search/anime'); }}
-									class="mb-1 text-left text-sm font-semibold text-foreground transition-colors hover:text-primary"
-								>
-									Anime
-								</button>
-							<div class="flex items-center whitespace-nowrap text-xs text-muted-foreground">
-									<button onclick={() => { browseOpen = false; goto('/browse/anime?sort=POPULARITY_DESC'); }} class="py-0.5 transition-colors hover:text-foreground">Top 100</button>
-									<span class="mx-2 opacity-30">·</span>
-									<button onclick={() => { browseOpen = false; goto('/browse/anime?sort=TRENDING_DESC'); }} class="py-0.5 transition-colors hover:text-foreground">Trending</button>
-									<span class="mx-2 opacity-30">·</span>
-									<button onclick={() => { browseOpen = false; goto('/browse/anime?format=MOVIE&sort=SCORE_DESC'); }} class="py-0.5 transition-colors hover:text-foreground">Top Movies</button>
-								</div>
-							</div>
-						</div>
-
-						<!-- Manga -->
-						<div class="mb-1.5 flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-2.5">
-							<Icon icon="solar:book-2-bold-duotone" class="h-5 w-5 shrink-0 text-primary" />
-							<div class="flex flex-col">
-								<button
-									onclick={() => { browseOpen = false; goto('/search/manga'); }}
-									class="mb-1 text-left text-sm font-semibold text-foreground transition-colors hover:text-primary"
-								>
-									Manga
-								</button>
-							<div class="flex items-center whitespace-nowrap text-xs text-muted-foreground">
-									<button onclick={() => { browseOpen = false; goto('/browse/manga?sort=POPULARITY_DESC'); }} class="py-0.5 transition-colors hover:text-foreground">Top 100</button>
-									<span class="mx-2 opacity-30">·</span>
-									<button onclick={() => { browseOpen = false; goto('/browse/manga?sort=TRENDING_DESC'); }} class="py-0.5 transition-colors hover:text-foreground">Trending</button>
-									<span class="mx-2 opacity-30">·</span>
-									<button onclick={() => { browseOpen = false; goto('/browse/manga?country=KR&sort=POPULARITY_DESC'); }} class="py-0.5 transition-colors hover:text-foreground">Top Manhwa</button>
-								</div>
-							</div>
-						</div>
-
-						<!-- Other -->
-						<div class="grid grid-cols-[auto_auto] justify-between gap-x-2">
-							<button onclick={() => { browseOpen = false; goto('/search/staff'); }} class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
-								<Icon icon="solar:users-group-two-rounded-bold-duotone" class="h-3.5 w-3.5" />
-								Staff
-							</button>
-							<button onclick={() => { browseOpen = false; goto('/search/characters'); }} class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
-								<Icon icon="solar:user-circle-bold-duotone" class="h-3.5 w-3.5" />
-								Characters
-							</button>
-							<button onclick={() => { browseOpen = false; goto('/search/reviews'); }} class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
-								<Icon icon="solar:star-bold-duotone" class="h-3.5 w-3.5" />
-								Reviews
-							</button>
-							<button onclick={() => { browseOpen = false; goto('/search/recommendations'); }} class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
-								<Icon icon="solar:like-bold-duotone" class="h-3.5 w-3.5" />
-								Recommendations
-							</button>
-						</div>
-					</DropdownMenu.Content>
-				</DropdownMenu.Root>
+				<BrowseDropdown />
 
 				<!-- Remaining nav items -->
 				{#each navItems as item}
@@ -525,8 +450,6 @@
 			</div>
 		</div>
 	</div>
-
-	<div class="h-12"></div>
 {/if}
 
 <!-- Search portal — rendered outside titlebar stacking context -->

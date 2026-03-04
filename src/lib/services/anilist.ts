@@ -548,6 +548,15 @@ export const forumApi = {
 	replyToThread: async (threadId: number, comment: string): Promise<AniListResponse<ThreadComment>> => {
 		return invoke('reply_to_forum_thread', { threadId, comment });
 	},
+	replyToComment: async (threadId: number, parentCommentId: number, comment: string): Promise<AniListResponse<ThreadComment>> => {
+		return invoke('reply_to_thread_comment', { threadId, parentCommentId, comment });
+	},
+	toggleLikeThread: async (id: number): Promise<AniListResponse<unknown>> => {
+		return invoke('toggle_like_thread', { id });
+	},
+	toggleLikeComment: async (id: number): Promise<AniListResponse<unknown>> => {
+		return invoke('toggle_like_thread_comment', { id });
+	},
 };
 
 // ============================================================================

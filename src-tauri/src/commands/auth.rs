@@ -10,6 +10,8 @@ use crate::config;
 use std::sync::Arc;
 use tauri::{AppHandle, State};
 
+type ConfigState = Arc<config::ConfigLoader>;
+
 /// Initialize OAuth flow
 /// Returns the authorization URL and callback port
 #[tauri::command]
@@ -95,6 +97,7 @@ pub async fn open_auth_browser(app: AppHandle, auth_url: String) -> Result<(), S
 pub async fn wait_for_oauth_callback(
     auth_state: State<'_, AuthState>,
     anilist_service: State<'_, Arc<AniListService>>,
+    config_loader: State<'_, ConfigState>,
 ) -> Result<String, String> {
     log::info!("[Auth Command] Waiting for OAuth callback");
 
@@ -133,9 +136,7 @@ pub async fn wait_for_oauth_callback(
     // Exchange code for token
     let token_response = exchange_code_for_token(&oauth_config, &code, redirect_uri).await?;
 
-    // Save token to config using ConfigLoader (with encryption)
-    let config_loader =
-        config::ConfigLoader::new().map_err(|e| format!("Failed to load config: {}", e))?;
+    // Save token to the managed config (writes to disk and updates in-memory state)
     config_loader
         .set_anilist_token(&token_response.access_token)
         .map_err(|e| format!("Failed to save token: {}", e))?;
@@ -176,12 +177,13 @@ pub async fn check_auth_status(
 
 /// Logout - clear stored token
 #[tauri::command]
-pub async fn logout(anilist_service: State<'_, Arc<AniListService>>) -> Result<(), String> {
+pub async fn logout(
+    anilist_service: State<'_, Arc<AniListService>>,
+    config_loader: State<'_, ConfigState>,
+) -> Result<(), String> {
     log::info!("[Auth Command] Logging out");
 
-    // Clear token from config using ConfigLoader
-    let config_loader =
-        config::ConfigLoader::new().map_err(|e| format!("Failed to load config: {}", e))?;
+    // Clear token from the managed config (writes to disk and updates in-memory state)
     config_loader
         .clear_anilist_token()
         .map_err(|e| format!("Failed to clear token: {}", e))?;

@@ -259,6 +259,9 @@ pub fn run() {
             commands::api::forum::delete_thread_comment,
             commands::api::forum::toggle_forum_thread_subscription,
             commands::api::forum::reply_to_forum_thread,
+            commands::api::forum::reply_to_thread_comment,
+            commands::api::common::toggle_like_thread,
+            commands::api::common::toggle_like_thread_comment,
 
             // ─── Image cache ─────────────────────────────────────────────
             commands::image_cache::download_image,

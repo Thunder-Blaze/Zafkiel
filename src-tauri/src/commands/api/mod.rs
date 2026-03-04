@@ -1,5 +1,6 @@
 pub mod activity;
 pub mod anilist;
+pub mod common;
 pub mod forum;
 pub mod medialist;
 pub mod notification;

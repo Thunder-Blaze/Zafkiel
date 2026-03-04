@@ -28,6 +28,9 @@
 	let config = useConfigState();
 	let theme = useThemeState();
 
+	// Scroll container — fixed below the titlebar so the scrollbar never overlaps it
+	let scrollEl = $state<HTMLElement | null>(null);
+
 	// View transitions gated on config.animations
 	if (browser) {
 		onNavigate((navigation) => {
@@ -98,17 +101,22 @@
 		<ThemedToaster />
 		<ContextMenu />
 
-		<!-- Main app content -->
-		<TanstackProvider>
-			<LenisProvider>
-				<ContextMenuProvider>
-					<AnimationProvider>
-						{@render children?.()}
-					</AnimationProvider>
-				</ContextMenuProvider>
-			</LenisProvider>
-			<SvelteQueryDevtools />
-		</TanstackProvider>
+		<!-- Main app content — fixed below titlebar; this owns the scrollbar so it never overlaps titlebar -->
+		<div
+			bind:this={scrollEl}
+			class="fixed inset-x-0 bottom-0 top-12 overflow-y-auto overflow-x-hidden"
+		>
+			<TanstackProvider>
+				<LenisProvider wrapper={scrollEl}>
+					<ContextMenuProvider>
+						<AnimationProvider>
+							{@render children?.()}
+						</AnimationProvider>
+					</ContextMenuProvider>
+				</LenisProvider>
+				<SvelteQueryDevtools />
+			</TanstackProvider>
+		</div>
 	{:else}
 		<Loader text="Loading Zafkiel..." />
 	{/if}

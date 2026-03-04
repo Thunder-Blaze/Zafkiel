@@ -4,6 +4,9 @@
 	import Icon from '@iconify/svelte';
 	import { currentUser, isAuthenticated } from '$lib/stores/auth';
 	import { goto } from '$app/navigation';
+	import { useConfigState } from '$lib/stores/config.svelte';
+
+	const blurEffectsEnabled = $derived(useConfigState().blurEffects);
 
 	type MenuItem = {
 		icon: string;
@@ -92,7 +95,8 @@
 	</DropdownMenu.Trigger>
 
 	<DropdownMenu.Content
-		class="z-50 min-w-48 rounded-xl border border-border/50 bg-background/95 p-1 shadow-xl backdrop-blur-xl"
+		class="z-50 min-w-48 rounded-xl border border-border/50 p-1 shadow-xl {blurEffectsEnabled ? 'bg-popover/85' : 'bg-popover'}"
+		style={blurEffectsEnabled ? 'backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);' : ''}
 		sideOffset={8}
 		align="end"
 	>

@@ -9,6 +9,7 @@
 	import { Debounced } from 'runed';
 	import ActionButtonStrip from './ActionButtonStrip.svelte';
 	import CachedImage from '$lib/components/ui/CachedImage.svelte';
+	import AddToListDialog from './AddToListDialog.svelte';
 	import type { Media } from '$lib/types/anilist';
 
 	let { media }: { media: Media } = $props();
@@ -97,7 +98,7 @@
 		return `${seasonName} ${seasonYear}`;
 	});
 
-	$inspect(media);
+	let addToListOpen = $state(false);
 </script>
 
 <!-- svelte-ignore a11y_mouse_events_have_key_events -->
@@ -180,6 +181,7 @@
 				{/if}
 			</div>
 		{/if}
+
 	</div>
 	<!-- Title at bottom -->
 	<div class="mt-3 w-full">
@@ -189,7 +191,20 @@
 			</h2>
 			<div class="flex items-center justify-between text-[10px] text-muted-foreground">
 				<span>{seasonDisplay()}</span>
-				<span>{format}</span>
+				<div class="flex items-center gap-1.5">
+					<span>{format}</span>
+					{#if !hoverCardEnabled}
+						<button
+							type="button"
+							title="Add to list"
+							onclick={(e) => { e.preventDefault(); e.stopPropagation(); addToListOpen = true; }}
+							class="flex h-4 w-4 items-center justify-center rounded-full transition-colors
+								{userStatus ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-primary hover:text-primary-foreground'}"
+						>
+							<Icon icon={userStatus ? 'solar:check-circle-bold' : 'solar:add-circle-bold'} class="size-3" />
+						</button>
+					{/if}
+				</div>
 			</div>
 		</div>
 	</div>
@@ -339,9 +354,9 @@
 
 				<!-- Stats Grid -->
 				<div class="grid grid-cols-2 gap-1.5 rounded-md bg-border p-1.5">
-					<!-- Status -->
+					<!-- Status + Add to list (same row) -->
 					<div
-						class="col-span-2 rounded-sm p-1.5 text-center text-xs font-semibold {status ===
+						class="rounded-sm p-1.5 text-center text-xs font-semibold {status ===
 						'RELEASING'
 							? 'bg-green-500/40'
 							: status === 'FINISHED'
@@ -350,6 +365,17 @@
 					>
 						{status ? status.charAt(0) + status.slice(1).toLowerCase().replace('_', ' ') : ''}
 					</div>
+					<button
+						type="button"
+						onclick={(e) => { e.preventDefault(); e.stopPropagation(); addToListOpen = true; }}
+						class="flex items-center justify-center gap-1 rounded-sm p-1.5 text-xs font-medium transition-colors
+							{userStatus
+								? 'bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground'
+								: 'bg-muted/40 text-muted-foreground hover:bg-primary/20 hover:text-primary'}"
+					>
+						<Icon icon={userStatus ? 'solar:pen-2-linear' : 'solar:add-circle-linear'} class="size-3.5" />
+						{userStatus ? 'Edit' : 'Add'}
+					</button>
 
 					<!-- Episodes/Chapters -->
 					<div
@@ -381,3 +407,5 @@
 		</div>
 	{/if}
 </div>
+
+<AddToListDialog bind:open={addToListOpen} {media} />

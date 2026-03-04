@@ -1123,6 +1123,48 @@ export function useToggleThreadSubscription() {
 	}));
 }
 
+/** Toggle like on a forum thread */
+export function useToggleLikeThread() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: ({ id }: { id: number }) => forumApi.toggleLikeThread(id),
+		onSuccess: (_, { id }) => {
+			queryClient.invalidateQueries({ queryKey: forumKeys.thread(id) });
+		},
+	}));
+}
+
+/** Toggle like on a thread comment */
+export function useToggleLikeComment() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: ({ id, threadId }: { id: number; threadId: number }) =>
+			forumApi.toggleLikeComment(id),
+		onSuccess: (_, { threadId }) => {
+			queryClient.invalidateQueries({ queryKey: forumKeys.comments(threadId) });
+		},
+	}));
+}
+
+/** Reply to a specific comment (nested reply) */
+export function useReplyToComment() {
+	const queryClient = useQueryClient();
+	return createMutation(() => ({
+		mutationFn: ({
+			threadId,
+			parentCommentId,
+			comment,
+		}: {
+			threadId: number;
+			parentCommentId: number;
+			comment: string;
+		}) => forumApi.replyToComment(threadId, parentCommentId, comment),
+		onSuccess: (_, { threadId }) => {
+			queryClient.invalidateQueries({ queryKey: forumKeys.comments(threadId) });
+		},
+	}));
+}
+
 // ============================================================================
 // Review Hooks
 // ============================================================================

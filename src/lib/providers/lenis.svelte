@@ -2,17 +2,24 @@
 	import Lenis from '@studio-freight/lenis';
 	import { useConfigState } from '$lib/stores/config.svelte';
 
-	const { children } = $props();
+	const { children, wrapper = null }: { children: any; wrapper?: HTMLElement | null } = $props();
 
 	let lenis: Lenis | null = $state(null);
 	let rafId: number | null = $state(null);
+	let contentEl = $state<HTMLElement | null>(null);
 	let smoothScrollEnabled = $derived(useConfigState().smoothScroll);
 
-	// Initialize/destroy Lenis based on config
+	// Re-initialize whenever wrapper or contentEl become available
 	$effect(() => {
-		if (smoothScrollEnabled) {
-			// Initialize Lenis
+		const scrollWrapper = wrapper;
+		const scrollContent = contentEl;
+
+		if (smoothScrollEnabled && scrollWrapper && scrollContent) {
+			// Both wrapper (the fixed below-titlebar div) and content (this <main>)
+			// must be provided so Lenis knows the full scrollable height.
 			lenis = new Lenis({
+				wrapper: scrollWrapper,
+				content: scrollContent,
 				smoothWheel: true,
 				lerp: 0.1,
 				orientation: 'vertical',
@@ -31,7 +38,6 @@
 
 			rafId = requestAnimationFrame(raf);
 
-			// Cleanup
 			return () => {
 				if (rafId !== null) {
 					cancelAnimationFrame(rafId);
@@ -41,7 +47,7 @@
 				lenis = null;
 			};
 		} else {
-			// Clean up if smooth scroll is disabled
+			// Clean up if smooth scroll is disabled or elements not ready
 			if (rafId !== null) {
 				cancelAnimationFrame(rafId);
 				rafId = null;
@@ -54,6 +60,6 @@
 	});
 </script>
 
-<main>
+<main bind:this={contentEl}>
 	{@render children()}
 </main>
