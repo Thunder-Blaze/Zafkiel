@@ -6,6 +6,18 @@
 import { ClientDatabaseService } from './client-database';
 import { invoke } from '@tauri-apps/api/core';
 
+/**
+ * Session-level cache: URL → resolved local path (or null for failures).
+ * Eliminates repeated Tauri IPC round-trips for URLs already resolved this session.
+ */
+const sessionPathCache = new Map<string, string | null>();
+
+/**
+ * In-flight request deduplication: URL → pending Promise.
+ * If two components mount simultaneously with the same URL, only one IPC call is made.
+ */
+const pendingRequests = new Map<string, Promise<string | null>>();
+
 export interface ImageCacheOptions {
 	quality?: 'original' | 'large' | 'medium' | 'small';
 	maxAge?: number; // in days
@@ -25,7 +37,9 @@ export class ImageCacheService {
 	private static readonly DEFAULT_MAX_AGE = 30; // 30 days
 
 	/**
-	 * Get cached image path or download if not cached
+	 * Get cached image path or download if not cached.
+	 * Results are memoised in a session-level Map so the same URL never triggers
+	 * more than one Tauri IPC call per page session.
 	 */
 	static async getCachedImage(
 		url: string,
@@ -33,33 +47,67 @@ export class ImageCacheService {
 	): Promise<string | null> {
 		if (!url) return null;
 
+		// 1. Instant session-cache hit (no IPC at all)
+		if (!options.forceRefresh && sessionPathCache.has(url)) {
+			return sessionPathCache.get(url) ?? null;
+		}
+
+		// 2. Deduplicate concurrent requests for the same URL
+		if (!options.forceRefresh && pendingRequests.has(url)) {
+			return pendingRequests.get(url)!;
+		}
+
+		// 3. Start a new request and register it as in-flight
+		const request = this._resolveImage(url, options).then((result) => {
+			sessionPathCache.set(url, result);
+			pendingRequests.delete(url);
+			return result;
+		});
+
+		pendingRequests.set(url, request);
+		return request;
+	}
+
+	/** Internal resolver – performs the actual Tauri IPC work. */
+	private static async _resolveImage(
+		url: string,
+		options: ImageCacheOptions
+	): Promise<string | null> {
 		try {
-			// Check if image is already cached
 			console.log('[ImageCache] Checking cache for:', url);
 			const cachedPath = await ClientDatabaseService.getCachedImagePath(url);
 
 			if (cachedPath && !options.forceRefresh) {
 				console.log('[ImageCache] Found in cache:', cachedPath);
-				// Verify file still exists
 				const exists = await this.fileExists(cachedPath);
 				if (exists) {
 					console.log('[ImageCache] File exists, using cached version');
 					return cachedPath;
 				} else {
 					console.warn('[ImageCache] Cached file missing, will re-download');
-					// File was deleted, remove from cache
 					await this.removeCachedImage(url);
 				}
 			} else {
 				console.log('[ImageCache] Not in cache, will download');
 			}
 
-			// Download and cache the image
 			return await this.downloadAndCache(url, options);
 		} catch (error) {
 			console.error('[ImageCache] Failed to get cached image:', error);
 			return null;
 		}
+	}
+
+	/** Invalidate a single URL from the session cache (e.g. after forced refresh). */
+	static invalidateSessionCache(url: string): void {
+		sessionPathCache.delete(url);
+		pendingRequests.delete(url);
+	}
+
+	/** Clear the entire session cache (e.g. on logout or settings change). */
+	static clearSessionCache(): void {
+		sessionPathCache.clear();
+		pendingRequests.clear();
 	}
 
 	/**
@@ -155,18 +203,17 @@ export class ImageCacheService {
 	}
 
 	/**
-	 * Remove image from cache
+	 * Remove image from cache (also invalidates the session cache entry).
 	 */
 	static async removeCachedImage(url: string): Promise<void> {
 		try {
 			const cachedPath = await ClientDatabaseService.getCachedImagePath(url);
 			if (cachedPath) {
-				// Delete file
 				await invoke('delete_file', { path: cachedPath });
-
-				// Remove from database
 				await ClientDatabaseService.removeCachedImage(url);
 			}
+			// Always clear from session cache so the next access re-resolves
+			this.invalidateSessionCache(url);
 		} catch (error) {
 			console.error('Failed to remove cached image:', error);
 		}

@@ -1,97 +1,103 @@
 <!--
   Cached Image Component
-  Automatically handles image caching and displays cached/fallback images
+  Automatically handles image caching and displays cached/fallback images.
+  Results are memoised in a session-level Map – the same URL never triggers
+  more than one Tauri IPC call per page session.
 -->
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { ImageCacheService, type ImageCacheOptions } from '$lib/services/imageCache';
 
-	export let src: string | null | undefined;
-	export let alt: string = '';
-	export let placeholder: string = '/placeholder.png';
-	export let cacheOptions: ImageCacheOptions = {};
-	export let preload: boolean = false;
+	interface Props {
+		src?: string | null;
+		alt?: string;
+		/** Shown while src loads or on error (after fallbackSrc). */
+		placeholder?: string;
+		/** Secondary image attempted before falling back to placeholder. */
+		fallbackSrc?: string | null;
+		cacheOptions?: ImageCacheOptions;
+		preload?: boolean;
+		width?: string | number;
+		height?: string | number;
+		loading?: 'lazy' | 'eager';
+		class?: string;
+		[key: string]: unknown;
+	}
 
-	// Standard img attributes
-	export let width: string | number | undefined = undefined;
-	export let height: string | number | undefined = undefined;
-	export let loading: 'lazy' | 'eager' = 'lazy';
+	let {
+		src = null,
+		alt = '',
+		placeholder = '/placeholder.png',
+		fallbackSrc = null,
+		cacheOptions = {},
+		preload = false,
+		width = undefined,
+		height = undefined,
+		loading = 'lazy',
+		class: className = '',
+		...rest
+	}: Props = $props();
 
-	let displaySrc = placeholder;
-	let isLoading = false;
-	let hasError = false;
-	let imageElement: HTMLImageElement;
+	let displaySrc = $state('');
+	let isLoading = $state(false);
+	let hasError = $state(false);
+	let imageElement: HTMLImageElement | null = $state(null);
+	/** The resolved local asset path, kept separately so handleError can distinguish stages. */
+	let cachedAssetSrc = $state<string | null>(null);
 
-	async function loadImage() {
+	$effect(() => {
+		// Reset per-src state
+		cachedAssetSrc = null;
+		hasError = false;
+
 		if (!src) {
 			displaySrc = placeholder;
+			isLoading = false;
 			return;
 		}
 
-		try {
-			isLoading = true;
-			hasError = false;
+		// ① Show the CDN URL immediately — no flash of blank / opacity-50
+		displaySrc = src;
+		isLoading = true;
 
-			// Try to get cached image first
-			const cachedPath = await ImageCacheService.getCachedImage(src, cacheOptions);
+		ImageCacheService.getCachedImage(src, cacheOptions)
+			.then((path) => {
+				if (path) {
+					cachedAssetSrc = `asset://localhost/${path}`;
+					displaySrc = cachedAssetSrc;
+				}
+				// If no cached path, displaySrc stays as the CDN URL (already set above)
+			})
+			.catch((err) => {
+				console.error('[CachedImage] Failed to resolve cached path:', err);
+			})
+			.finally(() => {
+				isLoading = false;
+			});
 
-			if (cachedPath) {
-				// Use cached image
-				displaySrc = `asset://localhost/${cachedPath}`;
-			} else {
-				// Fallback to original URL
-				displaySrc = src;
-			}
-		} catch (error) {
-			console.error('Failed to load cached image:', error);
-			displaySrc = src || placeholder;
-			hasError = true;
-		} finally {
-			isLoading = false;
+		// Pre-warm the fallback so it's ready if the primary fails
+		if (preload && fallbackSrc) {
+			ImageCacheService.getCachedImage(fallbackSrc, cacheOptions).catch(() => {});
 		}
-	}
+	});
 
 	function handleError() {
 		hasError = true;
-		if (displaySrc !== placeholder && displaySrc !== src) {
-			// If cached image failed, try original
-			displaySrc = src || placeholder;
+		if (cachedAssetSrc && displaySrc === cachedAssetSrc) {
+			// Cached local file is missing/corrupt → fall back to original CDN URL
+			displaySrc = src ?? placeholder;
+		} else if (fallbackSrc && displaySrc !== fallbackSrc) {
+			// Primary URL failed → try fallbackSrc
+			displaySrc = fallbackSrc;
 		} else if (displaySrc !== placeholder) {
-			// If original failed, use placeholder
+			// Everything failed → placeholder
 			displaySrc = placeholder;
 		}
 	}
 
 	function handleLoad() {
 		hasError = false;
-
-		// If we successfully loaded the original image, cache it in background
-		if (displaySrc === src && src) {
-			ImageCacheService.getCachedImage(src, cacheOptions).catch((err) => {
-				console.warn('Background caching failed:', err);
-			});
-		}
+		isLoading = false;
 	}
-
-	// Preload image if requested
-	async function preloadImage() {
-		if (preload && src) {
-			try {
-				await ImageCacheService.getCachedImage(src, cacheOptions);
-			} catch (error) {
-				console.warn('Preload failed:', error);
-			}
-		}
-	}
-
-	// React to src changes
-	$: if (src) {
-		loadImage();
-	}
-
-	onMount(() => {
-		preloadImage();
-	});
 </script>
 
 <img
@@ -101,17 +107,14 @@
 	{width}
 	{height}
 	{loading}
-	class="transition-opacity duration-200 {isLoading ? 'opacity-50' : 'opacity-100'} {hasError
-		? 'grayscale filter'
-		: ''} {$$props.class || ''}"
-	on:load={handleLoad}
-	on:error={handleError}
-	{...$$restProps}
+	class="transition-opacity duration-200 {hasError ? 'opacity-60 grayscale filter' : 'opacity-100'} {className}"
+	onload={handleLoad}
+	onerror={handleError}
+	{...rest}
 />
 
 <style>
 	img {
-		/* Ensure smooth transitions */
 		transition:
 			opacity 0.2s ease-in-out,
 			filter 0.2s ease-in-out;
