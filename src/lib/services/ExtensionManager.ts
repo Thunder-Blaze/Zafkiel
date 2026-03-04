@@ -2,77 +2,77 @@ import type { AnimeLarge } from '$lib/types/anime';
 import { NyaaProvider } from './NyaaProvider';
 
 export interface ExtensionManifest {
-    id: string;
-    name: string;
-    version: string;
-    author: string;
-    description?: string;
-    type: 'torrent' | 'source' | 'other';
+	id: string;
+	name: string;
+	version: string;
+	author: string;
+	description?: string;
+	type: 'torrent' | 'source' | 'other';
 }
 
 export interface TorrentInfo {
-    title: string;
-    size: string;
-    seeds: number;
-    peers: number;
-    magnet: string;
-    provider: string;
-    uploadedAt?: string;
+	title: string;
+	size: string;
+	seeds: number;
+	peers: number;
+	magnet: string;
+	provider: string;
+	uploadedAt?: string;
 }
 
 export interface TorrentProvider {
-    manifest: ExtensionManifest;
-    search(query: string): Promise<TorrentInfo[]>;
-    searchAnime(anime: AnimeLarge): Promise<TorrentInfo[]>;
+	manifest: ExtensionManifest;
+	search(query: string): Promise<TorrentInfo[]>;
+	searchAnime(anime: AnimeLarge): Promise<TorrentInfo[]>;
 }
 
 class ExtensionManagerService {
-    private providers: Map<string, TorrentProvider> = new Map();
+	private providers: Map<string, TorrentProvider> = new Map();
 
-    constructor() {
-        // We will register built-in providers here
-        this.registerProvider(new NyaaProvider());
-    }
+	constructor() {
+		// We will register built-in providers here
+		this.registerProvider(new NyaaProvider());
+	}
 
-    registerProvider(provider: TorrentProvider) {
-        if (this.providers.has(provider.manifest.id)) {
-            console.warn(`Provider ${provider.manifest.id} already registered, overwriting.`);
-        }
-        this.providers.set(provider.manifest.id, provider);
-        console.log(`Registered provider: ${provider.manifest.name}`);
-    }
+	registerProvider(provider: TorrentProvider) {
+		if (this.providers.has(provider.manifest.id)) {
+			console.warn(`Provider ${provider.manifest.id} already registered, overwriting.`);
+		}
+		this.providers.set(provider.manifest.id, provider);
+		console.log(`Registered provider: ${provider.manifest.name}`);
+	}
 
-    getProviders(): TorrentProvider[] {
-        return Array.from(this.providers.values());
-    }
+	getProviders(): TorrentProvider[] {
+		return Array.from(this.providers.values());
+	}
 
-    getProvider(id: string): TorrentProvider | undefined {
-        return this.providers.get(id);
-    }
+	getProvider(id: string): TorrentProvider | undefined {
+		return this.providers.get(id);
+	}
 
-    async searchAll(query: string): Promise<TorrentInfo[]> {
-        const promises = Array.from(this.providers.values()).map(p =>
-            p.search(query).catch(e => {
-                console.error(`Error searching provider ${p.manifest.name}:`, e);
-                return [];
-            })
-        );
+	async searchAll(query: string): Promise<TorrentInfo[]> {
+		const promises = Array.from(this.providers.values()).map((p) =>
+			p.search(query).catch((e) => {
+				console.error(`Error searching provider ${p.manifest.name}:`, e);
+				return [];
+			})
+		);
 
-        const results = await Promise.all(promises);
-        return results.flat().sort((a, b) => b.seeds - a.seeds);
-    }
+		const results = await Promise.all(promises);
+		return results.flat().sort((a, b) => b.seeds - a.seeds);
+	}
 
-    async searchAnimeAll(anime: AnimeLarge): Promise<TorrentInfo[]> {
-        const promises = Array.from(this.providers.values()).map(p =>
-            p.searchAnime(anime).catch(e => {
-                console.error(`Error searching provider ${p.manifest.name}:`, e);
-                return [];
-            })
-        );
+	async searchAnimeAll(anime: AnimeLarge): Promise<TorrentInfo[]> {
+		const promises = Array.from(this.providers.values()).map((p) =>
+			p.searchAnime(anime).catch((e) => {
+				console.error(`Error searching provider ${p.manifest.name}:`, e);
+				return [];
+			})
+		);
 
-        const results = await Promise.all(promises);
-        return results.flat().sort((a, b) => b.seeds - a.seeds);
-    }
+		const results = await Promise.all(promises);
+		return results.flat().sort((a, b) => b.seeds - a.seeds);
+	}
 }
 
 export const ExtensionManager = new ExtensionManagerService();

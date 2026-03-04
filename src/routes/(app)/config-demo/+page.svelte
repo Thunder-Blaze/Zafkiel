@@ -75,7 +75,7 @@
 
 	const handleGetToken = async () => {
 		try {
-			const token = "await ConfigService.getAniListToken()";
+			const token = 'await ConfigService.getAniListToken()';
 			if (token) {
 				toast.success(`Decrypted token: ${token.substring(0, 20)}...`);
 			} else {
@@ -116,9 +116,9 @@
 				<div class="flex items-center gap-2">
 					<span class="text-sm font-medium">Status:</span>
 					<!-- {#if authenticated} -->
-						<Badge class="bg-green-500">Authenticated</Badge>
+					<Badge class="bg-green-500">Authenticated</Badge>
 					<!-- {:else} -->
-						<!-- <Badge variant="secondary">Not Authenticated</Badge> -->
+					<!-- <Badge variant="secondary">Not Authenticated</Badge> -->
 					<!-- {/if} -->
 				</div>
 
@@ -146,12 +146,12 @@
 						Set Token
 					</Button>
 					<!-- {#if authenticated} -->
-						<Button variant="outline" onclick={handleGetToken} disabled={isLoading}>
-							View Token
-						</Button>
-						<!-- <Button variant="destructive" onclick={handleClearToken} disabled={isLoading}> -->
-							<!-- Clear -->
-						<!-- </Button> -->
+					<Button variant="outline" onclick={handleGetToken} disabled={isLoading}>
+						View Token
+					</Button>
+					<!-- <Button variant="destructive" onclick={handleClearToken} disabled={isLoading}> -->
+					<!-- Clear -->
+					<!-- </Button> -->
 					<!-- {/if} -->
 				</div>
 			</CardContent>

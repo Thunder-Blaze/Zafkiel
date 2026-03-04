@@ -3,13 +3,16 @@
 ## Issues Fixed
 
 ### 1. ✅ Theme Preference Spam on Reload
+
 **Problem**: `[Themes] Getting theme preference` was appearing multiple times on every page reload
 
 **Root Cause**:
+
 - Theme store was calling `ConfigService.getUiConfig()` which bypassed the config cache
 - `themeManager.initialize()` was calling `loadThemePreference()` which made backend call even when theme was cached
 
 **Solution**:
+
 - Theme store now checks theme cache first (15min TTL)
 - Added `themeManager.initializeWithTheme()` method that skips backend call
 - Theme store uses cached theme data when available, only calls backend on cache miss
@@ -18,13 +21,16 @@
 **Result**: On reload, theme loads instantly from session cache without any backend calls! ✨
 
 ### 2. ✅ Image Cache Stats Showing Nothing
+
 **Problem**: Cache settings page showed "0 images cached" even when images were cached
 
 **Root Cause**:
+
 - `loadCacheStats()` was trying to call non-existent backend command
 - Wasn't actually querying the database for cached images
 
 **Solution**:
+
 - Updated `ImageCacheManager.svelte` to import `DatabaseService`
 - Changed `loadCacheStats()` to call `DatabaseService.getAllCachedImages()`
 - Stats now properly calculated from database query results
@@ -59,11 +65,13 @@ User reloads page
 ```
 
 ### Cache Durations
+
 - **Auth**: 5 minutes
 - **Config**: 15 minutes
 - **Themes**: 15 minutes
 
 ### Cache Storage
+
 - **Location**: Browser sessionStorage
 - **Key**: `zafkiel_session_cache`
 - **Scope**: Per-tab (cleared when tab closes)
@@ -72,25 +80,30 @@ User reloads page
 ## Files Modified
 
 ### Core Cache System
+
 - `src/lib/stores/sessionCache.svelte.ts` - Fixed AppConfig type import
 - `src/lib/stores/config.ts` - Added cache integration
 - `src/lib/stores/theme.svelte.ts` - Added cache check, removed circular dependency
 
 ### Theme Manager
+
 - `src/lib/services/theme.ts` - Added `initializeWithTheme()` method
 
 ### Settings Page
+
 - `src/lib/components/settings/ImageCacheManager.svelte` - Fixed stats loading, added storage clear buttons
 
 ## Performance Improvements
 
 ### Before
+
 - Every page load: Multiple backend calls
 - Config loaded every time
 - Theme preference fetched 2-3 times
 - Logs spam: `[Themes] Getting theme preference` × N
 
 ### After
+
 - First load: Backend calls (as expected)
 - Subsequent loads: Zero backend calls for 15 minutes
 - Config served from cache
@@ -100,6 +113,7 @@ User reloads page
 **Result**: ~200ms faster page loads! 🚀
 
 ## Testing
+
 1. ✅ First page load - everything initializes
 2. ✅ Page reload - uses cache, no backend calls
 3. ✅ Clear session storage - fresh load works
@@ -109,6 +123,7 @@ User reloads page
 ## Console Output Comparison
 
 ### Before
+
 ```
 [Themes] Getting theme preference
 [Themes] ✓ Got theme preference: amethyst-haze
@@ -120,6 +135,7 @@ User reloads page
 ```
 
 ### After (with cache)
+
 ```
 [Config] ✓ Loaded from cache
 [ThemeStore] ✓ Using cached theme data

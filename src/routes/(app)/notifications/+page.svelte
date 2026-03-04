@@ -16,17 +16,17 @@
 			'ACTIVITY_MENTION',
 			'ACTIVITY_LIKE',
 			'ACTIVITY_REPLY_LIKE',
-			'ACTIVITY_REPLY_SUBSCRIBED'
+			'ACTIVITY_REPLY_SUBSCRIBED',
 		],
 		FORUM: [
 			'THREAD_COMMENT_MENTION',
 			'THREAD_SUBSCRIBED',
 			'THREAD_COMMENT_REPLY',
 			'THREAD_LIKE',
-			'THREAD_COMMENT_LIKE'
+			'THREAD_COMMENT_LIKE',
 		],
 		FOLLOWS: ['FOLLOWING'],
-		MEDIA: ['RELATED_MEDIA_ADDITION', 'MEDIA_DATA_CHANGE', 'MEDIA_MERGE', 'MEDIA_DELETION']
+		MEDIA: ['RELATED_MEDIA_ADDITION', 'MEDIA_DATA_CHANGE', 'MEDIA_MERGE', 'MEDIA_DELETION'],
 	};
 
 	const FILTERS: { id: FilterCategory; label: string; icon: string }[] = [
@@ -35,7 +35,7 @@
 		{ id: 'ACTIVITY', label: 'Activity', icon: 'solar:chat-round-dots-bold-duotone' },
 		{ id: 'FORUM', label: 'Forum', icon: 'solar:chat-square-bold-duotone' },
 		{ id: 'FOLLOWS', label: 'Follows', icon: 'solar:user-plus-bold-duotone' },
-		{ id: 'MEDIA', label: 'Media', icon: 'solar:play-circle-bold-duotone' }
+		{ id: 'MEDIA', label: 'Media', icon: 'solar:play-circle-bold-duotone' },
 	];
 
 	let activeFilter = $state<FilterCategory>('ALL');
@@ -97,7 +97,7 @@
 					html: `Episode <strong>${n.episode ?? '?'}</strong> of ${mediaLink(n.media?.id, n.media?.title?.userPreferred)} aired`,
 					time: n.createdAt,
 					coverImage: n.media?.coverImage?.medium ?? undefined,
-					link: n.media?.id ? `/anime/${n.media.id}` : undefined
+					link: n.media?.id ? `/anime/${n.media.id}` : undefined,
 				};
 			case 'FOLLOWING':
 				return {
@@ -106,7 +106,7 @@
 					html: `${userLink(n.user?.id, n.user?.name)} ${n.context ?? 'started following you'}`,
 					time: n.createdAt,
 					avatar: n.user?.avatar?.medium ?? undefined,
-					link: n.user?.id ? `/user/${n.user.id}` : undefined
+					link: n.user?.id ? `/user/${n.user.id}` : undefined,
 				};
 			case 'ACTIVITY_MESSAGE':
 				return {
@@ -115,7 +115,7 @@
 					html: `${userLink(n.user?.id, n.user?.name)} ${n.context ?? 'sent you a message'}`,
 					time: n.createdAt,
 					avatar: n.user?.avatar?.medium ?? undefined,
-					link: n.user?.id ? `/user/${n.user.id}` : undefined
+					link: n.user?.id ? `/user/${n.user.id}` : undefined,
 				};
 			case 'ACTIVITY_MENTION':
 				return {
@@ -123,7 +123,7 @@
 					iconClass: 'text-yellow-500',
 					html: `${userLink(n.user?.id, n.user?.name)} ${n.context ?? 'mentioned you in an activity'}`,
 					time: n.createdAt,
-					avatar: n.user?.avatar?.medium ?? undefined
+					avatar: n.user?.avatar?.medium ?? undefined,
 				};
 			case 'ACTIVITY_REPLY':
 				return {
@@ -131,7 +131,7 @@
 					iconClass: 'text-orange-500',
 					html: `${userLink(n.user?.id, n.user?.name)} ${n.context ?? 'replied to your activity'}`,
 					time: n.createdAt,
-					avatar: n.user?.avatar?.medium ?? undefined
+					avatar: n.user?.avatar?.medium ?? undefined,
 				};
 			case 'ACTIVITY_REPLY_SUBSCRIBED':
 				return {
@@ -139,7 +139,7 @@
 					iconClass: 'text-blue-400',
 					html: `${userLink(n.user?.id, n.user?.name)} ${n.context ?? 'replied to a subscribed activity'}`,
 					time: n.createdAt,
-					avatar: n.user?.avatar?.medium ?? undefined
+					avatar: n.user?.avatar?.medium ?? undefined,
 				};
 			case 'ACTIVITY_LIKE':
 				return {
@@ -147,7 +147,7 @@
 					iconClass: 'text-red-500',
 					html: `${userLink(n.user?.id, n.user?.name)} ${n.context ?? 'liked your activity'}`,
 					time: n.createdAt,
-					avatar: n.user?.avatar?.medium ?? undefined
+					avatar: n.user?.avatar?.medium ?? undefined,
 				};
 			case 'ACTIVITY_REPLY_LIKE':
 				return {
@@ -155,7 +155,7 @@
 					iconClass: 'text-pink-500',
 					html: `${userLink(n.user?.id, n.user?.name)} ${n.context ?? 'liked your reply'}`,
 					time: n.createdAt,
-					avatar: n.user?.avatar?.medium ?? undefined
+					avatar: n.user?.avatar?.medium ?? undefined,
 				};
 			case 'THREAD_COMMENT_MENTION':
 				return {
@@ -164,7 +164,7 @@
 					html: `${userLink(n.user?.id, n.user?.name)} ${n.context ?? 'mentioned you in a forum comment'}`,
 					time: n.createdAt,
 					avatar: n.user?.avatar?.medium ?? undefined,
-					link: n.thread?.id ? `/forum/${n.thread.id}` : undefined
+					link: n.thread?.id ? `/forum/${n.thread.id}` : undefined,
 				};
 			case 'THREAD_COMMENT_REPLY':
 				return {
@@ -173,7 +173,7 @@
 					html: `${userLink(n.user?.id, n.user?.name)} ${n.context ?? 'replied to your forum comment'}`,
 					time: n.createdAt,
 					avatar: n.user?.avatar?.medium ?? undefined,
-					link: n.thread?.id ? `/forum/${n.thread.id}` : undefined
+					link: n.thread?.id ? `/forum/${n.thread.id}` : undefined,
 				};
 			case 'THREAD_SUBSCRIBED':
 				return {
@@ -182,7 +182,7 @@
 					html: `${userLink(n.user?.id, n.user?.name)} ${n.context ?? 'replied to a subscribed forum thread'}`,
 					time: n.createdAt,
 					avatar: n.user?.avatar?.medium ?? undefined,
-					link: n.thread?.id ? `/forum/${n.thread.id}` : undefined
+					link: n.thread?.id ? `/forum/${n.thread.id}` : undefined,
 				};
 			case 'THREAD_LIKE':
 				return {
@@ -191,7 +191,7 @@
 					html: `${userLink(n.user?.id, n.user?.name)} ${n.context ?? 'liked your forum thread'}`,
 					time: n.createdAt,
 					avatar: n.user?.avatar?.medium ?? undefined,
-					link: n.thread?.id ? `/forum/${n.thread.id}` : undefined
+					link: n.thread?.id ? `/forum/${n.thread.id}` : undefined,
 				};
 			case 'THREAD_COMMENT_LIKE':
 				return {
@@ -199,7 +199,7 @@
 					iconClass: 'text-pink-400',
 					html: `${userLink(n.user?.id, n.user?.name)} ${n.context ?? 'liked your forum comment'}`,
 					time: n.createdAt,
-					avatar: n.user?.avatar?.medium ?? undefined
+					avatar: n.user?.avatar?.medium ?? undefined,
 				};
 			case 'RELATED_MEDIA_ADDITION':
 				return {
@@ -208,7 +208,7 @@
 					html: `${mediaLink(n.media?.id, n.media?.title?.userPreferred)} was added to your list as related media`,
 					time: n.createdAt,
 					coverImage: n.media?.coverImage?.medium ?? undefined,
-					link: n.media?.id ? `/anime/${n.media.id}` : undefined
+					link: n.media?.id ? `/anime/${n.media.id}` : undefined,
 				};
 			case 'MEDIA_DATA_CHANGE':
 				return {
@@ -217,7 +217,7 @@
 					html: `${mediaLink(n.media?.id, n.media?.title?.userPreferred ?? 'A media')} had its data updated`,
 					time: n.createdAt,
 					coverImage: n.media?.coverImage?.medium ?? undefined,
-					link: n.media?.id ? `/anime/${n.media.id}` : undefined
+					link: n.media?.id ? `/anime/${n.media.id}` : undefined,
 				};
 			case 'MEDIA_MERGE':
 				return {
@@ -226,21 +226,21 @@
 					html: `${mediaLink(n.media?.id, n.media?.title?.userPreferred ?? 'A media')} was merged into another entry`,
 					time: n.createdAt,
 					coverImage: n.media?.coverImage?.medium ?? undefined,
-					link: n.media?.id ? `/anime/${n.media.id}` : undefined
+					link: n.media?.id ? `/anime/${n.media.id}` : undefined,
 				};
 			case 'MEDIA_DELETION':
 				return {
 					icon: 'solar:trash-bin-bold-duotone',
 					iconClass: 'text-destructive',
 					html: `<strong>${n.deletedMediaTitle ?? 'A media'}</strong> was deleted from the site`,
-					time: n.createdAt
+					time: n.createdAt,
 				};
 			default:
 				return {
 					icon: 'solar:bell-bold-duotone',
 					iconClass: 'text-muted-foreground',
 					html: 'New notification',
-					time: undefined
+					time: undefined,
 				};
 		}
 	}
@@ -336,19 +336,17 @@
 					/>
 				</div>
 
-			<!-- Error -->
+				<!-- Error -->
 			{:else if notifQuery.error || (notifQuery.data && !notifQuery.data.success)}
 				<div class="flex min-h-[300px] flex-col items-center justify-center gap-4 text-center">
 					<Icon icon="solar:danger-triangle-bold-duotone" class="h-12 w-12 text-destructive" />
 					<p class="text-muted-foreground">
-						{notifQuery.error?.message ||
-							notifQuery.data?.error ||
-							'Failed to load notifications'}
+						{notifQuery.error?.message || notifQuery.data?.error || 'Failed to load notifications'}
 					</p>
 					<Button variant="outline" onclick={() => notifQuery.refetch()}>Try Again</Button>
 				</div>
 
-			<!-- Empty -->
+				<!-- Empty -->
 			{:else if notifications.length === 0}
 				<div class="flex min-h-[300px] flex-col items-center justify-center gap-3 text-center">
 					<Icon icon="solar:bell-off-bold-duotone" class="h-16 w-16 text-muted-foreground" />
@@ -358,7 +356,7 @@
 					</p>
 				</div>
 
-			<!-- Notification list -->
+				<!-- Notification list -->
 			{:else}
 				<ul class="flex flex-col gap-2">
 					{#each notifications as notif (notif.id)}
@@ -369,65 +367,65 @@
 								class="flex w-full cursor-pointer items-center gap-3 p-4 text-left"
 								onclick={(e) => handleRowClick(e, info)}
 							>
-							<!-- Cover image (media notifications) or Avatar (user notifications) -->
-						<div class="relative shrink-0">
-								{#if info.coverImage}
-									<!-- Anime/manga poster thumbnail -->
-									<div class="relative h-16 w-11 overflow-hidden rounded-sm bg-muted shadow-sm">
-										<CachedImage
-											src={info.coverImage}
-											alt=""
-											class="h-full w-full object-cover"
-										/>
-									</div>
-									<!-- Icon badge on cover -->
-									<div
-										class="absolute -bottom-1 -right-1 rounded-full border border-border bg-card p-0.5"
-									>
-										<Icon icon={info.icon} class="size-3 {info.iconClass}" />
-									</div>
-								{:else if info.avatar}
-									<!-- User avatar circle -->
-									<div class="relative h-10 w-10">
-										<CachedImage
-											src={info.avatar}
-											alt=""
-											class="h-10 w-10 rounded-full object-cover ring-1 ring-border"
-										/>
+								<!-- Cover image (media notifications) or Avatar (user notifications) -->
+								<div class="relative shrink-0">
+									{#if info.coverImage}
+										<!-- Anime/manga poster thumbnail -->
+										<div class="relative h-16 w-11 overflow-hidden rounded-sm bg-muted shadow-sm">
+											<CachedImage
+												src={info.coverImage}
+												alt=""
+												class="h-full w-full object-cover"
+											/>
+										</div>
+										<!-- Icon badge on cover -->
 										<div
-											class="absolute -bottom-1 -right-1 rounded-full border border-border bg-card p-0.5"
+											class="absolute -right-1 -bottom-1 rounded-full border border-border bg-card p-0.5"
 										>
 											<Icon icon={info.icon} class="size-3 {info.iconClass}" />
 										</div>
-									</div>
-								{:else}
-									<!-- Fallback icon circle -->
-									<div class="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-										<Icon icon={info.icon} class="size-5 {info.iconClass}" />
-									</div>
-								{/if}
-							</div>
+									{:else if info.avatar}
+										<!-- User avatar circle -->
+										<div class="relative h-10 w-10">
+											<CachedImage
+												src={info.avatar}
+												alt=""
+												class="h-10 w-10 rounded-full object-cover ring-1 ring-border"
+											/>
+											<div
+												class="absolute -right-1 -bottom-1 rounded-full border border-border bg-card p-0.5"
+											>
+												<Icon icon={info.icon} class="size-3 {info.iconClass}" />
+											</div>
+										</div>
+									{:else}
+										<!-- Fallback icon circle -->
+										<div class="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+											<Icon icon={info.icon} class="size-5 {info.iconClass}" />
+										</div>
+									{/if}
+								</div>
 
-							<!-- Text content -->
-							<div class="min-w-0 flex-1">
-								<p class="text-sm leading-snug">
-									<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-									{@html info.html}
-								</p>
-								{#if info.time}
-									<p class="mt-1 text-xs text-muted-foreground">{timeAgo(info.time)}</p>
-								{/if}
-							</div>
+								<!-- Text content -->
+								<div class="min-w-0 flex-1">
+									<p class="text-sm leading-snug">
+										<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+										{@html info.html}
+									</p>
+									{#if info.time}
+										<p class="mt-1 text-xs text-muted-foreground">{timeAgo(info.time)}</p>
+									{/if}
+								</div>
 
-							<!-- Navigation arrow (shows on hover when there's a primary link) -->
-							{#if info.link}
-								<Icon
-									icon="solar:arrow-right-linear"
-									class="size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
-								/>
-							{/if}
-						</button>
-					</li>
+								<!-- Navigation arrow (shows on hover when there's a primary link) -->
+								{#if info.link}
+									<Icon
+										icon="solar:arrow-right-linear"
+										class="size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+									/>
+								{/if}
+							</button>
+						</li>
 					{/each}
 				</ul>
 

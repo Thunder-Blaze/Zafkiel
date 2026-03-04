@@ -27,7 +27,9 @@
 	<div class="flex items-start gap-3">
 		{#if review.media?.coverImage?.medium}
 			<button
-				onclick={() => review.media?.id && goto(`/${(review.media.type ?? 'anime').toLowerCase()}/${review.media.id}`)}
+				onclick={() =>
+					review.media?.id &&
+					goto(`/${(review.media.type ?? 'anime').toLowerCase()}/${review.media.id}`)}
 				class="shrink-0"
 			>
 				<CachedImage
@@ -42,7 +44,9 @@
 			{#if review.media}
 				<button
 					class="mb-1 line-clamp-1 text-sm font-semibold hover:text-primary hover:underline"
-					onclick={() => review.media?.id && goto(`/${(review.media.type ?? 'anime').toLowerCase()}/${review.media.id}`)}
+					onclick={() =>
+						review.media?.id &&
+						goto(`/${(review.media.type ?? 'anime').toLowerCase()}/${review.media.id}`)}
 				>
 					{review.media.title?.userPreferred ?? 'Unknown'}
 				</button>
@@ -51,7 +55,7 @@
 				{#if review.user?.avatar?.medium}
 					<button onclick={() => review.user?.id && goto(`/user/${review.user.id}`)}>
 						<CachedImage
-						src={review.user.avatar.medium}
+							src={review.user.avatar.medium}
 							alt={review.user.name ?? ''}
 							class="h-6 w-6 rounded-full object-cover"
 						/>

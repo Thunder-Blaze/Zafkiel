@@ -1,9 +1,11 @@
 # Image Caching Debug Report
 
 ## Problem
+
 Images are being downloaded repeatedly instead of using cached versions.
 
 ## Evidence
+
 ```
 [2025-10-11][12:35:09] Downloaded and cached image: https://...jpg -> .../cache/images/fvwp1i.jpg
 [2025-10-11][12:35:13] Downloaded and cached image: https://...jpg -> .../cache/images/fvwp1i.jpg
@@ -16,6 +18,7 @@ Same images downloaded multiple times!
 ## Investigation
 
 ### ✅ Database Setup
+
 ```bash
 $ sqlite3 ~/.local/share/com.zafkiel.dev/zafkiel.db ".schema cached_images"
 CREATE TABLE cached_images (
@@ -27,17 +30,22 @@ CREATE TABLE cached_images (
     last_accessed INTEGER NOT NULL
 );
 ```
+
 ✅ Table exists with correct schema
 
 ### ❌ Database Empty
+
 ```bash
 $ sqlite3 ~/.local/share/com.zafkiel.dev/zafkiel.db "SELECT COUNT(*) FROM cached_images;"
 0
 ```
+
 ❌ NO cached images in database!
 
 ### ❌ Missing Logs
+
 Expected logs from Rust:
+
 - `[DB] get_cached_image_path called for: ...`
 - `[DB] cache_image called: ... -> ...`
 - `[DB] Cached image successfully: ...`
@@ -45,12 +53,15 @@ Expected logs from Rust:
 **NONE of these logs appear!**
 
 This means:
+
 1. `get_cached_image_path` Tauri command is NOT being called
 2. `cache_image` Tauri command is NOT being called
 3. Frontend is NOT invoking these commands
 
 ### Hypothesis
+
 The frontend code is likely:
+
 1. Encountering an error when trying to call Tauri commands
 2. Silently catching the error
 3. Falling back to original URL
@@ -59,6 +70,7 @@ The frontend code is likely:
 ## Code Flow Analysis
 
 ### Expected Flow
+
 ```
 CachedImage component loads
     ↓
@@ -77,6 +89,7 @@ IF NOT: download and cache
 ```
 
 ### Actual Flow (Suspected)
+
 ```
 CachedImage component loads
     ↓
@@ -104,7 +117,9 @@ Downloads image again
 5. ⏳ Need to visit test page and see results
 
 ## Test Page
+
 Visit http://localhost:5173/test-cache to manually test:
+
 1. `get_cached_image_path` command
 2. `cache_image` command
 3. Database persistence

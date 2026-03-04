@@ -26,7 +26,9 @@ const initialState: AuthState = {
 };
 
 // Helper: derive a count from a settled media list response
-function compileCount(result: PromiseSettledResult<Awaited<ReturnType<typeof mediaListApi.getMyAnimeList>>>): number {
+function compileCount(
+	result: PromiseSettledResult<Awaited<ReturnType<typeof mediaListApi.getMyAnimeList>>>
+): number {
 	if (result.status !== 'fulfilled' || !result.value.success || !result.value.data) return 0;
 	const page = result.value.data;
 	// Prefer pageInfo.total; fall back to data.length if total is not populated by the crate
@@ -86,7 +88,11 @@ function createAuthStore() {
 						mediaListApi.getMyAnimeList('PLANNING', 1, 50),
 					]);
 
-					if (userResponse.status === 'fulfilled' && userResponse.value.success && userResponse.value.data) {
+					if (
+						userResponse.status === 'fulfilled' &&
+						userResponse.value.success &&
+						userResponse.value.data
+					) {
 						const user = userResponse.value.data;
 						const listStats: ListStats = {
 							watching: compileCount(watchRes),
@@ -102,9 +108,10 @@ function createAuthStore() {
 						});
 						saveAuthCache(true, user, listStats);
 					} else {
-						const err = userResponse.status === 'fulfilled'
-							? (userResponse.value.error || 'Failed to fetch user profile')
-							: 'Failed to fetch user profile';
+						const err =
+							userResponse.status === 'fulfilled'
+								? userResponse.value.error || 'Failed to fetch user profile'
+								: 'Failed to fetch user profile';
 						throw new Error(err);
 					}
 				} else {
@@ -150,7 +157,11 @@ function createAuthStore() {
 					mediaListApi.getMyAnimeList('PLANNING', 1, 50),
 				]);
 
-				if (userResponse.status === 'fulfilled' && userResponse.value.success && userResponse.value.data) {
+				if (
+					userResponse.status === 'fulfilled' &&
+					userResponse.value.success &&
+					userResponse.value.data
+				) {
 					const user = userResponse.value.data;
 					const listStats: ListStats = {
 						watching: compileCount(watchRes),
@@ -168,7 +179,7 @@ function createAuthStore() {
 				} else {
 					throw new Error(
 						userResponse.status === 'fulfilled'
-							? (userResponse.value.error || 'Failed to fetch user profile')
+							? userResponse.value.error || 'Failed to fetch user profile'
 							: 'Failed to fetch user profile'
 					);
 				}

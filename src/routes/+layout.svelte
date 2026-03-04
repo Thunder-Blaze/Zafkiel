@@ -7,6 +7,7 @@
 	import ThemedToaster from '$lib/components/ThemedToaster.svelte';
 	import ContextMenu from '$lib/components/ContextMenu.svelte';
 	import ContextMenuProvider from '$lib/providers/context-menu.svelte';
+	import SearchOverlay from '$lib/components/SearchOverlay.svelte';
 	import TanstackProvider from '$lib/providers/tanstack.svelte';
 	import LenisProvider from '$lib/providers/lenis.svelte';
 	import AnimationProvider from '$lib/providers/animation.svelte';
@@ -82,14 +83,22 @@
 		{@const stack = error instanceof Error ? (error.stack ?? '') : ''}
 		<div class="flex h-screen flex-col items-center justify-center gap-4 p-8">
 			<p class="text-lg font-semibold text-destructive">Something went wrong</p>
-			<pre class="max-h-64 w-full max-w-2xl overflow-auto rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-xs text-destructive">{message}</pre>
+			<pre
+				class="max-h-64 w-full max-w-2xl overflow-auto rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-xs text-destructive">{message}</pre>
 			{#if stack}
 				<details class="w-full max-w-2xl">
-					<summary class="cursor-pointer text-xs text-muted-foreground hover:text-foreground">Stack trace</summary>
-					<pre class="mt-2 max-h-48 overflow-auto rounded border border-border bg-muted/50 p-3 text-xs text-muted-foreground">{stack}</pre>
+					<summary class="cursor-pointer text-xs text-muted-foreground hover:text-foreground"
+						>Stack trace</summary
+					>
+					<pre
+						class="mt-2 max-h-48 overflow-auto rounded border border-border bg-muted/50 p-3 text-xs text-muted-foreground">{stack}</pre>
 				</details>
 			{/if}
-			<button onclick={reset} class="rounded bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90">Reload</button>
+			<button
+				onclick={reset}
+				class="rounded bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+				>Reload</button
+			>
 		</div>
 	{/snippet}
 
@@ -100,11 +109,12 @@
 		<!-- Portals at root level - webview zoom scales everything -->
 		<ThemedToaster />
 		<ContextMenu />
+		<SearchOverlay />
 
 		<!-- Main app content — fixed below titlebar; this owns the scrollbar so it never overlaps titlebar -->
 		<div
 			bind:this={scrollEl}
-			class="fixed inset-x-0 bottom-0 top-12 overflow-y-auto overflow-x-hidden"
+			class="fixed inset-x-0 top-12 bottom-0 overflow-x-hidden overflow-y-auto"
 		>
 			<TanstackProvider>
 				<LenisProvider wrapper={scrollEl}>

@@ -14,12 +14,13 @@
 		createdAt: NOW - 86400 * 10,
 		media: {
 			id: 154587,
-			title: { userPreferred: 'Frieren: Beyond Journey\'s End' },
+			title: { userPreferred: "Frieren: Beyond Journey's End" },
 			format: 'TV',
 			episodes: 28,
 			type: 'ANIME',
 			coverImage: {
-				medium: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx154587-EVIONDIz5oXS.jpg',
+				medium:
+					'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx154587-EVIONDIz5oXS.jpg',
 			},
 		},
 	};
@@ -40,7 +41,8 @@
 			episodes: 1100,
 			type: 'ANIME',
 			coverImage: {
-				medium: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/nx21-tXMN3Y20PIL9.jpg',
+				medium:
+					'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/nx21-tXMN3Y20PIL9.jpg',
 			},
 		},
 	};
@@ -61,7 +63,8 @@
 			episodes: 64,
 			type: 'ANIME',
 			coverImage: {
-				medium: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/n5114-ce9m7SzWDqhJ.jpg',
+				medium:
+					'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/n5114-ce9m7SzWDqhJ.jpg',
 			},
 		},
 	};
@@ -102,7 +105,8 @@
 			chapters: 370,
 			type: 'MANGA',
 			coverImage: {
-				medium: 'https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx30002-OEVmxla7pqKT.jpg',
+				medium:
+					'https://s4.anilist.co/file/anilistcdn/media/manga/cover/medium/bx30002-OEVmxla7pqKT.jpg',
 			},
 		},
 	};
@@ -134,17 +138,17 @@
 	<MediaListRow entry={droppedEntry} />
 </div>
 
-<h2 class="mb-4 mt-10 text-xl font-bold">Manga Entry</h2>
+<h2 class="mt-10 mb-4 text-xl font-bold">Manga Entry</h2>
 <div class="overflow-hidden rounded-lg border bg-card" style="max-width: 640px;">
 	<MediaListRow entry={mangaEntry} />
 </div>
 
-<h2 class="mb-4 mt-10 text-xl font-bold">Entry Without Media</h2>
+<h2 class="mt-10 mb-4 text-xl font-bold">Entry Without Media</h2>
 <div class="overflow-hidden rounded-lg border bg-card" style="max-width: 640px;">
 	<MediaListRow entry={noMediaEntry} />
 </div>
 
-<h2 class="mb-4 mt-10 text-xl font-bold">Skeleton (10 rows)</h2>
+<h2 class="mt-10 mb-4 text-xl font-bold">Skeleton (10 rows)</h2>
 <div class="overflow-hidden rounded-lg border bg-card" style="max-width: 640px;">
 	<MediaListRowSkeleton count={5} />
 </div>

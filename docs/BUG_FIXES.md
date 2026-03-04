@@ -12,32 +12,33 @@
 
 ```typescript
 $effect(() => {
-  if (browser && $page.url.pathname) {
-    const newPath = $page.url.pathname;
+	if (browser && $page.url.pathname) {
+		const newPath = $page.url.pathname;
 
-    // Skip if this is the same as current path
-    if (newPath === navigationHistory[currentHistoryIndex]) {
-      return;
-    }
+		// Skip if this is the same as current path
+		if (newPath === navigationHistory[currentHistoryIndex]) {
+			return;
+		}
 
-    // Check if this is a back/forward navigation
-    const existingIndex = navigationHistory.indexOf(newPath);
-    if (existingIndex !== -1 && existingIndex < currentHistoryIndex) {
-      // User went back
-      currentHistoryIndex = existingIndex;
-    } else if (existingIndex !== -1 && existingIndex > currentHistoryIndex) {
-      // User went forward
-      currentHistoryIndex = existingIndex;
-    } else {
-      // New navigation - remove forward history and add new path
-      navigationHistory = [...navigationHistory.slice(0, currentHistoryIndex + 1), newPath];
-      currentHistoryIndex = navigationHistory.length - 1;
-    }
-  }
+		// Check if this is a back/forward navigation
+		const existingIndex = navigationHistory.indexOf(newPath);
+		if (existingIndex !== -1 && existingIndex < currentHistoryIndex) {
+			// User went back
+			currentHistoryIndex = existingIndex;
+		} else if (existingIndex !== -1 && existingIndex > currentHistoryIndex) {
+			// User went forward
+			currentHistoryIndex = existingIndex;
+		} else {
+			// New navigation - remove forward history and add new path
+			navigationHistory = [...navigationHistory.slice(0, currentHistoryIndex + 1), newPath];
+			currentHistoryIndex = navigationHistory.length - 1;
+		}
+	}
 });
 ```
 
 **Added Logging**: Console logs now show navigation tracking for debugging:
+
 ```
 [TitleBar] Navigation history initialized: ["/"]
 [TitleBar] New navigation to: /anime history: ["/", "/anime"]
@@ -57,24 +58,25 @@ $effect(() => {
 
 ```typescript
 onMount(async () => {
-  // ... window setup code ...
+	// ... window setup code ...
 
-  // Initialize keybindings
-  if (browser) {
-    initializeKeybindings();
+	// Initialize keybindings
+	if (browser) {
+		initializeKeybindings();
 
-    // Set up keybinding actions
-    updateKeyBindingAction('ArrowLeft', { alt: true }, handleBack);
-    updateKeyBindingAction('ArrowRight', { alt: true }, handleForward);
-    updateKeyBindingAction('r', { meta: true }, handleReload);
-    updateKeyBindingAction('k', { meta: true }, focusSearch);
+		// Set up keybinding actions
+		updateKeyBindingAction('ArrowLeft', { alt: true }, handleBack);
+		updateKeyBindingAction('ArrowRight', { alt: true }, handleForward);
+		updateKeyBindingAction('r', { meta: true }, handleReload);
+		updateKeyBindingAction('k', { meta: true }, focusSearch);
 
-    console.log('[TitleBar] Keybindings initialized');
-  }
+		console.log('[TitleBar] Keybindings initialized');
+	}
 });
 ```
 
 **Expected Console Output**:
+
 ```
 [KeyBindings] Initialized
 [KeyBindings] Registered: Alt+ARROWLEFT - Navigate back
@@ -85,6 +87,7 @@ onMount(async () => {
 ```
 
 **When Triggered**:
+
 ```
 [KeyBindings] Triggered: Alt+ARROWLEFT - Navigate back
 [TitleBar] Went back to: / index: 0
@@ -95,6 +98,7 @@ onMount(async () => {
 ### 3. ❌ Themes Refetching on Every Load
 
 **Problem**: Themes were being fetched from disk on every page load/refresh:
+
 ```
 [Themes] Getting theme preference
 [Themes] list_themes() called
@@ -110,10 +114,10 @@ onMount(async () => {
 
 ```typescript
 export interface ThemeConfig {
-  mode: 'light' | 'dark' | 'system';
-  currentTheme: string;
-  availableThemes: Array<{ id: string; name: string }>;
-  isDark: boolean;
+	mode: 'light' | 'dark' | 'system';
+	currentTheme: string;
+	availableThemes: Array<{ id: string; name: string }>;
+	isDark: boolean;
 }
 ```
 
@@ -164,6 +168,7 @@ Cache is updated whenever theme state changes:
 3. **On theme mode change**: Updates mode (light/dark/system) in cache
 
 **Expected Console Output (First Load)**:
+
 ```
 [ThemeStore] Initializing...
 [Themes] Getting theme preference
@@ -174,6 +179,7 @@ Cache is updated whenever theme state changes:
 ```
 
 **Expected Console Output (Cached Load)**:
+
 ```
 [ThemeStore] Initializing...
 [SessionCache] Theme cache hit
@@ -187,21 +193,27 @@ Cache is updated whenever theme state changes:
 ## Files Modified
 
 ### 1. `src/lib/components/TitleBar.svelte`
+
 **Changes**:
+
 - Fixed navigation history tracking logic
 - Added browser check for keybindings initialization
 - Added console logging for debugging
 - Changed from `$navigating` to `$page.url.pathname` tracking
 
 ### 2. `src/lib/stores/sessionCache.svelte.ts`
+
 **Changes**:
+
 - Updated `ThemeConfig` interface to include:
   - `currentTheme: string`
   - `availableThemes: Array<{ id: string; name: string }>`
   - `isDark: boolean`
 
 ### 3. `src/lib/stores/theme.svelte.ts`
+
 **Changes**:
+
 - Added `import { loadThemeCache, saveThemeCache }`
 - Modified `initialize()` to check cache first
 - Added cache save after successful initialization
@@ -226,6 +238,7 @@ Cache is updated whenever theme state changes:
    - Button should enable/disable appropriately
 
 **Expected Behavior**:
+
 - Back button disabled on first page
 - Forward button disabled when no forward history
 - Both buttons work when history exists
@@ -239,6 +252,7 @@ Cache is updated whenever theme state changes:
 4. **Press `⌘+K`** (or `Ctrl+K`): Should focus search bar
 
 **Expected Console Output**:
+
 ```
 [KeyBindings] Initialized
 [KeyBindings] Registered: Alt+ARROWLEFT - Navigate back
@@ -255,6 +269,7 @@ Cache is updated whenever theme state changes:
 5. **Check DevTools → Session Storage**: Should see theme data
 
 **Expected Console Output (First Load)**:
+
 ```
 [ThemeStore] Initializing...
 [Themes] list_themes() called
@@ -263,6 +278,7 @@ Cache is updated whenever theme state changes:
 ```
 
 **Expected Console Output (Cached)**:
+
 ```
 [ThemeStore] Initializing...
 [SessionCache] Theme cache hit
@@ -278,11 +294,13 @@ Cache is updated whenever theme state changes:
 ### Before Fixes
 
 **Navigation**:
+
 - ❌ Buttons always disabled
 - ❌ Keyboard shortcuts not working
 - ❌ No history tracking
 
 **Theme Loading**:
+
 - ❌ 18 file system reads on every page load
 - ❌ Theme config fetched every time
 - ❌ Repeated logs filling console
@@ -290,18 +308,21 @@ Cache is updated whenever theme state changes:
 ### After Fixes
 
 **Navigation**:
+
 - ✅ Buttons work correctly
 - ✅ Keyboard shortcuts functional
 - ✅ History tracking working
 - ✅ Clear console logging
 
 **Theme Loading**:
+
 - ✅ File system reads only every 15 minutes
 - ✅ Instant theme restoration from cache
 - ✅ 95% reduction in theme-related logs
 - ✅ Faster page loads
 
 **Improvements**:
+
 - Navigation: From broken to fully functional
 - Theme loading: ~95% reduction in operations
 - User experience: Native-like navigation
@@ -314,12 +335,14 @@ Cache is updated whenever theme state changes:
 ### Navigation Not Working?
 
 Check console for:
+
 ```
 [TitleBar] Navigation history initialized: [...]
 [TitleBar] Keybindings initialized
 ```
 
 If missing:
+
 1. Check `browser` is true
 2. Verify TitleBar component is mounted
 3. Check for JavaScript errors

@@ -149,12 +149,7 @@
 			label: 'Media Updates',
 			icon: 'solar:tv-bold-duotone',
 			keys: ['RELATED_MEDIA_ADDITION', 'MEDIA_DATA_CHANGE', 'MEDIA_MERGE', 'MEDIA_DELETION'],
-			keyLabels: [
-				'Related media added',
-				'Media data changes',
-				'Media merges',
-				'Media deletions',
-			],
+			keyLabels: ['Related media added', 'Media data changes', 'Media merges', 'Media deletions'],
 		},
 	];
 
@@ -197,11 +192,11 @@
 						<div class="flex items-center justify-between">
 							<Label class="cursor-pointer text-sm font-normal">{group.keyLabels[i]}</Label>
 							<Switch
-							checked={settings[key as keyof NotificationSettingsData] as boolean}
-							onCheckedChange={(v) => {
-								(settings as unknown as Record<string, unknown>)[key] = v;
-							}}
-						/>
+								checked={settings[key as keyof NotificationSettingsData] as boolean}
+								onCheckedChange={(v) => {
+									(settings as unknown as Record<string, unknown>)[key] = v;
+								}}
+							/>
 						</div>
 					{/each}
 				</div>
@@ -222,7 +217,7 @@
 			<select
 				id="polling-interval"
 				bind:value={settings.pollingIntervalSeconds}
-				class="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+				class="w-full rounded-md border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
 			>
 				{#each POLLING_OPTIONS as opt}
 					<option value={opt.value}>{opt.label}</option>
@@ -253,7 +248,7 @@
 					<select
 						id="auto-read-delay"
 						bind:value={settings.autoMarkReadDelaySeconds}
-						class="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+						class="w-full rounded-md border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
 					>
 						{#each AUTO_READ_DELAY_OPTIONS as opt}
 							<option value={opt.value}>{opt.label}</option>

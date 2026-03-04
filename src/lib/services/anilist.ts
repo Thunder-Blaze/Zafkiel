@@ -37,7 +37,7 @@ export const mediaApi = {
 	 */
 	browse: async (params: BrowseParams): Promise<AniListResponse<Page<Media[]>>> => {
 		console.log('[AniList API] Calling browse_media:', params);
-		const response = await invoke('browse_media', {
+		const response = (await invoke('browse_media', {
 			mediaType: params.mediaType ?? null,
 			search: params.search ?? null,
 			season: params.season ?? null,
@@ -52,7 +52,7 @@ export const mediaApi = {
 			countryOfOrigin: params.countryOfOrigin ?? null,
 			page: params.page ?? null,
 			perPage: params.perPage ?? null,
-		}) as AniListResponse<Page<Media[]>>;
+		})) as AniListResponse<Page<Media[]>>;
 		console.log('[AniList API] browse_media response:', response);
 		return response;
 	},
@@ -90,30 +90,30 @@ export const animeApi = {
 	getTrending: async (params?: PaginationParams): Promise<AniListResponse<Media[]>> => {
 		try {
 			console.log('[AniList API] Calling get_trending_anime:', params);
-			const response = await invoke('get_trending_anime', {
+			const response = (await invoke('get_trending_anime', {
 				page: params?.page ?? null,
 				perPage: params?.perPage ?? null,
-			}) as { success: boolean; data?: { data: Media[] }; error?: string };
+			})) as { success: boolean; data?: { data: Media[] }; error?: string };
 			console.log('[AniList API] get_trending_anime response:', response);
 
 			if (!response.success) {
 				return {
 					success: false,
 					error: response.error || 'Backend returned error',
-					data: []
+					data: [],
 				};
 			}
 
 			return {
 				success: true,
-				data: response.data?.data || []
+				data: response.data?.data || [],
 			};
 		} catch (error) {
 			console.error('[AniList API] Error in getTrending:', error);
 			return {
 				success: false,
 				error: error instanceof Error ? error.message : 'Unknown error',
-				data: []
+				data: [],
 			};
 		}
 	},
@@ -123,10 +123,10 @@ export const animeApi = {
 	 */
 	getPopular: async (params?: PaginationParams): Promise<AniListResponse<Media[]>> => {
 		try {
-			const response = await invoke('get_popular_anime', {
+			const response = (await invoke('get_popular_anime', {
 				page: params?.page ?? null,
 				perPage: params?.perPage ?? null,
-			}) as { success: boolean; data?: { data: Media[] }; error?: string };
+			})) as { success: boolean; data?: { data: Media[] }; error?: string };
 
 			if (!response.success) {
 				return { success: false, error: response.error || 'Backend returned error', data: [] };
@@ -135,7 +135,11 @@ export const animeApi = {
 			return { success: true, data: response.data?.data ?? [] };
 		} catch (error) {
 			console.error('[AniList API] Error in anime getPopular:', error);
-			return { success: false, error: error instanceof Error ? error.message : 'Unknown error', data: [] };
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Unknown error',
+				data: [],
+			};
 		}
 	},
 
@@ -180,10 +184,10 @@ export const mangaApi = {
 	 */
 	getTrending: async (params?: PaginationParams): Promise<AniListResponse<Media[]>> => {
 		try {
-			const response = await invoke('get_trending_manga', {
+			const response = (await invoke('get_trending_manga', {
 				page: params?.page ?? null,
 				perPage: params?.perPage ?? null,
-			}) as { success: boolean; data?: { data: Media[] }; error?: string };
+			})) as { success: boolean; data?: { data: Media[] }; error?: string };
 
 			if (!response.success) {
 				return { success: false, error: response.error || 'Backend returned error', data: [] };
@@ -192,7 +196,11 @@ export const mangaApi = {
 			return { success: true, data: response.data?.data ?? [] };
 		} catch (error) {
 			console.error('[AniList API] Error in manga getTrending:', error);
-			return { success: false, error: error instanceof Error ? error.message : 'Unknown error', data: [] };
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Unknown error',
+				data: [],
+			};
 		}
 	},
 
@@ -201,10 +209,10 @@ export const mangaApi = {
 	 */
 	getPopular: async (params?: PaginationParams): Promise<AniListResponse<Media[]>> => {
 		try {
-			const response = await invoke('get_popular_manga', {
+			const response = (await invoke('get_popular_manga', {
 				page: params?.page ?? null,
 				perPage: params?.perPage ?? null,
-			}) as { success: boolean; data?: { data: Media[] }; error?: string };
+			})) as { success: boolean; data?: { data: Media[] }; error?: string };
 
 			if (!response.success) {
 				return { success: false, error: response.error || 'Backend returned error', data: [] };
@@ -213,7 +221,11 @@ export const mangaApi = {
 			return { success: true, data: response.data?.data ?? [] };
 		} catch (error) {
 			console.error('[AniList API] Error in manga getPopular:', error);
-			return { success: false, error: error instanceof Error ? error.message : 'Unknown error', data: [] };
+			return {
+				success: false,
+				error: error instanceof Error ? error.message : 'Unknown error',
+				data: [],
+			};
 		}
 	},
 };
@@ -294,7 +306,9 @@ export const characterApi = {
 	/**
 	 * Get characters with birthday today
 	 */
-	getBirthdayToday: async (params?: PaginationParams): Promise<AniListResponse<Page<Character[]>>> => {
+	getBirthdayToday: async (
+		params?: PaginationParams
+	): Promise<AniListResponse<Page<Character[]>>> => {
 		return invoke('get_birthday_characters', {
 			page: params?.page ?? null,
 			perPage: params?.perPage ?? null,
@@ -304,7 +318,10 @@ export const characterApi = {
 	/**
 	 * Search characters by name, optionally filtered to today's birthdays
 	 */
-	search: async (query: string, params?: PaginationParams & { isBirthday?: boolean }): Promise<AniListResponse<Page<Character[]>>> => {
+	search: async (
+		query: string,
+		params?: PaginationParams & { isBirthday?: boolean }
+	): Promise<AniListResponse<Page<Character[]>>> => {
 		return invoke('search_characters', {
 			query,
 			page: params?.page ?? null,
@@ -349,7 +366,10 @@ export const staffApi = {
 	/**
 	 * Search staff by name, optionally filtered to today's birthdays
 	 */
-	search: async (query: string, params?: PaginationParams & { isBirthday?: boolean }): Promise<AniListResponse<Page<Staff[]>>> => {
+	search: async (
+		query: string,
+		params?: PaginationParams & { isBirthday?: boolean }
+	): Promise<AniListResponse<Page<Staff[]>>> => {
 		return invoke('search_staff', {
 			query,
 			page: params?.page ?? null,
@@ -376,14 +396,22 @@ export const mediaListApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_my_anime_list', { status: status ?? null, page: page ?? null, perPage: perPage ?? null });
+		return invoke('get_my_anime_list', {
+			status: status ?? null,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
 	getMyMangaList: async (
 		status?: MediaListStatus,
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_my_manga_list', { status: status ?? null, page: page ?? null, perPage: perPage ?? null });
+		return invoke('get_my_manga_list', {
+			status: status ?? null,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
 	getUserAnimeList: async (
 		username: string,
@@ -391,7 +419,12 @@ export const mediaListApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_user_anime_list', { username, status: status ?? null, page: page ?? null, perPage: perPage ?? null });
+		return invoke('get_user_anime_list', {
+			username,
+			status: status ?? null,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
 	getUserMangaList: async (
 		username: string,
@@ -399,42 +432,107 @@ export const mediaListApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_user_manga_list', { username, status: status ?? null, page: page ?? null, perPage: perPage ?? null });
+		return invoke('get_user_manga_list', {
+			username,
+			status: status ?? null,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
-	getWatching: async (username?: string, page?: number, perPage?: number): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_watching', { username: username ?? null, page: page ?? null, perPage: perPage ?? null });
+	getWatching: async (
+		username?: string,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_watching', {
+			username: username ?? null,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
-	getReading: async (username?: string, page?: number, perPage?: number): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_reading', { username: username ?? null, page: page ?? null, perPage: perPage ?? null });
+	getReading: async (
+		username?: string,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_reading', {
+			username: username ?? null,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
-	getPlanToWatch: async (username?: string, page?: number, perPage?: number): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_plan_to_watch', { username: username ?? null, page: page ?? null, perPage: perPage ?? null });
+	getPlanToWatch: async (
+		username?: string,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_plan_to_watch', {
+			username: username ?? null,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
-	getPlanToRead: async (username?: string, page?: number, perPage?: number): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_plan_to_read', { username: username ?? null, page: page ?? null, perPage: perPage ?? null });
+	getPlanToRead: async (
+		username?: string,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_plan_to_read', {
+			username: username ?? null,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
-	getCompletedAnime: async (username?: string, page?: number, perPage?: number): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_completed_anime', { username: username ?? null, page: page ?? null, perPage: perPage ?? null });
+	getCompletedAnime: async (
+		username?: string,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_completed_anime', {
+			username: username ?? null,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
-	getCompletedManga: async (username?: string, page?: number, perPage?: number): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_completed_manga', { username: username ?? null, page: page ?? null, perPage: perPage ?? null });
+	getCompletedManga: async (
+		username?: string,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<MediaList[]>>> => {
+		return invoke('get_completed_manga', {
+			username: username ?? null,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
 	save: async (options: Record<string, unknown>): Promise<AniListResponse<MediaList>> => {
 		return invoke('save_media_list_entry', { options });
 	},
-	addAnime: async (mediaId: number, status?: MediaListStatus): Promise<AniListResponse<MediaList>> => {
+	addAnime: async (
+		mediaId: number,
+		status?: MediaListStatus
+	): Promise<AniListResponse<MediaList>> => {
 		return invoke('add_anime_to_list', { mediaId, status: status ?? null });
 	},
-	addManga: async (mediaId: number, status?: MediaListStatus): Promise<AniListResponse<MediaList>> => {
+	addManga: async (
+		mediaId: number,
+		status?: MediaListStatus
+	): Promise<AniListResponse<MediaList>> => {
 		return invoke('add_manga_to_list', { mediaId, status: status ?? null });
 	},
-	updateProgress: async (entryId: number, progress: number): Promise<AniListResponse<MediaList>> => {
+	updateProgress: async (
+		entryId: number,
+		progress: number
+	): Promise<AniListResponse<MediaList>> => {
 		return invoke('update_media_progress', { entryId, progress });
 	},
 	updateScore: async (entryId: number, score: number): Promise<AniListResponse<MediaList>> => {
 		return invoke('update_media_score', { entryId, score });
 	},
-	updateStatus: async (entryId: number, status: MediaListStatus): Promise<AniListResponse<MediaList>> => {
+	updateStatus: async (
+		entryId: number,
+		status: MediaListStatus
+	): Promise<AniListResponse<MediaList>> => {
 		return invoke('update_media_status', { entryId, status });
 	},
 	deleteEntry: async (id: number): Promise<AniListResponse<boolean>> => {
@@ -447,25 +545,43 @@ export const mediaListApi = {
 // ============================================================================
 
 export const activityApi = {
-	fetch: async (options: Record<string, unknown>): Promise<AniListResponse<Page<ActivityUnion[]>>> => {
+	fetch: async (
+		options: Record<string, unknown>
+	): Promise<AniListResponse<Page<ActivityUnion[]>>> => {
 		return invoke('fetch_activities', { options });
 	},
 	getById: async (id: number): Promise<AniListResponse<ActivityUnion>> => {
 		return invoke('get_activity_by_id', { id });
 	},
-	getRecent: async (page?: number, perPage?: number): Promise<AniListResponse<Page<ActivityUnion[]>>> => {
+	getRecent: async (
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<ActivityUnion[]>>> => {
 		return invoke('get_recent_activity', { page: page ?? null, perPage: perPage ?? null });
 	},
-	getFollowing: async (page?: number, perPage?: number): Promise<AniListResponse<Page<ActivityUnion[]>>> => {
+	getFollowing: async (
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<ActivityUnion[]>>> => {
 		return invoke('get_following_activity', { page: page ?? null, perPage: perPage ?? null });
 	},
-	fetchReplies: async (activityId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<ActivityReply[]>>> => {
-		return invoke('fetch_activity_replies', { activityId, page: page ?? null, perPage: perPage ?? null });
+	fetchReplies: async (
+		activityId: number,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<ActivityReply[]>>> => {
+		return invoke('fetch_activity_replies', {
+			activityId,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
 	saveText: async (options: Record<string, unknown>): Promise<AniListResponse<ActivityUnion>> => {
 		return invoke('save_text_activity', { options });
 	},
-	saveMessage: async (options: Record<string, unknown>): Promise<AniListResponse<ActivityUnion>> => {
+	saveMessage: async (
+		options: Record<string, unknown>
+	): Promise<AniListResponse<ActivityUnion>> => {
 		return invoke('save_message_activity', { options });
 	},
 	saveReply: async (options: Record<string, unknown>): Promise<AniListResponse<ActivityReply>> => {
@@ -477,7 +593,10 @@ export const activityApi = {
 	deleteReply: async (id: number): Promise<AniListResponse<boolean>> => {
 		return invoke('delete_activity_reply', { id });
 	},
-	toggleSubscription: async (id: number, subscribe: boolean): Promise<AniListResponse<ActivityUnion>> => {
+	toggleSubscription: async (
+		id: number,
+		subscribe: boolean
+	): Promise<AniListResponse<ActivityUnion>> => {
 		return invoke('toggle_activity_subscription', { id, subscribe });
 	},
 };
@@ -487,14 +606,26 @@ export const activityApi = {
 // ============================================================================
 
 export const notificationApi = {
-	fetch: async (page?: number, perPage?: number): Promise<AniListResponse<Page<NotificationUnion[]>>> => {
+	fetch: async (
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<NotificationUnion[]>>> => {
 		return invoke('fetch_notifications', { page: page ?? null, perPage: perPage ?? null });
 	},
-	getAll: async (page?: number, perPage?: number): Promise<AniListResponse<Page<NotificationUnion[]>>> => {
+	getAll: async (
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<NotificationUnion[]>>> => {
 		return invoke('get_all_notifications', { page: page ?? null, perPage: perPage ?? null });
 	},
-	getAndMarkRead: async (page?: number, perPage?: number): Promise<AniListResponse<Page<NotificationUnion[]>>> => {
-		return invoke('get_and_mark_notifications_read', { page: page ?? null, perPage: perPage ?? null });
+	getAndMarkRead: async (
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<NotificationUnion[]>>> => {
+		return invoke('get_and_mark_notifications_read', {
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
 };
 
@@ -515,17 +646,44 @@ export const forumApi = {
 	getPopular: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Thread[]>>> => {
 		return invoke('get_popular_forum_threads', { page: page ?? null, perPage: perPage ?? null });
 	},
-	getByCategory: async (categoryId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<Thread[]>>> => {
-		return invoke('get_forum_threads_by_category', { categoryId, page: page ?? null, perPage: perPage ?? null });
+	getByCategory: async (
+		categoryId: number,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<Thread[]>>> => {
+		return invoke('get_forum_threads_by_category', {
+			categoryId,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
-	getByUser: async (userId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<Thread[]>>> => {
-		return invoke('get_forum_threads_by_user', { userId, page: page ?? null, perPage: perPage ?? null });
+	getByUser: async (
+		userId: number,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<Thread[]>>> => {
+		return invoke('get_forum_threads_by_user', {
+			userId,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
-	getSubscribed: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Thread[]>>> => {
+	getSubscribed: async (
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<Thread[]>>> => {
 		return invoke('get_subscribed_forum_threads', { page: page ?? null, perPage: perPage ?? null });
 	},
-	getComments: async (threadId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<ThreadComment[]>>> => {
-		return invoke('get_thread_comments', { threadId, page: page ?? null, perPage: perPage ?? null });
+	getComments: async (
+		threadId: number,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<ThreadComment[]>>> => {
+		return invoke('get_thread_comments', {
+			threadId,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
 	getComment: async (id: number): Promise<AniListResponse<ThreadComment>> => {
 		return invoke('get_thread_comment_by_id', { id });
@@ -536,19 +694,31 @@ export const forumApi = {
 	deleteThread: async (id: number): Promise<AniListResponse<boolean>> => {
 		return invoke('delete_forum_thread', { id });
 	},
-	saveComment: async (options: Record<string, unknown>): Promise<AniListResponse<ThreadComment>> => {
+	saveComment: async (
+		options: Record<string, unknown>
+	): Promise<AniListResponse<ThreadComment>> => {
 		return invoke('save_thread_comment', { options });
 	},
 	deleteComment: async (id: number): Promise<AniListResponse<boolean>> => {
 		return invoke('delete_thread_comment', { id });
 	},
-	toggleSubscription: async (threadId: number, subscribe: boolean): Promise<AniListResponse<Thread>> => {
+	toggleSubscription: async (
+		threadId: number,
+		subscribe: boolean
+	): Promise<AniListResponse<Thread>> => {
 		return invoke('toggle_forum_thread_subscription', { threadId, subscribe });
 	},
-	replyToThread: async (threadId: number, comment: string): Promise<AniListResponse<ThreadComment>> => {
+	replyToThread: async (
+		threadId: number,
+		comment: string
+	): Promise<AniListResponse<ThreadComment>> => {
 		return invoke('reply_to_forum_thread', { threadId, comment });
 	},
-	replyToComment: async (threadId: number, parentCommentId: number, comment: string): Promise<AniListResponse<ThreadComment>> => {
+	replyToComment: async (
+		threadId: number,
+		parentCommentId: number,
+		comment: string
+	): Promise<AniListResponse<ThreadComment>> => {
 		return invoke('reply_to_thread_comment', { threadId, parentCommentId, comment });
 	},
 	toggleLikeThread: async (id: number): Promise<AniListResponse<unknown>> => {
@@ -567,10 +737,22 @@ export const reviewApi = {
 	fetch: async (options: Record<string, unknown>): Promise<AniListResponse<Page<Review[]>>> => {
 		return invoke('fetch_reviews', { options });
 	},
-	getByMedia: async (mediaId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<Review[]>>> => {
-		return invoke('get_reviews_by_media', { mediaId, page: page ?? null, perPage: perPage ?? null });
+	getByMedia: async (
+		mediaId: number,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<Review[]>>> => {
+		return invoke('get_reviews_by_media', {
+			mediaId,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
-	getByUser: async (userId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<Review[]>>> => {
+	getByUser: async (
+		userId: number,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<Review[]>>> => {
 		return invoke('get_reviews_by_user', { userId, page: page ?? null, perPage: perPage ?? null });
 	},
 	getById: async (id: number): Promise<AniListResponse<Review>> => {
@@ -595,18 +777,31 @@ export const reviewApi = {
 // ============================================================================
 
 export const recommendationApi = {
-	fetch: async (options: Record<string, unknown>): Promise<AniListResponse<Page<Recommendation[]>>> => {
+	fetch: async (
+		options: Record<string, unknown>
+	): Promise<AniListResponse<Page<Recommendation[]>>> => {
 		return invoke('fetch_recommendations', { options });
 	},
-	getByMedia: async (mediaId: number, page?: number, perPage?: number): Promise<AniListResponse<Page<Recommendation[]>>> => {
-		return invoke('get_recommendations_by_media', { mediaId, page: page ?? null, perPage: perPage ?? null });
+	getByMedia: async (
+		mediaId: number,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<Recommendation[]>>> => {
+		return invoke('get_recommendations_by_media', {
+			mediaId,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
 	/**
 	 * Get global recommendations sorted by rating (no mediaId filter)
 	 */
-	getGlobal: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Recommendation[]>>> => {
+	getGlobal: async (
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Page<Recommendation[]>>> => {
 		return invoke('fetch_recommendations', {
-			options: { per_page: perPage ?? 25, page: page ?? 1 }
+			options: { per_page: perPage ?? 25, page: page ?? 1 },
 		});
 	},
 	save: async (options: Record<string, unknown>): Promise<AniListResponse<Recommendation>> => {
@@ -655,7 +850,9 @@ export const searchApi = {
 	searchAll: async (
 		query: string,
 		perPage = 5
-	): Promise<import('$lib/types/anilist').AniListResponse<import('$lib/types/anilist').SearchAllResults>> => {
+	): Promise<
+		import('$lib/types/anilist').AniListResponse<import('$lib/types/anilist').SearchAllResults>
+	> => {
 		return invoke('search_all', { query, perPage });
 	},
 };

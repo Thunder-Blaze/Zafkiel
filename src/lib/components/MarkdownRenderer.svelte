@@ -40,31 +40,31 @@
 			// Spoiler tags [spoiler]text[/spoiler] — collapsible
 			.replace(
 				/\[spoiler\]([\s\S]*?)\[\/spoiler\]/gi,
-				'<details class="spoiler"><summary>Spoiler</summary><span>$1</span></details>',
+				'<details class="spoiler"><summary>Spoiler</summary><span>$1</span></details>'
 			)
 
 			// Image: img(url)
 			.replace(
 				/img\(([^)]+)\)/g,
-				'<img src="$1" alt="AniList image" class="inline-img" loading="lazy" />',
+				'<img src="$1" alt="AniList image" class="inline-img" loading="lazy" />'
 			)
 
 			// YouTube: youtube(id)
 			.replace(
 				/youtube\(([A-Za-z0-9_-]+)\)/g,
-				'<a href="https://youtu.be/$1" target="_blank" rel="noopener noreferrer" class="yt-link">▶ YouTube</a>',
+				'<a href="https://youtu.be/$1" target="_blank" rel="noopener noreferrer" class="yt-link">▶ YouTube</a>'
 			)
 
 			// Markdown links: [text](url)
 			.replace(
 				/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-				'<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>',
+				'<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>'
 			)
 
 			// Bare URLs
 			.replace(
 				/(^|[\s(])((https?:\/\/)[^\s<>"']+)/g,
-				'$1<a href="$2" target="_blank" rel="noopener noreferrer">$2</a>',
+				'$1<a href="$2" target="_blank" rel="noopener noreferrer">$2</a>'
 			)
 
 			// Ordered lists: lines starting with "1. "
@@ -87,7 +87,7 @@
 
 {#if html}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="anilist-markdown prose prose-sm max-w-none dark:prose-invert {className}">
+	<div class="anilist-markdown prose prose-sm dark:prose-invert max-w-none {className}">
 		<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 		{@html html}
 	</div>

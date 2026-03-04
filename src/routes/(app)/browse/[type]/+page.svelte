@@ -64,8 +64,10 @@
 		season: selectedSeason || undefined,
 		seasonYear: selectedYear ? parseInt(selectedYear) : undefined,
 		source: selectedSource || undefined,
-		genres: selectedGenres.filter(g => g).length > 0 ? selectedGenres.filter(g => g) : undefined,
-		genresExcluded: excludedGenres.filter(g => g).length > 0 ? excludedGenres.filter(g => g) : undefined,
+		genres:
+			selectedGenres.filter((g) => g).length > 0 ? selectedGenres.filter((g) => g) : undefined,
+		genresExcluded:
+			excludedGenres.filter((g) => g).length > 0 ? excludedGenres.filter((g) => g) : undefined,
 		countryOfOrigin: countryOfOrigin || undefined,
 		sortBy: sortBy !== 'POPULARITY_DESC' ? [sortBy] : undefined,
 		isAdult: showAdult ? true : undefined,
@@ -75,10 +77,16 @@
 
 	// Filters active flag (must be computed before section queries)
 	const hasFilters = $derived(
-		!!searchQuery || !!selectedFormat || !!selectedStatus || !!selectedSeason ||
-		!!selectedYear || !!selectedSource || selectedGenres.filter(g => g).length > 0 ||
-		excludedGenres.filter(g => g).length > 0 || sortBy !== 'POPULARITY_DESC' ||
-		!!countryOfOrigin
+		!!searchQuery ||
+			!!selectedFormat ||
+			!!selectedStatus ||
+			!!selectedSeason ||
+			!!selectedYear ||
+			!!selectedSource ||
+			selectedGenres.filter((g) => g).length > 0 ||
+			excludedGenres.filter((g) => g).length > 0 ||
+			sortBy !== 'POPULARITY_DESC' ||
+			!!countryOfOrigin
 	);
 
 	// Filtered results query — reactive getter so params update without re-creating the hook
@@ -115,12 +123,26 @@
 	);
 
 	const popularSeasonQuery = useBrowseMedia(
-		() => ({ mediaType: 'ANIME' as const, season: currentSeason, seasonYear: currentYear, sortBy: ['POPULARITY_DESC'] as MediaSort[], page: 1, perPage: 20 }),
+		() => ({
+			mediaType: 'ANIME' as const,
+			season: currentSeason,
+			seasonYear: currentYear,
+			sortBy: ['POPULARITY_DESC'] as MediaSort[],
+			page: 1,
+			perPage: 20,
+		}),
 		() => ({ enabled: !hasFilters && type === 'ANIME' })
 	);
 
 	const upcomingQuery = useBrowseMedia(
-		() => ({ mediaType: 'ANIME' as const, season: nextSeason.season, seasonYear: nextSeason.year, sortBy: ['POPULARITY_DESC'] as MediaSort[], page: 1, perPage: 20 }),
+		() => ({
+			mediaType: 'ANIME' as const,
+			season: nextSeason.season,
+			seasonYear: nextSeason.year,
+			sortBy: ['POPULARITY_DESC'] as MediaSort[],
+			page: 1,
+			perPage: 20,
+		}),
 		() => ({ enabled: !hasFilters && type === 'ANIME' })
 	);
 
@@ -275,29 +297,39 @@
 		<div class="mb-6 px-6">
 			<div class="flex flex-wrap items-center gap-3">
 				<!-- Search -->
-				<form onsubmit={handleHeaderSearch} class="relative flex-1 min-w-[200px]">
+				<form onsubmit={handleHeaderSearch} class="relative min-w-[200px] flex-1">
 					<input
 						type="text"
 						placeholder="Search"
 						bind:value={headerSearchQuery}
 						class="w-full rounded-lg border border-border bg-muted/60 px-4 py-2 pl-10 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
 					/>
-					<Icon icon="solar:magnifer-bold" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+					<Icon
+						icon="solar:magnifer-bold"
+						class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+					/>
 				</form>
 
 				<!-- Genres -->
 				<div class="relative">
 					<select
 						bind:value={selectedGenres[0]}
-						onchange={() => { if (selectedGenres[0]) selectedGenres = [selectedGenres[0]]; else selectedGenres = []; currentPage = 1; }}
-						class="h-9 appearance-none cursor-pointer rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+						onchange={() => {
+							if (selectedGenres[0]) selectedGenres = [selectedGenres[0]];
+							else selectedGenres = [];
+							currentPage = 1;
+						}}
+						class="h-9 cursor-pointer appearance-none rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
 					>
 						<option value="">Genres</option>
 						{#each allGenres as genre}
 							<option value={genre}>{genre}</option>
 						{/each}
 					</select>
-					<Icon icon="solar:alt-arrow-down-bold" class="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+					<Icon
+						icon="solar:alt-arrow-down-bold"
+						class="pointer-events-none absolute top-1/2 right-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+					/>
 				</div>
 
 				<!-- Year -->
@@ -305,14 +337,17 @@
 					<select
 						bind:value={selectedYear}
 						onchange={() => (currentPage = 1)}
-						class="h-9 appearance-none cursor-pointer rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+						class="h-9 cursor-pointer appearance-none rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
 					>
 						<option value="">Year</option>
 						{#each years.slice(0, 20) as year}
 							<option value={year.toString()}>{year}</option>
 						{/each}
 					</select>
-					<Icon icon="solar:alt-arrow-down-bold" class="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+					<Icon
+						icon="solar:alt-arrow-down-bold"
+						class="pointer-events-none absolute top-1/2 right-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+					/>
 				</div>
 
 				<!-- Season -->
@@ -320,14 +355,17 @@
 					<select
 						bind:value={selectedSeason}
 						onchange={() => (currentPage = 1)}
-						class="h-9 appearance-none cursor-pointer rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+						class="h-9 cursor-pointer appearance-none rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
 					>
 						<option value="">Season</option>
 						{#each seasons as season}
 							<option value={season}>{season.charAt(0) + season.slice(1).toLowerCase()}</option>
 						{/each}
 					</select>
-					<Icon icon="solar:alt-arrow-down-bold" class="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+					<Icon
+						icon="solar:alt-arrow-down-bold"
+						class="pointer-events-none absolute top-1/2 right-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+					/>
 				</div>
 
 				<!-- Format -->
@@ -335,14 +373,17 @@
 					<select
 						bind:value={selectedFormat}
 						onchange={() => (currentPage = 1)}
-						class="h-9 appearance-none cursor-pointer rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+						class="h-9 cursor-pointer appearance-none rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
 					>
 						<option value="">Format</option>
 						{#each formats as format}
 							<option value={format}>{format.replace(/_/g, ' ')}</option>
 						{/each}
 					</select>
-					<Icon icon="solar:alt-arrow-down-bold" class="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+					<Icon
+						icon="solar:alt-arrow-down-bold"
+						class="pointer-events-none absolute top-1/2 right-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+					/>
 				</div>
 
 				<!-- Status -->
@@ -350,14 +391,17 @@
 					<select
 						bind:value={selectedStatus}
 						onchange={() => (currentPage = 1)}
-						class="h-9 appearance-none cursor-pointer rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+						class="h-9 cursor-pointer appearance-none rounded-lg border border-border bg-muted/60 px-3 pr-8 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
 					>
 						<option value="">Airing Status</option>
 						{#each statuses as status}
 							<option value={status}>{status.replace(/_/g, ' ')}</option>
 						{/each}
 					</select>
-					<Icon icon="solar:alt-arrow-down-bold" class="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+					<Icon
+						icon="solar:alt-arrow-down-bold"
+						class="pointer-events-none absolute top-1/2 right-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+					/>
 				</div>
 
 				<!-- Advanced Filters Toggle -->
@@ -367,63 +411,32 @@
 			</div>
 		</div>
 
-	<!-- Carousel Sections (only show when no filters applied) -->
-	{#if !hasFilters}
-		<!-- Trending Now -->
-		<section class="mb-8">
-			<div class="mb-4 flex items-center justify-between px-6">
-				<h2 class="text-2xl font-bold">Trending Now</h2>
-				<Button
-					variant="ghost"
-					size="sm"
-					onclick={() => goto(`/search?type=${type}&sort=TRENDING_DESC`)}
-				>
-					View All
-					<Icon icon="solar:alt-arrow-right-bold" class="ml-2 h-4 w-4" />
-				</Button>
-			</div>
-			{#if trendingQuery?.isLoading}
-				<div class="flex items-center justify-center py-10">
-					<Icon icon="svg-spinners:3-dots-scale" class="h-8 w-8 text-primary" />
-				</div>
-			{:else if trendingQuery?.data?.data?.data}
-				<Carousel.Root class="w-full px-6 overflow-visible">
-					<Carousel.Content class="-ml-4 overflow-visible">
-						{#each trendingQuery.data.data.data as media (media.id)}
-							<Carousel.Item class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
-								<MediaCard {media} />
-							</Carousel.Item>
-						{/each}
-					</Carousel.Content>
-					<Carousel.Previous class="left-2" />
-					<Carousel.Next class="right-2" />
-				</Carousel.Root>
-			{/if}
-		</section>
-
-		<!-- Popular This Season (Anime only) -->
-		{#if type === 'ANIME'}
+		<!-- Carousel Sections (only show when no filters applied) -->
+		{#if !hasFilters}
+			<!-- Trending Now -->
 			<section class="mb-8">
 				<div class="mb-4 flex items-center justify-between px-6">
-					<h2 class="text-2xl font-bold">Popular This Season</h2>
+					<h2 class="text-2xl font-bold">Trending Now</h2>
 					<Button
 						variant="ghost"
 						size="sm"
-						onclick={() => goto(`/search?type=ANIME&season=${currentSeason}&year=${currentYear}&sort=POPULARITY_DESC`)}
+						onclick={() => goto(`/search?type=${type}&sort=TRENDING_DESC`)}
 					>
 						View All
 						<Icon icon="solar:alt-arrow-right-bold" class="ml-2 h-4 w-4" />
 					</Button>
 				</div>
-				{#if popularSeasonQuery?.isLoading}
+				{#if trendingQuery?.isLoading}
 					<div class="flex items-center justify-center py-10">
 						<Icon icon="svg-spinners:3-dots-scale" class="h-8 w-8 text-primary" />
 					</div>
-				{:else if popularSeasonQuery?.data?.data?.data}
-				<Carousel.Root class="w-full px-6 overflow-visible">
-					<Carousel.Content class="-ml-4 overflow-visible">
-							{#each popularSeasonQuery.data.data.data as media (media.id)}
-								<Carousel.Item class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
+				{:else if trendingQuery?.data?.data?.data}
+					<Carousel.Root class="w-full overflow-visible px-6">
+						<Carousel.Content class="-ml-4 overflow-visible">
+							{#each trendingQuery.data.data.data as media (media.id)}
+								<Carousel.Item
+									class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
+								>
 									<MediaCard {media} />
 								</Carousel.Item>
 							{/each}
@@ -434,28 +447,143 @@
 				{/if}
 			</section>
 
-			<!-- Upcoming Next Season -->
+			<!-- Popular This Season (Anime only) -->
+			{#if type === 'ANIME'}
+				<section class="mb-8">
+					<div class="mb-4 flex items-center justify-between px-6">
+						<h2 class="text-2xl font-bold">Popular This Season</h2>
+						<Button
+							variant="ghost"
+							size="sm"
+							onclick={() =>
+								goto(
+									`/search?type=ANIME&season=${currentSeason}&year=${currentYear}&sort=POPULARITY_DESC`
+								)}
+						>
+							View All
+							<Icon icon="solar:alt-arrow-right-bold" class="ml-2 h-4 w-4" />
+						</Button>
+					</div>
+					{#if popularSeasonQuery?.isLoading}
+						<div class="flex items-center justify-center py-10">
+							<Icon icon="svg-spinners:3-dots-scale" class="h-8 w-8 text-primary" />
+						</div>
+					{:else if popularSeasonQuery?.data?.data?.data}
+						<Carousel.Root class="w-full overflow-visible px-6">
+							<Carousel.Content class="-ml-4 overflow-visible">
+								{#each popularSeasonQuery.data.data.data as media (media.id)}
+									<Carousel.Item
+										class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
+									>
+										<MediaCard {media} />
+									</Carousel.Item>
+								{/each}
+							</Carousel.Content>
+							<Carousel.Previous class="left-2" />
+							<Carousel.Next class="right-2" />
+						</Carousel.Root>
+					{/if}
+				</section>
+
+				<!-- Upcoming Next Season -->
+				<section class="mb-8">
+					<div class="mb-4 flex items-center justify-between px-6">
+						<h2 class="text-2xl font-bold">
+							Upcoming {nextSeason.season.charAt(0) + nextSeason.season.slice(1).toLowerCase()}
+							{nextSeason.year}
+						</h2>
+						<Button
+							variant="ghost"
+							size="sm"
+							onclick={() =>
+								goto(
+									`/search?type=ANIME&season=${nextSeason.season}&year=${nextSeason.year}&sort=POPULARITY_DESC`
+								)}
+						>
+							View All
+							<Icon icon="solar:alt-arrow-right-bold" class="ml-2 h-4 w-4" />
+						</Button>
+					</div>
+					{#if upcomingQuery?.isLoading}
+						<div class="flex items-center justify-center py-10">
+							<Icon icon="svg-spinners:3-dots-scale" class="h-8 w-8 text-primary" />
+						</div>
+					{:else if upcomingQuery?.data?.data?.data}
+						<Carousel.Root class="w-full overflow-visible px-6">
+							<Carousel.Content class="-ml-4 overflow-visible">
+								{#each upcomingQuery.data.data.data as media (media.id)}
+									<Carousel.Item
+										class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
+									>
+										<MediaCard {media} />
+									</Carousel.Item>
+								{/each}
+							</Carousel.Content>
+							<Carousel.Previous class="left-2" />
+							<Carousel.Next class="right-2" />
+						</Carousel.Root>
+					{/if}
+				</section>
+			{/if}
+
+			<!-- All Time Popular -->
 			<section class="mb-8">
 				<div class="mb-4 flex items-center justify-between px-6">
-					<h2 class="text-2xl font-bold">Upcoming {nextSeason.season.charAt(0) + nextSeason.season.slice(1).toLowerCase()} {nextSeason.year}</h2>
+					<h2 class="text-2xl font-bold">All Time Popular</h2>
 					<Button
 						variant="ghost"
 						size="sm"
-						onclick={() => goto(`/search?type=ANIME&season=${nextSeason.season}&year=${nextSeason.year}&sort=POPULARITY_DESC`)}
+						onclick={() => goto(`/search?type=${type}&sort=POPULARITY_DESC`)}
 					>
 						View All
 						<Icon icon="solar:alt-arrow-right-bold" class="ml-2 h-4 w-4" />
 					</Button>
 				</div>
-				{#if upcomingQuery?.isLoading}
+				{#if allTimePopularQuery?.isLoading}
 					<div class="flex items-center justify-center py-10">
 						<Icon icon="svg-spinners:3-dots-scale" class="h-8 w-8 text-primary" />
 					</div>
-				{:else if upcomingQuery?.data?.data?.data}
-				<Carousel.Root class="w-full px-6 overflow-visible">
-					<Carousel.Content class="-ml-4 overflow-visible">
-							{#each upcomingQuery.data.data.data as media (media.id)}
-								<Carousel.Item class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
+				{:else if allTimePopularQuery?.data?.data?.data}
+					<Carousel.Root class="w-full overflow-visible px-6">
+						<Carousel.Content class="-ml-4 overflow-visible">
+							{#each allTimePopularQuery.data.data.data as media (media.id)}
+								<Carousel.Item
+									class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
+								>
+									<MediaCard {media} />
+								</Carousel.Item>
+							{/each}
+						</Carousel.Content>
+						<Carousel.Previous class="left-2" />
+						<Carousel.Next class="right-2" />
+					</Carousel.Root>
+				{/if}
+			</section>
+
+			<!-- Top Rated -->
+			<section class="mb-8">
+				<div class="mb-4 flex items-center justify-between px-6">
+					<h2 class="text-2xl font-bold">Top Rated</h2>
+					<Button
+						variant="ghost"
+						size="sm"
+						onclick={() => goto(`/search?type=${type}&sort=SCORE_DESC`)}
+					>
+						View All
+						<Icon icon="solar:alt-arrow-right-bold" class="ml-2 h-4 w-4" />
+					</Button>
+				</div>
+				{#if topRatedQuery?.isLoading}
+					<div class="flex items-center justify-center py-10">
+						<Icon icon="svg-spinners:3-dots-scale" class="h-8 w-8 text-primary" />
+					</div>
+				{:else if topRatedQuery?.data?.data?.data}
+					<Carousel.Root class="w-full overflow-visible px-6">
+						<Carousel.Content class="-ml-4 overflow-visible">
+							{#each topRatedQuery.data.data.data as media (media.id)}
+								<Carousel.Item
+									class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
+								>
 									<MediaCard {media} />
 								</Carousel.Item>
 							{/each}
@@ -467,284 +595,221 @@
 			</section>
 		{/if}
 
-		<!-- All Time Popular -->
-		<section class="mb-8">
-			<div class="mb-4 flex items-center justify-between px-6">
-				<h2 class="text-2xl font-bold">All Time Popular</h2>
-				<Button
-					variant="ghost"
-					size="sm"
-					onclick={() => goto(`/search?type=${type}&sort=POPULARITY_DESC`)}
-				>
-					View All
-					<Icon icon="solar:alt-arrow-right-bold" class="ml-2 h-4 w-4" />
-				</Button>
-			</div>
-			{#if allTimePopularQuery?.isLoading}
-				<div class="flex items-center justify-center py-10">
-					<Icon icon="svg-spinners:3-dots-scale" class="h-8 w-8 text-primary" />
-				</div>
-			{:else if allTimePopularQuery?.data?.data?.data}
-				<Carousel.Root class="w-full px-6 overflow-visible">
-					<Carousel.Content class="-ml-4 overflow-visible">
-						{#each allTimePopularQuery.data.data.data as media (media.id)}
-							<Carousel.Item class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
-								<MediaCard {media} />
-							</Carousel.Item>
-						{/each}
-					</Carousel.Content>
-					<Carousel.Previous class="left-2" />
-					<Carousel.Next class="right-2" />
-				</Carousel.Root>
-			{/if}
-		</section>
-
-		<!-- Top Rated -->
-		<section class="mb-8">
-			<div class="mb-4 flex items-center justify-between px-6">
-				<h2 class="text-2xl font-bold">Top Rated</h2>
-				<Button
-					variant="ghost"
-					size="sm"
-					onclick={() => goto(`/search?type=${type}&sort=SCORE_DESC`)}
-				>
-					View All
-					<Icon icon="solar:alt-arrow-right-bold" class="ml-2 h-4 w-4" />
-				</Button>
-			</div>
-			{#if topRatedQuery?.isLoading}
-				<div class="flex items-center justify-center py-10">
-					<Icon icon="svg-spinners:3-dots-scale" class="h-8 w-8 text-primary" />
-				</div>
-			{:else if topRatedQuery?.data?.data?.data}
-				<Carousel.Root class="w-full px-6 overflow-visible">
-					<Carousel.Content class="-ml-4 overflow-visible">
-						{#each topRatedQuery.data.data.data as media (media.id)}
-							<Carousel.Item class="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
-								<MediaCard {media} />
-							</Carousel.Item>
-						{/each}
-					</Carousel.Content>
-					<Carousel.Previous class="left-2" />
-					<Carousel.Next class="right-2" />
-				</Carousel.Root>
-			{/if}
-		</section>
-	{/if}
-
-	<!-- Filters Panel -->
-	{#if showFilters}
-		<div class="mb-6 rounded-lg border border-border bg-card p-6 mx-6">
-			<div class="mb-4 flex items-center justify-between">
-				<h2 class="text-xl font-semibold">Filters</h2>
-				<Button variant="ghost" size="sm" onclick={clearFilters}>
-					<Icon icon="solar:restart-bold" class="mr-2 h-4 w-4" />
-					Clear All
-				</Button>
-			</div>
-
-			<div class="space-y-6">
-				<!-- Search -->
-				<div>
-					<label for="search" class="mb-2 block text-sm font-medium">Search</label>
-					<input
-						id="search"
-						type="text"
-						placeholder="Search by title..."
-						bind:value={searchQuery}
-						oninput={() => (currentPage = 1)}
-						class="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-					/>
+		<!-- Filters Panel -->
+		{#if showFilters}
+			<div class="mx-6 mb-6 rounded-lg border border-border bg-card p-6">
+				<div class="mb-4 flex items-center justify-between">
+					<h2 class="text-xl font-semibold">Filters</h2>
+					<Button variant="ghost" size="sm" onclick={clearFilters}>
+						<Icon icon="solar:restart-bold" class="mr-2 h-4 w-4" />
+						Clear All
+					</Button>
 				</div>
 
-				<!-- Sort, Format, Status -->
-				<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+				<div class="space-y-6">
+					<!-- Search -->
 					<div>
-						<label for="sort" class="mb-2 block text-sm font-medium">Sort By</label>
-						<select
-							id="sort"
-							bind:value={sortBy}
-							onchange={() => (currentPage = 1)}
+						<label for="search" class="mb-2 block text-sm font-medium">Search</label>
+						<input
+							id="search"
+							type="text"
+							placeholder="Search by title..."
+							bind:value={searchQuery}
+							oninput={() => (currentPage = 1)}
 							class="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-						>
-							{#each sortOptions as option}
-								<option value={option.value}>{option.label}</option>
-							{/each}
-						</select>
+						/>
 					</div>
 
-					<div>
-						<label for="format" class="mb-2 block text-sm font-medium">Format</label>
-						<select
-							id="format"
-							bind:value={selectedFormat}
-							onchange={() => (currentPage = 1)}
-							class="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-						>
-							<option value="">All Formats</option>
-							{#each formats as format}
-								<option value={format}>{format.replace(/_/g, ' ')}</option>
-							{/each}
-						</select>
-					</div>
-
-					<div>
-						<label for="status" class="mb-2 block text-sm font-medium">Status</label>
-						<select
-							id="status"
-							bind:value={selectedStatus}
-							onchange={() => (currentPage = 1)}
-							class="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-						>
-							<option value="">All Status</option>
-							{#each statuses as status}
-								<option value={status}>{status.replace(/_/g, ' ')}</option>
-							{/each}
-						</select>
-					</div>
-				</div>
-
-				<!-- Season, Year, Source -->
-				<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-					<div>
-						<label for="season" class="mb-2 block text-sm font-medium">Season</label>
-						<select
-							id="season"
-							bind:value={selectedSeason}
-							onchange={() => (currentPage = 1)}
-							class="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-						>
-							<option value="">All Seasons</option>
-							{#each seasons as season}
-								<option value={season}>{season}</option>
-							{/each}
-						</select>
-					</div>
-
-					<div>
-						<label for="year" class="mb-2 block text-sm font-medium">Year</label>
-						<select
-							id="year"
-							bind:value={selectedYear}
-							onchange={() => (currentPage = 1)}
-							class="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-						>
-							<option value="">All Years</option>
-							{#each years as year}
-								<option value={year.toString()}>{year}</option>
-							{/each}
-						</select>
-					</div>
-
-					<div>
-						<label for="source" class="mb-2 block text-sm font-medium">Source</label>
-						<select
-							id="source"
-							bind:value={selectedSource}
-							onchange={() => (currentPage = 1)}
-							class="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-						>
-							<option value="">All Sources</option>
-							{#each sources as source}
-								<option value={source}>{source.replace(/_/g, ' ')}</option>
-							{/each}
-						</select>
-					</div>
-				</div>
-
-				<!-- Genres -->
-				<div>
-					<span class="mb-2 block text-sm font-medium">Genres</span>
-					<div class="flex flex-wrap gap-2">
-						{#each allGenres as genre}
-							{@const isIncluded = selectedGenres.includes(genre)}
-							{@const isExcluded = excludedGenres.includes(genre)}
-							<button
-								type="button"
-								onclick={() => {
-									if (!isIncluded && !isExcluded) {
-										toggleGenre(genre, false);
-									} else if (isIncluded) {
-										toggleGenre(genre, true);
-									} else {
-										toggleGenre(genre, true);
-									}
-								}}
-								class="rounded-full border-2 px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-105
-								{isIncluded
-									? 'border-primary bg-primary/20 text-primary'
-									: isExcluded
-										? 'border-destructive bg-destructive/20 text-destructive line-through'
-										: 'border-border bg-muted text-muted-foreground hover:border-primary/50'}"
+					<!-- Sort, Format, Status -->
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+						<div>
+							<label for="sort" class="mb-2 block text-sm font-medium">Sort By</label>
+							<select
+								id="sort"
+								bind:value={sortBy}
+								onchange={() => (currentPage = 1)}
+								class="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
 							>
-								{genre}
-							</button>
-						{/each}
+								{#each sortOptions as option}
+									<option value={option.value}>{option.label}</option>
+								{/each}
+							</select>
+						</div>
+
+						<div>
+							<label for="format" class="mb-2 block text-sm font-medium">Format</label>
+							<select
+								id="format"
+								bind:value={selectedFormat}
+								onchange={() => (currentPage = 1)}
+								class="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+							>
+								<option value="">All Formats</option>
+								{#each formats as format}
+									<option value={format}>{format.replace(/_/g, ' ')}</option>
+								{/each}
+							</select>
+						</div>
+
+						<div>
+							<label for="status" class="mb-2 block text-sm font-medium">Status</label>
+							<select
+								id="status"
+								bind:value={selectedStatus}
+								onchange={() => (currentPage = 1)}
+								class="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+							>
+								<option value="">All Status</option>
+								{#each statuses as status}
+									<option value={status}>{status.replace(/_/g, ' ')}</option>
+								{/each}
+							</select>
+						</div>
 					</div>
-					<p class="mt-2 text-xs text-muted-foreground">
-						Click once to include, twice to exclude, three times to remove
-					</p>
-				</div>
 
-				<!-- Adult Content -->
-				<div class="flex items-center gap-2">
-					<input
-						type="checkbox"
-						id="adult"
-						bind:checked={showAdult}
-						onchange={() => (currentPage = 1)}
-						class="h-4 w-4 rounded border-border"
-					/>
-					<label for="adult" class="text-sm font-medium">Show adult content</label>
+					<!-- Season, Year, Source -->
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+						<div>
+							<label for="season" class="mb-2 block text-sm font-medium">Season</label>
+							<select
+								id="season"
+								bind:value={selectedSeason}
+								onchange={() => (currentPage = 1)}
+								class="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+							>
+								<option value="">All Seasons</option>
+								{#each seasons as season}
+									<option value={season}>{season}</option>
+								{/each}
+							</select>
+						</div>
+
+						<div>
+							<label for="year" class="mb-2 block text-sm font-medium">Year</label>
+							<select
+								id="year"
+								bind:value={selectedYear}
+								onchange={() => (currentPage = 1)}
+								class="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+							>
+								<option value="">All Years</option>
+								{#each years as year}
+									<option value={year.toString()}>{year}</option>
+								{/each}
+							</select>
+						</div>
+
+						<div>
+							<label for="source" class="mb-2 block text-sm font-medium">Source</label>
+							<select
+								id="source"
+								bind:value={selectedSource}
+								onchange={() => (currentPage = 1)}
+								class="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+							>
+								<option value="">All Sources</option>
+								{#each sources as source}
+									<option value={source}>{source.replace(/_/g, ' ')}</option>
+								{/each}
+							</select>
+						</div>
+					</div>
+
+					<!-- Genres -->
+					<div>
+						<span class="mb-2 block text-sm font-medium">Genres</span>
+						<div class="flex flex-wrap gap-2">
+							{#each allGenres as genre}
+								{@const isIncluded = selectedGenres.includes(genre)}
+								{@const isExcluded = excludedGenres.includes(genre)}
+								<button
+									type="button"
+									onclick={() => {
+										if (!isIncluded && !isExcluded) {
+											toggleGenre(genre, false);
+										} else if (isIncluded) {
+											toggleGenre(genre, true);
+										} else {
+											toggleGenre(genre, true);
+										}
+									}}
+									class="rounded-full border-2 px-4 py-2 text-sm font-medium transition-all duration-200 hover:scale-105
+								{isIncluded
+										? 'border-primary bg-primary/20 text-primary'
+										: isExcluded
+											? 'border-destructive bg-destructive/20 text-destructive line-through'
+											: 'border-border bg-muted text-muted-foreground hover:border-primary/50'}"
+								>
+									{genre}
+								</button>
+							{/each}
+						</div>
+						<p class="mt-2 text-xs text-muted-foreground">
+							Click once to include, twice to exclude, three times to remove
+						</p>
+					</div>
+
+					<!-- Adult Content -->
+					<div class="flex items-center gap-2">
+						<input
+							type="checkbox"
+							id="adult"
+							bind:checked={showAdult}
+							onchange={() => (currentPage = 1)}
+							class="h-4 w-4 rounded border-border"
+						/>
+						<label for="adult" class="text-sm font-medium">Show adult content</label>
+					</div>
 				</div>
 			</div>
-		</div>
-	{/if}
+		{/if}
 
-	<!-- Filtered Results (only show when filters applied) -->
-	{#if hasFilters}
-		<!-- Loading/Error/Empty States -->
-		{#if query.isLoading}
-		<div class="flex items-center justify-center py-20">
-			<Icon icon="svg-spinners:3-dots-scale" class="h-12 w-12 text-primary" />
-		</div>
-	{:else if query.isError}
-		<div class="flex flex-col items-center justify-center py-20">
-			<Icon icon="solar:danger-circle-bold" class="mb-4 h-16 w-16 text-destructive" />
-			<h3 class="mb-2 text-xl font-semibold">Error loading media</h3>
-			<p class="text-sm text-muted-foreground">{query.error?.message || 'Unknown error'}</p>
-		</div>
-	{:else if mediaList.length === 0}
-		<div class="flex flex-col items-center justify-center py-20">
-			<Icon icon="solar:ghost-bold" class="mb-4 h-16 w-16 text-muted-foreground" />
-			<h3 class="mb-2 text-xl font-semibold">No results found</h3>
-			<p class="text-sm text-muted-foreground">Try adjusting your filters</p>
-		</div>
-	{:else}
-		<!-- Media Grid -->
-		<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 px-6">
-			{#each mediaList as media (media.id)}
-				<MediaCard {media} />
-			{/each}
-		</div>
+		<!-- Filtered Results (only show when filters applied) -->
+		{#if hasFilters}
+			<!-- Loading/Error/Empty States -->
+			{#if query.isLoading}
+				<div class="flex items-center justify-center py-20">
+					<Icon icon="svg-spinners:3-dots-scale" class="h-12 w-12 text-primary" />
+				</div>
+			{:else if query.isError}
+				<div class="flex flex-col items-center justify-center py-20">
+					<Icon icon="solar:danger-circle-bold" class="mb-4 h-16 w-16 text-destructive" />
+					<h3 class="mb-2 text-xl font-semibold">Error loading media</h3>
+					<p class="text-sm text-muted-foreground">{query.error?.message || 'Unknown error'}</p>
+				</div>
+			{:else if mediaList.length === 0}
+				<div class="flex flex-col items-center justify-center py-20">
+					<Icon icon="solar:ghost-bold" class="mb-4 h-16 w-16 text-muted-foreground" />
+					<h3 class="mb-2 text-xl font-semibold">No results found</h3>
+					<p class="text-sm text-muted-foreground">Try adjusting your filters</p>
+				</div>
+			{:else}
+				<!-- Media Grid -->
+				<div
+					class="grid grid-cols-2 gap-4 px-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+				>
+					{#each mediaList as media (media.id)}
+						<MediaCard {media} />
+					{/each}
+				</div>
 
-		<!-- Pagination -->
-		<div class="mt-8 flex items-center justify-between px-6">
-			<Button variant="outline" disabled={currentPage === 1} onclick={prevPage}>
-				<Icon icon="solar:alt-arrow-left-bold" class="mr-2 h-4 w-4" />
-				Previous
-			</Button>
+				<!-- Pagination -->
+				<div class="mt-8 flex items-center justify-between px-6">
+					<Button variant="outline" disabled={currentPage === 1} onclick={prevPage}>
+						<Icon icon="solar:alt-arrow-left-bold" class="mr-2 h-4 w-4" />
+						Previous
+					</Button>
 
-			<div class="text-sm text-muted-foreground">
-				Page {pageInfo?.currentPage || 1} of {pageInfo?.lastPage || 1}
-			</div>
+					<div class="text-sm text-muted-foreground">
+						Page {pageInfo?.currentPage || 1} of {pageInfo?.lastPage || 1}
+					</div>
 
-			<Button variant="outline" disabled={!pageInfo?.hasNextPage} onclick={nextPage}>
-				Next
-				<Icon icon="solar:alt-arrow-right-bold" class="ml-2 h-4 w-4" />
-			</Button>
-		</div>
-	{/if}
-	{/if}
+					<Button variant="outline" disabled={!pageInfo?.hasNextPage} onclick={nextPage}>
+						Next
+						<Icon icon="solar:alt-arrow-right-bold" class="ml-2 h-4 w-4" />
+					</Button>
+				</div>
+			{/if}
+		{/if}
 	</div>
 </div>

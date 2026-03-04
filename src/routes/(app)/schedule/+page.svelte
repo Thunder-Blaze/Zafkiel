@@ -31,9 +31,7 @@
 	);
 
 	/** Anime with no nextAiringEpisode data */
-	const airingUnknownDay = $derived(
-		airingItems.filter((m) => !m.nextAiringEpisode?.airingAt)
-	);
+	const airingUnknownDay = $derived(airingItems.filter((m) => !m.nextAiringEpisode?.airingAt));
 
 	// ── Upcoming ─────────────────────────────────────────────────────────────────
 	let upcomingPage = $state(1);
@@ -81,10 +79,15 @@
 		<TabsContent value="airing">
 			{#if airingQuery.isLoading}
 				<div class="flex items-center justify-center p-16">
-					<Icon icon="solar:refresh-circle-line-duotone" class="h-10 w-10 animate-spin text-primary" />
+					<Icon
+						icon="solar:refresh-circle-line-duotone"
+						class="h-10 w-10 animate-spin text-primary"
+					/>
 				</div>
 			{:else if airingQuery.error}
-				<div class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-12 text-center">
+				<div
+					class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-12 text-center"
+				>
 					<Icon icon="solar:danger-triangle-bold-duotone" class="h-12 w-12 text-destructive" />
 					<h3 class="text-lg font-semibold">Failed to load schedule</h3>
 					<Button variant="outline" onclick={() => airingQuery.refetch()}>Retry</Button>
@@ -100,16 +103,22 @@
 							{/if}
 							<span class="text-sm text-muted-foreground">({group.items.length} anime)</span>
 						</div>
-						<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+						<div
+							class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+						>
 							{#each group.items as anime (anime.id)}
 								<div class="relative">
 									<!-- Airing time badge -->
 									{#if anime.nextAiringEpisode}
 										<div class="absolute top-2 left-2 z-10 flex flex-col gap-1">
-											<div class="rounded-md bg-black/75 px-1.5 py-0.5 text-xs text-white backdrop-blur-sm">
+											<div
+												class="rounded-md bg-black/75 px-1.5 py-0.5 text-xs text-white backdrop-blur-sm"
+											>
 												Ep {anime.nextAiringEpisode.episode}
 											</div>
-											<div class="rounded-md bg-primary/85 px-1.5 py-0.5 text-xs text-primary-foreground backdrop-blur-sm">
+											<div
+												class="rounded-md bg-primary/85 px-1.5 py-0.5 text-xs text-primary-foreground backdrop-blur-sm"
+											>
 												{formatAiringTime(anime.nextAiringEpisode.airingAt)}
 											</div>
 										</div>
@@ -132,11 +141,15 @@
 							<span class="text-sm text-muted-foreground">({airingUnknownDay.length} anime)</span>
 							<Icon
 								icon="solar:alt-arrow-down-bold"
-								class="ml-auto size-4 text-muted-foreground transition-transform {showUnknown ? 'rotate-180' : ''}"
+								class="ml-auto size-4 text-muted-foreground transition-transform {showUnknown
+									? 'rotate-180'
+									: ''}"
 							/>
 						</button>
 						{#if showUnknown}
-							<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+							<div
+								class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+							>
 								{#each airingUnknownDay as anime (anime.id)}
 									<MediaCard media={anime} />
 								{/each}
@@ -146,10 +159,17 @@
 				{/if}
 
 				{#if airingByDay.length === 0 && airingUnknownDay.length === 0}
-					<div class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-12 text-center">
-						<Icon icon="solar:calendar-minimalistic-bold-duotone" class="h-12 w-12 text-muted-foreground" />
+					<div
+						class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-12 text-center"
+					>
+						<Icon
+							icon="solar:calendar-minimalistic-bold-duotone"
+							class="h-12 w-12 text-muted-foreground"
+						/>
 						<h3 class="text-lg font-semibold">No Airing Anime</h3>
-						<p class="text-sm text-muted-foreground">No airing schedule data available right now.</p>
+						<p class="text-sm text-muted-foreground">
+							No airing schedule data available right now.
+						</p>
 					</div>
 				{/if}
 
@@ -161,7 +181,11 @@
 							Previous
 						</Button>
 						<span class="text-sm text-muted-foreground">Page {airingPage}</span>
-						<Button variant="outline" disabled={!airingPageInfo.hasNextPage} onclick={() => (airingPage += 1)}>
+						<Button
+							variant="outline"
+							disabled={!airingPageInfo.hasNextPage}
+							onclick={() => (airingPage += 1)}
+						>
 							Next
 							<Icon icon="solar:arrow-right-linear" class="size-4" />
 						</Button>
@@ -174,28 +198,39 @@
 		<TabsContent value="upcoming">
 			{#if upcomingQuery.isLoading}
 				<div class="flex items-center justify-center p-16">
-					<Icon icon="solar:refresh-circle-line-duotone" class="h-10 w-10 animate-spin text-primary" />
+					<Icon
+						icon="solar:refresh-circle-line-duotone"
+						class="h-10 w-10 animate-spin text-primary"
+					/>
 				</div>
 			{:else if upcomingQuery.error}
-				<div class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-12 text-center">
+				<div
+					class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-12 text-center"
+				>
 					<Icon icon="solar:danger-triangle-bold-duotone" class="h-12 w-12 text-destructive" />
 					<h3 class="text-lg font-semibold">Failed to load upcoming anime</h3>
 					<Button variant="outline" onclick={() => upcomingQuery.refetch()}>Retry</Button>
 				</div>
 			{:else if upcomingItems.length === 0}
-				<div class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-12 text-center">
+				<div
+					class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-12 text-center"
+				>
 					<Icon icon="solar:clock-circle-bold-duotone" class="h-12 w-12 text-muted-foreground" />
 					<h3 class="text-lg font-semibold">No Upcoming Anime</h3>
 					<p class="text-sm text-muted-foreground">Check back later for upcoming titles.</p>
 				</div>
 			{:else}
-				<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+				<div
+					class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+				>
 					{#each upcomingItems as anime (anime.id)}
 						<div class="relative">
 							{#if anime.nextAiringEpisode}
 								<div class="absolute top-2 left-2 z-10 flex flex-col gap-1">
-									<div class="rounded-md bg-primary/85 px-1.5 py-0.5 text-xs text-primary-foreground backdrop-blur-sm">
-									in <AiringCountdown timeUntilAiring={anime.nextAiringEpisode.timeUntilAiring} />
+									<div
+										class="rounded-md bg-primary/85 px-1.5 py-0.5 text-xs text-primary-foreground backdrop-blur-sm"
+									>
+										in <AiringCountdown timeUntilAiring={anime.nextAiringEpisode.timeUntilAiring} />
 									</div>
 								</div>
 							{/if}
@@ -206,12 +241,20 @@
 
 				{#if upcomingPageInfo && (upcomingPage > 1 || upcomingPageInfo.hasNextPage)}
 					<div class="mt-6 flex items-center justify-center gap-3">
-						<Button variant="outline" disabled={upcomingPage <= 1} onclick={() => (upcomingPage -= 1)}>
+						<Button
+							variant="outline"
+							disabled={upcomingPage <= 1}
+							onclick={() => (upcomingPage -= 1)}
+						>
 							<Icon icon="solar:arrow-left-linear" class="size-4" />
 							Previous
 						</Button>
 						<span class="text-sm text-muted-foreground">Page {upcomingPage}</span>
-						<Button variant="outline" disabled={!upcomingPageInfo.hasNextPage} onclick={() => (upcomingPage += 1)}>
+						<Button
+							variant="outline"
+							disabled={!upcomingPageInfo.hasNextPage}
+							onclick={() => (upcomingPage += 1)}
+						>
 							Next
 							<Icon icon="solar:arrow-right-linear" class="size-4" />
 						</Button>

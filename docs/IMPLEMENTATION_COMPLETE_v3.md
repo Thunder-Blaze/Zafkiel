@@ -9,11 +9,13 @@ Successfully implemented **complete end-to-end image caching** for the Zafkiel a
 ### 1. Backend (Rust/Tauri) ✅
 
 #### Database Module (`src-tauri/src/database.rs`)
+
 - Created `Database` struct with thread-safe SQLite connection
 - Automatic table creation with proper schema
 - Connection pooling via `Arc<Mutex<Connection>>`
 
 #### Database Commands (`src-tauri/src/db_commands.rs`)
+
 - **`get_cached_image_path(url)`** - Query database for cached image path
   - Returns `Option<String>` - `Some(path)` if cached, `None` if not
   - Updates `last_accessed` timestamp on access
@@ -31,12 +33,14 @@ Successfully implemented **complete end-to-end image caching** for the Zafkiel a
   - Ordered by `last_accessed DESC`
 
 #### Integration (`src-tauri/src/lib.rs`)
+
 - Database initialized on app startup
 - Located at `~/.local/share/zafkiel/zafkiel.db` (Linux)
 - Automatically creates parent directories
 - Registered all database commands in `invoke_handler`
 
 #### Dependencies (`Cargo.toml`)
+
 ```toml
 rusqlite = { version = "0.32", features = ["bundled"] }
 ```
@@ -44,31 +48,36 @@ rusqlite = { version = "0.32", features = ["bundled"] }
 ### 2. Frontend (TypeScript/Svelte) ✅
 
 #### Types (`src/lib/services/client-database.ts`)
+
 ```typescript
 export interface CachedImageInfo {
-    id: number;
-    original_url: string;
-    local_path: string;
-    file_size?: number;
-    cached_at: number;      // Unix timestamp (seconds)
-    last_accessed: number;  // Unix timestamp (seconds)
+	id: number;
+	original_url: string;
+	local_path: string;
+	file_size?: number;
+	cached_at: number; // Unix timestamp (seconds)
+	last_accessed: number; // Unix timestamp (seconds)
 }
 ```
 
 #### Client Database Service
+
 - **`getCachedImagePath(url)`** - Check if image is cached
 - **`cacheImage(url, localPath)`** - Store image metadata
 - **`removeCachedImage(url)`** - Remove from cache
 - **`getAllCachedImages()`** - Get all cached images with proper typing
 
 #### Image Cache Service (`src/lib/services/imageCache.ts`)
+
 Already implemented, now fully functional:
+
 1. Checks `getCachedImagePath()` for existing cache
 2. If not cached, calls `download_image()` Tauri command
 3. Saves metadata with `cacheImage()`
 4. Returns local path for display
 
 #### Components
+
 - **`CachedImage.svelte`** - Automatic image caching component
   - Replaces standard `<img>` tags
   - Downloads and caches on first view
@@ -82,19 +91,22 @@ Already implemented, now fully functional:
 ### 3. Database Schema ✅
 
 #### Updated Schema (`src/lib/server/db/schema.ts`)
+
 ```typescript
 export const cached_images = sqliteTable('cached_images', {
-    id: integer('id').primaryKey({ autoIncrement: true }),
-    original_url: text('original_url').notNull().unique(),
-    local_path: text('local_path').notNull().unique(),
-    file_size: integer('file_size'),              // ← ADDED
-    cached_at: integer('cached_at').notNull(),    // ← ADDED
-    last_accessed: integer('last_accessed').notNull(),
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	original_url: text('original_url').notNull().unique(),
+	local_path: text('local_path').notNull().unique(),
+	file_size: integer('file_size'), // ← ADDED
+	cached_at: integer('cached_at').notNull(), // ← ADDED
+	last_accessed: integer('last_accessed').notNull(),
 });
 ```
 
 #### Migration Applied
+
 Generated and applied Drizzle migration:
+
 ```sql
 ALTER TABLE `cached_images` ADD `file_size` integer;
 ALTER TABLE `cached_images` ADD `cached_at` integer NOT NULL;
@@ -103,10 +115,11 @@ ALTER TABLE `cached_images` ADD `cached_at` integer NOT NULL;
 ### 4. Server-Side Loading ✅
 
 #### Settings Page (`src/routes/settings/+page.server.ts`)
+
 ```typescript
 export const load: PageServerLoad = async () => {
-    const cachedImages = await DatabaseService.getAllCachedImages();
-    return { cachedImages };
+	const cachedImages = await DatabaseService.getAllCachedImages();
+	return { cachedImages };
 };
 ```
 
@@ -148,6 +161,7 @@ SQLite Query: SELECT local_path FROM cached_images WHERE original_url = ?
 ### Database Operations
 
 #### Insert/Update (UPSERT)
+
 ```rust
 conn.execute(
     "INSERT INTO cached_images (original_url, local_path, file_size, cached_at, last_accessed)
@@ -161,6 +175,7 @@ conn.execute(
 ```
 
 #### Query
+
 ```rust
 conn.query_row(
     "SELECT local_path FROM cached_images WHERE original_url = ?1",
@@ -172,12 +187,14 @@ conn.query_row(
 ## File Locations
 
 ### Backend
+
 - **Database Module**: `src-tauri/src/database.rs`
 - **DB Commands**: `src-tauri/src/db_commands.rs`
 - **Integration**: `src-tauri/src/lib.rs`
 - **Dependencies**: `src-tauri/Cargo.toml`
 
 ### Frontend
+
 - **Client Service**: `src/lib/services/client-database.ts`
 - **Image Service**: `src/lib/services/imageCache.ts`
 - **Server Service**: `src/lib/services/database.ts`
@@ -185,6 +202,7 @@ conn.query_row(
 - **Manager**: `src/lib/components/settings/ImageCacheManager.svelte`
 
 ### Database
+
 - **Schema**: `src/lib/server/db/schema.ts`
 - **Migration**: `drizzle/0001_sweet_piledriver.sql`
 - **Database File**: `~/.local/share/zafkiel/zafkiel.db` (runtime)
@@ -195,6 +213,7 @@ conn.query_row(
 ### Manual Testing Steps
 
 1. **Start the application**
+
    ```bash
    bun run tauri dev
    ```
@@ -221,6 +240,7 @@ conn.query_row(
 ### Expected Behavior
 
 #### First Visit
+
 ```
 [INFO] Get cached image path for: https://s4.anilist.co/file/...
 [INFO] Image not cached: https://s4.anilist.co/file/...
@@ -229,6 +249,7 @@ conn.query_row(
 ```
 
 #### Second Visit
+
 ```
 [INFO] Get cached image path for: https://s4.anilist.co/file/...
 [DEBUG] Found cached image: https://... -> images/abc123.jpg
@@ -237,12 +258,14 @@ conn.query_row(
 ## Performance Improvements
 
 ### Before Implementation
+
 - ❌ Every image downloaded on every page load
 - ❌ No offline support
 - ❌ Wasted bandwidth
 - ❌ Slow page loads
 
 ### After Implementation
+
 - ✅ Images cached after first download
 - ✅ Works offline
 - ✅ Minimal bandwidth usage
@@ -252,16 +275,19 @@ conn.query_row(
 ## Statistics
 
 ### Database Queries
+
 - **Read**: O(1) - Indexed by `original_url`
 - **Write**: O(1) - UPSERT operation
 - **List All**: O(n) - Full table scan (acceptable for management UI)
 
 ### Storage Efficiency
+
 - Database overhead: ~100 bytes per image record
 - File storage: Original image size
 - Index: Additional ~50 bytes per record
 
 ### Cache Hit Rate (Expected)
+
 - First visit: 0% (cold cache)
 - Subsequent visits: ~95%+ (images rarely change)
 - After browsing 10 anime: ~200-300 cached images
@@ -269,6 +295,7 @@ conn.query_row(
 ## Future Enhancements
 
 ### Potential Improvements
+
 1. **Cache Cleanup**
    - Implement LRU eviction when cache > X GB
    - Auto-remove images not accessed in 30+ days
@@ -292,16 +319,19 @@ conn.query_row(
 ## Troubleshooting
 
 ### Images Not Caching
+
 1. Check logs for database errors
 2. Verify database file exists and is writable
 3. Check cache directory permissions: `~/.local/share/zafkiel/cache/`
 
 ### Old Images Showing
+
 1. Clear cache from settings page
 2. Or manually delete: `rm -rf ~/.local/share/zafkiel/cache/`
 3. Database will auto-clean on next access
 
 ### Database Locked
+
 - Ensure only one app instance is running
 - Check for zombie processes
 - Restart application
@@ -309,18 +339,21 @@ conn.query_row(
 ## Validation
 
 ### TypeScript
+
 ```bash
 bun run check
 # ✅ svelte-check found 0 errors and 0 warnings
 ```
 
 ### Rust
+
 ```bash
 cd src-tauri && cargo build
 # ✅ Finished `dev` profile (7 warnings - unused variables only)
 ```
 
 ### Database
+
 ```bash
 bun run drizzle-kit push
 # ✅ Changes applied
@@ -331,6 +364,7 @@ bun run drizzle-kit push
 ✅ **COMPLETE END-TO-END IMPLEMENTATION**
 
 The image caching system is now fully functional with:
+
 - ✅ Rust backend with SQLite database
 - ✅ TypeScript frontend with proper types
 - ✅ Automatic caching on first view

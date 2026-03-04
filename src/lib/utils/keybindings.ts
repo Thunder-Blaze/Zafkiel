@@ -11,11 +11,11 @@
 // Platform Detection
 // ============================================================================
 
-const isMac = typeof navigator !== 'undefined' && (
-	navigator.userAgent.includes('Mac') ||
-	navigator.userAgent.includes('iPhone') ||
-	navigator.userAgent.includes('iPad')
-);
+const isMac =
+	typeof navigator !== 'undefined' &&
+	(navigator.userAgent.includes('Mac') ||
+		navigator.userAgent.includes('iPhone') ||
+		navigator.userAgent.includes('iPad'));
 
 /**
  * Cross-platform modifier key that represents the primary modifier
@@ -95,13 +95,13 @@ export function registerKeyBinding(binding: KeyBinding): void {
 	const existing = registeredBindings.find((b) => isConflicting(b, normalizedBinding));
 	if (existing) {
 		console.warn(
-			`[KeyBindings] Conflicting key binding: ${formatKeyBinding(normalizedBinding)} already bound to ${existing.description}`,
+			`[KeyBindings] Conflicting key binding: ${formatKeyBinding(normalizedBinding)} already bound to ${existing.description}`
 		);
 	}
 
 	registeredBindings.push(normalizedBinding);
 	console.log(
-		`[KeyBindings] Registered: ${formatKeyBinding(normalizedBinding)} - ${normalizedBinding.description}`,
+		`[KeyBindings] Registered: ${formatKeyBinding(normalizedBinding)} - ${normalizedBinding.description}`
 	);
 }
 
@@ -113,7 +113,7 @@ export function unregisterKeyBinding(binding: KeyBinding): void {
 	if (index !== -1) {
 		registeredBindings.splice(index, 1);
 		console.log(
-			`[KeyBindings] Unregistered: ${formatKeyBinding(binding)} - ${binding.description}`,
+			`[KeyBindings] Unregistered: ${formatKeyBinding(binding)} - ${binding.description}`
 		);
 	}
 }
@@ -183,7 +183,7 @@ export function handleKeyPress(event: KeyboardEvent): boolean {
 			!!b.ctrl === ctrl &&
 			!!b.alt === alt &&
 			!!b.shift === shift &&
-			!!b.meta === meta,
+			!!b.meta === meta
 	);
 
 	if (binding) {
@@ -299,14 +299,14 @@ export function updateKeyBindingAction(
 		primary?: boolean;
 		secondary?: boolean;
 	},
-	action: () => void | Promise<void>,
+	action: () => void | Promise<void>
 ): void {
 	// Normalize modifiers to match stored bindings
 	const tempBinding: KeyBinding = {
 		key,
 		...modifiers,
 		description: '',
-		action: () => {}
+		action: () => {},
 	};
 	const normalized = normalizeBinding(tempBinding);
 
@@ -316,17 +316,14 @@ export function updateKeyBindingAction(
 			!!b.ctrl === !!normalized.ctrl &&
 			!!b.alt === !!normalized.alt &&
 			!!b.shift === !!normalized.shift &&
-			!!b.meta === !!normalized.meta,
+			!!b.meta === !!normalized.meta
 	);
 
 	if (binding) {
 		binding.action = action;
 		console.log(`[KeyBindings] Updated action for: ${formatKeyBinding(binding)}`);
 	} else {
-		console.warn(
-			`[KeyBindings] No binding found for: ${key} with modifiers`,
-			modifiers,
-		);
+		console.warn(`[KeyBindings] No binding found for: ${key} with modifiers`, modifiers);
 	}
 }
 

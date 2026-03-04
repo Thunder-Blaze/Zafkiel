@@ -5,7 +5,22 @@
 
 import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 import type { CreateQueryOptions } from '@tanstack/svelte-query';
-import { animeApi, mangaApi, userApi, studioApi, characterApi, staffApi, mediaApi, mediaListApi, activityApi, notificationApi, forumApi, reviewApi, recommendationApi, airingApi } from '$lib/services/anilist';
+import {
+	animeApi,
+	mangaApi,
+	userApi,
+	studioApi,
+	characterApi,
+	staffApi,
+	mediaApi,
+	mediaListApi,
+	activityApi,
+	notificationApi,
+	forumApi,
+	reviewApi,
+	recommendationApi,
+	airingApi,
+} from '$lib/services/anilist';
 import { ClientDatabaseService } from '$lib/services/client-database';
 import type {
 	Media,
@@ -43,9 +58,12 @@ export const anilistKeys = {
 		searches: () => [...anilistKeys.anime.all, 'search'] as const,
 		search: (params: SearchParams) => [...anilistKeys.anime.searches(), params] as const,
 		detail: (id: number) => [...anilistKeys.anime.all, 'detail', id] as const,
-		trending: (params?: PaginationParams) => [...anilistKeys.anime.all, 'trending', params || {}] as const,
-		popular: (params?: PaginationParams) => [...anilistKeys.anime.all, 'popular', params || {}] as const,
-		seasonal: (params: SeasonalAnimeParams) => [...anilistKeys.anime.all, 'seasonal', params] as const,
+		trending: (params?: PaginationParams) =>
+			[...anilistKeys.anime.all, 'trending', params || {}] as const,
+		popular: (params?: PaginationParams) =>
+			[...anilistKeys.anime.all, 'popular', params || {}] as const,
+		seasonal: (params: SeasonalAnimeParams) =>
+			[...anilistKeys.anime.all, 'seasonal', params] as const,
 	},
 	// Manga
 	manga: {
@@ -55,8 +73,10 @@ export const anilistKeys = {
 		searches: () => [...anilistKeys.manga.all, 'search'] as const,
 		search: (params: SearchParams) => [...anilistKeys.manga.searches(), params] as const,
 		detail: (id: number) => [...anilistKeys.manga.all, 'detail', id] as const,
-		trending: (params?: PaginationParams) => [...anilistKeys.manga.all, 'trending', params || {}] as const,
-		popular: (params?: PaginationParams) => [...anilistKeys.manga.all, 'popular', params || {}] as const,
+		trending: (params?: PaginationParams) =>
+			[...anilistKeys.manga.all, 'trending', params || {}] as const,
+		popular: (params?: PaginationParams) =>
+			[...anilistKeys.manga.all, 'popular', params || {}] as const,
 	},
 	// Users
 	user: {
@@ -76,15 +96,19 @@ export const anilistKeys = {
 	character: {
 		all: ['character'] as const,
 		detail: (id: number) => [...anilistKeys.character.all, 'detail', id] as const,
-		popular: (params?: PaginationParams) => [...anilistKeys.character.all, 'popular', params || {}] as const,
-		birthday: (params?: PaginationParams) => [...anilistKeys.character.all, 'birthday', params || {}] as const,
+		popular: (params?: PaginationParams) =>
+			[...anilistKeys.character.all, 'popular', params || {}] as const,
+		birthday: (params?: PaginationParams) =>
+			[...anilistKeys.character.all, 'birthday', params || {}] as const,
 	},
 	// Staff
 	staff: {
 		all: ['staff'] as const,
 		detail: (id: number) => [...anilistKeys.staff.all, 'detail', id] as const,
-		popular: (params?: PaginationParams) => [...anilistKeys.staff.all, 'popular', params || {}] as const,
-		birthday: (params?: PaginationParams) => [...anilistKeys.staff.all, 'birthday', params || {}] as const,
+		popular: (params?: PaginationParams) =>
+			[...anilistKeys.staff.all, 'popular', params || {}] as const,
+		birthday: (params?: PaginationParams) =>
+			[...anilistKeys.staff.all, 'birthday', params || {}] as const,
 	},
 	// Media (generic for both anime and manga)
 	media: {
@@ -102,16 +126,16 @@ export const anilistKeys = {
 
 const defaultStaleTime = {
 	detail: 30 * 60 * 1000, // 30 minutes - detailed data changes less frequently
-	list: 5 * 60 * 1000,   // 5 minutes - lists update more frequently
+	list: 5 * 60 * 1000, // 5 minutes - lists update more frequently
 	trending: 5 * 60 * 1000, // 5 minutes - trending changes frequently
 	popular: 15 * 60 * 1000, // 15 minutes - popular changes less frequently
 	seasonal: 60 * 60 * 1000, // 1 hour - seasonal data very stable
-	search: 10 * 60 * 1000,  // 10 minutes - search results moderate stability
-	browse: 10 * 60 * 1000,  // 10 minutes - browse results moderate stability
-	user: 30 * 60 * 1000,    // 30 minutes - user data changes less frequently
-	studio: 60 * 60 * 1000,  // 1 hour - studio data very stable
+	search: 10 * 60 * 1000, // 10 minutes - search results moderate stability
+	browse: 10 * 60 * 1000, // 10 minutes - browse results moderate stability
+	user: 30 * 60 * 1000, // 30 minutes - user data changes less frequently
+	studio: 60 * 60 * 1000, // 1 hour - studio data very stable
 	character: 60 * 60 * 1000, // 1 hour - character data very stable
-	staff: 60 * 60 * 1000,   // 1 hour - staff data very stable
+	staff: 60 * 60 * 1000, // 1 hour - staff data very stable
 } as const;
 
 // ============================================================================
@@ -268,9 +292,7 @@ export function usePopularManga(
 /**
  * Get current authenticated user with caching
  */
-export function useCurrentUser(
-	options?: Partial<CreateQueryOptions<AniListResponse<User>>>
-) {
+export function useCurrentUser(options?: Partial<CreateQueryOptions<AniListResponse<User>>>) {
 	return createQuery(() => ({
 		queryKey: anilistKeys.user.current(),
 		queryFn: () => userApi.getCurrent(),
@@ -560,8 +582,7 @@ export function useBrowseMedia(
 		| Partial<CreateQueryOptions<AniListResponse<Page<Media[]>>>>
 		| (() => Partial<CreateQueryOptions<AniListResponse<Page<Media[]>>>>)
 ) {
-	const resolveParams =
-		typeof getParams === 'function' ? getParams : () => getParams;
+	const resolveParams = typeof getParams === 'function' ? getParams : () => getParams;
 	const resolveOptions =
 		getOptions === undefined
 			? () => ({})
@@ -634,13 +655,11 @@ export function useUpdateProgress() {
 		onMutate: async (params) => {
 			// Cancel outgoing refetches
 			await queryClient.cancelQueries({
-				queryKey: anilistKeys.media.detail(params.mediaId)
+				queryKey: anilistKeys.media.detail(params.mediaId),
 			});
 
 			// Snapshot previous value
-			const previousData = queryClient.getQueryData(
-				anilistKeys.media.detail(params.mediaId)
-			);
+			const previousData = queryClient.getQueryData(anilistKeys.media.detail(params.mediaId));
 
 			// Optimistically update
 			queryClient.setQueryData(
@@ -656,8 +675,8 @@ export function useUpdateProgress() {
 								progress: params.progress,
 								status: params.status || old.data.mediaListEntry?.status,
 								score: params.score || old.data.mediaListEntry?.score,
-							}
-						}
+							},
+						},
 					};
 				}
 			);
@@ -667,19 +686,16 @@ export function useUpdateProgress() {
 		onError: (err, params, context) => {
 			// Rollback on error
 			if (context?.previousData) {
-				queryClient.setQueryData(
-					anilistKeys.media.detail(params.mediaId),
-					context.previousData
-				);
+				queryClient.setQueryData(anilistKeys.media.detail(params.mediaId), context.previousData);
 			}
 		},
 		onSettled: (data, error, params) => {
 			// Refetch to ensure consistency
 			queryClient.invalidateQueries({
-				queryKey: anilistKeys.media.detail(params.mediaId)
+				queryKey: anilistKeys.media.detail(params.mediaId),
 			});
 			queryClient.invalidateQueries({
-				queryKey: anilistKeys.user.current()
+				queryKey: anilistKeys.user.current(),
 			});
 		},
 	}));
@@ -694,9 +710,9 @@ export function useAddToList() {
 	return createMutation(() => ({
 		mutationFn: async (params: AddToListParams) => {
 			// Cache media data first
-			const media = queryClient.getQueryData(
-				anilistKeys.media.detail(params.mediaId)
-			) as AniListResponse<Media> | undefined;
+			const media = queryClient.getQueryData(anilistKeys.media.detail(params.mediaId)) as
+				| AniListResponse<Media>
+				| undefined;
 
 			if (media?.data) {
 				await ClientDatabaseService.cacheMedia(media.data);
@@ -711,10 +727,10 @@ export function useAddToList() {
 		onSuccess: (data, params) => {
 			// Invalidate relevant queries
 			queryClient.invalidateQueries({
-				queryKey: anilistKeys.media.detail(params.mediaId)
+				queryKey: anilistKeys.media.detail(params.mediaId),
 			});
 			queryClient.invalidateQueries({
-				queryKey: anilistKeys.user.current()
+				queryKey: anilistKeys.user.current(),
 			});
 		},
 	}));
@@ -734,10 +750,10 @@ export function useRemoveFromList() {
 		onSuccess: (data, params) => {
 			// Invalidate relevant queries
 			queryClient.invalidateQueries({
-				queryKey: anilistKeys.media.detail(params.mediaId)
+				queryKey: anilistKeys.media.detail(params.mediaId),
 			});
 			queryClient.invalidateQueries({
-				queryKey: anilistKeys.user.current()
+				queryKey: anilistKeys.user.current(),
 			});
 		},
 	}));
@@ -788,7 +804,8 @@ export const activityKeys = {
 	recent: (page?: number) => ['activity', 'recent', page ?? 1] as const,
 	following: (page?: number) => ['activity', 'following', page ?? 1] as const,
 	detail: (id: number) => ['activity', 'detail', id] as const,
-	replies: (activityId: number, page?: number) => ['activity', 'replies', activityId, page ?? 1] as const,
+	replies: (activityId: number, page?: number) =>
+		['activity', 'replies', activityId, page ?? 1] as const,
 } as const;
 
 export const notificationKeys = {
@@ -800,10 +817,12 @@ export const forumKeys = {
 	all: ['forum'] as const,
 	recent: (page?: number) => ['forum', 'recent', page ?? 1] as const,
 	popular: (page?: number) => ['forum', 'popular', page ?? 1] as const,
-	byCategory: (categoryId: number, page?: number) => ['forum', 'category', categoryId, page ?? 1] as const,
+	byCategory: (categoryId: number, page?: number) =>
+		['forum', 'category', categoryId, page ?? 1] as const,
 	byUser: (userId: number, page?: number) => ['forum', 'user', userId, page ?? 1] as const,
 	thread: (id: number) => ['forum', 'thread', id] as const,
-	comments: (threadId: number, page?: number) => ['forum', 'comments', threadId, page ?? 1] as const,
+	comments: (threadId: number, page?: number) =>
+		['forum', 'comments', threadId, page ?? 1] as const,
 } as const;
 
 export const reviewKeys = {
@@ -816,7 +835,8 @@ export const reviewKeys = {
 
 export const recommendationKeys = {
 	all: ['recommendation'] as const,
-	byMedia: (mediaId: number, page?: number) => ['recommendation', 'media', mediaId, page ?? 1] as const,
+	byMedia: (mediaId: number, page?: number) =>
+		['recommendation', 'media', mediaId, page ?? 1] as const,
 } as const;
 
 // ============================================================================
@@ -842,7 +862,12 @@ export function useMyMangaList(status?: MediaListStatus, page?: number, perPage?
 }
 
 /** Specific user's anime list by username */
-export function useUserAnimeList(username: string, status?: MediaListStatus, page?: number, perPage?: number) {
+export function useUserAnimeList(
+	username: string,
+	status?: MediaListStatus,
+	page?: number,
+	perPage?: number
+) {
 	return createQuery(() => ({
 		queryKey: mediaListKeys.userAnime(username, status, page),
 		queryFn: () => mediaListApi.getUserAnimeList(username, status, page, perPage),
@@ -852,7 +877,12 @@ export function useUserAnimeList(username: string, status?: MediaListStatus, pag
 }
 
 /** Specific user's manga list by username */
-export function useUserMangaList(username: string, status?: MediaListStatus, page?: number, perPage?: number) {
+export function useUserMangaList(
+	username: string,
+	status?: MediaListStatus,
+	page?: number,
+	perPage?: number
+) {
 	return createQuery(() => ({
 		queryKey: mediaListKeys.userManga(username, status, page),
 		queryFn: () => mediaListApi.getUserMangaList(username, status, page, perPage),

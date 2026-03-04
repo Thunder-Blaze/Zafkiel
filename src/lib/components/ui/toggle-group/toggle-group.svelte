@@ -24,8 +24,12 @@
 	}: ToggleGroupPrimitive.RootProps & ToggleVariants = $props();
 
 	setToggleGroupCtx({
-		get variant() { return variant; },
-		get size() { return size; },
+		get variant() {
+			return variant;
+		},
+		get size() {
+			return size;
+		},
 	});
 </script>
 

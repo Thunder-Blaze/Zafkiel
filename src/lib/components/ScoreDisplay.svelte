@@ -23,9 +23,7 @@
 	const colorClass = $derived(scoreToColorClass(score));
 
 	// Convert 0–100 → 0–10 with 1dp
-	const displayScore = $derived(
-		score == null || score === 0 ? null : (score / 10).toFixed(1),
-	);
+	const displayScore = $derived(score == null || score === 0 ? null : (score / 10).toFixed(1));
 
 	const sizeClasses: Record<string, Record<string, string>> = {
 		badge: {
@@ -47,13 +45,15 @@
 
 	// Stars: convert 0–100 scale → 0–5 stars (in 0.5 steps)
 	const starCount = $derived(
-		score == null || score === 0 ? 0 : Math.round((score / 100) * 5 * 2) / 2,
+		score == null || score === 0 ? 0 : Math.round((score / 100) * 5 * 2) / 2
 	);
 </script>
 
 {#if variant === 'badge'}
 	<span
-		class="inline-flex items-center font-semibold tabular-nums {colorClass} {sizeClasses.badge[size]} {className}"
+		class="inline-flex items-center font-semibold tabular-nums {colorClass} {sizeClasses.badge[
+			size
+		]} {className}"
 	>
 		{displayScore ?? 'N/A'}
 	</span>

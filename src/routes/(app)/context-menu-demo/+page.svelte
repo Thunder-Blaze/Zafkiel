@@ -279,9 +279,9 @@
 			<CardContent>
 				<div class="space-y-4">
 					<p class="text-sm select-text">
-						<strong>Try selecting this text:</strong> Attack on Titan is a dark fantasy anime series
-						adapted from the manga of the same name by Hajime Isayama. The series follows Eren Yeager
-						and his friends in their fight against giant humanoid creatures called Titans.
+						<strong>Try selecting this text:</strong> Attack on Titan is a dark fantasy anime series adapted
+						from the manga of the same name by Hajime Isayama. The series follows Eren Yeager and his
+						friends in their fight against giant humanoid creatures called Titans.
 					</p>
 					{#if selectedText}
 						<div class="rounded bg-muted p-3">

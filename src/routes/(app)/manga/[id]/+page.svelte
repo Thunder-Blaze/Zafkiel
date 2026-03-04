@@ -85,7 +85,10 @@
 	{#if isLoading}
 		<div class="flex min-h-[400px] items-center justify-center">
 			<div class="flex flex-col items-center space-y-4">
-				<Icon icon="solar:refresh-circle-line-duotone" class="h-12 w-12 animate-spin text-primary" />
+				<Icon
+					icon="solar:refresh-circle-line-duotone"
+					class="h-12 w-12 animate-spin text-primary"
+				/>
 				<p class="text-muted-foreground">Loading manga details...</p>
 			</div>
 		</div>
@@ -147,13 +150,17 @@
 									{manga.status?.replace('_', ' ')}
 								</Badge>
 								{#if manga.averageScore}
-									<div class="flex items-center gap-1 rounded-full bg-background/50 px-3 py-1 backdrop-blur-sm">
+									<div
+										class="flex items-center gap-1 rounded-full bg-background/50 px-3 py-1 backdrop-blur-sm"
+									>
 										<Icon icon="solar:star-bold" class="h-4 w-4 text-yellow-400" />
 										<span class="font-semibold">{formatScore(manga.averageScore)}</span>
 									</div>
 								{/if}
 								{#if manga.popularity}
-									<div class="flex items-center gap-1 rounded-full bg-background/50 px-3 py-1 text-muted-foreground backdrop-blur-sm">
+									<div
+										class="flex items-center gap-1 rounded-full bg-background/50 px-3 py-1 text-muted-foreground backdrop-blur-sm"
+									>
 										<Icon icon="solar:users-group-rounded-bold" class="h-4 w-4" />
 										<span>{manga.popularity.toLocaleString()} users</span>
 									</div>
@@ -180,7 +187,9 @@
 		<!-- Content Tabs -->
 		<div class="mt-8">
 			<Tabs value="overview" class="w-full">
-				<TabsList class="w-full justify-start overflow-x-auto rounded-none border-b bg-transparent p-0">
+				<TabsList
+					class="w-full justify-start overflow-x-auto rounded-none border-b bg-transparent p-0"
+				>
 					<TabsTrigger
 						value="overview"
 						class="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
@@ -257,7 +266,9 @@
 									{#if manga.status}
 										<div class="flex justify-between">
 											<span class="text-sm text-muted-foreground">Status</span>
-											<span class="font-medium capitalize">{manga.status.replace(/_/g, ' ').toLowerCase()}</span>
+											<span class="font-medium capitalize"
+												>{manga.status.replace(/_/g, ' ').toLowerCase()}</span
+											>
 										</div>
 									{/if}
 									{#if manga.startDate}
@@ -269,7 +280,9 @@
 									{#if manga.source}
 										<div class="flex justify-between">
 											<span class="text-sm text-muted-foreground">Source</span>
-											<span class="font-medium capitalize">{manga.source.replace(/_/g, ' ').toLowerCase()}</span>
+											<span class="font-medium capitalize"
+												>{manga.source.replace(/_/g, ' ').toLowerCase()}</span
+											>
 										</div>
 									{/if}
 								</CardContent>
@@ -300,15 +313,22 @@
 				</TabsContent>
 
 				<TabsContent value="characters" class="mt-6">
-					<div class="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-						<Icon icon="solar:users-group-rounded-bold-duotone" class="mb-4 h-12 w-12 text-muted-foreground" />
+					<div
+						class="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center"
+					>
+						<Icon
+							icon="solar:users-group-rounded-bold-duotone"
+							class="mb-4 h-12 w-12 text-muted-foreground"
+						/>
 						<h3 class="text-lg font-semibold">Characters</h3>
 						<p class="text-muted-foreground">Character list coming soon.</p>
 					</div>
 				</TabsContent>
 
 				<TabsContent value="staff" class="mt-6">
-					<div class="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+					<div
+						class="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center"
+					>
 						<Icon icon="solar:user-id-bold-duotone" class="mb-4 h-12 w-12 text-muted-foreground" />
 						<h3 class="text-lg font-semibold">Staff</h3>
 						<p class="text-muted-foreground">Staff list coming soon.</p>

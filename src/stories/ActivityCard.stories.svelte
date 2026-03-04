@@ -12,7 +12,10 @@
 		id: 16498,
 		type: 'ANIME',
 		title: { userPreferred: 'Shingeki no Kyojin' },
-		coverImage: { medium: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx16498-73IhOXpJZiMF.jpg' },
+		coverImage: {
+			medium:
+				'https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx16498-73IhOXpJZiMF.jpg',
+		},
 		episodes: 25,
 	};
 

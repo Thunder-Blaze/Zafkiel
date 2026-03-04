@@ -117,10 +117,16 @@
 				in:fade={{ duration: bgDuration, easing: cubicOut }}
 				out:fade={{ duration: Math.floor(bgDuration * 0.6), easing: cubicOut }}
 				class="absolute inset-0 bg-cover bg-center"
-				style="background-image: url('{currentItem.bannerImage || currentItem.coverImage?.extraLarge || currentItem.coverImage?.large}')"
+				style="background-image: url('{currentItem.bannerImage ||
+					currentItem.coverImage?.extraLarge ||
+					currentItem.coverImage?.large}')"
 			>
-				<div class="absolute inset-0 bg-linear-to-r from-background/90 via-background/55 to-background/10"></div>
-				<div class="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent"></div>
+				<div
+					class="absolute inset-0 bg-linear-to-r from-background/90 via-background/55 to-background/10"
+				></div>
+				<div
+					class="absolute inset-0 bg-linear-to-t from-background/80 via-transparent to-transparent"
+				></div>
 			</div>
 		{/key}
 
@@ -128,70 +134,87 @@
 		<div class="relative grid h-full grid-cols-[1fr_auto] items-end gap-4 px-8 pb-10 lg:px-14">
 			<!-- Left: text info -->
 			<div class="relative grid min-w-0">
-			{#key currentItem.id}
-				<div
-					style="grid-area: 1/1"
-					in:fly={{ x: direction === 'right' ? 50 : -50, y: 0, duration: contentDuration, delay: contentDelay, easing: cubicOut }}
-					out:fly={{ x: direction === 'right' ? -30 : 30, y: 0, duration: Math.floor(contentDuration * 0.6), easing: cubicOut }}
-					class="flex max-w-[760px] flex-col gap-2.5"
-				>
-					<!-- Season badge -->
-					{#if currentItem.season && currentItem.seasonYear}
-						<p class="text-[11px] font-bold tracking-widest text-primary uppercase">
-							{currentItem.season} {currentItem.seasonYear}
-						</p>
-					{/if}
-
-					<!-- Title -->
-					<h2 class="line-clamp-1 text-3xl font-bold leading-tight drop-shadow-lg md:text-4xl">
-						{currentItem.title?.english || currentItem.title?.romaji || currentItem.title?.native}
-					</h2>
-
-					<!-- Score · format · episodes -->
-					<div class="flex flex-wrap items-center gap-2 text-sm">
-						{#if currentItem.averageScore}
-							<span class="flex items-center gap-1 font-semibold">
-								<Icon icon="solar:star-bold" class="h-3.5 w-3.5 text-yellow-400" />
-								{(currentItem.averageScore / 10).toFixed(1)}
-							</span>
+				{#key currentItem.id}
+					<div
+						style="grid-area: 1/1"
+						in:fly={{
+							x: direction === 'right' ? 50 : -50,
+							y: 0,
+							duration: contentDuration,
+							delay: contentDelay,
+							easing: cubicOut,
+						}}
+						out:fly={{
+							x: direction === 'right' ? -30 : 30,
+							y: 0,
+							duration: Math.floor(contentDuration * 0.6),
+							easing: cubicOut,
+						}}
+						class="flex max-w-[760px] flex-col gap-2.5"
+					>
+						<!-- Season badge -->
+						{#if currentItem.season && currentItem.seasonYear}
+							<p class="text-[11px] font-bold tracking-widest text-primary uppercase">
+								{currentItem.season}
+								{currentItem.seasonYear}
+							</p>
 						{/if}
-						{#if currentItem.format}
-							<span class="rounded bg-foreground/10 px-2 py-0.5 text-xs font-medium">{currentItem.format.replace(/_/g, ' ')}</span>
-						{/if}
-						{#if currentItem.episodes}
-							<span class="text-xs text-muted-foreground">{currentItem.episodes} eps</span>
-						{/if}
-					</div>
 
-					<!-- Genres -->
-					{#if currentItem.genres && currentItem.genres.length > 0}
-						<div class="flex flex-wrap gap-1.5">
-							{#each currentItem.genres.slice(0, 4) as genre}
-								<span class="rounded-md border border-border/40 bg-background/40 px-2.5 py-0.5 text-[11px] font-medium backdrop-blur-sm">{genre}</span>
-							{/each}
+						<!-- Title -->
+						<h2 class="line-clamp-1 text-3xl leading-tight font-bold drop-shadow-lg md:text-4xl">
+							{currentItem.title?.english || currentItem.title?.romaji || currentItem.title?.native}
+						</h2>
+
+						<!-- Score · format · episodes -->
+						<div class="flex flex-wrap items-center gap-2 text-sm">
+							{#if currentItem.averageScore}
+								<span class="flex items-center gap-1 font-semibold">
+									<Icon icon="solar:star-bold" class="h-3.5 w-3.5 text-yellow-400" />
+									{(currentItem.averageScore / 10).toFixed(1)}
+								</span>
+							{/if}
+							{#if currentItem.format}
+								<span class="rounded bg-foreground/10 px-2 py-0.5 text-xs font-medium"
+									>{currentItem.format.replace(/_/g, ' ')}</span
+								>
+							{/if}
+							{#if currentItem.episodes}
+								<span class="text-xs text-muted-foreground">{currentItem.episodes} eps</span>
+							{/if}
 						</div>
-					{/if}
 
-					<!-- Description -->
-					{#if currentItem.description}
-						<p class="line-clamp-2 max-w-lg text-xs leading-relaxed text-muted-foreground">
-							{formatDescription(currentItem.description)}
-						</p>
-					{/if}
+						<!-- Genres -->
+						{#if currentItem.genres && currentItem.genres.length > 0}
+							<div class="flex flex-wrap gap-1.5">
+								{#each currentItem.genres.slice(0, 4) as genre}
+									<span
+										class="rounded-md border border-border/40 bg-background/40 px-2.5 py-0.5 text-[11px] font-medium backdrop-blur-sm"
+										>{genre}</span
+									>
+								{/each}
+							</div>
+						{/if}
 
-					<!-- Actions -->
-					<div class="flex items-center gap-2 pt-0.5">
-						<Button size="sm" onclick={handleViewDetails}>
-							<Icon icon="solar:play-bold" class="mr-1.5 h-4 w-4" />
-							View Details
-						</Button>
-						<Button size="sm" class="gap-2 bg-foreground text-background hover:bg-foreground/90">
-							<Icon icon="solar:add-circle-bold" class="h-4 w-4" />
-							Add to List
-						</Button>
+						<!-- Description -->
+						{#if currentItem.description}
+							<p class="line-clamp-2 max-w-lg text-xs leading-relaxed text-muted-foreground">
+								{formatDescription(currentItem.description)}
+							</p>
+						{/if}
+
+						<!-- Actions -->
+						<div class="flex items-center gap-2 pt-0.5">
+							<Button size="sm" onclick={handleViewDetails}>
+								<Icon icon="solar:play-bold" class="mr-1.5 h-4 w-4" />
+								View Details
+							</Button>
+							<Button size="sm" class="gap-2 bg-foreground text-background hover:bg-foreground/90">
+								<Icon icon="solar:add-circle-bold" class="h-4 w-4" />
+								Add to List
+							</Button>
+						</div>
 					</div>
-				</div>
-			{/key}
+				{/key}
 			</div>
 
 			<!-- Right: cover art -->
@@ -199,7 +222,13 @@
 				{#key currentItem.id}
 					<div
 						style="grid-area: 1/1"
-						in:fly={{ x: 20, y: 0, duration: contentDuration, delay: Math.floor(contentDelay * 0.5), easing: cubicOut }}
+						in:fly={{
+							x: 20,
+							y: 0,
+							duration: contentDuration,
+							delay: Math.floor(contentDelay * 0.5),
+							easing: cubicOut,
+						}}
 						out:fade={{ duration: Math.floor(contentDuration * 0.4), easing: cubicOut }}
 					>
 						{#if currentItem.coverImage?.large || currentItem.coverImage?.medium}
@@ -218,14 +247,14 @@
 		{#if items.length > 1}
 			<button
 				onclick={prevSlide}
-				class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-background/50 p-2.5 opacity-0 backdrop-blur-sm transition-all duration-200 hover:bg-background/70 group-hover:opacity-100"
+				class="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-background/50 p-2.5 opacity-0 backdrop-blur-sm transition-all duration-200 group-hover:opacity-100 hover:bg-background/70"
 				aria-label="Previous slide"
 			>
 				<Icon icon="solar:alt-arrow-left-bold" class="h-5 w-5" />
 			</button>
 			<button
 				onclick={nextSlide}
-				class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-background/50 p-2.5 opacity-0 backdrop-blur-sm transition-all duration-200 hover:bg-background/70 group-hover:opacity-100"
+				class="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-background/50 p-2.5 opacity-0 backdrop-blur-sm transition-all duration-200 group-hover:opacity-100 hover:bg-background/70"
 				aria-label="Next slide"
 			>
 				<Icon icon="solar:alt-arrow-right-bold" class="h-5 w-5" />

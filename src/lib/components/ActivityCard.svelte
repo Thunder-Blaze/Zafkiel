@@ -1,5 +1,10 @@
 <script lang="ts">
-	import type { ActivityUnion, ListActivity, TextActivity, MessageActivity } from '$lib/types/anilist';
+	import type {
+		ActivityUnion,
+		ListActivity,
+		TextActivity,
+		MessageActivity,
+	} from '$lib/types/anilist';
 	import CachedImage from '$lib/components/ui/CachedImage.svelte';
 	import Icon from '@iconify/svelte';
 	import { goto } from '$app/navigation';
@@ -7,8 +12,10 @@
 	let { activity }: { activity: ActivityUnion } = $props();
 
 	function variant() {
-		if (activity.__typename === 'ListActivity') return { kind: 'list' as const, data: activity as ListActivity };
-		if (activity.__typename === 'TextActivity') return { kind: 'text' as const, data: activity as TextActivity };
+		if (activity.__typename === 'ListActivity')
+			return { kind: 'list' as const, data: activity as ListActivity };
+		if (activity.__typename === 'TextActivity')
+			return { kind: 'text' as const, data: activity as TextActivity };
 		return { kind: 'message' as const, data: activity as MessageActivity };
 	}
 
@@ -25,10 +32,7 @@
 	{@const act = variant().data as ListActivity}
 	<div class="flex gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-card/80">
 		<!-- User avatar -->
-		<button
-			class="shrink-0"
-			onclick={() => act.user?.id && goto(`/user/${act.user.id}`)}
-		>
+		<button class="shrink-0" onclick={() => act.user?.id && goto(`/user/${act.user.id}`)}>
 			{#if act.user?.avatar?.medium}
 				<CachedImage
 					src={act.user.avatar.medium}
@@ -56,7 +60,8 @@
 				</span>
 				<button
 					class="font-medium hover:text-primary hover:underline"
-					onclick={() => act.media?.id && goto(`/${(act.media.type ?? 'anime').toLowerCase()}/${act.media.id}`)}
+					onclick={() =>
+						act.media?.id && goto(`/${(act.media.type ?? 'anime').toLowerCase()}/${act.media.id}`)}
 				>
 					{act.media?.title?.userPreferred ?? 'Unknown'}
 				</button>
@@ -65,7 +70,11 @@
 			<!-- Media thumbnail + footer -->
 			<div class="flex items-center gap-3">
 				{#if act.media?.coverImage?.medium}
-					<button onclick={() => act.media?.id && goto(`/${(act.media.type ?? 'anime').toLowerCase()}/${act.media.id}`)}>
+					<button
+						onclick={() =>
+							act.media?.id &&
+							goto(`/${(act.media.type ?? 'anime').toLowerCase()}/${act.media.id}`)}
+					>
 						<CachedImage
 							src={act.media.coverImage.medium}
 							alt={act.media.title?.userPreferred ?? ''}
@@ -83,14 +92,10 @@
 			</div>
 		</div>
 	</div>
-
 {:else if variant().kind === 'text'}
 	{@const act = variant().data as TextActivity}
 	<div class="flex gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-card/80">
-		<button
-			class="shrink-0"
-			onclick={() => act.user?.id && goto(`/user/${act.user.id}`)}
-		>
+		<button class="shrink-0" onclick={() => act.user?.id && goto(`/user/${act.user.id}`)}>
 			{#if act.user?.avatar?.medium}
 				<CachedImage
 					src={act.user.avatar.medium}
@@ -115,7 +120,7 @@
 				<span class="text-xs text-muted-foreground">posted a status</span>
 			</div>
 			{#if act.text}
-				<p class="text-sm text-foreground/90 line-clamp-4">{@html act.text}</p>
+				<p class="line-clamp-4 text-sm text-foreground/90">{@html act.text}</p>
 			{/if}
 			<div class="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
 				<Icon icon="solar:heart-linear" class="size-3.5" />
@@ -126,14 +131,10 @@
 			</div>
 		</div>
 	</div>
-
 {:else}
 	{@const act = variant().data as MessageActivity}
 	<div class="flex gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-card/80">
-		<button
-			class="shrink-0"
-			onclick={() => act.messenger?.id && goto(`/user/${act.messenger.id}`)}
-		>
+		<button class="shrink-0" onclick={() => act.messenger?.id && goto(`/user/${act.messenger.id}`)}>
 			{#if act.messenger?.avatar?.medium}
 				<CachedImage
 					src={act.messenger.avatar.medium}
@@ -164,7 +165,7 @@
 				</button>
 			</div>
 			{#if act.message}
-				<p class="text-sm text-foreground/90 line-clamp-3">{@html act.message}</p>
+				<p class="line-clamp-3 text-sm text-foreground/90">{@html act.message}</p>
 			{/if}
 			<div class="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
 				<Icon icon="solar:heart-linear" class="size-3.5" />

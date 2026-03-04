@@ -31,7 +31,9 @@
 	let windowWidth = $state(browser ? window.innerWidth : 1920);
 	$effect(() => {
 		if (!browser) return;
-		const onResize = () => { windowWidth = window.innerWidth; };
+		const onResize = () => {
+			windowWidth = window.innerWidth;
+		};
 		window.addEventListener('resize', onResize);
 		return () => window.removeEventListener('resize', onResize);
 	});
@@ -44,7 +46,7 @@
 		return {
 			destroy() {
 				node.parentNode?.removeChild(node);
-			}
+			},
 		};
 	}
 
@@ -68,8 +70,10 @@
 
 		const handleClick = (e: MouseEvent) => {
 			if (
-				menuEl && !menuEl.contains(e.target as Node) &&
-				triggerEl && !triggerEl.contains(e.target as Node)
+				menuEl &&
+				!menuEl.contains(e.target as Node) &&
+				triggerEl &&
+				!triggerEl.contains(e.target as Node)
 			) {
 				close();
 			}
@@ -92,31 +96,53 @@
 		{
 			icon: 'solar:play-circle-bold',
 			label: 'Anime List',
-			action: () => goto(`/user/${$currentUser?.name}/animelist`)
+			action: () => goto(`/user/${$currentUser?.name}/animelist`),
 		},
 		{
 			icon: 'solar:book-2-bold',
 			label: 'Manga List',
-			action: () => goto(`/user/${$currentUser?.name}/mangalist`)
+			action: () => goto(`/user/${$currentUser?.name}/mangalist`),
 		},
-		...(narrowMode ? [
-			{ icon: 'solar:users-group-rounded-bold', label: 'Social', action: () => goto('/social') } as MenuItem,
-			{ icon: 'solar:chat-square-bold', label: 'Forum', action: () => goto('/forum') } as MenuItem,
-		] : []),
+		...(narrowMode
+			? [
+					{
+						icon: 'solar:users-group-rounded-bold',
+						label: 'Social',
+						action: () => goto('/social'),
+					} as MenuItem,
+					{
+						icon: 'solar:chat-square-bold',
+						label: 'Forum',
+						action: () => goto('/forum'),
+					} as MenuItem,
+				]
+			: []),
 		{ type: 'separator' as const },
-		...(narrowMode ? [
-			{ icon: 'solar:settings-bold', label: 'Settings', action: () => goto('/settings') } as MenuItem,
-			{ type: 'separator' as const },
-		] : []),
+		...(narrowMode
+			? [
+					{
+						icon: 'solar:settings-bold',
+						label: 'Settings',
+						action: () => goto('/settings'),
+					} as MenuItem,
+					{ type: 'separator' as const },
+				]
+			: []),
 		{ icon: 'solar:logout-2-bold', label: 'Logout', action: () => goto('/logout'), danger: true },
 	]);
 
 	// Menu items for guest users
 	const guestMenuItems = $derived<MenuItemType[]>([
 		{ icon: 'solar:login-2-bold', label: 'Login', action: () => goto('/auth/login') },
-		...(narrowMode ? [
-			{ icon: 'solar:settings-bold', label: 'Settings', action: () => goto('/settings') } as MenuItem,
-		] : []),
+		...(narrowMode
+			? [
+					{
+						icon: 'solar:settings-bold',
+						label: 'Settings',
+						action: () => goto('/settings'),
+					} as MenuItem,
+				]
+			: []),
 	]);
 
 	// Get menu items based on auth status
@@ -174,7 +200,11 @@
 		style="top: {pos.top}px; right: {pos.right}px;"
 		transition:scale={{ duration: 150, easing: quintOut, start: 0.95, opacity: 0 }}
 	>
-		<div class="min-w-48 rounded-xl border border-border/50 p-1 shadow-xl {blurEffectsEnabled ? 'bg-popover/85 backdrop-blur-xl' : 'bg-popover'}">
+		<div
+			class="min-w-48 rounded-xl border border-border/50 p-1 shadow-xl {blurEffectsEnabled
+				? 'bg-popover/85 backdrop-blur-xl'
+				: 'bg-popover'}"
+		>
 			<!-- User Info Header -->
 			<div class="mb-2 border-b border-border/50 px-3 py-2">
 				<p class="text-sm font-semibold text-foreground">
@@ -202,7 +232,10 @@
 					{@const menuItem = item as MenuItem}
 					<button
 						type="button"
-						onclick={() => { close(); menuItem.action(); }}
+						onclick={() => {
+							close();
+							menuItem.action();
+						}}
 						class="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-foreground/5 active:bg-foreground/10 {menuItem.danger
 							? 'text-destructive hover:bg-destructive/10'
 							: 'text-foreground'}"

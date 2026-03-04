@@ -14,9 +14,12 @@
 	const followingQuery = $derived(useFollowingActivity(currentPage, 20));
 
 	// ✅ Extract properties directly — never switch between whole query objects
-	const isLoading = $derived(activeTab === 'global' ? globalQuery.isLoading : followingQuery.isLoading);
+	const isLoading = $derived(
+		activeTab === 'global' ? globalQuery.isLoading : followingQuery.isLoading
+	);
 	const activities = $derived(
-		((activeTab === 'global' ? globalQuery.data : followingQuery.data)?.data?.data ?? []) as ActivityUnion[]
+		((activeTab === 'global' ? globalQuery.data : followingQuery.data)?.data?.data ??
+			[]) as ActivityUnion[]
 	);
 	const pageInfo = $derived(
 		(activeTab === 'global' ? globalQuery.data : followingQuery.data)?.data?.pageInfo
@@ -24,8 +27,8 @@
 	const hasError = $derived(activeTab === 'global' ? !!globalQuery.error : !!followingQuery.error);
 	const errorMsg = $derived(
 		activeTab === 'global'
-			? (globalQuery.error as Error | null)?.message ?? ''
-			: (followingQuery.error as Error | null)?.message ?? ''
+			? ((globalQuery.error as Error | null)?.message ?? '')
+			: ((followingQuery.error as Error | null)?.message ?? '')
 	);
 	const dataSuccess = $derived(
 		activeTab === 'global'
@@ -58,14 +61,18 @@
 	<div class="mb-6 flex gap-2 border-b pb-0">
 		<button
 			onclick={() => setTab('global')}
-			class="px-4 py-2 text-sm font-medium transition-colors border-b-2 {activeTab === 'global' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}"
+			class="border-b-2 px-4 py-2 text-sm font-medium transition-colors {activeTab === 'global'
+				? 'border-primary text-foreground'
+				: 'border-transparent text-muted-foreground hover:text-foreground'}"
 		>
 			<Icon icon="solar:global-bold-duotone" class="mr-1.5 inline size-4" />
 			Global
 		</button>
 		<button
 			onclick={() => setTab('following')}
-			class="px-4 py-2 text-sm font-medium transition-colors border-b-2 {activeTab === 'following' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}"
+			class="border-b-2 px-4 py-2 text-sm font-medium transition-colors {activeTab === 'following'
+				? 'border-primary text-foreground'
+				: 'border-transparent text-muted-foreground hover:text-foreground'}"
 		>
 			<Icon icon="solar:users-group-rounded-bold-duotone" class="mr-1.5 inline size-4" />
 			Following
@@ -109,11 +116,7 @@
 		<!-- Pagination -->
 		{#if pageInfo}
 			<div class="mt-8 flex items-center justify-center gap-3">
-				<Button
-					variant="outline"
-					disabled={currentPage <= 1}
-					onclick={() => (currentPage -= 1)}
-				>
+				<Button variant="outline" disabled={currentPage <= 1} onclick={() => (currentPage -= 1)}>
 					<Icon icon="solar:arrow-left-linear" class="size-4" />
 					Previous
 				</Button>

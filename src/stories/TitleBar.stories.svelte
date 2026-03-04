@@ -28,8 +28,8 @@
 						<li>• <strong>Navigation:</strong> Quick access to Home, Anime, Demo, and Settings</li>
 						<li>• <strong>Theme Switcher:</strong> Button to open theme selection sheet</li>
 						<li>
-							• <strong>Window Controls:</strong> Minimize, Maximize/Restore, and Close buttons with
-							Solar icons
+							• <strong>Window Controls:</strong> Minimize, Maximize/Restore, and Close buttons with Solar
+							icons
 						</li>
 						<li>• <strong>Active State:</strong> Current page is highlighted in navigation</li>
 						<li>• <strong>Backdrop Blur:</strong> Semi-transparent with blur effect</li>

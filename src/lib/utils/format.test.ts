@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { timeAgo, formatProgress, scoreToColorClass, formatScore, formatMinutesWatched, formatCountdown } from './format';
+import {
+	timeAgo,
+	formatProgress,
+	scoreToColorClass,
+	formatScore,
+	formatMinutesWatched,
+	formatCountdown,
+} from './format';
 
 describe('timeAgo', () => {
 	beforeEach(() => {

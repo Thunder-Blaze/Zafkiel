@@ -36,18 +36,18 @@
 >
 	<!-- Avatar -->
 	<button
-		class="shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+		class="shrink-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
 		onclick={() => goto(href)}
 	>
 		{#if avatar}
 			<CachedImage
 				src={avatar}
 				alt={user.name}
-				class="size-10 rounded-full object-cover ring-2 ring-border group-hover:ring-primary/50 transition-all"
+				class="size-10 rounded-full object-cover ring-2 ring-border transition-all group-hover:ring-primary/50"
 			/>
 		{:else}
 			<div
-				class="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground text-sm font-bold uppercase"
+				class="flex size-10 items-center justify-center rounded-full bg-muted text-sm font-bold text-muted-foreground uppercase"
 			>
 				{user.name?.slice(0, 1) ?? '?'}
 			</div>
@@ -60,7 +60,7 @@
 		onclick={() => goto(href)}
 	>
 		<p
-			class="truncate text-sm font-semibold leading-tight group-hover:text-primary group-hover:underline"
+			class="truncate text-sm leading-tight font-semibold group-hover:text-primary group-hover:underline"
 		>
 			{user.name}
 		</p>

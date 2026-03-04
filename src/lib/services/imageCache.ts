@@ -80,7 +80,7 @@ export class ImageCacheService {
 			const success = await invoke<boolean>('download_image', {
 				url,
 				localPath,
-				quality: options.quality || 'large'
+				quality: options.quality || 'large',
 			});
 
 			if (!success) {
@@ -124,7 +124,7 @@ export class ImageCacheService {
 		let hash = 0;
 		for (let i = 0; i < str.length; i++) {
 			const char = str.charCodeAt(i);
-			hash = ((hash << 5) - hash) + char;
+			hash = (hash << 5) - hash + char;
 			hash = hash & hash; // Convert to 32-bit integer
 		}
 		return Math.abs(hash).toString(36);
@@ -209,7 +209,7 @@ export class ImageCacheService {
 	 */
 	static async preloadMediaImages(media: {
 		bannerImage?: string;
-		coverImage?: { large?: string; medium?: string; };
+		coverImage?: { large?: string; medium?: string };
 	}): Promise<void> {
 		const promises: Promise<string | null>[] = [];
 
@@ -245,6 +245,6 @@ export function useCachedImage(url: string | null | undefined, options: ImageCac
 		preload: async () => {
 			if (!url) return;
 			await ImageCacheService.getCachedImage(url, options);
-		}
+		},
 	};
 }

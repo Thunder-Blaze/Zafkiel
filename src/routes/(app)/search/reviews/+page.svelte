@@ -17,7 +17,8 @@
 	const allReviews = $derived((reviewsQ.data?.data?.data || reviewsQ.data?.data || []) as Review[]);
 
 	const reviews = $derived(() => {
-		if (filter === 'highest') return [...allReviews].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+		if (filter === 'highest')
+			return [...allReviews].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 		if (filter === 'lowest') return [...allReviews].sort((a, b) => (a.score ?? 0) - (b.score ?? 0));
 		return allReviews;
 	});
@@ -30,7 +31,12 @@
 	] as const;
 
 	function mediaTitle(r: Review) {
-		return r.media?.title?.userPreferred || r.media?.title?.romaji || r.media?.title?.english || `Media #${r.mediaId}`;
+		return (
+			r.media?.title?.userPreferred ||
+			r.media?.title?.romaji ||
+			r.media?.title?.english ||
+			`Media #${r.mediaId}`
+		);
 	}
 	function userName(r: Review) {
 		return r.user?.name || 'Anonymous';
@@ -63,10 +69,13 @@
 	</div>
 
 	<!-- Filter tabs -->
-	<div class="flex gap-2 flex-wrap">
+	<div class="flex flex-wrap gap-2">
 		{#each FILTERS as f}
 			<button
-				onclick={() => { filter = f.id; page = 1; }}
+				onclick={() => {
+					filter = f.id;
+					page = 1;
+				}}
 				class="rounded-full px-4 py-1.5 text-sm font-medium transition-colors {filter === f.id
 					? 'bg-primary text-primary-foreground'
 					: 'bg-muted text-muted-foreground hover:text-foreground'}"
@@ -82,7 +91,9 @@
 			<Icon icon="solar:spinner-bold" class="h-8 w-8 animate-spin text-muted-foreground" />
 		</div>
 	{:else if reviews().length === 0}
-		<div class="flex h-48 items-center justify-center rounded-xl border border-dashed text-muted-foreground">
+		<div
+			class="flex h-48 items-center justify-center rounded-xl border border-dashed text-muted-foreground"
+		>
 			<div class="text-center">
 				<Icon icon="solar:document-text-linear" class="mx-auto mb-2 h-10 w-10 opacity-40" />
 				<p>No reviews found</p>
@@ -102,12 +113,18 @@
 								src={coverImg(review)}
 								alt={mediaTitle(review)}
 								class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-								onerror={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+								onerror={(e) => {
+									(e.currentTarget as HTMLImageElement).style.display = 'none';
+								}}
 							/>
 						{/if}
 						<div class="absolute inset-0 bg-linear-to-t from-black/70 to-transparent"></div>
 						{#if review.score}
-							<div class="absolute bottom-2 right-2 rounded-md bg-black/60 px-1.5 py-0.5 text-xs font-bold {scoreColor(review.score)}">
+							<div
+								class="absolute right-2 bottom-2 rounded-md bg-black/60 px-1.5 py-0.5 text-xs font-bold {scoreColor(
+									review.score
+								)}"
+							>
 								{review.score}%
 							</div>
 						{/if}
@@ -115,7 +132,7 @@
 
 					<!-- Content -->
 					<div class="flex flex-1 flex-col gap-1 p-3">
-						<p class="line-clamp-2 text-xs font-semibold leading-snug">
+						<p class="line-clamp-2 text-xs leading-snug font-semibold">
 							Review of <span class="text-primary">{mediaTitle(review)}</span>
 						</p>
 						<p class="text-[10px] text-muted-foreground">by {userName(review)}</p>
@@ -124,7 +141,7 @@
 								{excerpt(review)}
 							</p>
 						{/if}
-						<div class="mt-auto flex items-center gap-3 pt-2 border-t border-border/30">
+						<div class="mt-auto flex items-center gap-3 border-t border-border/30 pt-2">
 							<div class="flex items-center gap-1 text-[10px] text-muted-foreground">
 								<Icon icon="solar:like-bold" class="h-3 w-3 text-green-400" />
 								{review.rating ?? 0}
@@ -144,16 +161,16 @@
 		<!-- Pagination -->
 		<div class="flex items-center justify-center gap-3 pt-2">
 			<button
-				onclick={() => page = Math.max(1, page - 1)}
+				onclick={() => (page = Math.max(1, page - 1))}
 				disabled={page === 1}
-				class="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card disabled:opacity-40 hover:border-primary/40 transition-colors"
+				class="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:border-primary/40 disabled:opacity-40"
 			>
 				<Icon icon="solar:alt-arrow-left-linear" class="h-4 w-4" />
 			</button>
 			<span class="text-sm text-muted-foreground">Page {page}</span>
 			<button
-				onclick={() => page += 1}
-				class="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card hover:border-primary/40 transition-colors"
+				onclick={() => (page += 1)}
+				class="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:border-primary/40"
 			>
 				<Icon icon="solar:alt-arrow-right-linear" class="h-4 w-4" />
 			</button>

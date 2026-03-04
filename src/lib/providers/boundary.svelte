@@ -1,7 +1,7 @@
 <script>
-	import Loader from "$lib/components/Loader.svelte";
+	import Loader from '$lib/components/Loader.svelte';
 
-	let { children } = $props()
+	let { children } = $props();
 </script>
 
 <svelte:boundary>

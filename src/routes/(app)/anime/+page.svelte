@@ -1,7 +1,7 @@
 <script lang="ts">
-	import MediaCard from "$lib/components/MediaCard.svelte";
-	import { useTrendingAnime } from "$lib/hooks/useAnilist.svelte";
-	import type { Media } from "$lib/types/anilist";
+	import MediaCard from '$lib/components/MediaCard.svelte';
+	import { useTrendingAnime } from '$lib/hooks/useAnilist.svelte';
+	import type { Media } from '$lib/types/anilist';
 
 	const trendingQuery = useTrendingAnime();
 
@@ -16,13 +16,13 @@
 	});
 
 	$inspect(() => {
-		console.log("Trending anime data:", animeData);
-		console.log("Loading:", isLoading);
-		console.log("Error:", error);
+		console.log('Trending anime data:', animeData);
+		console.log('Loading:', isLoading);
+		console.log('Error:', error);
 	});
 </script>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 	{#if isLoading}
 		<p class="col-span-full text-center text-gray-500">Loading trending anime...</p>
 	{:else if error}

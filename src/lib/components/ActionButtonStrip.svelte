@@ -7,7 +7,7 @@
 	let {
 		userStatus = null,
 		mediaId,
-		mediaType = 'ANIME'
+		mediaType = 'ANIME',
 	}: {
 		userStatus?: MediaListStatus | null;
 		mediaId: number;
@@ -33,7 +33,7 @@
 				PLANNING: 'Plan to watch',
 				DROPPED: 'Dropped',
 				PAUSED: 'Paused',
-				REPEATING: 'Repeating'
+				REPEATING: 'Repeating',
 			};
 			toast.success(labels[newStatus]);
 		} catch {
@@ -50,7 +50,10 @@
 	{:else}
 		<button
 			onclick={() => handleStatusChange('PLANNING')}
-			class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus === 'PLANNING' ? 'bg-primary/30' : 'bg-background/50'}"
+			class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus ===
+			'PLANNING'
+				? 'bg-primary/30'
+				: 'bg-background/50'}"
 			title="Plan to Watch"
 		>
 			<Icon icon="solar:bookmark-linear" class="size-3.5" />
@@ -58,7 +61,10 @@
 		</button>
 		<button
 			onclick={() => handleStatusChange('CURRENT')}
-			class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus === 'CURRENT' ? 'bg-primary/30' : 'bg-background/50'}"
+			class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus ===
+			'CURRENT'
+				? 'bg-primary/30'
+				: 'bg-background/50'}"
 			title={mediaType === 'MANGA' ? 'Reading' : 'Watching'}
 		>
 			<Icon icon="solar:play-circle-linear" class="size-3.5" />
@@ -66,7 +72,10 @@
 		</button>
 		<button
 			onclick={() => handleStatusChange('COMPLETED')}
-			class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus === 'COMPLETED' ? 'bg-primary/30' : 'bg-background/50'}"
+			class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus ===
+			'COMPLETED'
+				? 'bg-primary/30'
+				: 'bg-background/50'}"
 			title="Completed"
 		>
 			<Icon icon="solar:check-circle-linear" class="size-3.5" />
@@ -74,14 +83,20 @@
 		</button>
 		<button
 			onclick={() => handleStatusChange('PAUSED')}
-			class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus === 'PAUSED' ? 'bg-primary/30' : 'bg-background/50'}"
+			class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus ===
+			'PAUSED'
+				? 'bg-primary/30'
+				: 'bg-background/50'}"
 			title="Paused"
 		>
 			<Icon icon="solar:pause-circle-linear" class="size-3.5" />
 		</button>
 		<button
 			onclick={() => handleStatusChange('DROPPED')}
-			class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus === 'DROPPED' ? 'bg-primary/30' : 'bg-background/50'}"
+			class="flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-medium transition-colors hover:bg-primary/20 {userStatus ===
+			'DROPPED'
+				? 'bg-primary/30'
+				: 'bg-background/50'}"
 			title="Dropped"
 		>
 			<Icon icon="solar:close-circle-linear" class="size-3.5" />

@@ -19,13 +19,17 @@
 		<Icon icon="solar:refresh-circle-line-duotone" class="h-8 w-8 animate-spin text-primary" />
 	</div>
 {:else if reviewsQuery.error || (reviewsQuery.data && !reviewsQuery.data.success)}
-	<div class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8 text-center">
+	<div
+		class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8 text-center"
+	>
 		<Icon icon="solar:danger-triangle-bold-duotone" class="h-10 w-10 text-destructive" />
 		<p class="text-sm text-muted-foreground">Failed to load reviews</p>
 		<Button variant="outline" size="sm" onclick={() => reviewsQuery.refetch()}>Retry</Button>
 	</div>
 {:else if reviews.length === 0}
-	<div class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8 text-center">
+	<div
+		class="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8 text-center"
+	>
 		<Icon icon="solar:document-text-bold-duotone" class="h-12 w-12 text-muted-foreground" />
 		<h3 class="text-lg font-semibold">No Reviews Yet</h3>
 		<p class="text-sm text-muted-foreground">Be the first to write a review on AniList!</p>
@@ -51,4 +55,3 @@
 		</div>
 	{/if}
 {/if}
-

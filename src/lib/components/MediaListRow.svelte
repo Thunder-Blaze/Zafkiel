@@ -33,7 +33,7 @@
 
 	const statusLabel = $derived(entry.status ? (STATUS_LABELS[entry.status] ?? entry.status) : '—');
 	const statusVariant = $derived(
-		entry.status ? (STATUS_VARIANTS[entry.status] ?? 'outline') : 'outline',
+		entry.status ? (STATUS_VARIANTS[entry.status] ?? 'outline') : 'outline'
 	);
 
 	const scoreClass = $derived(scoreToColorClass(entry.score ? entry.score * 10 : null));
@@ -49,11 +49,7 @@
 >
 	<!-- Cover -->
 	{#if cover}
-		<CachedImage
-			src={cover}
-			alt={title}
-			class="size-10 shrink-0 rounded object-cover"
-		/>
+		<CachedImage src={cover} alt={title} class="size-10 shrink-0 rounded object-cover" />
 	{:else}
 		<div class="size-10 shrink-0 rounded bg-muted"></div>
 	{/if}
@@ -61,7 +57,7 @@
 	<!-- Title -->
 	<div class="min-w-0 flex-1">
 		<p
-			class="truncate text-sm font-medium leading-tight group-hover:text-primary group-hover:underline"
+			class="truncate text-sm leading-tight font-medium group-hover:text-primary group-hover:underline"
 		>
 			{title}
 		</p>

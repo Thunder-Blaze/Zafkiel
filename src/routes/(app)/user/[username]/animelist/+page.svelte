@@ -29,7 +29,7 @@
 		{ label: 'Planning', value: 'PLANNING' },
 		{ label: 'Paused', value: 'PAUSED' },
 		{ label: 'Dropped', value: 'DROPPED' },
-		{ label: 'Repeating', value: 'REPEATING' }
+		{ label: 'Repeating', value: 'REPEATING' },
 	];
 
 	function setStatus(s: MediaListStatus | undefined) {
@@ -50,11 +50,7 @@
 		</div>
 		<div class="flex items-center gap-3">
 			<!-- Switch to manga list -->
-			<Button
-				variant="outline"
-				size="sm"
-				onclick={() => goto(`/user/${username}/mangalist`)}
-			>
+			<Button variant="outline" size="sm" onclick={() => goto(`/user/${username}/mangalist`)}>
 				<Icon icon="solar:book-2-bold-duotone" class="mr-1.5 size-4" />
 				Manga List
 			</Button>
@@ -62,14 +58,18 @@
 			<div class="flex items-center gap-1 rounded-lg border bg-card p-1">
 				<button
 					onclick={() => (viewMode = 'list')}
-					class="rounded-md p-1.5 transition-colors {viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}"
+					class="rounded-md p-1.5 transition-colors {viewMode === 'list'
+						? 'bg-primary text-primary-foreground'
+						: 'hover:bg-muted'}"
 					title="List view"
 				>
 					<Icon icon="solar:list-bold-duotone" class="size-4" />
 				</button>
 				<button
 					onclick={() => (viewMode = 'grid')}
-					class="rounded-md p-1.5 transition-colors {viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}"
+					class="rounded-md p-1.5 transition-colors {viewMode === 'grid'
+						? 'bg-primary text-primary-foreground'
+						: 'hover:bg-muted'}"
 					title="Grid view"
 				>
 					<Icon icon="solar:widget-2-bold-duotone" class="size-4" />
@@ -83,7 +83,10 @@
 		{#each statusOptions as opt}
 			<button
 				onclick={() => setStatus(opt.value)}
-				class="rounded-full px-3 py-1 text-xs font-medium transition-colors {activeStatus === opt.value ? 'bg-primary text-primary-foreground' : 'bg-card border hover:bg-card/80'}"
+				class="rounded-full px-3 py-1 text-xs font-medium transition-colors {activeStatus ===
+				opt.value
+					? 'bg-primary text-primary-foreground'
+					: 'border bg-card hover:bg-card/80'}"
 			>
 				{opt.label}
 			</button>
@@ -94,7 +97,9 @@
 	{#if isLoading}
 		{#if viewMode === 'list'}
 			<div class="overflow-hidden rounded-lg border bg-card">
-				<div class="flex items-center gap-3 border-b bg-muted/40 px-3 py-2 text-xs font-medium text-muted-foreground">
+				<div
+					class="flex items-center gap-3 border-b bg-muted/40 px-3 py-2 text-xs font-medium text-muted-foreground"
+				>
 					<div class="size-10 shrink-0"></div>
 					<div class="flex-1">Title</div>
 					<div class="w-20 shrink-0">Status</div>
@@ -104,7 +109,9 @@
 				<MediaListRowSkeleton count={15} />
 			</div>
 		{:else}
-			<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+			<div
+				class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+			>
 				<MediaCardSkeleton count={18} />
 			</div>
 		{/if}
@@ -142,7 +149,7 @@
 				{/each}
 			</div>
 		{:else}
-			<div class="flex flex-wrap gap-4 justify-start">
+			<div class="flex flex-wrap justify-start gap-4">
 				{#each entries as entry (entry.id)}
 					{#if entry.media}
 						<MediaCard media={entry.media} />
@@ -154,11 +161,7 @@
 		<!-- Pagination -->
 		{#if pageInfo && (currentPage > 1 || pageInfo.hasNextPage)}
 			<div class="mt-8 flex items-center justify-center gap-3">
-				<Button
-					variant="outline"
-					disabled={currentPage <= 1}
-					onclick={() => (currentPage -= 1)}
-				>
+				<Button variant="outline" disabled={currentPage <= 1} onclick={() => (currentPage -= 1)}>
 					<Icon icon="solar:arrow-left-linear" class="size-4" />
 					Previous
 				</Button>

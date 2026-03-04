@@ -94,14 +94,14 @@
 			type="number"
 			min="0"
 			max={total ?? undefined}
-			class="w-12 rounded border bg-background px-1 py-0.5 text-center text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+			class="w-12 rounded border bg-background px-1 py-0.5 text-center text-sm focus:ring-1 focus:ring-ring focus:outline-none"
 			onkeydown={handleKeydown}
 			onblur={handleBlur}
 		/>
 		<span class="text-xs text-muted-foreground">/ {totalLabel}</span>
 	{:else}
 		<button
-			class="cursor-pointer rounded px-1 py-0.5 text-sm tabular-nums hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+			class="cursor-pointer rounded px-1 py-0.5 text-sm tabular-nums hover:bg-muted/60 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
 			onclick={startEdit}
 			title="Click to edit progress"
 		>

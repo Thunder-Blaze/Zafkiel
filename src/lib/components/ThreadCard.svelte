@@ -28,8 +28,16 @@
 				role="button"
 				tabindex="0"
 				class="mt-0.5 shrink-0 cursor-pointer"
-				onclick={(e) => { e.stopPropagation(); thread.user?.id && goto(`/user/${thread.user.id}`); }}
-				onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); thread.user?.id && goto(`/user/${thread.user.id}`); } }}
+				onclick={(e) => {
+					e.stopPropagation();
+					thread.user?.id && goto(`/user/${thread.user.id}`);
+				}}
+				onkeydown={(e) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						e.stopPropagation();
+						thread.user?.id && goto(`/user/${thread.user.id}`);
+					}
+				}}
 			>
 				<CachedImage
 					src={thread.user.avatar.medium}
@@ -45,7 +53,7 @@
 
 		<div class="min-w-0 flex-1">
 			<!-- Title -->
-			<h3 class="mb-1 line-clamp-2 font-semibold leading-snug text-foreground">
+			<h3 class="mb-1 line-clamp-2 leading-snug font-semibold text-foreground">
 				{thread.title ?? 'Untitled Thread'}
 			</h3>
 
@@ -55,8 +63,16 @@
 					role="button"
 					tabindex="0"
 					class="cursor-pointer hover:text-primary hover:underline"
-					onclick={(e) => { e.stopPropagation(); thread.user?.id && goto(`/user/${thread.user.id}`); }}
-					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); thread.user?.id && goto(`/user/${thread.user.id}`); } }}
+					onclick={(e) => {
+						e.stopPropagation();
+						thread.user?.id && goto(`/user/${thread.user.id}`);
+					}}
+					onkeydown={(e) => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							e.stopPropagation();
+							thread.user?.id && goto(`/user/${thread.user.id}`);
+						}
+					}}
 				>
 					{thread.user?.name ?? 'Unknown'}
 				</span>

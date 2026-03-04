@@ -181,7 +181,6 @@
 				{/if}
 			</div>
 		{/if}
-
 	</div>
 	<!-- Title at bottom -->
 	<div class="mt-3 w-full">
@@ -197,11 +196,20 @@
 						<button
 							type="button"
 							title="Add to list"
-							onclick={(e) => { e.preventDefault(); e.stopPropagation(); addToListOpen = true; }}
+							onclick={(e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								addToListOpen = true;
+							}}
 							class="flex h-4 w-4 items-center justify-center rounded-full transition-colors
-								{userStatus ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-primary hover:text-primary-foreground'}"
+								{userStatus
+								? 'bg-primary text-primary-foreground'
+								: 'bg-muted text-muted-foreground hover:bg-primary hover:text-primary-foreground'}"
 						>
-							<Icon icon={userStatus ? 'solar:check-circle-bold' : 'solar:add-circle-bold'} class="size-3" />
+							<Icon
+								icon={userStatus ? 'solar:check-circle-bold' : 'solar:add-circle-bold'}
+								class="size-3"
+							/>
 						</button>
 					{/if}
 				</div>
@@ -350,14 +358,17 @@
 				</p>
 
 				<!-- Action Buttons Strip -->
-				<ActionButtonStrip {userStatus} mediaId={media.id} mediaType={media.type === 'MANGA' ? 'MANGA' : 'ANIME'} />
+				<ActionButtonStrip
+					{userStatus}
+					mediaId={media.id}
+					mediaType={media.type === 'MANGA' ? 'MANGA' : 'ANIME'}
+				/>
 
 				<!-- Stats Grid -->
 				<div class="grid grid-cols-2 gap-1.5 rounded-md bg-border p-1.5">
 					<!-- Status + Add to list (same row) -->
 					<div
-						class="rounded-sm p-1.5 text-center text-xs font-semibold {status ===
-						'RELEASING'
+						class="rounded-sm p-1.5 text-center text-xs font-semibold {status === 'RELEASING'
 							? 'bg-green-500/40'
 							: status === 'FINISHED'
 								? 'bg-blue-500/40'
@@ -367,13 +378,20 @@
 					</div>
 					<button
 						type="button"
-						onclick={(e) => { e.preventDefault(); e.stopPropagation(); addToListOpen = true; }}
+						onclick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							addToListOpen = true;
+						}}
 						class="flex items-center justify-center gap-1 rounded-sm p-1.5 text-xs font-medium transition-colors
 							{userStatus
-								? 'bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground'
-								: 'bg-muted/40 text-muted-foreground hover:bg-primary/20 hover:text-primary'}"
+							? 'bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground'
+							: 'bg-muted/40 text-muted-foreground hover:bg-primary/20 hover:text-primary'}"
 					>
-						<Icon icon={userStatus ? 'solar:pen-2-linear' : 'solar:add-circle-linear'} class="size-3.5" />
+						<Icon
+							icon={userStatus ? 'solar:pen-2-linear' : 'solar:add-circle-linear'}
+							class="size-3.5"
+						/>
 						{userStatus ? 'Edit' : 'Add'}
 					</button>
 

@@ -125,7 +125,7 @@
 			<select
 				id="list-sort"
 				bind:value={settings.defaultSort}
-				class="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+				class="w-full rounded-md border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
 			>
 				{#each SORT_OPTIONS as opt}
 					<option value={opt.value}>{opt.label}</option>
@@ -168,12 +168,11 @@
 			<div class="flex items-center justify-between">
 				<div>
 					<Label class="text-sm font-medium">Show Adult Content</Label>
-					<p class="text-xs text-muted-foreground">Display 18+ media in lists (requires AniList setting)</p>
+					<p class="text-xs text-muted-foreground">
+						Display 18+ media in lists (requires AniList setting)
+					</p>
 				</div>
-				<Switch
-					checked={settings.showAdult}
-					onCheckedChange={(v) => (settings.showAdult = v)}
-				/>
+				<Switch checked={settings.showAdult} onCheckedChange={(v) => (settings.showAdult = v)} />
 			</div>
 		</div>
 

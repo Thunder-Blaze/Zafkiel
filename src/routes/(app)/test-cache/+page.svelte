@@ -38,14 +38,14 @@
 </script>
 
 <div class="p-8">
-	<h1 class="text-2xl font-bold mb-4">Database Cache Test</h1>
+	<h1 class="mb-4 text-2xl font-bold">Database Cache Test</h1>
 
 	<Button onclick={testCacheFlow} disabled={isLoading}>
 		{isLoading ? 'Testing...' : 'Run Test'}
 	</Button>
 
 	{#if testResult}
-		<pre class="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded whitespace-pre-wrap">
+		<pre class="mt-4 rounded bg-gray-100 p-4 whitespace-pre-wrap dark:bg-gray-800">
 {testResult}
 		</pre>
 	{/if}

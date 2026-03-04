@@ -20,7 +20,9 @@
 	function onSearchInput(e: Event) {
 		searchInput = (e.currentTarget as HTMLInputElement).value;
 		clearTimeout(debounceTimer);
-		debounceTimer = setTimeout(() => { debouncedQuery = searchInput.trim(); }, 400);
+		debounceTimer = setTimeout(() => {
+			debouncedQuery = searchInput.trim();
+		}, 400);
 	}
 	function clearSearch() {
 		searchInput = '';
@@ -46,17 +48,34 @@
 
 	const searchQ = createQuery(() => ({
 		queryKey: ['character', 'search', debouncedQuery, activeSection, 1, 40],
-		queryFn: () => characterApi.search(debouncedQuery, { page: 1, perPage: 40, isBirthday: activeSection === 'birthday' ? true : undefined }),
+		queryFn: () =>
+			characterApi.search(debouncedQuery, {
+				page: 1,
+				perPage: 40,
+				isBirthday: activeSection === 'birthday' ? true : undefined,
+			}),
 		enabled: debouncedQuery.trim().length > 0,
 		staleTime: 5 * 60 * 1000,
 	}));
 
 	const popular = $derived((popularQ.data?.data?.data ?? popularQ.data?.data ?? []) as Character[]);
-	const birthday = $derived((birthdayQ.data?.data?.data ?? birthdayQ.data?.data ?? []) as Character[]);
-	const searchResults = $derived((searchQ.data?.data?.data ?? searchQ.data?.data ?? []) as Character[]);
+	const birthday = $derived(
+		(birthdayQ.data?.data?.data ?? birthdayQ.data?.data ?? []) as Character[]
+	);
+	const searchResults = $derived(
+		(searchQ.data?.data?.data ?? searchQ.data?.data ?? []) as Character[]
+	);
 
-	const activeItems = $derived(isSearching ? searchResults : activeSection === 'birthday' ? birthday : popular);
-	const activeLoading = $derived(isSearching ? searchQ.isLoading : activeSection === 'birthday' ? birthdayQ.isLoading : popularQ.isLoading);
+	const activeItems = $derived(
+		isSearching ? searchResults : activeSection === 'birthday' ? birthday : popular
+	);
+	const activeLoading = $derived(
+		isSearching
+			? searchQ.isLoading
+			: activeSection === 'birthday'
+				? birthdayQ.isLoading
+				: popularQ.isLoading
+	);
 	const activePage = $derived(activeSection === 'birthday' ? birthdayPage : popularPage);
 
 	function setPage(p: number) {
@@ -65,7 +84,12 @@
 	}
 
 	function charName(c: Character): string {
-		return c.name?.userPreferred || c.name?.full || `${c.name?.first ?? ''} ${c.name?.last ?? ''}`.trim() || 'Unknown';
+		return (
+			c.name?.userPreferred ||
+			c.name?.full ||
+			`${c.name?.first ?? ''} ${c.name?.last ?? ''}`.trim() ||
+			'Unknown'
+		);
 	}
 	function mediaTitle(c: Character): string {
 		const node = c.media?.nodes?.[0];
@@ -80,7 +104,10 @@
 		if (!c.dateOfBirth) return '';
 		const { month, day } = c.dateOfBirth;
 		if (!month || !day) return '';
-		return new Date(2000, month - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+		return new Date(2000, month - 1, day).toLocaleDateString('en-US', {
+			month: 'short',
+			day: 'numeric',
+		});
 	}
 </script>
 
@@ -89,34 +116,46 @@
 		onclick={() => goto(`/character/${char.id}`)}
 		class="group relative flex w-40 shrink-0 cursor-pointer flex-col text-left transition-transform duration-200 hover:scale-[1.03]"
 	>
-		<div class="relative h-56 w-full overflow-hidden rounded-md bg-card shadow-lg ring-4 ring-border transition-shadow duration-200 group-hover:ring-primary/50 group-hover:shadow-xl">
+		<div
+			class="relative h-56 w-full overflow-hidden rounded-md bg-card shadow-lg ring-4 ring-border transition-shadow duration-200 group-hover:shadow-xl group-hover:ring-primary/50"
+		>
 			{#if char.image?.large || char.image?.medium}
-				<CachedImage src={char.image.large ?? char.image.medium ?? ''} alt={charName(char)} class="h-full w-full object-cover object-top" />
+				<CachedImage
+					src={char.image.large ?? char.image.medium ?? ''}
+					alt={charName(char)}
+					class="h-full w-full object-cover object-top"
+				/>
 			{:else}
 				<div class="flex h-full items-center justify-center bg-muted">
 					<Icon icon="solar:user-bold-duotone" class="h-10 w-10 opacity-20" />
 				</div>
 			{/if}
-			<div class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent"></div>
+			<div
+				class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent"
+			></div>
 			{#if char.favourites}
-				<div class="absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
+				<div
+					class="absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm"
+				>
 					<Icon icon="solar:heart-bold" class="h-2.5 w-2.5 text-red-400" />
 					{fmtFav(char.favourites)}
 				</div>
 			{/if}
 			{#if rank !== undefined && rank < 3}
-				<div class="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow">
+				<div
+					class="absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow"
+				>
 					{rank + 1}
 				</div>
 			{/if}
 			{#if showBirthday}
-				<div class="absolute right-2 top-2 rounded-full bg-pink-500/90 p-1.5 shadow">
+				<div class="absolute top-2 right-2 rounded-full bg-pink-500/90 p-1.5 shadow">
 					<Icon icon="solar:gift-bold" class="h-3 w-3 text-white" />
 				</div>
 			{/if}
 		</div>
 		<div class="mt-2 w-full">
-			<p class="line-clamp-2 text-xs font-semibold leading-snug">{charName(char)}</p>
+			<p class="line-clamp-2 text-xs leading-snug font-semibold">{charName(char)}</p>
 			{#if showBirthday}
 				{@const bd = formatBirthday(char)}
 				{#if bd}<p class="mt-0.5 text-[10px] text-pink-400">{bd}</p>{/if}
@@ -132,7 +171,10 @@
 	<!-- Header -->
 	<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 		<div class="flex items-center gap-3">
-			<button onclick={() => goto('/search/characters')} class="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground">
+			<button
+				onclick={() => goto('/search/characters')}
+				class="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+			>
 				<Icon icon="solar:arrow-left-linear" class="h-4 w-4" />
 			</button>
 			<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
@@ -144,10 +186,22 @@
 			</div>
 		</div>
 		<div class="relative w-full max-w-sm">
-			<Icon icon="solar:magnifer-linear" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-			<input type="text" value={searchInput} oninput={onSearchInput} placeholder="Search characters…" class="h-10 w-full rounded-xl border border-border bg-muted/40 pl-9 pr-9 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/60 focus:bg-background" />
+			<Icon
+				icon="solar:magnifer-linear"
+				class="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+			/>
+			<input
+				type="text"
+				value={searchInput}
+				oninput={onSearchInput}
+				placeholder="Search characters…"
+				class="h-10 w-full rounded-xl border border-border bg-muted/40 pr-9 pl-9 text-sm transition-colors outline-none placeholder:text-muted-foreground focus:border-primary/60 focus:bg-background"
+			/>
 			{#if searchInput}
-				<button onclick={clearSearch} class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground">
+				<button
+					onclick={clearSearch}
+					class="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+				>
 					<Icon icon="solar:close-circle-bold" class="h-4 w-4" />
 				</button>
 			{/if}
@@ -158,14 +212,20 @@
 	<div class="flex items-center gap-1.5">
 		<button
 			onclick={() => (activeSection = 'popular')}
-			class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors {activeSection === 'popular' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'}"
+			class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors {activeSection ===
+			'popular'
+				? 'bg-primary/10 text-primary'
+				: 'text-muted-foreground hover:text-foreground'}"
 		>
 			<Icon icon="solar:heart-bold-duotone" class="h-4 w-4 text-red-400" />
 			Most Favourited
 		</button>
 		<button
 			onclick={() => (activeSection = 'birthday')}
-			class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors {activeSection === 'birthday' ? 'bg-pink-500/15 text-pink-400' : 'text-muted-foreground hover:text-foreground'}"
+			class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors {activeSection ===
+			'birthday'
+				? 'bg-pink-500/15 text-pink-400'
+				: 'text-muted-foreground hover:text-foreground'}"
 		>
 			<Icon icon="solar:gift-bold-duotone" class="h-4 w-4 text-pink-400" />
 			Birthday Today
@@ -178,14 +238,18 @@
 			<Icon icon="solar:spinner-bold" class="h-6 w-6 animate-spin text-muted-foreground" />
 		</div>
 	{:else if activeItems.length === 0}
-		<div class="flex h-48 items-center justify-center rounded-xl border border-dashed text-muted-foreground">
+		<div
+			class="flex h-48 items-center justify-center rounded-xl border border-dashed text-muted-foreground"
+		>
 			<div class="text-center">
 				<Icon icon="solar:user-linear" class="mx-auto mb-2 h-10 w-10 opacity-40" />
-				<p class="text-sm">{isSearching ? `No characters found for "${debouncedQuery}"` : 'No results'}</p>
+				<p class="text-sm">
+					{isSearching ? `No characters found for "${debouncedQuery}"` : 'No results'}
+				</p>
 			</div>
 		</div>
 	{:else}
-		<div class="grid gap-5 p-0.5 grid-cols-[repeat(auto-fill,minmax(10rem,1fr))]">
+		<div class="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-5 p-0.5">
 			{#each activeItems as char, i}
 				{@render charCard(
 					char,

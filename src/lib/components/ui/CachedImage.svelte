@@ -67,7 +67,7 @@
 
 		// If we successfully loaded the original image, cache it in background
 		if (displaySrc === src && src) {
-			ImageCacheService.getCachedImage(src, cacheOptions).catch(err => {
+			ImageCacheService.getCachedImage(src, cacheOptions).catch((err) => {
 				console.warn('Background caching failed:', err);
 			});
 		}
@@ -101,7 +101,9 @@
 	{width}
 	{height}
 	{loading}
-	class="transition-opacity duration-200 {isLoading ? 'opacity-50' : 'opacity-100'} {hasError ? 'filter grayscale' : ''} {$$props.class || ''}"
+	class="transition-opacity duration-200 {isLoading ? 'opacity-50' : 'opacity-100'} {hasError
+		? 'grayscale filter'
+		: ''} {$$props.class || ''}"
 	on:load={handleLoad}
 	on:error={handleError}
 	{...$$restProps}
@@ -110,6 +112,8 @@
 <style>
 	img {
 		/* Ensure smooth transitions */
-		transition: opacity 0.2s ease-in-out, filter 0.2s ease-in-out;
+		transition:
+			opacity 0.2s ease-in-out,
+			filter 0.2s ease-in-out;
 	}
 </style>

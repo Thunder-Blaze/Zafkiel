@@ -34,13 +34,17 @@ export class ClientDatabaseService {
 	/**
 	 * Update local progress for media via Tauri command
 	 */
-	static async updateLocalProgress(mediaId: number, progress: number, timestamp?: number): Promise<void> {
+	static async updateLocalProgress(
+		mediaId: number,
+		progress: number,
+		timestamp?: number
+	): Promise<void> {
 		await invoke('update_local_progress', {
 			params: {
 				media_id: mediaId,
 				progress,
 				timestamp: timestamp ?? undefined,
-			} satisfies UpdateProgressParams
+			} satisfies UpdateProgressParams,
 		});
 	}
 
@@ -52,7 +56,7 @@ export class ClientDatabaseService {
 			params: {
 				media_data: mediaData,
 				extension_source: extensionSource ?? undefined,
-			} satisfies CacheMediaParams
+			} satisfies CacheMediaParams,
 		});
 	}
 
@@ -63,7 +67,7 @@ export class ClientDatabaseService {
 		await invoke('cache_user', {
 			params: {
 				user_data: userData,
-			} satisfies CacheUserParams
+			} satisfies CacheUserParams,
 		});
 	}
 
@@ -88,7 +92,7 @@ export class ClientDatabaseService {
 	static async searchCachedMedia(query: string, mediaType?: 'ANIME' | 'MANGA'): Promise<Media[]> {
 		const result = await invoke('search_cached_media', {
 			query,
-			mediaType: mediaType || null
+			mediaType: mediaType || null,
 		});
 		return result as Media[];
 	}

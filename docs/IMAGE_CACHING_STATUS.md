@@ -73,17 +73,20 @@ bun run tauri dev
 ## Files Changed
 
 ### Backend
+
 - `src-tauri/Cargo.toml` - Added rusqlite
 - `src-tauri/src/database.rs` - NEW (database module)
 - `src-tauri/src/db_commands.rs` - Implemented all commands
 - `src-tauri/src/lib.rs` - Initialize database on startup
 
 ### Frontend
+
 - `src/lib/services/client-database.ts` - Added CachedImageInfo type
 - `src/lib/services/database.ts` - Updated getAllCachedImages()
 - `src/lib/components/settings/ImageCacheManager.svelte` - Fixed types & stats
 
 ### Database
+
 - `src/lib/server/db/schema.ts` - Added file_size, cached_at columns
 - `drizzle/0001_sweet_piledriver.sql` - Migration applied
 
@@ -187,10 +190,12 @@ CREATE INDEX idx_cached_images_url ON cached_images(original_url);
 The `db_commands.rs` file needs access to a SQLite database connection. Options:
 
 **Option A: Use existing DatabaseService pattern**
+
 - Load the database connection in `lib.rs` during app startup
 - Pass it to commands via Tauri state management
 
 **Option B: Create dedicated database module**
+
 - Create `src-tauri/src/db/mod.rs` with connection pooling
 - Use `rusqlite` or `sqlx` for database operations
 
@@ -291,10 +296,12 @@ pub async fn get_all_cached_images(
 
 **Problem**: Showed `1/9/57748` instead of proper date
 **Cause**: Two issues:
+
 1. When no images exist, returned `Date.now()` instead of `0`
 2. `formatDate()` multiplied timestamp by 1000 (assuming seconds, but JS uses milliseconds)
 
 **Solution**:
+
 ```typescript
 // Return 0 when no images
 oldestImage: cachedImages.length > 0 ? Math.min(...) : 0,

@@ -10,7 +10,9 @@ interface ThemeState {
 	themes: Themes;
 }
 
-const initialThemeState = browser ? JSON.parse(sessionStorage.getItem(THEME_CACHE_KEY) || 'null') : null;
+const initialThemeState = browser
+	? JSON.parse(sessionStorage.getItem(THEME_CACHE_KEY) || 'null')
+	: null;
 let themeState = $state<ThemeState | null>(initialThemeState);
 
 let cleanup: (() => void) | null = null;
@@ -19,13 +21,16 @@ let cleanup: (() => void) | null = null;
 if (browser) {
 	cleanup = $effect.root(() => {
 		if (themeState) {
-				try {
-					sessionStorage.setItem(THEME_CACHE_KEY, JSON.stringify(themeState));
-				} catch (error) {
-					console.error('[ThemeState] ✗ Failed to save theme state to session storage, reverting:', error);
-					themeState = JSON.parse(sessionStorage.getItem(THEME_CACHE_KEY) || 'null');
-				}
+			try {
+				sessionStorage.setItem(THEME_CACHE_KEY, JSON.stringify(themeState));
+			} catch (error) {
+				console.error(
+					'[ThemeState] ✗ Failed to save theme state to session storage, reverting:',
+					error
+				);
+				themeState = JSON.parse(sessionStorage.getItem(THEME_CACHE_KEY) || 'null');
 			}
+		}
 
 		return () => {
 			console.log('[ThemeState] Effect root cleanup');
@@ -78,7 +83,7 @@ export const useThemeState = () => {
 
 		setAvailableThemes: (themes: Theme[]) => {
 			if (themeState) {
-				themeState.themes = new SvelteMap(themes.map(theme => [theme.id, theme]));
+				themeState.themes = new SvelteMap(themes.map((theme) => [theme.id, theme]));
 			}
 		},
 
@@ -102,11 +107,11 @@ export const useThemeState = () => {
 		},
 
 		// Cleanup function to destroy the effect root when no longer needed
-    destroy: () => {
-      if (cleanup) {
-        cleanup();
-        cleanup = null;
-      }
-    }
+		destroy: () => {
+			if (cleanup) {
+				cleanup();
+				cleanup = null;
+			}
+		},
 	};
-}
+};

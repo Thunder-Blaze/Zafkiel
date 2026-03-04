@@ -9,7 +9,9 @@ The "An impossible situation occurred" error has been fixed!
 The issue was **two-fold**:
 
 ### 1. Type Import Circular Dependency
+
 `sessionCache.svelte.ts` was importing types from `$lib/services/config`, which created a circular dependency:
+
 ```
 sessionCache.svelte.ts → services/config (types)
 config.ts store → sessionCache.svelte.ts
@@ -17,18 +19,23 @@ theme.svelte.ts → sessionCache.svelte.ts AND services/config
 ```
 
 ### 2. File Extension Confusion
+
 The `.svelte.ts` extension on `sessionCache.svelte.ts` was confusing SvelteKit's module resolution system during HMR (Hot Module Replacement). This file doesn't use Svelte runes, so the `.svelte.ts` extension was inappropriate.
 
 ## Solution Applied
 
 ### Step 1: Created Shared Types File ✅
+
 **Created:** `/src/lib/types/config.ts`
+
 - Contains all config-related type definitions
 - No dependencies on other modules
 - Pure type definitions only
 
 ### Step 2: Updated Type Imports ✅
+
 **Modified:** `/src/lib/stores/sessionCache.ts` (renamed from `.svelte.ts`)
+
 ```typescript
 // BEFORE (circular dependency):
 import type { AppConfig } from '$lib/services/config';
@@ -38,6 +45,7 @@ import type { AppConfig } from '$lib/types/config';
 ```
 
 **Modified:** `/src/lib/stores/config.ts`
+
 ```typescript
 // BEFORE:
 import { ConfigService, type AppConfig, type UiConfig } from '$lib/services/config';
@@ -48,6 +56,7 @@ import type { AppConfig, UiConfig } from '$lib/types/config';
 ```
 
 **Modified:** `/src/lib/services/config.ts`
+
 ```typescript
 // Re-export types from shared location
 export type { AppConfig, AniListConfig, SecurityConfig, UiConfig } from '$lib/types/config';
@@ -55,21 +64,25 @@ import type { AppConfig, UiConfig } from '$lib/types/config';
 ```
 
 ### Step 3: Renamed sessionCache File ✅
+
 **Renamed:** `sessionCache.svelte.ts` → `sessionCache.ts`
 
 Reason: The file doesn't use Svelte runes (`$state`, `$derived`, etc.), so it shouldn't have the `.svelte.ts` extension. This extension was confusing SvelteKit's module resolution during HMR.
 
 **Updated all imports in:**
+
 - `src/lib/stores/config.ts`
 - `src/lib/stores/auth.ts`
 - `src/lib/stores/theme.svelte.ts`
 
 From:
+
 ```typescript
 import { loadConfigCache } from './sessionCache.svelte';
 ```
 
 To:
+
 ```typescript
 import { loadConfigCache } from './sessionCache';
 ```
@@ -77,9 +90,11 @@ import { loadConfigCache } from './sessionCache';
 ## Files Modified
 
 ### Created
+
 1. `/src/lib/types/config.ts` - Shared type definitions
 
 ### Modified
+
 1. `/src/lib/stores/sessionCache.ts` (renamed from `.svelte.ts`)
    - Import types from `$lib/types/config` instead of `$lib/services/config`
 
@@ -100,6 +115,7 @@ import { loadConfigCache } from './sessionCache';
 ## Architecture
 
 ### Clean Module Dependency Graph
+
 ```
 ┌────────────────────────────────────┐
 │  Layer 4: Routes & Components      │
@@ -129,10 +145,12 @@ import { loadConfigCache } from './sessionCache';
 ## File Extension Guidelines
 
 Use `.svelte.ts` extension **ONLY** when:
+
 - File uses Svelte 5 runes (`$state`, `$derived`, `$effect`, etc.)
 - File is intended to be part of Svelte's reactivity system
 
 Use regular `.ts` extension when:
+
 - File contains only functions, classes, or plain TypeScript
 - File doesn't use Svelte-specific features
 - File is a utility or service module
@@ -167,6 +185,7 @@ Use regular `.ts` extension when:
    - Services can re-export types
 
 3. **Import types from the types directory**
+
    ```typescript
    // ✅ GOOD
    import type { AppConfig } from '$lib/types/config';

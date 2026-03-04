@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { useStudioById } from '$lib/hooks/useAnilist.svelte';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-	} from '$lib/components/ui/card';
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
@@ -30,7 +25,10 @@
 	{#if isLoading}
 		<div class="flex min-h-[400px] items-center justify-center">
 			<div class="flex flex-col items-center space-y-4">
-				<Icon icon="solar:refresh-circle-line-duotone" class="h-12 w-12 animate-spin text-primary" />
+				<Icon
+					icon="solar:refresh-circle-line-duotone"
+					class="h-12 w-12 animate-spin text-primary"
+				/>
 				<p class="text-muted-foreground">Loading studio details...</p>
 			</div>
 		</div>
@@ -85,7 +83,10 @@
 				{#if studio.media?.nodes && studio.media.nodes.length > 0}
 					<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
 						{#each studio.media.nodes as media}
-							<a href="/anime/{media.id}" class="group relative block overflow-hidden rounded-lg bg-card transition-all hover:scale-105 hover:shadow-lg">
+							<a
+								href="/anime/{media.id}"
+								class="group relative block overflow-hidden rounded-lg bg-card transition-all hover:scale-105 hover:shadow-lg"
+							>
 								<div class="aspect-[2/3] w-full overflow-hidden">
 									{#if media.coverImage?.large}
 										<CachedImage
@@ -95,11 +96,16 @@
 										/>
 									{:else}
 										<div class="flex h-full w-full items-center justify-center bg-muted">
-											<Icon icon="solar:gallery-wide-bold-duotone" class="h-12 w-12 text-muted-foreground" />
+											<Icon
+												icon="solar:gallery-wide-bold-duotone"
+												class="h-12 w-12 text-muted-foreground"
+											/>
 										</div>
 									{/if}
-									<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-										<div class="absolute bottom-0 left-0 right-0 p-4">
+									<div
+										class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+									>
+										<div class="absolute right-0 bottom-0 left-0 p-4">
 											<p class="line-clamp-2 text-sm font-semibold text-white">
 												{media.title?.userPreferred || media.title?.english}
 											</p>
@@ -116,10 +122,17 @@
 						{/each}
 					</div>
 				{:else}
-					<div class="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-						<Icon icon="solar:clapperboard-text-bold-duotone" class="mb-4 h-12 w-12 text-muted-foreground" />
+					<div
+						class="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center"
+					>
+						<Icon
+							icon="solar:clapperboard-text-bold-duotone"
+							class="mb-4 h-12 w-12 text-muted-foreground"
+						/>
 						<h3 class="text-lg font-semibold">No Anime Found</h3>
-						<p class="text-muted-foreground">This studio hasn't produced any anime yet or data is missing.</p>
+						<p class="text-muted-foreground">
+							This studio hasn't produced any anime yet or data is missing.
+						</p>
 					</div>
 				{/if}
 			</TabsContent>
@@ -137,7 +150,11 @@
 						{#if studio.siteUrl}
 							<div class="flex justify-between border-b py-2">
 								<span class="text-muted-foreground">AniList Page</span>
-								<a href={studio.siteUrl} target="_blank" class="font-medium text-primary hover:underline">
+								<a
+									href={studio.siteUrl}
+									target="_blank"
+									class="font-medium text-primary hover:underline"
+								>
 									View on AniList
 								</a>
 							</div>

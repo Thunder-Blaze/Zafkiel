@@ -20,6 +20,7 @@ After reading the full codebase, here is what exists and the state of each area:
 **Why**: Currently if new tables/columns need added, there is no safe upgrade path. Every new release could corrupt user data. `rusqlite_migration` provides Rails-style versioned migrations.
 
 **How**:
+
 - Add `rusqlite_migration = "1.3"` and `r2d2 = "0.8"` + `r2d2_sqlite = "0.24"` to `Cargo.toml`
 - Rewrite `database.rs` entirely with a `migrations::get_migrations()` function returning a `Vec<Migration>`
 - Run migrations on every startup — idempotent
@@ -245,132 +246,132 @@ impl Database {
 
 **New file**: `src-tauri/src/commands/api/medialist.rs`
 
-| Command | Auth Required | Description |
-|---|---|---|
-| `get_my_anime_list(status?)` | ✅ | Authenticated user's anime list |
-| `get_my_manga_list(status?)` | ✅ | Authenticated user's manga list |
-| `get_user_anime_list(username, status?)` | ❌ | Any user's public anime list |
-| `get_user_manga_list(username, status?)` | ❌ | Any user's public manga list |
-| `save_media_list_entry(media_id, status, progress?, score?, notes?, started_at?, finished_at?)` | ✅ | Create or update a list entry |
-| `delete_media_list_entry(entry_id)` | ✅ | Remove from list entirely |
-| `update_list_progress(entry_id, progress)` | ✅ | Quick progress update |
-| `update_list_score(entry_id, score)` | ✅ | Quick score update |
-| `update_list_status(entry_id, status)` | ✅ | Quick status change |
+| Command                                                                                         | Auth Required | Description                     |
+| ----------------------------------------------------------------------------------------------- | ------------- | ------------------------------- |
+| `get_my_anime_list(status?)`                                                                    | ✅            | Authenticated user's anime list |
+| `get_my_manga_list(status?)`                                                                    | ✅            | Authenticated user's manga list |
+| `get_user_anime_list(username, status?)`                                                        | ❌            | Any user's public anime list    |
+| `get_user_manga_list(username, status?)`                                                        | ❌            | Any user's public manga list    |
+| `save_media_list_entry(media_id, status, progress?, score?, notes?, started_at?, finished_at?)` | ✅            | Create or update a list entry   |
+| `delete_media_list_entry(entry_id)`                                                             | ✅            | Remove from list entirely       |
+| `update_list_progress(entry_id, progress)`                                                      | ✅            | Quick progress update           |
+| `update_list_score(entry_id, score)`                                                            | ✅            | Quick score update              |
+| `update_list_status(entry_id, status)`                                                          | ✅            | Quick status change             |
 
 ### 2.2 Activity Feed Commands
 
 **New file**: `src-tauri/src/commands/api/activity.rs`
 
-| Command | Auth Required | Description |
-|---|---|---|
-| `get_activity_feed(page?, per_page?)` | ❌ | Global activity feed |
-| `get_following_activity(page?, per_page?)` | ✅ | Activity from followed users |
-| `get_user_activities(user_id, page?, per_page?)` | ❌ | Specific user's activities |
-| `get_activity_by_id(id)` | ❌ | Single activity detail |
-| `get_activity_replies(activity_id, page?, per_page?)` | ❌ | Replies to activity |
-| `create_text_activity(text)` | ✅ | Post a text status update |
-| `create_message_activity(recipient_id, message)` | ✅ | Send a message to user |
-| `reply_to_activity(activity_id, text)` | ✅ | Reply to any activity |
-| `delete_activity(id)` | ✅ | Delete own activity |
-| `delete_activity_reply(id)` | ✅ | Delete own reply |
-| `toggle_activity_pin(id, pinned)` | ✅ | Pin/unpin activity |
-| `toggle_activity_subscription(activity_id)` | ✅ | Subscribe to activity |
+| Command                                               | Auth Required | Description                  |
+| ----------------------------------------------------- | ------------- | ---------------------------- |
+| `get_activity_feed(page?, per_page?)`                 | ❌            | Global activity feed         |
+| `get_following_activity(page?, per_page?)`            | ✅            | Activity from followed users |
+| `get_user_activities(user_id, page?, per_page?)`      | ❌            | Specific user's activities   |
+| `get_activity_by_id(id)`                              | ❌            | Single activity detail       |
+| `get_activity_replies(activity_id, page?, per_page?)` | ❌            | Replies to activity          |
+| `create_text_activity(text)`                          | ✅            | Post a text status update    |
+| `create_message_activity(recipient_id, message)`      | ✅            | Send a message to user       |
+| `reply_to_activity(activity_id, text)`                | ✅            | Reply to any activity        |
+| `delete_activity(id)`                                 | ✅            | Delete own activity          |
+| `delete_activity_reply(id)`                           | ✅            | Delete own reply             |
+| `toggle_activity_pin(id, pinned)`                     | ✅            | Pin/unpin activity           |
+| `toggle_activity_subscription(activity_id)`           | ✅            | Subscribe to activity        |
 
 ### 2.3 Forum Thread Commands
 
 **New file**: `src-tauri/src/commands/api/forum.rs`
 
-| Command | Auth Required | Description |
-|---|---|---|
-| `get_recent_forum_threads(page?, per_page?)` | ❌ | Recent forum threads |
-| `get_popular_forum_threads(page?, per_page?)` | ❌ | Popular/trending threads |
-| `search_forum_threads(query, page?, per_page?)` | ❌ | Search threads by keyword |
-| `get_forum_thread(thread_id)` | ❌ | Full thread with details |
-| `get_thread_comments(thread_id, page?, per_page?)` | ❌ | Thread comment list |
-| `get_threads_by_category(category_id, page?, per_page?)` | ❌ | Filter by category |
-| `get_threads_by_user(user_id, page?, per_page?)` | ❌ | User's threads |
-| `get_subscribed_threads(page?, per_page?)` | ✅ | My subscribed threads |
-| `create_forum_thread(title, body, categories?)` | ✅ | Create new thread |
-| `reply_to_forum_thread(thread_id, text)` | ✅ | Post a comment |
-| `reply_to_forum_comment(comment_id, text)` | ✅ | Reply to a comment |
-| `edit_forum_comment(comment_id, text)` | ✅ | Edit own comment |
-| `delete_forum_thread(thread_id)` | ✅ | Delete own thread |
-| `delete_forum_comment(comment_id)` | ✅ | Delete own comment |
-| `subscribe_to_thread(thread_id)` | ✅ | Subscribe for notifications |
-| `unsubscribe_from_thread(thread_id)` | ✅ | Unsubscribe |
+| Command                                                  | Auth Required | Description                 |
+| -------------------------------------------------------- | ------------- | --------------------------- |
+| `get_recent_forum_threads(page?, per_page?)`             | ❌            | Recent forum threads        |
+| `get_popular_forum_threads(page?, per_page?)`            | ❌            | Popular/trending threads    |
+| `search_forum_threads(query, page?, per_page?)`          | ❌            | Search threads by keyword   |
+| `get_forum_thread(thread_id)`                            | ❌            | Full thread with details    |
+| `get_thread_comments(thread_id, page?, per_page?)`       | ❌            | Thread comment list         |
+| `get_threads_by_category(category_id, page?, per_page?)` | ❌            | Filter by category          |
+| `get_threads_by_user(user_id, page?, per_page?)`         | ❌            | User's threads              |
+| `get_subscribed_threads(page?, per_page?)`               | ✅            | My subscribed threads       |
+| `create_forum_thread(title, body, categories?)`          | ✅            | Create new thread           |
+| `reply_to_forum_thread(thread_id, text)`                 | ✅            | Post a comment              |
+| `reply_to_forum_comment(comment_id, text)`               | ✅            | Reply to a comment          |
+| `edit_forum_comment(comment_id, text)`                   | ✅            | Edit own comment            |
+| `delete_forum_thread(thread_id)`                         | ✅            | Delete own thread           |
+| `delete_forum_comment(comment_id)`                       | ✅            | Delete own comment          |
+| `subscribe_to_thread(thread_id)`                         | ✅            | Subscribe for notifications |
+| `unsubscribe_from_thread(thread_id)`                     | ✅            | Unsubscribe                 |
 
 ### 2.4 Notification Commands
 
 **New file**: `src-tauri/src/commands/api/notification.rs`
 
-| Command | Auth Required | Description |
-|---|---|---|
-| `get_notifications(page?, per_page?)` | ✅ | Fetch all notifications |
-| `get_notifications_by_type(type, page?)` | ✅ | Filter by notification type |
-| `get_and_mark_notifications_read()` | ✅ | Fetch + mark all read |
-| `get_unread_notification_count()` | ✅ | Just the unread count (for badge) |
+| Command                                  | Auth Required | Description                       |
+| ---------------------------------------- | ------------- | --------------------------------- |
+| `get_notifications(page?, per_page?)`    | ✅            | Fetch all notifications           |
+| `get_notifications_by_type(type, page?)` | ✅            | Filter by notification type       |
+| `get_and_mark_notifications_read()`      | ✅            | Fetch + mark all read             |
+| `get_unread_notification_count()`        | ✅            | Just the unread count (for badge) |
 
 ### 2.5 Review Commands
 
 **New file**: `src-tauri/src/commands/api/review.rs`
 
-| Command | Auth Required | Description |
-|---|---|---|
-| `get_media_reviews(media_id, page?, per_page?)` | ❌ | Reviews for an anime/manga |
-| `get_user_reviews(user_id, page?, per_page?)` | ❌ | User's written reviews |
-| `get_review_by_id(id)` | ❌ | Single review detail |
-| `get_recent_reviews(page?, per_page?)` | ❌ | Recently posted reviews |
-| `save_review(media_id, body, summary, score, private?)` | ✅ | Create/update review |
-| `delete_review(review_id)` | ✅ | Delete own review |
-| `rate_review(review_id, rating)` | ✅ | Rate helpful/not-helpful |
+| Command                                                 | Auth Required | Description                |
+| ------------------------------------------------------- | ------------- | -------------------------- |
+| `get_media_reviews(media_id, page?, per_page?)`         | ❌            | Reviews for an anime/manga |
+| `get_user_reviews(user_id, page?, per_page?)`           | ❌            | User's written reviews     |
+| `get_review_by_id(id)`                                  | ❌            | Single review detail       |
+| `get_recent_reviews(page?, per_page?)`                  | ❌            | Recently posted reviews    |
+| `save_review(media_id, body, summary, score, private?)` | ✅            | Create/update review       |
+| `delete_review(review_id)`                              | ✅            | Delete own review          |
+| `rate_review(review_id, rating)`                        | ✅            | Rate helpful/not-helpful   |
 
 ### 2.6 Recommendation Commands
 
 **New file**: `src-tauri/src/commands/api/recommendation.rs`
 
-| Command | Auth Required | Description |
-|---|---|---|
-| `get_media_recommendations(media_id, page?, per_page?)` | ❌ | Recommendations for a media |
-| `get_recent_recommendations(page?, per_page?)` | ❌ | Recent site-wide recommendations |
-| `rate_recommendation(media_id, recommendation_media_id, rating)` | ✅ | Upvote/downvote |
+| Command                                                          | Auth Required | Description                      |
+| ---------------------------------------------------------------- | ------------- | -------------------------------- |
+| `get_media_recommendations(media_id, page?, per_page?)`          | ❌            | Recommendations for a media      |
+| `get_recent_recommendations(page?, per_page?)`                   | ❌            | Recent site-wide recommendations |
+| `rate_recommendation(media_id, recommendation_media_id, rating)` | ✅            | Upvote/downvote                  |
 
 ### 2.7 Airing Schedule Commands
 
 Extend existing or new file `src-tauri/src/commands/api/airing.rs`:
 
-| Command | Auth Required | Description |
-|---|---|---|
-| `get_airing_schedule(page?, per_page?)` | ❌ | Upcoming airing schedule |
-| `get_recent_airing(page?, per_page?)` | ❌ | Recently aired episodes |
-| `get_airing_by_media_id(media_id)` | ❌ | Airing info for specific anime |
+| Command                                 | Auth Required | Description                    |
+| --------------------------------------- | ------------- | ------------------------------ |
+| `get_airing_schedule(page?, per_page?)` | ❌            | Upcoming airing schedule       |
+| `get_recent_airing(page?, per_page?)`   | ❌            | Recently aired episodes        |
+| `get_airing_by_media_id(media_id)`      | ❌            | Airing info for specific anime |
 
 ### 2.8 User Social Commands
 
 Extend user commands or new file `src-tauri/src/commands/api/social.rs`:
 
-| Command | Auth Required | Description |
-|---|---|---|
-| `get_user_followers(user_id, page?, per_page?)` | ❌ | User's followers |
-| `get_user_following(user_id, page?, per_page?)` | ❌ | Users they follow |
-| `get_user_favorites(user_id)` | ❌ | Favorited anime/manga/chars/staff |
-| `toggle_favourite(type, id)` | ✅ | Toggle favorite (anime/manga/char/staff/studio) |
-| `follow_user(user_id)` | ✅ | Follow a user |
-| `unfollow_user(user_id)` | ✅ | Unfollow a user |
-| `get_user_stats(user_id)` | ❌ | Full statistics including genre/tag breakdown |
+| Command                                         | Auth Required | Description                                     |
+| ----------------------------------------------- | ------------- | ----------------------------------------------- |
+| `get_user_followers(user_id, page?, per_page?)` | ❌            | User's followers                                |
+| `get_user_following(user_id, page?, per_page?)` | ❌            | Users they follow                               |
+| `get_user_favorites(user_id)`                   | ❌            | Favorited anime/manga/chars/staff               |
+| `toggle_favourite(type, id)`                    | ✅            | Toggle favorite (anime/manga/char/staff/studio) |
+| `follow_user(user_id)`                          | ✅            | Follow a user                                   |
+| `unfollow_user(user_id)`                        | ✅            | Unfollow a user                                 |
+| `get_user_stats(user_id)`                       | ❌            | Full statistics including genre/tag breakdown   |
 
 ### 2.9 DB Command Fixes
 
-| Command | Old State | New State |
-|---|---|---|
-| `cache_media` | Inserts unstructured JSON (table missing) | Upsert into normalized `cached_media` |
-| `cache_user` | Inserts unstructured JSON (table missing) | Upsert into normalized `cached_users` |
-| `add_to_recently_viewed` | No dedup (table missing) | UPSERT with title/cover params |
-| `update_local_progress` | Fails — table missing | Works with proper params |
-| `upsert_notification_cache` | **New** | Cache notification objects |
-| `upsert_activity_cache` | **New** | Cache activity objects |
-| `get_cached_media_list` | **New** | Read `local_progress` entries |
-| `sync_media_list_entry` | **New** | Write entry after AniList sync |
-| `get_unsynced_progress` | **New** | Get entries needing AniList sync |
+| Command                     | Old State                                 | New State                             |
+| --------------------------- | ----------------------------------------- | ------------------------------------- |
+| `cache_media`               | Inserts unstructured JSON (table missing) | Upsert into normalized `cached_media` |
+| `cache_user`                | Inserts unstructured JSON (table missing) | Upsert into normalized `cached_users` |
+| `add_to_recently_viewed`    | No dedup (table missing)                  | UPSERT with title/cover params        |
+| `update_local_progress`     | Fails — table missing                     | Works with proper params              |
+| `upsert_notification_cache` | **New**                                   | Cache notification objects            |
+| `upsert_activity_cache`     | **New**                                   | Cache activity objects                |
+| `get_cached_media_list`     | **New**                                   | Read `local_progress` entries         |
+| `sync_media_list_entry`     | **New**                                   | Write entry after AniList sync        |
+| `get_unsynced_progress`     | **New**                                   | Get entries needing AniList sync      |
 
 ---
 
@@ -439,6 +440,7 @@ export interface UserStatisticsFull { /* ... */ }
 ### 3.2 New TanStack Query hooks in `useAnilist.svelte.ts`
 
 New query key factories:
+
 - `medialist.*` — `myAnime`, `myManga`, `userAnime`, `userManga`
 - `activity.*` — `feed`, `following`, `user`, `byId`, `replies`
 - `forum.*` — `recent`, `popular`, `search`, `thread`, `comments`
@@ -449,6 +451,7 @@ New query key factories:
 - `social.*` — `followers`, `following`, `favorites`
 
 New hooks (queries):
+
 - `useMyAnimeList(status?)` / `useMyMangaList(status?)`
 - `useUserAnimeList(username, status?)` / `useUserMangaList(username, status?)`
 - `useActivityFeed(params?)` / `useFollowingActivity(params?)`
@@ -462,6 +465,7 @@ New hooks (queries):
 - `useUserFollowers(userId)` / `useUserFollowing(userId)` / `useUserFavorites(userId)`
 
 New hooks (mutations):
+
 - `useSaveMediaListEntry()` — save/update list entry
 - `useDeleteMediaListEntry()` — delete list entry
 - `useUpdateListProgress()` — quick progress +1 (optimistic)
@@ -479,6 +483,7 @@ New hooks (mutations):
 - `useFollowUser()` / `useUnfollowUser()`
 
 **Fix existing stubs**:
+
 - `useUpdateProgress` → call `update_list_progress` command
 - `useAddToList` → call `save_media_list_entry` command
 - `useRemoveFromList` → call `delete_media_list_entry` command
@@ -490,6 +495,7 @@ New hooks (mutations):
 ### 4.1 `ActivityCard.svelte`
 
 Polymorphic component rendering any `ActivityUnion` type:
+
 - **ListActivity**: User avatar + name, activity text ("watched episode X"), cover thumbnail right, like/reply counts, time ago
 - **TextActivity**: Avatar + name, markdown body, like/reply buttons, time ago
 - **MessageActivity**: "Messenger → Recipient" header, message body
@@ -504,7 +510,7 @@ Polymorphic component rendering any `ActivityUnion` type:
 
 ### 4.3 `NotificationItem.svelte`
 
-- Type icon (solar:* duotone matching notification type)
+- Type icon (solar:\* duotone matching notification type)
 - Contextual message built from notification fields
 - Time ago on right
 - Unread indicator: left accent border + brighter background
@@ -512,6 +518,7 @@ Polymorphic component rendering any `ActivityUnion` type:
 ### 4.4 `ThreadCard.svelte`
 
 Forum thread list card:
+
 - Title + category badges
 - Author + time
 - Reply/view/like counts
@@ -527,6 +534,7 @@ Forum thread list card:
 ### 4.6 `MediaListRow.svelte`
 
 Table row for list view:
+
 - Cover thumbnail, title link
 - Inline-editable progress `X / Y` with +1 button
 - Status badge, score (inline editable)
@@ -535,18 +543,21 @@ Table row for list view:
 ### 4.7 `MediaListGrid.svelte`
 
 Grid view card:
+
 - Cover (tall aspect ratio)
 - Hover overlays: title, progress, score, status
 
 ### 4.8 `ScoreDisplay.svelte`
 
 Reusable score display, color-coded:
+
 - Green ≥70, Amber 50-69, Red <50, Gray N/A
 - Supports: number badge, circle/ring, stars
 
 ### 4.9 `StatusBadge.svelte`
 
 List status badge with per-status colors:
+
 - CURRENT → Blue "Watching/Reading"
 - COMPLETED → Green
 - PLANNING → Purple
@@ -557,12 +568,14 @@ List status badge with per-status colors:
 ### 4.10 `AiringCard.svelte`
 
 Schedule page card:
+
 - Cover (small), anime title, episode number
 - Live countdown (days/hours/minutes)
 
 ### 4.11 `MarkdownRenderer.svelte`
 
 AniList markdown + HTML renderer:
+
 - `__bold__`, `~~strikethrough~~`, `~small~`, `[Spoiler: text]` collapsible
 - Sanitized HTML (no script/iframe)
 - Inline images
@@ -570,6 +583,7 @@ AniList markdown + HTML renderer:
 ### 4.12 `UserCard.svelte`
 
 Compact user card:
+
 - Avatar (circle), name + donation/mod badges
 - Follow button, click → profile
 
@@ -587,6 +601,7 @@ Shared countdown: `Xd Xh Xm` until next episode, updates every second.
 ### 4.15 Updated `MediaCard.svelte`
 
 Add:
+
 - List status overlay (bottom-left badge): "Watching ep 5"
 - Quick +1 episode on hover (for CURRENT entries)
 - "Add to List" button for non-listed media
@@ -605,6 +620,7 @@ Add:
 ### 4.18 Updated `ActionButtonStrip.svelte`
 
 Wire actual API calls:
+
 - "Add to List" → `useSaveMediaListEntry()` (PLANNING)
 - "Mark Watching" → (CURRENT)
 - "Mark Completed" → (COMPLETED)
@@ -618,12 +634,14 @@ Wire actual API calls:
 ### 5.1 `/list` and `/list/[username]` — Media List Page
 
 **Layout**:
+
 - Status tabs: All | Watching | Completed | Paused | Dropped | Planning | Repeating
 - Search input + sort dropdown + view toggle (table/grid)
 - Table view: `MediaListRow.svelte`
 - Grid view: `MediaListGrid.svelte`
 
 **Behavior**:
+
 - Own list: inline editing
 - Other user: read-only
 - URL params: `/list/username?status=CURRENT&sort=UPDATED_AT_DESC`
@@ -632,6 +650,7 @@ Wire actual API calls:
 ### 5.2 `/social` — Activity Feed Page
 
 **Layout**:
+
 - Two-column: feed 70% + sidebar 30%
 - Tabs: "Global" | "Following"
 - Post box at top (auth)
@@ -641,6 +660,7 @@ Wire actual API calls:
 ### 5.3 `/notifications` — Notifications Page
 
 **Layout**:
+
 - Max-w-3xl centered, "Mark All Read" button
 - Filter chips: All | Airing | Messages | Replies | Social | Media Updates
 - `NotificationItem.svelte` list
@@ -649,6 +669,7 @@ Wire actual API calls:
 ### 5.4 `/forum` — Forum Landing Page
 
 **Layout**:
+
 - Left sidebar: categories, "Recent/Popular/Subscribed" filters
 - `ThreadCard.svelte` main list
 - Search bar, "New Thread" button (auth)
@@ -656,6 +677,7 @@ Wire actual API calls:
 ### 5.5 `/forum/[id]` — Forum Thread Detail
 
 **Layout**:
+
 - Breadcrumb, original post card, meta (views/likes/subscribe)
 - `ThreadCommentCard.svelte` paginated list
 - Reply box at bottom (auth), markdown preview toggle
@@ -663,6 +685,7 @@ Wire actual API calls:
 ### 5.6 `/schedule` — Airing Schedule Page
 
 **Layout**:
+
 - Week view: 7 columns (Mon-Sun)
 - Today highlighted
 - `AiringCard.svelte` with live `AiringCountdown`
@@ -671,6 +694,7 @@ Wire actual API calls:
 ### 5.7 Enhanced User Profile — `/user/[id]`
 
 New tabs (in addition to existing Overview + Statistics):
+
 - **Anime List**: Mini-list with status filter tabs, link to full `/list/[username]?type=anime`
 - **Manga List**: Same for manga
 - **Activities**: Last 20 from `useUserActivities(userId)`, "View All" link
@@ -679,6 +703,7 @@ New tabs (in addition to existing Overview + Statistics):
 - **Social**: Followers/following counts with `UserCard.svelte` lists, Follow/Unfollow button (auth)
 
 Header enhancements:
+
 - Follow/Unfollow button (own profile hidden)
 - Follower/following count chips
 - Enhanced stats: score distribution bar chart, top genres/tags breakdown, format/status pie bars
@@ -686,6 +711,7 @@ Header enhancements:
 ### 5.8 Enhanced Anime/Manga Detail — `/anime/[id]`
 
 Additions:
+
 - **Reviews tab**: Connect real `useMediaReviews(animeId)` + `ReviewCard.svelte`
 - **Recommendations tab** (new): `useMediaRecommendations(animeId)` grid with rate buttons
 - **List Entry panel** (sidebar): If authenticated + in list — status/progress/score/notes editable via `InlineProgressEditor.svelte`
@@ -697,6 +723,7 @@ Additions:
 ### 5.9 Enhanced Dashboard — `/`
 
 Replace hardcoded stats:
+
 - Stats from `useCurrentUser()` → `user.statistics`
 - "Continue Watching" strip: `useMyAnimeList('CURRENT')` top 5 by updated
 - "Airing Today" section: `useAiringSchedule()` filtered to today
@@ -724,7 +751,8 @@ src/routes/(app)/profile/+page.svelte           -- redirect to own profile
 
 ### Sidebar/Navigation Updates
 
-Add navigation items (with solar:* icons):
+Add navigation items (with solar:\* icons):
+
 - **My List** (`/list`) — `solar:list-bold`
 - **Schedule** (`/schedule`) — `solar:calendar-bold`
 - **Social** (`/social`) — `solar:users-group-two-rounded-bold`
@@ -756,6 +784,7 @@ let _permit = rate_limiter.acquire().await;
 **Infinite scroll**: Replace "load more" with `IntersectionObserver` → `createInfiniteQuery` for feeds.
 
 **Skeleton loaders**:
+
 - `MediaCardSkeleton.svelte`
 - `ActivityCardSkeleton.svelte`
 - `MediaListRowSkeleton.svelte`
@@ -769,6 +798,7 @@ let _permit = rate_limiter.acquire().await;
 **Prepared statement caching** with rusqlite's `cached_statement`.
 
 **Background cache cleanup task** (runs hourly):
+
 - `cached_media` rows older than 7 days (by `last_accessed`)
 - `cached_images` rows older than 30 days
 - `activities_cache` rows older than 3 days
@@ -797,13 +827,16 @@ All commands return `Result<T, AppError>` for structured frontend error handling
 ### 7.5 New Settings Panels
 
 **List Settings** (`ListSettings.svelte`):
+
 - Default view: Table / Grid
 - Default sort, score format (10pt / 100pt / Stars / Smiley), show private, adult content
 
 **Notification Settings** (`NotificationSettings.svelte`):
+
 - Per-type toggles, polling interval, auto-mark-read
 
 **Profile Edit** (extend `AccountSettings.svelte`):
+
 - Edit bio/about textarea
 
 ---
@@ -839,15 +872,15 @@ All commands return `Result<T, AppError>` for structured frontend error handling
 
 ## Implementation Order (Phase Sequence)
 
-| Phase | Scope | Status |
-|---|---|---|
-| **Phase A** | DB infrastructure: migrations, R2D2 pool, schema fix, log path fix, AniListService simplification | ⬜ TODO |
-| **Phase B** | MediaList backend commands + frontend types/hooks + fix stubs + list entry panel on detail page | ⬜ TODO |
-| **Phase C** | User profile enhancements + `/list/[username]` page | ⬜ TODO |
+| Phase       | Scope                                                                                                                     | Status  |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------- | ------- |
+| **Phase A** | DB infrastructure: migrations, R2D2 pool, schema fix, log path fix, AniListService simplification                         | ⬜ TODO |
+| **Phase B** | MediaList backend commands + frontend types/hooks + fix stubs + list entry panel on detail page                           | ⬜ TODO |
+| **Phase C** | User profile enhancements + `/list/[username]` page                                                                       | ⬜ TODO |
 | **Phase D** | Activity + notification backend commands + `ActivityCard` component + `/social` + `/notifications` pages + TitleBar badge | ⬜ TODO |
-| **Phase E** | Reviews + recommendations + airing backend + components + tabs on detail page + `/schedule` page | ⬜ TODO |
-| **Phase F** | Forum backend commands + `ThreadCard`/`ThreadCommentCard` + `/forum` + `/forum/[id]` pages | ⬜ TODO |
-| **Phase G** | Dashboard real data + virtual scrolling + infinite scroll + skeleton loaders + Storybook + tests | ⬜ TODO |
+| **Phase E** | Reviews + recommendations + airing backend + components + tabs on detail page + `/schedule` page                          | ⬜ TODO |
+| **Phase F** | Forum backend commands + `ThreadCard`/`ThreadCommentCard` + `/forum` + `/forum/[id]` pages                                | ⬜ TODO |
+| **Phase G** | Dashboard real data + virtual scrolling + infinite scroll + skeleton loaders + Storybook + tests                          | ⬜ TODO |
 
 ---
 

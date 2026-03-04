@@ -3,10 +3,13 @@
 ## 1. Image Caching Fix (Tauri Parameter Naming)
 
 ### Issue
+
 Images were being downloaded repeatedly instead of using cached versions due to Tauri v2 converting Rust snake_case parameters to JavaScript camelCase.
 
 ### Fix Applied
+
 Changed all Tauri invoke parameters in `src/lib/services/client-database.ts`:
+
 - `local_path` → `localPath`
 - `media_id` → `mediaId`
 - `media_type` → `mediaType`
@@ -14,6 +17,7 @@ Changed all Tauri invoke parameters in `src/lib/services/client-database.ts`:
 ### How to Test
 
 1. **Start the app**:
+
    ```bash
    cd /home/ThunderBlaze/Documents/Projects/AiGen/zafkiel
    bun run tauri dev
@@ -24,6 +28,7 @@ Changed all Tauri invoke parameters in `src/lib/services/client-database.ts`:
 3. **Navigate to an anime page** with images (e.g., browse anime)
 
 4. **Check console logs** for:
+
    ```
    [ImageCache] Checking cache for: https://...
    [ImageCache] Cache miss, downloading...
@@ -34,16 +39,20 @@ Changed all Tauri invoke parameters in `src/lib/services/client-database.ts`:
 5. **Refresh the page** (F5)
 
 6. **Check console logs again** - should see:
+
    ```
    [ImageCache] Checking cache for: https://...
    [ImageCache] Cache hit: /home/.../cache/images/...
    ```
+
    **No download or database save should occur!**
 
 7. **Verify database has cached images**:
+
    ```bash
    sqlite3 ~/.local/share/com.zafkiel.dev/zafkiel.db "SELECT COUNT(*) FROM cached_images;"
    ```
+
    Should show a number > 0
 
 8. **Check image files exist**:
@@ -53,12 +62,15 @@ Changed all Tauri invoke parameters in `src/lib/services/client-database.ts`:
    Should show downloaded image files
 
 ### Expected Behavior
+
 - **First visit**: Images download, saved to database, logs show "Cached successfully"
 - **Subsequent visits**: Images load from cache, logs show "Cache hit"
 - **No re-downloads**: Same images should never download twice
 
 ### Debugging
+
 If images still re-download:
+
 1. Check console for errors
 2. Verify database path: Look for "[DB] Database initialized at: /home/..."
 3. Check database contents: `sqlite3 ~/.local/share/com.zafkiel.dev/zafkiel.db "SELECT * FROM cached_images;"`
@@ -69,10 +81,13 @@ If images still re-download:
 ## 2. Auth State Caching (SessionStorage)
 
 ### Issue
+
 Authentication status was checked on every page refresh, causing unnecessary API calls and repeated logs.
 
 ### Fix Applied
+
 Implemented sessionStorage caching with 5-minute TTL in `src/lib/stores/auth.ts`:
+
 - `loadCachedState()` - Loads cached state if valid
 - `saveCachedState()` - Saves state after login/auth check
 - `clearCachedState()` - Clears cache on logout
@@ -80,6 +95,7 @@ Implemented sessionStorage caching with 5-minute TTL in `src/lib/stores/auth.ts`
 ### How to Test
 
 1. **Start the app** (if not already running):
+
    ```bash
    bun run tauri dev
    ```
@@ -89,6 +105,7 @@ Implemented sessionStorage caching with 5-minute TTL in `src/lib/stores/auth.ts`
 3. **Login to AniList** (if not logged in)
 
 4. **Check console logs** - should see:
+
    ```
    [AuthStore] Initializing
    [Auth Command] Checking authentication status
@@ -99,10 +116,12 @@ Implemented sessionStorage caching with 5-minute TTL in `src/lib/stores/auth.ts`
 5. **Refresh the page** (F5)
 
 6. **Check console logs** - should see **different output**:
+
    ```
    [AuthStore] Initializing
    [AuthStore] Using cached auth state
    ```
+
    **No "[Auth Command] Checking authentication status" should appear!**
 
 7. **Verify sessionStorage**:
@@ -122,17 +141,21 @@ Implemented sessionStorage caching with 5-minute TTL in `src/lib/stores/auth.ts`
    - `zafkiel_auth_state` key should be **removed**
 
 ### Expected Behavior
+
 - **First load after login**: API call to check auth status
 - **Refreshes within 5 minutes**: Use cached state, no API call
 - **After 5 minutes**: Fresh API call, cache refreshed
 - **After logout**: Cache cleared, must re-authenticate
 
 ### Performance Impact
+
 - **Before**: ~1 API call per page refresh = unlimited calls
 - **After**: ~1 API call per 5 minutes = ~80% reduction in auth checks
 
 ### Debugging
+
 If cache isn't working:
+
 1. Check console for `[AuthStore]` logs
 2. Verify sessionStorage key exists after login
 3. Check timestamp in cached data (should be recent)
@@ -146,6 +169,7 @@ If cache isn't working:
 ### Full App Flow Test
 
 1. **Fresh start**:
+
    ```bash
    # Clear everything
    rm ~/.local/share/com.zafkiel.dev/zafkiel.db
@@ -170,6 +194,7 @@ If cache isn't working:
    - Image cache remains (images don't need to be deleted on logout)
 
 ### Success Criteria
+
 ✅ Images download once and reuse cached versions
 ✅ Auth state cached for 5 minutes between refreshes
 ✅ Console logs clearly show cache hits vs misses
@@ -181,19 +206,23 @@ If cache isn't working:
 ## Troubleshooting
 
 ### Image Cache Not Working
+
 - **Error**: "invalid args `localPath` for command `cache_image`"
 - **Solution**: Already fixed in `client-database.ts`, ensure using latest code
 
 ### Auth Cache Not Working
+
 - **Check**: `[AuthStore] Using cached auth state` should appear on refresh
 - **Verify**: sessionStorage key exists in DevTools
 
 ### Database Empty
+
 - **Check**: `~/.local/share/com.zafkiel.dev/zafkiel.db` exists
 - **Run**: `sqlite3 ~/.local/share/com.zafkiel.dev/zafkiel.db "SELECT * FROM cached_images;"`
 - **Verify**: Images are actually downloading (check console for "[DB] Cached image successfully")
 
 ### Logs Not Appearing
+
 - **Ensure**: DevTools Console is open
 - **Filter**: Search for "[ImageCache]" or "[AuthStore]" in console
 - **Level**: Make sure "Info" level logs are enabled (not just errors/warnings)
@@ -203,6 +232,7 @@ If cache isn't working:
 ## Manual Testing Commands
 
 ### Check Database Status
+
 ```bash
 # Count cached images
 sqlite3 ~/.local/share/com.zafkiel.dev/zafkiel.db "SELECT COUNT(*) FROM cached_images;"
@@ -218,6 +248,7 @@ du -sh ~/.local/share/com.zafkiel.dev/cache/
 ```
 
 ### Clear Caches (for testing)
+
 ```bash
 # Clear image cache database
 rm ~/.local/share/com.zafkiel.dev/zafkiel.db
@@ -229,6 +260,7 @@ rm -rf ~/.local/share/com.zafkiel.dev/cache/images/*
 ```
 
 ### Monitor Logs in Real-Time
+
 ```bash
 # Run app with output visible
 bun run tauri dev 2>&1 | grep -E '\[ImageCache\]|\[DB\]|\[AuthStore\]|\[Auth Command\]'
@@ -239,18 +271,21 @@ bun run tauri dev 2>&1 | grep -E '\[ImageCache\]|\[DB\]|\[AuthStore\]|\[Auth Com
 ## Performance Metrics to Watch
 
 ### Before Fixes
+
 - Images: Re-downloaded on every page visit
 - Auth: API call on every page refresh
 - Database: Always empty (0 rows)
 - Network: High traffic to image servers
 
 ### After Fixes
+
 - Images: Download once, reuse forever (until manual clear)
 - Auth: API call every 5 minutes max
 - Database: Grows with unique images viewed
 - Network: Minimal traffic after initial cache population
 
 ### Expected Improvements
+
 - **Page Load Time**: ~30-50% faster (no image downloads)
 - **API Calls**: ~80% reduction in auth checks
 - **Bandwidth**: ~90% reduction after cache populated

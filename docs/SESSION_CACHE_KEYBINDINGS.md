@@ -9,9 +9,11 @@ This document describes the newly implemented session caching system and keyboar
 ## 🗄️ Session Cache System
 
 ### Purpose
+
 Unified session storage system that caches multiple data types to reduce unnecessary refetches and improve application performance.
 
 ### Location
+
 `src/lib/stores/sessionCache.svelte.ts`
 
 ### Cached Data Types
@@ -93,20 +95,20 @@ clearThemeCache(): void
 
 ```typescript
 import {
-  loadAuthCache,
-  saveAuthCache,
-  clearAuthCache,
-  getCacheStats,
+	loadAuthCache,
+	saveAuthCache,
+	clearAuthCache,
+	getCacheStats,
 } from '$lib/stores/sessionCache.svelte';
 
 // Check if auth is cached
 const cachedAuth = loadAuthCache();
 if (cachedAuth) {
-  console.log('Using cached auth:', cachedAuth);
+	console.log('Using cached auth:', cachedAuth);
 } else {
-  // Fetch fresh auth data
-  const authData = await fetchAuthData();
-  saveAuthCache(authData.isAuthenticated, authData.user);
+	// Fetch fresh auth data
+	const authData = await fetchAuthData();
+	saveAuthCache(authData.isAuthenticated, authData.user);
 }
 
 // Get cache statistics
@@ -134,29 +136,28 @@ console.log('Cache status:', stats);
 ## ⌨️ Keybindings System
 
 ### Purpose
+
 Centralized keyboard shortcut management with conflict detection and dynamic binding registration.
 
 ### Location
+
 `src/lib/utils/keybindings.ts`
 
 ### Default Keybindings
 
-| Shortcut | Action | Description |
-|----------|--------|-------------|
+| Shortcut  | Action   | Description                          |
+| --------- | -------- | ------------------------------------ |
 | `Alt + ←` | Previous | Navigate to previous page in history |
-| `Alt + →` | Forward | Navigate to forward page in history |
-| `⌘ + R` | Reload | Reload current page |
-| `⌘ + K` | Search | Focus search bar in title bar |
+| `Alt + →` | Forward  | Navigate to forward page in history  |
+| `⌘ + R`   | Reload   | Reload current page                  |
+| `⌘ + K`   | Search   | Focus search bar in title bar        |
 
 ### API Reference
 
 #### Initialization
 
 ```typescript
-import {
-  initializeKeybindings,
-  cleanupKeybindings,
-} from '$lib/utils/keybindings';
+import { initializeKeybindings, cleanupKeybindings } from '$lib/utils/keybindings';
 
 // Initialize on app mount
 initializeKeybindings();
@@ -171,12 +172,12 @@ cleanupKeybindings();
 import { registerKeyBinding } from '$lib/utils/keybindings';
 
 registerKeyBinding({
-  key: 's',
-  meta: true, // Cmd on Mac, Win on Windows
-  description: 'Save current state',
-  action: () => {
-    console.log('Saving...');
-  },
+	key: 's',
+	meta: true, // Cmd on Mac, Win on Windows
+	description: 'Save current state',
+	action: () => {
+		console.log('Saving...');
+	},
 });
 ```
 
@@ -187,17 +188,14 @@ import { updateKeyBindingAction } from '$lib/utils/keybindings';
 
 // Update action dynamically
 updateKeyBindingAction('r', { meta: true }, () => {
-  console.log('Custom reload action');
+	console.log('Custom reload action');
 });
 ```
 
 #### Get Registered Bindings
 
 ```typescript
-import {
-  getAllBindings,
-  getBindingsByCategory,
-} from '$lib/utils/keybindings';
+import { getAllBindings, getBindingsByCategory } from '$lib/utils/keybindings';
 
 // Get all bindings
 const allBindings = getAllBindings();
@@ -211,13 +209,13 @@ const categories = getBindingsByCategory();
 
 ```typescript
 interface KeyBinding {
-  key: string; // Key name (e.g., 'a', 'Enter', 'ArrowLeft')
-  ctrl?: boolean; // Ctrl modifier
-  alt?: boolean; // Alt modifier
-  shift?: boolean; // Shift modifier
-  meta?: boolean; // Cmd (Mac) / Win (Windows)
-  description: string; // Human-readable description
-  action: () => void | Promise<void>; // Action to execute
+	key: string; // Key name (e.g., 'a', 'Enter', 'ArrowLeft')
+	ctrl?: boolean; // Ctrl modifier
+	alt?: boolean; // Alt modifier
+	shift?: boolean; // Shift modifier
+	meta?: boolean; // Cmd (Mac) / Win (Windows)
+	description: string; // Human-readable description
+	action: () => void | Promise<void>; // Action to execute
 }
 ```
 
@@ -237,10 +235,10 @@ Keybindings are formatted for display using symbols:
 import { formatKeyBinding } from '$lib/utils/keybindings';
 
 const binding = {
-  key: 'k',
-  meta: true,
-  description: 'Search',
-  action: () => {},
+	key: 'k',
+	meta: true,
+	description: 'Search',
+	action: () => {},
 };
 
 console.log(formatKeyBinding(binding)); // "⌘+K"
@@ -314,20 +312,20 @@ Keybindings are organized into logical categories:
 ```css
 /* Search bar with subtle shadow and transitions */
 .search-bar {
-  border: 1px solid border/60;
-  background: background/50;
-  shadow: shadow-sm;
-  transition: all 0.2s;
+	border: 1px solid border/60;
+	background: background/50;
+	shadow: shadow-sm;
+	transition: all 0.2s;
 }
 
 .search-bar:hover {
-  border-color: border;
-  background: background;
+	border-color: border;
+	background: background;
 }
 
 .search-bar:focus-within {
-  border-color: primary;
-  ring: 2px primary/20;
+	border-color: primary;
+	ring: 2px primary/20;
 }
 ```
 
@@ -342,17 +340,14 @@ let canGoForward = $derived(currentHistoryIndex < navigationHistory.length - 1);
 
 // Track navigation
 $effect(() => {
-  if (browser && $navigating?.to?.url.pathname) {
-    const newPath = $navigating.to.url.pathname;
-    if (newPath !== navigationHistory[currentHistoryIndex]) {
-      // Remove forward history and add new path
-      navigationHistory = [
-        ...navigationHistory.slice(0, currentHistoryIndex + 1),
-        newPath,
-      ];
-      currentHistoryIndex = navigationHistory.length - 1;
-    }
-  }
+	if (browser && $navigating?.to?.url.pathname) {
+		const newPath = $navigating.to.url.pathname;
+		if (newPath !== navigationHistory[currentHistoryIndex]) {
+			// Remove forward history and add new path
+			navigationHistory = [...navigationHistory.slice(0, currentHistoryIndex + 1), newPath];
+			currentHistoryIndex = navigationHistory.length - 1;
+		}
+	}
 });
 ```
 
@@ -394,24 +389,24 @@ The title bar initializes keybindings on mount:
 ```typescript
 // src/lib/components/TitleBar.svelte
 import {
-  initializeKeybindings,
-  cleanupKeybindings,
-  updateKeyBindingAction,
+	initializeKeybindings,
+	cleanupKeybindings,
+	updateKeyBindingAction,
 } from '$lib/utils/keybindings';
 
 onMount(() => {
-  // Initialize keybindings
-  initializeKeybindings();
+	// Initialize keybindings
+	initializeKeybindings();
 
-  // Set up actions
-  updateKeyBindingAction('ArrowLeft', { alt: true }, handleBack);
-  updateKeyBindingAction('ArrowRight', { alt: true }, handleForward);
-  updateKeyBindingAction('r', { meta: true }, handleReload);
-  updateKeyBindingAction('k', { meta: true }, focusSearch);
+	// Set up actions
+	updateKeyBindingAction('ArrowLeft', { alt: true }, handleBack);
+	updateKeyBindingAction('ArrowRight', { alt: true }, handleForward);
+	updateKeyBindingAction('r', { meta: true }, handleReload);
+	updateKeyBindingAction('k', { meta: true }, focusSearch);
 });
 
 onDestroy(() => {
-  cleanupKeybindings();
+	cleanupKeybindings();
 });
 ```
 
@@ -420,14 +415,16 @@ onDestroy(() => {
 To add a new data type to cache:
 
 1. **Define the type** in `sessionCache.svelte.ts`:
+
    ```typescript
    export interface MyDataConfig {
-     setting1: string;
-     setting2: boolean;
+   	setting1: string;
+   	setting2: boolean;
    }
    ```
 
 2. **Add to cache state**:
+
    ```typescript
    interface SessionCacheState {
      auth: CachedData<{ ... }> | null;
@@ -438,12 +435,13 @@ To add a new data type to cache:
    ```
 
 3. **Add cache duration**:
+
    ```typescript
    export const CACHE_DURATIONS = {
-     auth: 5 * 60 * 1000,
-     config: 15 * 60 * 1000,
-     themes: 15 * 60 * 1000,
-     myData: 10 * 60 * 1000, // Add this
+   	auth: 5 * 60 * 1000,
+   	config: 15 * 60 * 1000,
+   	themes: 15 * 60 * 1000,
+   	myData: 10 * 60 * 1000, // Add this
    } as const;
    ```
 
@@ -459,32 +457,34 @@ To add a new data type to cache:
 To add new keyboard shortcuts:
 
 1. **Update the category** in `keybindings.ts`:
+
    ```typescript
    export const APP_KEYBINDINGS: KeyBindingCategory[] = [
-     {
-       name: 'My Category',
-       bindings: [
-         {
-           key: 'n',
-           meta: true,
-           description: 'Create new item',
-           action: () => {
-             // Will be set dynamically
-           },
-         },
-       ],
-     },
+   	{
+   		name: 'My Category',
+   		bindings: [
+   			{
+   				key: 'n',
+   				meta: true,
+   				description: 'Create new item',
+   				action: () => {
+   					// Will be set dynamically
+   				},
+   			},
+   		],
+   	},
    ];
    ```
 
 2. **Set the action** in your component:
+
    ```typescript
    import { updateKeyBindingAction } from '$lib/utils/keybindings';
 
    onMount(() => {
-     updateKeyBindingAction('n', { meta: true }, () => {
-       console.log('Creating new item...');
-     });
+   	updateKeyBindingAction('n', { meta: true }, () => {
+   		console.log('Creating new item...');
+   	});
    });
    ```
 
@@ -495,12 +495,14 @@ To add new keyboard shortcuts:
 ### Session Cache
 
 **Before**:
+
 - Auth check: Every page refresh
 - Config fetch: Every navigation
 - Theme load: Every page load
 - Total API calls: ~10-20 per minute
 
 **After**:
+
 - Auth check: Every 5 minutes
 - Config fetch: Every 15 minutes
 - Theme load: Every 15 minutes
@@ -511,12 +513,14 @@ To add new keyboard shortcuts:
 ### Keybindings
 
 **Performance**:
+
 - Event listener overhead: Minimal (<1ms)
 - Conflict detection: O(n) on registration
 - Binding lookup: O(n) on keypress (fast for <100 bindings)
 - Memory usage: ~1KB for 50 bindings
 
 **User Experience**:
+
 - Instant response to keyboard shortcuts
 - No visual lag or delay
 - Native-like keyboard navigation
@@ -608,6 +612,7 @@ bun run tauri dev
 **Issue**: Cache not persisting between refreshes
 
 **Solutions**:
+
 1. Check browser supports sessionStorage
 2. Verify not in incognito/private mode
 3. Check console for cache errors
@@ -618,6 +623,7 @@ bun run tauri dev
 **Issue**: Keyboard shortcuts not working
 
 **Solutions**:
+
 1. Check keybindings initialized: Look for `[KeyBindings] Initialized`
 2. Verify no conflicting browser/OS shortcuts
 3. Check if input is focused (some shortcuts disabled in inputs)
@@ -628,6 +634,7 @@ bun run tauri dev
 **Issue**: Back/forward buttons not working correctly
 
 **Solutions**:
+
 1. Check `navigationHistory` in DevTools
 2. Verify `currentHistoryIndex` is correct
 3. Clear and rebuild: Navigate to home, then test

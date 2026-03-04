@@ -34,7 +34,7 @@ export const formatThemeName = (id: string): string => {
 		.split('-')
 		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 		.join(' ');
-}
+};
 
 const ensureTrailingSlash = (url: string): string => (url.endsWith('/') ? url : `${url}/`);
 
@@ -45,7 +45,8 @@ const resolveThemeAssetUrl = (baseUrl: string, fileName: string): string => {
 export const listThemes = async (): Promise<Themes> => {
 	console.log('[ThemeManager] Listing available themes...');
 	try {
-		const themes = (await invoke<TauriResponse<Record<string, string>>>('get_themes_with_paths')).data;
+		const themes = (await invoke<TauriResponse<Record<string, string>>>('get_themes_with_paths'))
+			.data;
 		const themeEntries = Object.entries(themes);
 		console.log(`[ThemeManager] ✓ Found ${themeEntries.length} themes:`, themes);
 
@@ -55,10 +56,7 @@ export const listThemes = async (): Promise<Themes> => {
 				const cssPath = resolveThemeAssetUrl(basePath, 'index.css');
 				const themeImagePath = resolveThemeAssetUrl(basePath, 'theme.png');
 
-				return [
-					id,
-					{ id, name: formatThemeName(id), path: basePath, cssPath, themeImagePath },
-				];
+				return [id, { id, name: formatThemeName(id), path: basePath, cssPath, themeImagePath }];
 			})
 		);
 
@@ -68,9 +66,9 @@ export const listThemes = async (): Promise<Themes> => {
 		console.error('[ThemeManager] ✗ Failed to list themes:', error);
 		return new SvelteMap();
 	}
-}
+};
 
-export const loadTheme = async (theme: Theme, loadedThemes: &Themes): Promise<void> => {
+export const loadTheme = async (theme: Theme, loadedThemes: Themes): Promise<void> => {
 	if (loadedThemes.get(theme.id)?.linkElement) {
 		console.log(`[ThemeManager] Theme "${theme.id}" already loaded`);
 		return;
@@ -101,9 +99,9 @@ export const loadTheme = async (theme: Theme, loadedThemes: &Themes): Promise<vo
 		console.error(`[ThemeManager] Failed to load theme ${theme.id}:`, error);
 		throw error;
 	}
-}
+};
 
-export const setTheme = async (theme: Theme, mode: ThemeMode, themes: &Themes): Promise<void> => {
+export const setTheme = async (theme: Theme, mode: ThemeMode, themes: Themes): Promise<void> => {
 	try {
 		console.log(`[ThemeManager] Switching to theme: ${theme.id}`);
 
@@ -125,9 +123,9 @@ export const setTheme = async (theme: Theme, mode: ThemeMode, themes: &Themes): 
 		console.error(`[ThemeManager] ✗ Failed to switch theme:`, error);
 		throw error;
 	}
-}
+};
 
-export const initTheme = async (themes: &Themes): Promise<void> => {
+export const initTheme = async (themes: Themes): Promise<void> => {
 	try {
 		const themeId = config.theme;
 		const mode = config.themeMode;
@@ -157,7 +155,7 @@ export const initTheme = async (themes: &Themes): Promise<void> => {
 		console.error(`[ThemeManager] ✗ Failed to init theme:`, error);
 		throw error;
 	}
-}
+};
 
 export default {
 	formatThemeName,

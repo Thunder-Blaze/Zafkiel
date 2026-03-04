@@ -122,7 +122,13 @@ export interface MediaExternalLink {
 	icon?: string;
 }
 
-export type MediaListStatus = 'CURRENT' | 'PLANNING' | 'COMPLETED' | 'DROPPED' | 'PAUSED' | 'REPEATING';
+export type MediaListStatus =
+	| 'CURRENT'
+	| 'PLANNING'
+	| 'COMPLETED'
+	| 'DROPPED'
+	| 'PAUSED'
+	| 'REPEATING';
 
 export interface MediaListEntry {
 	id: number;

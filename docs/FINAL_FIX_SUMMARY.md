@@ -3,14 +3,17 @@
 ## Problem Timeline
 
 ### Issue 1: "Impossible Situation" Error During HMR
+
 ```
 8:52:06 PM [vite] Internal server error: An impossible situation occurred
 ```
+
 - Occurred when navigating to settings page
 - Happened during Hot Module Replacement (HMR)
 - Vite couldn't resolve module dependency graph
 
 ### Issue 2: Duplicate Theme Store Files
+
 - Two files existed: `theme.ts` (old) and `theme.svelte.ts` (new)
 - Could cause import confusion
 - Already resolved by removing `theme.ts`
@@ -30,6 +33,7 @@ sessionCache.svelte.ts
 ```
 
 The cycle:
+
 1. `sessionCache.svelte.ts` imports `AppConfig` type from `$lib/services/config`
 2. `config.ts` and `theme.svelte.ts` import functions from `sessionCache.svelte.ts`
 3. This creates a circular dependency that Vite can't resolve during HMR
@@ -37,36 +41,38 @@ The cycle:
 ## Solution Implemented
 
 ### Step 1: Created Shared Types File
+
 **New file:** `/src/lib/types/config.ts`
 
 ```typescript
 export interface AppConfig {
-    anilist: AniListConfig;
-    security: SecurityConfig;
-    ui: UiConfig;
+	anilist: AniListConfig;
+	security: SecurityConfig;
+	ui: UiConfig;
 }
 
 export interface UiConfig {
-    theme: string;
-    theme_mode: 'light' | 'dark' | 'system';
-    glow_effects: boolean;
-    blur_effects: boolean;
-    animations: boolean;
-    smooth_scroll: boolean;
-    hover_card: boolean;
-    ui_scale: number;
+	theme: string;
+	theme_mode: 'light' | 'dark' | 'system';
+	glow_effects: boolean;
+	blur_effects: boolean;
+	animations: boolean;
+	smooth_scroll: boolean;
+	hover_card: boolean;
+	ui_scale: number;
 }
 
 export interface AniListConfig {
-    access_token: string | null;
+	access_token: string | null;
 }
 
 export interface SecurityConfig {
-    encryption_key: string;
+	encryption_key: string;
 }
 ```
 
 ### Step 2: Updated sessionCache to use shared types
+
 **File:** `/src/lib/stores/sessionCache.svelte.ts`
 
 ```typescript
@@ -75,10 +81,11 @@ import type { AppConfig as ServiceAppConfig } from '$lib/services/config';
 
 // AFTER (breaks the cycle):
 import type { AppConfig } from '$lib/types/config';
-export type { AppConfig };  // Re-export for convenience
+export type { AppConfig }; // Re-export for convenience
 ```
 
 ### Step 3: Updated config service to re-export types
+
 **File:** `/src/lib/services/config.ts`
 
 ```typescript
@@ -197,6 +204,7 @@ Along with the circular dependency fix:
 5. ✅ Removed duplicate theme store file
 
 All stores now:
+
 - Initialize only once
 - Use session cache (15min TTL)
 - Don't cause circular dependencies

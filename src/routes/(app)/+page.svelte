@@ -11,10 +11,7 @@
 	import CalendarWidget from '$lib/components/dashboard/CalendarWidget.svelte';
 	import ProfileWidget from '$lib/components/dashboard/ProfileWidget.svelte';
 	import CachedImage from '$lib/components/ui/CachedImage.svelte';
-	import {
-		useMyAnimeList,
-		useFollowingActivity,
-	} from '$lib/hooks/useAnilist.svelte';
+	import { useMyAnimeList, useFollowingActivity } from '$lib/hooks/useAnilist.svelte';
 
 	// Real data hooks (only active when authenticated)
 	const watchingQuery = useMyAnimeList('CURRENT', 1, 5);
@@ -210,10 +207,9 @@
 								<Icon icon="solar:play-circle-bold" class="h-3.5 w-3.5 text-primary" />
 								Continue Watching
 							</h2>
-							<button
-								class="text-[10px] text-primary hover:underline"
-								onclick={() => goto('/list')}
-							>View all</button>
+							<button class="text-[10px] text-primary hover:underline" onclick={() => goto('/list')}
+								>View all</button
+							>
 						</div>
 						<div class="flex items-end gap-2">
 							{#each continueWatching as entry}
@@ -221,7 +217,9 @@
 									class="group flex flex-col items-center gap-1"
 									onclick={() => entry.media?.id && goto(`/anime/${entry.media.id}`)}
 								>
-									<div class="relative overflow-hidden rounded-md transition-transform group-hover:scale-105">
+									<div
+										class="relative overflow-hidden rounded-md transition-transform group-hover:scale-105"
+									>
 										{#if entry.media?.coverImage?.medium}
 											<CachedImage
 												src={entry.media.coverImage.medium}
@@ -230,15 +228,21 @@
 											/>
 										{:else}
 											<div class="flex h-16 w-11 items-center justify-center rounded-md bg-muted">
-												<Icon icon="solar:videocamera-record-bold" class="h-5 w-5 text-muted-foreground" />
+												<Icon
+													icon="solar:videocamera-record-bold"
+													class="h-5 w-5 text-muted-foreground"
+												/>
 											</div>
 										{/if}
 										<!-- Progress indicator -->
 										{#if entry.progress != null && entry.media?.episodes}
-											<div class="absolute bottom-0 left-0 right-0 h-1 bg-black/40">
+											<div class="absolute right-0 bottom-0 left-0 h-1 bg-black/40">
 												<div
 													class="h-full bg-primary"
-													style="width: {Math.min(100, (entry.progress / entry.media.episodes) * 100)}%"
+													style="width: {Math.min(
+														100,
+														(entry.progress / entry.media.episodes) * 100
+													)}%"
 												></div>
 											</div>
 										{/if}

@@ -1,8 +1,5 @@
 <script lang="ts">
-	import {
-		useRecentForumThreads,
-		usePopularForumThreads
-	} from '$lib/hooks/useAnilist.svelte';
+	import { useRecentForumThreads, usePopularForumThreads } from '$lib/hooks/useAnilist.svelte';
 	import type { Thread } from '$lib/types/anilist';
 	import ThreadCard from '$lib/components/ThreadCard.svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -40,14 +37,18 @@
 	<div class="mb-6 flex gap-2 border-b pb-0">
 		<button
 			onclick={() => setTab('recent')}
-			class="px-4 py-2 text-sm font-medium transition-colors border-b-2 {activeTab === 'recent' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}"
+			class="border-b-2 px-4 py-2 text-sm font-medium transition-colors {activeTab === 'recent'
+				? 'border-primary text-foreground'
+				: 'border-transparent text-muted-foreground hover:text-foreground'}"
 		>
 			<Icon icon="solar:clock-circle-bold-duotone" class="mr-1.5 inline size-4" />
 			Recent
 		</button>
 		<button
 			onclick={() => setTab('popular')}
-			class="px-4 py-2 text-sm font-medium transition-colors border-b-2 {activeTab === 'popular' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}"
+			class="border-b-2 px-4 py-2 text-sm font-medium transition-colors {activeTab === 'popular'
+				? 'border-primary text-foreground'
+				: 'border-transparent text-muted-foreground hover:text-foreground'}"
 		>
 			<Icon icon="solar:fire-bold-duotone" class="mr-1.5 inline size-4" />
 			Popular
@@ -89,7 +90,11 @@
 				<span class="text-sm text-muted-foreground">
 					Page {pageInfo.currentPage} of {pageInfo.lastPage}
 				</span>
-				<Button variant="outline" disabled={!pageInfo.hasNextPage} onclick={() => (currentPage += 1)}>
+				<Button
+					variant="outline"
+					disabled={!pageInfo.hasNextPage}
+					onclick={() => (currentPage += 1)}
+				>
 					Next
 					<Icon icon="solar:arrow-right-linear" class="size-4" />
 				</Button>

@@ -229,7 +229,7 @@
 									<Button
 										variant="outline"
 										class="w-full justify-start gap-2"
-									onclick={() => goto(`/user/${user.name}/animelist`)}
+										onclick={() => goto(`/user/${user.name}/animelist`)}
 									>
 										<Icon icon="solar:play-circle-bold-duotone" class="size-4 text-primary" />
 										Anime List
@@ -335,10 +335,15 @@
 				<TabsContent value="activity" class="mt-6">
 					{#if activityQuery.isLoading}
 						<div class="flex min-h-[200px] items-center justify-center">
-							<Icon icon="solar:refresh-circle-line-duotone" class="h-8 w-8 animate-spin text-primary" />
+							<Icon
+								icon="solar:refresh-circle-line-duotone"
+								class="h-8 w-8 animate-spin text-primary"
+							/>
 						</div>
 					{:else if activities.length === 0}
-						<div class="flex min-h-[200px] flex-col items-center justify-center gap-3 text-center rounded-lg border border-dashed p-8">
+						<div
+							class="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8 text-center"
+						>
 							<Icon icon="solar:widget-2-bold-duotone" class="h-12 w-12 text-muted-foreground" />
 							<p class="text-muted-foreground">No recent activity</p>
 						</div>
@@ -355,11 +360,19 @@
 				<TabsContent value="reviews" class="mt-6">
 					{#if reviewsQuery.isLoading}
 						<div class="flex min-h-[200px] items-center justify-center">
-							<Icon icon="solar:refresh-circle-line-duotone" class="h-8 w-8 animate-spin text-primary" />
+							<Icon
+								icon="solar:refresh-circle-line-duotone"
+								class="h-8 w-8 animate-spin text-primary"
+							/>
 						</div>
 					{:else if reviews.length === 0}
-						<div class="flex min-h-[200px] flex-col items-center justify-center gap-3 text-center rounded-lg border border-dashed p-8">
-							<Icon icon="solar:document-text-bold-duotone" class="h-12 w-12 text-muted-foreground" />
+						<div
+							class="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-8 text-center"
+						>
+							<Icon
+								icon="solar:document-text-bold-duotone"
+								class="h-12 w-12 text-muted-foreground"
+							/>
 							<h3 class="text-lg font-semibold">No Reviews</h3>
 							<p class="text-muted-foreground">This user hasn't written any reviews yet.</p>
 						</div>

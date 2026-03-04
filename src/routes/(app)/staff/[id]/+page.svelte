@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { useStaffById } from '$lib/hooks/useAnilist.svelte';
-	import {
-		Card,
-		CardContent,
-		CardHeader,
-		CardTitle,
-	} from '$lib/components/ui/card';
+	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
@@ -36,14 +31,22 @@
 
 <svelte:head>
 	<title>{staff ? getTitle(staff.name) : 'Loading...'} - Zafkiel</title>
-	<meta name="description" content={staff?.description ? stripHtml(staff.description).slice(0, 160) : 'Staff details on Zafkiel'} />
+	<meta
+		name="description"
+		content={staff?.description
+			? stripHtml(staff.description).slice(0, 160)
+			: 'Staff details on Zafkiel'}
+	/>
 </svelte:head>
 
 <div class="container mx-auto max-w-7xl px-4 py-8">
 	{#if isLoading}
 		<div class="flex min-h-[400px] items-center justify-center">
 			<div class="flex flex-col items-center space-y-4">
-				<Icon icon="solar:refresh-circle-line-duotone" class="h-12 w-12 animate-spin text-primary" />
+				<Icon
+					icon="solar:refresh-circle-line-duotone"
+					class="h-12 w-12 animate-spin text-primary"
+				/>
 				<p class="text-muted-foreground">Loading staff details...</p>
 			</div>
 		</div>
@@ -115,7 +118,9 @@
 		<!-- Content Tabs -->
 		<div class="mt-8">
 			<Tabs value="overview" class="w-full">
-				<TabsList class="w-full justify-start overflow-x-auto rounded-none border-b bg-transparent p-0">
+				<TabsList
+					class="w-full justify-start overflow-x-auto rounded-none border-b bg-transparent p-0"
+				>
 					<TabsTrigger
 						value="overview"
 						class="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
@@ -213,7 +218,9 @@
 									</CardHeader>
 									<CardContent>
 										<p class="font-medium">
-											{staff.yearsActive[0]} - {staff.yearsActive.length > 1 ? staff.yearsActive[1] || 'Present' : 'Present'}
+											{staff.yearsActive[0]} - {staff.yearsActive.length > 1
+												? staff.yearsActive[1] || 'Present'
+												: 'Present'}
 										</p>
 									</CardContent>
 								</Card>
@@ -227,21 +234,31 @@
 						<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
 							{#each staff.staffMedia.edges as edge}
 								{#if edge.node}
-									<a href="/{edge.node.type?.toLowerCase()}/{edge.node.id}" class="group relative block overflow-hidden rounded-lg bg-card transition-all hover:scale-105 hover:shadow-lg">
+									<a
+										href="/{edge.node.type?.toLowerCase()}/{edge.node.id}"
+										class="group relative block overflow-hidden rounded-lg bg-card transition-all hover:scale-105 hover:shadow-lg"
+									>
 										<div class="aspect-[2/3] w-full overflow-hidden">
 											{#if edge.node.coverImage?.large}
 												<CachedImage
 													src={edge.node.coverImage.large}
-													alt={edge.node.title?.userPreferred || edge.node.title?.english || 'Media Cover'}
+													alt={edge.node.title?.userPreferred ||
+														edge.node.title?.english ||
+														'Media Cover'}
 													class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
 												/>
 											{:else}
 												<div class="flex h-full w-full items-center justify-center bg-muted">
-													<Icon icon="solar:gallery-wide-bold-duotone" class="h-12 w-12 text-muted-foreground" />
+													<Icon
+														icon="solar:gallery-wide-bold-duotone"
+														class="h-12 w-12 text-muted-foreground"
+													/>
 												</div>
 											{/if}
-											<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-												<div class="absolute bottom-0 left-0 right-0 p-4">
+											<div
+												class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+											>
+												<div class="absolute right-0 bottom-0 left-0 p-4">
 													<p class="line-clamp-2 text-sm font-semibold text-white">
 														{edge.node.title?.userPreferred || edge.node.title?.english}
 													</p>
@@ -258,10 +275,17 @@
 							{/each}
 						</div>
 					{:else}
-						<div class="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-							<Icon icon="solar:clapperboard-text-bold-duotone" class="mb-4 h-12 w-12 text-muted-foreground" />
+						<div
+							class="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center"
+						>
+							<Icon
+								icon="solar:clapperboard-text-bold-duotone"
+								class="mb-4 h-12 w-12 text-muted-foreground"
+							/>
 							<h3 class="text-lg font-semibold">No Production Roles Found</h3>
-							<p class="text-muted-foreground">This staff member doesn't have any production roles listed.</p>
+							<p class="text-muted-foreground">
+								This staff member doesn't have any production roles listed.
+							</p>
 						</div>
 					{/if}
 				</TabsContent>
@@ -271,7 +295,10 @@
 						<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
 							{#each staff.characters.edges as edge}
 								{#if edge.node}
-									<a href="/character/{edge.node.id}" class="group relative block overflow-hidden rounded-lg bg-card transition-all hover:scale-105 hover:shadow-lg">
+									<a
+										href="/character/{edge.node.id}"
+										class="group relative block overflow-hidden rounded-lg bg-card transition-all hover:scale-105 hover:shadow-lg"
+									>
 										<div class="aspect-[2/3] w-full overflow-hidden">
 											{#if edge.node.image?.large}
 												<CachedImage
@@ -284,8 +311,10 @@
 													<Icon icon="solar:user-bold" class="h-12 w-12 text-muted-foreground" />
 												</div>
 											{/if}
-											<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-												<div class="absolute bottom-0 left-0 right-0 p-4">
+											<div
+												class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+											>
+												<div class="absolute right-0 bottom-0 left-0 p-4">
 													<p class="line-clamp-2 text-sm font-semibold text-white">
 														{getTitle(edge.node.name)}
 													</p>
@@ -302,10 +331,17 @@
 							{/each}
 						</div>
 					{:else}
-						<div class="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-							<Icon icon="solar:microphone-3-bold-duotone" class="mb-4 h-12 w-12 text-muted-foreground" />
+						<div
+							class="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center"
+						>
+							<Icon
+								icon="solar:microphone-3-bold-duotone"
+								class="mb-4 h-12 w-12 text-muted-foreground"
+							/>
 							<h3 class="text-lg font-semibold">No Voice Roles Found</h3>
-							<p class="text-muted-foreground">This staff member doesn't have any voice acting roles listed.</p>
+							<p class="text-muted-foreground">
+								This staff member doesn't have any voice acting roles listed.
+							</p>
 						</div>
 					{/if}
 				</TabsContent>

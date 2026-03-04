@@ -22,7 +22,7 @@
 		return {
 			destroy() {
 				node.parentNode?.removeChild(node);
-			}
+			},
 		};
 	}
 
@@ -52,8 +52,10 @@
 
 		const handleClick = (e: MouseEvent) => {
 			if (
-				menuEl && !menuEl.contains(e.target as Node) &&
-				triggerEl && !triggerEl.contains(e.target as Node)
+				menuEl &&
+				!menuEl.contains(e.target as Node) &&
+				triggerEl &&
+				!triggerEl.contains(e.target as Node)
 			) {
 				close();
 			}
@@ -77,11 +79,16 @@
 	type="button"
 	onclick={toggle}
 	class="flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors
-		{open ? 'bg-primary/10 text-primary' : 'text-foreground/70 hover:bg-foreground/5 hover:text-foreground'}"
+		{open
+		? 'bg-primary/10 text-primary'
+		: 'text-foreground/70 hover:bg-foreground/5 hover:text-foreground'}"
 >
 	<Icon icon="solar:compass-bold-duotone" class="h-4 w-4" />
 	Browse
-	<Icon icon="solar:alt-arrow-down-linear" class="h-3 w-3 transition-transform {open ? 'rotate-180' : ''}" />
+	<Icon
+		icon="solar:alt-arrow-down-linear"
+		class="h-3 w-3 transition-transform {open ? 'rotate-180' : ''}"
+	/>
 </button>
 
 <!-- Dropdown panel — portaled to document.body so backdrop-filter works outside TitleBar stacking context -->
@@ -107,12 +114,21 @@
 					>
 						Anime
 					</button>
-					<div class="flex items-center whitespace-nowrap text-xs text-muted-foreground">
-						<button onclick={() => navigate('/browse/anime?sort=POPULARITY_DESC')} class="py-0.5 transition-colors hover:text-foreground">Top 100</button>
+					<div class="flex items-center text-xs whitespace-nowrap text-muted-foreground">
+						<button
+							onclick={() => navigate('/browse/anime?sort=POPULARITY_DESC')}
+							class="py-0.5 transition-colors hover:text-foreground">Top 100</button
+						>
 						<span class="mx-2 opacity-30">·</span>
-						<button onclick={() => navigate('/browse/anime?sort=TRENDING_DESC')} class="py-0.5 transition-colors hover:text-foreground">Trending</button>
+						<button
+							onclick={() => navigate('/browse/anime?sort=TRENDING_DESC')}
+							class="py-0.5 transition-colors hover:text-foreground">Trending</button
+						>
 						<span class="mx-2 opacity-30">·</span>
-						<button onclick={() => navigate('/browse/anime?format=MOVIE&sort=SCORE_DESC')} class="py-0.5 transition-colors hover:text-foreground">Top Movies</button>
+						<button
+							onclick={() => navigate('/browse/anime?format=MOVIE&sort=SCORE_DESC')}
+							class="py-0.5 transition-colors hover:text-foreground">Top Movies</button
+						>
 					</div>
 				</div>
 			</div>
@@ -127,31 +143,52 @@
 					>
 						Manga
 					</button>
-					<div class="flex items-center whitespace-nowrap text-xs text-muted-foreground">
-						<button onclick={() => navigate('/browse/manga?sort=POPULARITY_DESC')} class="py-0.5 transition-colors hover:text-foreground">Top 100</button>
+					<div class="flex items-center text-xs whitespace-nowrap text-muted-foreground">
+						<button
+							onclick={() => navigate('/browse/manga?sort=POPULARITY_DESC')}
+							class="py-0.5 transition-colors hover:text-foreground">Top 100</button
+						>
 						<span class="mx-2 opacity-30">·</span>
-						<button onclick={() => navigate('/browse/manga?sort=TRENDING_DESC')} class="py-0.5 transition-colors hover:text-foreground">Trending</button>
+						<button
+							onclick={() => navigate('/browse/manga?sort=TRENDING_DESC')}
+							class="py-0.5 transition-colors hover:text-foreground">Trending</button
+						>
 						<span class="mx-2 opacity-30">·</span>
-						<button onclick={() => navigate('/browse/manga?country=KR&sort=POPULARITY_DESC')} class="py-0.5 transition-colors hover:text-foreground">Top Manhwa</button>
+						<button
+							onclick={() => navigate('/browse/manga?country=KR&sort=POPULARITY_DESC')}
+							class="py-0.5 transition-colors hover:text-foreground">Top Manhwa</button
+						>
 					</div>
 				</div>
 			</div>
 
 			<!-- Other -->
 			<div class="grid grid-cols-[auto_auto] justify-between gap-x-2">
-				<button onclick={() => navigate('/search/staff')} class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+				<button
+					onclick={() => navigate('/search/staff')}
+					class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+				>
 					<Icon icon="solar:users-group-two-rounded-bold-duotone" class="h-3.5 w-3.5" />
 					Staff
 				</button>
-				<button onclick={() => navigate('/search/characters')} class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+				<button
+					onclick={() => navigate('/search/characters')}
+					class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+				>
 					<Icon icon="solar:user-circle-bold-duotone" class="h-3.5 w-3.5" />
 					Characters
 				</button>
-				<button onclick={() => navigate('/search/reviews')} class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+				<button
+					onclick={() => navigate('/search/reviews')}
+					class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+				>
 					<Icon icon="solar:star-bold-duotone" class="h-3.5 w-3.5" />
 					Reviews
 				</button>
-				<button onclick={() => navigate('/search/recommendations')} class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+				<button
+					onclick={() => navigate('/search/recommendations')}
+					class="flex items-center gap-2 px-1 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+				>
 					<Icon icon="solar:like-bold-duotone" class="h-3.5 w-3.5" />
 					Recommendations
 				</button>

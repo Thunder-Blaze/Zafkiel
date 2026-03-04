@@ -27,11 +27,12 @@
 
 	// Calculate cache stats from cached images
 	let cacheStats = $derived({
-totalImages: cachedImages.length,
-totalSize: cachedImages.reduce((sum, img) => sum + (img.file_size || 0), 0),
-		oldestImage: cachedImages.length > 0
-			? Math.min(...cachedImages.map(img => img.cached_at * 1000)) // Convert to milliseconds
-			: 0,
+		totalImages: cachedImages.length,
+		totalSize: cachedImages.reduce((sum, img) => sum + (img.file_size || 0), 0),
+		oldestImage:
+			cachedImages.length > 0
+				? Math.min(...cachedImages.map((img) => img.cached_at * 1000)) // Convert to milliseconds
+				: 0,
 	});
 
 	async function loadCacheStats() {
@@ -108,23 +109,24 @@ totalSize: cachedImages.reduce((sum, img) => sum + (img.file_size || 0), 0),
 <Card>
 	<CardHeader>
 		<CardTitle class="flex items-center gap-2">
-			<Image class="w-5 h-5" />
+			<Image class="h-5 w-5" />
 			Cache & Storage Management
 		</CardTitle>
 		<CardDescription>
-			Manage cached images and browser storage. Images are automatically downloaded and stored locally for faster loading.
+			Manage cached images and browser storage. Images are automatically downloaded and stored
+			locally for faster loading.
 		</CardDescription>
 	</CardHeader>
 	<CardContent class="space-y-6">
 		<!-- Image Cache Statistics -->
 		<div>
-			<h4 class="font-medium mb-4 flex items-center gap-2">
-				<Image class="w-4 h-4" />
+			<h4 class="mb-4 flex items-center gap-2 font-medium">
+				<Image class="h-4 w-4" />
 				Image Cache
 			</h4>
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+			<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 				<div class="flex items-center space-x-2">
-					<Image class="w-4 h-4 text-muted-foreground" />
+					<Image class="h-4 w-4 text-muted-foreground" />
 					<div class="space-y-1">
 						<p class="text-sm font-medium">Total Images</p>
 						<p class="text-2xl font-bold">{cacheStats.totalImages}</p>
@@ -132,7 +134,7 @@ totalSize: cachedImages.reduce((sum, img) => sum + (img.file_size || 0), 0),
 				</div>
 
 				<div class="flex items-center space-x-2">
-					<HardDrive class="w-4 h-4 text-muted-foreground" />
+					<HardDrive class="h-4 w-4 text-muted-foreground" />
 					<div class="space-y-1">
 						<p class="text-sm font-medium">Cache Size</p>
 						<p class="text-2xl font-bold">{formatBytes(cacheStats.totalSize)}</p>
@@ -150,7 +152,7 @@ totalSize: cachedImages.reduce((sum, img) => sum + (img.file_size || 0), 0),
 
 		<!-- Image Cache Actions -->
 		<div>
-			<h4 class="font-medium mb-3">Image Cache Actions</h4>
+			<h4 class="mb-3 font-medium">Image Cache Actions</h4>
 			<div class="flex flex-wrap gap-2">
 				<Button
 					variant="outline"
@@ -158,7 +160,7 @@ totalSize: cachedImages.reduce((sum, img) => sum + (img.file_size || 0), 0),
 					disabled={isLoading}
 					class="flex items-center gap-2"
 				>
-					<RefreshCw class="w-4 h-4 {isLoading ? 'animate-spin' : ''}" />
+					<RefreshCw class="h-4 w-4 {isLoading ? 'animate-spin' : ''}" />
 					Refresh Stats
 				</Button>
 
@@ -168,7 +170,7 @@ totalSize: cachedImages.reduce((sum, img) => sum + (img.file_size || 0), 0),
 					disabled={isCleaningUp || cacheStats.totalImages === 0}
 					class="flex items-center gap-2"
 				>
-					<Trash2 class="w-4 h-4" />
+					<Trash2 class="h-4 w-4" />
 					{isCleaningUp ? 'Cleaning...' : 'Cleanup Old Images'}
 				</Button>
 			</div>
@@ -178,29 +180,22 @@ totalSize: cachedImages.reduce((sum, img) => sum + (img.file_size || 0), 0),
 
 		<!-- Browser Storage Actions -->
 		<div>
-			<h4 class="font-medium mb-3 flex items-center gap-2">
-				<Database class="w-4 h-4" />
+			<h4 class="mb-3 flex items-center gap-2 font-medium">
+				<Database class="h-4 w-4" />
 				Browser Storage
 			</h4>
-			<p class="text-sm text-muted-foreground mb-3">
-				Clear browser storage caches. This will remove all cached authentication, config, and theme data. You may need to reload the page after clearing.
+			<p class="mb-3 text-sm text-muted-foreground">
+				Clear browser storage caches. This will remove all cached authentication, config, and theme
+				data. You may need to reload the page after clearing.
 			</p>
 			<div class="flex flex-wrap gap-2">
-				<Button
-					variant="outline"
-					onclick={clearSessionStorage}
-					class="flex items-center gap-2"
-				>
-					<Trash2 class="w-4 h-4" />
+				<Button variant="outline" onclick={clearSessionStorage} class="flex items-center gap-2">
+					<Trash2 class="h-4 w-4" />
 					Clear Session Storage
 				</Button>
 
-				<Button
-					variant="outline"
-					onclick={clearLocalStorage}
-					class="flex items-center gap-2"
-				>
-					<Trash2 class="w-4 h-4" />
+				<Button variant="outline" onclick={clearLocalStorage} class="flex items-center gap-2">
+					<Trash2 class="h-4 w-4" />
 					Clear Local Storage
 				</Button>
 			</div>
@@ -208,10 +203,12 @@ totalSize: cachedImages.reduce((sum, img) => sum + (img.file_size || 0), 0),
 
 		{#if cacheStats.totalImages === 0 && !isLoading}
 			<Separator />
-			<div class="text-center py-8">
-				<Image class="w-12 h-12 mx-auto text-muted-foreground mb-2" />
+			<div class="py-8 text-center">
+				<Image class="mx-auto mb-2 h-12 w-12 text-muted-foreground" />
 				<p class="text-muted-foreground">No cached images found</p>
-				<p class="text-sm text-muted-foreground">Images will be cached automatically as you browse</p>
+				<p class="text-sm text-muted-foreground">
+					Images will be cached automatically as you browse
+				</p>
 			</div>
 		{/if}
 	</CardContent>

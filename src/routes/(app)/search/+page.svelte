@@ -217,17 +217,22 @@
 
 <div class="h-full w-full">
 	<!-- Search Bar Header (AniList Style) -->
-	<div class="border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+	<div
+		class="border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60"
+	>
 		<div class="flex items-center gap-4 px-6 py-4">
 			<!-- Search Input -->
 			<form onsubmit={handleSearch} class="flex-1">
 				<div class="relative">
-					<Icon icon="solar:magnifer-bold" class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+					<Icon
+						icon="solar:magnifer-bold"
+						class="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-muted-foreground"
+					/>
 					<input
 						type="text"
 						placeholder="Search anime, manga..."
 						bind:value={searchQuery}
-						class="w-full rounded-lg border border-border bg-background py-2.5 pl-10 pr-4 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20"
+						class="w-full rounded-lg border border-border bg-background py-2.5 pr-4 pl-10 text-sm transition-colors outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
 					/>
 				</div>
 			</form>
@@ -236,32 +241,54 @@
 			<div class="flex gap-2">
 				<button
 					type="button"
-					onclick={() => { selectedType = ''; handleFilterChange(); }}
+					onclick={() => {
+						selectedType = '';
+						handleFilterChange();
+					}}
 					class="rounded-lg border px-4 py-2 text-sm font-medium transition-colors
-						{selectedType === '' ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background hover:bg-accent'}"
+						{selectedType === ''
+						? 'border-primary bg-primary text-primary-foreground'
+						: 'border-border bg-background hover:bg-accent'}"
 				>
 					Any
 				</button>
 				<button
 					type="button"
-					onclick={() => { selectedType = 'ANIME'; handleFilterChange(); }}
+					onclick={() => {
+						selectedType = 'ANIME';
+						handleFilterChange();
+					}}
 					class="rounded-lg border px-4 py-2 text-sm font-medium transition-colors
-						{selectedType === 'ANIME' ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background hover:bg-accent'}"
+						{selectedType === 'ANIME'
+						? 'border-primary bg-primary text-primary-foreground'
+						: 'border-border bg-background hover:bg-accent'}"
 				>
 					Anime
 				</button>
 				<button
 					type="button"
-					onclick={() => { selectedType = 'MANGA'; handleFilterChange(); }}
+					onclick={() => {
+						selectedType = 'MANGA';
+						handleFilterChange();
+					}}
 					class="rounded-lg border px-4 py-2 text-sm font-medium transition-colors
-						{selectedType === 'MANGA' ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background hover:bg-accent'}"
+						{selectedType === 'MANGA'
+						? 'border-primary bg-primary text-primary-foreground'
+						: 'border-border bg-background hover:bg-accent'}"
 				>
 					Manga
 				</button>
 			</div>
 
 			<!-- Advanced Filters Toggle -->
-			<Button variant="outline" size="sm" onclick={() => { const el = document.getElementById('advanced-filters'); el?.classList.toggle('hidden'); }}>
+			<Button
+				variant="outline"
+				size="sm"
+				onclick={() => {
+					const el = document.getElementById('advanced-filters');
+					el?.classList.toggle('hidden');
+				}}
+			>
 				<Icon icon="solar:filter-bold" class="mr-2 h-4 w-4" />
 				Filters
 			</Button>
@@ -435,7 +462,9 @@
 			</div>
 		{:else}
 			<!-- Media Grid -->
-			<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
+			<div
+				class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7"
+			>
 				{#each mediaList as media (media.id)}
 					<MediaCard {media} />
 				{/each}

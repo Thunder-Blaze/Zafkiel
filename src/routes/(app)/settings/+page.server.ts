@@ -4,12 +4,12 @@ export const load: PageServerLoad = async () => {
 	try {
 		// const cachedImages = [];// await DatabaseService.getAllCachedImages();
 		return {
-			cachedImages: []
+			cachedImages: [],
 		};
 	} catch (error) {
 		console.error('Failed to load cached images:', error);
 		return {
-			cachedImages: []
+			cachedImages: [],
 		};
 	}
 };

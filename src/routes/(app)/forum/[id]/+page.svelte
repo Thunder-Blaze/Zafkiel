@@ -102,7 +102,7 @@
 			await replyToCommentMutation.mutateAsync({
 				threadId,
 				parentCommentId: commentId,
-				comment: state.text
+				comment: state.text,
 			});
 			closeCommentReply(commentId);
 			toast.success('Reply posted');
@@ -117,12 +117,9 @@
 </svelte:head>
 
 {#snippet CommentBlock(comment: ThreadComment, isChild: boolean)}
-	<div class="flex gap-3 {isChild ? 'ml-10 mt-2' : ''}">
+	<div class="flex gap-3 {isChild ? 'mt-2 ml-10' : ''}">
 		<!-- Avatar -->
-		<button
-			class="shrink-0"
-			onclick={() => comment.user?.id && goto(`/user/${comment.user.id}`)}
-		>
+		<button class="shrink-0" onclick={() => comment.user?.id && goto(`/user/${comment.user.id}`)}>
 			{#if comment.user?.avatar?.medium}
 				<CachedImage
 					src={comment.user.avatar.medium}
@@ -160,7 +157,9 @@
 			<div class="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
 				<!-- Like -->
 				<button
-					class="flex items-center gap-1 transition-colors hover:text-rose-500 {comment.isLiked ? 'text-rose-500' : ''}"
+					class="flex items-center gap-1 transition-colors hover:text-rose-500 {comment.isLiked
+						? 'text-rose-500'
+						: ''}"
 					onclick={() => toggleLikeComment(comment.id!)}
 					disabled={likeCommentMutation.isPending}
 				>
@@ -196,16 +195,20 @@
 						bind:value={commentReplies[comment.id!].text}
 						placeholder="Write a reply..."
 						rows={3}
-						class="w-full resize-y rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+						class="w-full resize-y rounded-md border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
 					></textarea>
 					<div class="flex gap-2">
 						<Button
 							size="sm"
 							onclick={() => submitCommentReply(comment.id!)}
-							disabled={!commentReplies[comment.id!]?.text.trim() || replyToCommentMutation.isPending}
+							disabled={!commentReplies[comment.id!]?.text.trim() ||
+								replyToCommentMutation.isPending}
 						>
 							{#if replyToCommentMutation.isPending}
-								<Icon icon="solar:refresh-circle-line-duotone" class="mr-1.5 size-3.5 animate-spin" />
+								<Icon
+									icon="solar:refresh-circle-line-duotone"
+									class="mr-1.5 size-3.5 animate-spin"
+								/>
 							{/if}
 							Post
 						</Button>
@@ -263,7 +266,7 @@
 			<div class="p-6">
 				<!-- Title row -->
 				<div class="mb-4 flex items-start justify-between gap-3">
-					<h1 class="text-xl font-bold leading-snug">{thread.title}</h1>
+					<h1 class="text-xl leading-snug font-bold">{thread.title}</h1>
 					<div class="flex shrink-0 items-center gap-1.5">
 						{#if thread.isSticky}
 							<Badge variant="secondary" class="gap-1">
@@ -315,10 +318,14 @@
 				{/if}
 
 				<!-- Footer action bar -->
-				<div class="mt-5 flex flex-wrap items-center gap-3 border-t pt-4 text-sm text-muted-foreground">
+				<div
+					class="mt-5 flex flex-wrap items-center gap-3 border-t pt-4 text-sm text-muted-foreground"
+				>
 					<!-- Like thread -->
 					<button
-						class="flex items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:bg-muted hover:text-rose-500 {thread.isLiked ? 'text-rose-500' : ''}"
+						class="flex items-center gap-1.5 rounded-md px-2 py-1 transition-colors hover:bg-muted hover:text-rose-500 {thread.isLiked
+							? 'text-rose-500'
+							: ''}"
 						onclick={toggleLikeThread}
 						disabled={likeThreadMutation.isPending}
 					>
@@ -380,15 +387,15 @@
 							bind:value={replyText}
 							placeholder="Write your reply..."
 							rows={4}
-							class="w-full resize-y rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+							class="w-full resize-y rounded-md border bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
 						></textarea>
 						<div class="flex gap-2">
-							<Button
-								onclick={handleReply}
-								disabled={!replyText.trim() || replyMutation.isPending}
-							>
+							<Button onclick={handleReply} disabled={!replyText.trim() || replyMutation.isPending}>
 								{#if replyMutation.isPending}
-									<Icon icon="solar:refresh-circle-line-duotone" class="mr-1.5 size-4 animate-spin" />
+									<Icon
+										icon="solar:refresh-circle-line-duotone"
+										class="mr-1.5 size-4 animate-spin"
+									/>
 								{/if}
 								Post Reply
 							</Button>
@@ -439,11 +446,7 @@
 		<!-- Pagination -->
 		{#if commentPageInfo && (commentPage > 1 || commentPageInfo.hasNextPage)}
 			<div class="mt-6 flex items-center justify-center gap-3">
-				<Button
-					variant="outline"
-					disabled={commentPage <= 1}
-					onclick={() => (commentPage -= 1)}
-				>
+				<Button variant="outline" disabled={commentPage <= 1} onclick={() => (commentPage -= 1)}>
 					<Icon icon="solar:arrow-left-linear" class="size-4" />
 					Previous
 				</Button>
