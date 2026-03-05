@@ -137,7 +137,8 @@
 		uploading = true;
 		uploadError = null;
 		try {
-			// Route through Rust backend to bypass CORS restrictions in the webview
+			// Convert to regular array so Tauri serializes as JSON [1,2,3] (Vec<u8>)
+			// Passing Uint8Array directly would serialize as {"0":1,"1":2,...} and break deserialization
 			const arrayBuffer = await file.arrayBuffer();
 			const bytes = Array.from(new Uint8Array(arrayBuffer));
 			const url = await invoke<string>('upload_to_catbox', {
@@ -160,7 +161,8 @@
 				}, 0);
 			}
 		} catch (err) {
-			uploadError = err instanceof Error ? err.message : 'Upload failed';
+			// Tauri invoke errors are thrown as plain strings, not Error objects
+			uploadError = err instanceof Error ? err.message : String(err);
 		} finally {
 			uploading = false;
 			input.value = '';

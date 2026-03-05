@@ -31,7 +31,7 @@ rand = "0.8"
 thiserror = "2.0"
 directories = "5.0"
 tokio = { version = "1", features = ["full"] }
-reqwest = { version = "0.12", features = ["json", "multipart"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "native-tls"] }
 url = "2.5"
 urlencoding = "2.1"
 open = "5.3"

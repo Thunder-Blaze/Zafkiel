@@ -1,5 +1,6 @@
 use tauri::command;
 use reqwest::Client;
+use std::error::Error;
 
 #[command]
 pub async fn fetch_url(url: String) -> Result<String, String> {
@@ -33,7 +34,11 @@ pub async fn upload_to_catbox(
 ) -> Result<String, String> {
     log::info!("Uploading {} ({} bytes) to catbox.moe", filename, bytes.len());
 
-    let client = Client::new();
+    let client = reqwest::Client::builder()
+        .http1_only()
+        .user_agent("curl/8.0.0")
+        .build()
+        .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
 
     let part = reqwest::multipart::Part::bytes(bytes)
         .file_name(filename.clone())
@@ -49,7 +54,11 @@ pub async fn upload_to_catbox(
         .multipart(form)
         .send()
         .await
-        .map_err(|e| format!("Upload request failed: {}", e))?;
+        .map_err(|e| {
+            let msg = format!("Upload request failed: {} (is_connect={} is_timeout={} source={:?})", e, e.is_connect(), e.is_timeout(), e.source());
+            log::error!("{}", msg);
+            msg
+        })?;
 
     if !response.status().is_success() {
         return Err(format!("Catbox returned HTTP {}", response.status()));
