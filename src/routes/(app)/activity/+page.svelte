@@ -97,10 +97,10 @@
 		<h1 class="text-2xl font-bold tracking-tight">Activity Feed</h1>
 
 		<!-- Following / Global toggle -->
-		<div class="flex items-center rounded-full border bg-muted/50 p-1 text-sm">
+		<div class="flex items-center rounded-[var(--radius)] border bg-muted/50 p-1 text-sm">
 			<button
 				onclick={() => setTab('global')}
-				class="flex items-center gap-1.5 rounded-full px-4 py-1.5 font-medium transition-all {activeTab ===
+				class="flex items-center gap-1.5 rounded-[var(--radius)] px-4 py-1.5 font-medium transition-all {activeTab ===
 				'global'
 					? 'bg-background text-foreground shadow-sm'
 					: 'text-muted-foreground hover:text-foreground'}"
@@ -110,7 +110,7 @@
 			</button>
 			<button
 				onclick={() => setTab('following')}
-				class="flex items-center gap-1.5 rounded-full px-4 py-1.5 font-medium transition-all {activeTab ===
+				class="flex items-center gap-1.5 rounded-[var(--radius)] px-4 py-1.5 font-medium transition-all {activeTab ===
 				'following'
 					? 'bg-background text-foreground shadow-sm'
 					: 'text-muted-foreground hover:text-foreground'}"
@@ -126,7 +126,7 @@
 		{#each filterOptions as opt (opt.value)}
 			<button
 				onclick={() => setFilter(opt.value)}
-				class="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all {activeFilter ===
+			class="flex items-center gap-1.5 rounded-[var(--radius)] border px-3 py-1.5 text-xs font-medium transition-all {activeFilter ===
 				opt.value
 					? 'border-primary bg-primary text-primary-foreground'
 					: 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'}"
