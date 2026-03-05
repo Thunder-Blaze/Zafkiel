@@ -3,6 +3,7 @@ use anilist_moe::{
     endpoints::media::{FetchMediaOneOptions, FetchMediaOptions},
     endpoints::character::FetchCharacterOptions,
     endpoints::staff::FetchStaffOptions,
+    endpoints::user::FetchUserOptions,
     objects::{media::Media, responses::Page, user::User, studio::Studio, character::Character, staff::Staff},
     enums::media::{MediaType, MediaFormat, MediaStatus, MediaSeason, MediaSort, MediaSource},
     enums::character::CharacterSort,
@@ -331,9 +332,50 @@ pub async fn get_user_by_id(
     }
 }
 
-create_anilist_command!(get_user_by_name, user, get_by_name, User, (
-    name: &str => ref
-));
+/// Get user by username.
+/// The crate's `get_by_name()` calls `fetch_one` which uses a `GetUserById($id: Int!)` query
+/// and completely ignores the `name` field, producing a 400 error. We work around this by
+/// using `fetch()` (the `SearchUsers` query that has an optional `$name: String`) to resolve
+/// the numeric user ID first, then fetching the full profile via `get_by_id()`.
+#[tauri::command]
+pub async fn get_user_by_name(
+    name: &str,
+    service: State<'_, AniListState>,
+) -> Result<AniListResponse<User>, String> {
+    log::info!("Executing command: get_user_by_name for name: {}", name);
+    let client = service.client().await;
+
+    // Step 1: resolve the user ID with the SearchUsers query (supports $name: String)
+    let search_result = client.user().fetch(FetchUserOptions {
+        name: Some(name.to_string()),
+        per_page: Some(1),
+        include_statistics: Some(true),
+        ..Default::default()
+    }).await;
+
+    match search_result {
+        Ok(page) => {
+            if let Some(user) = page.data.into_iter().next() {
+                let user_id = user.id;
+                // Step 2: fetch full profile by ID (GetUserById query)
+                let full_result = client.user().get_by_id(user_id).await;
+                match full_result {
+                    Ok(full_user) => Ok(AniListResponse::success(full_user)),
+                    Err(e) => {
+                        log::error!("Error fetching full user by id {} (name '{}'): {:?}", user_id, name, e);
+                        Ok(AniListResponse::error(format!("{:?}", e)))
+                    }
+                }
+            } else {
+                Ok(AniListResponse::error(format!("User '{}' not found", name)))
+            }
+        }
+        Err(e) => {
+            log::error!("Error searching for user '{}': {:?}", name, e);
+            Ok(AniListResponse::error(format!("{:?}", e)))
+        }
+    }
+}
 
 create_anilist_command!(search_users, user, search, Page<Vec<User>>, (
     search: &str => ref,

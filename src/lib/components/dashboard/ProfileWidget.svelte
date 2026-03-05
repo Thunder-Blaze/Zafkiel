@@ -24,7 +24,7 @@
 				variant="outline"
 				size="sm"
 				class="mt-1 h-5 px-2 text-[10px]"
-				onclick={() => goto('/profile')}
+				onclick={() => goto(`/user/${name}`)}
 			>
 				View Profile
 			</Button>
