@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import Icon from '@iconify/svelte';
-	import { gsapReveal, gsapStagger } from '$lib/utils/gsap-animations';
+	import { gsapReveal } from '$lib/utils/gsap-animations';
 	import { createQuery } from '@tanstack/svelte-query';
 	import CachedImage from '$lib/components/ui/CachedImage.svelte';
 	import { staffApi } from '$lib/services/anilist';
@@ -65,7 +65,7 @@
 
 {#snippet staffCard(staff: Staff, rank?: number, showBirthday?: boolean)}
 	<button
-		onclick={() => goto(`/staff/${staff.id}`)}
+		onclick={async () => await goto(`/staff/${staff.id}`)}
 		class="group relative flex w-40 shrink-0 cursor-pointer flex-col text-left transition-transform duration-200 hover:scale-[1.03]"
 	>
 		<div
@@ -83,7 +83,7 @@
 				</div>
 			{/if}
 			<div
-				class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"
+				class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent"
 			></div>
 			{#if staff.favourites}
 				<div
@@ -170,7 +170,7 @@
 				</div>
 			{:else}
 				<div class="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-5 p-0.5">
-					{#each searchResults as staff}{@render staffCard(staff)}{/each}
+				{#each searchResults as staff (staff.id)}{@render staffCard(staff)}{/each}
 				</div>
 			{/if}
 		</section>
@@ -183,7 +183,7 @@
 					<h2 class="text-xl font-bold">Birthday Today</h2>
 				</div>
 				<button
-					onclick={() => goto('/search/staff/all?section=birthday')}
+					onclick={async () => await goto('/search/staff/all?section=birthday')}
 					class="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
 				>
 					View All <Icon icon="solar:arrow-right-linear" class="h-3.5 w-3.5" />
@@ -207,7 +207,7 @@
 					<div
 						class="-mb-5 grid auto-rows-[0px] grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] grid-rows-[repeat(2,auto)] gap-5 p-0.5"
 					>
-						{#each birthday as staff}{@render staffCard(staff, undefined, true)}{/each}
+						{#each birthday as staff (staff.id)}{@render staffCard(staff, undefined, true)}{/each}
 					</div>
 				</div>
 			{/if}
@@ -221,7 +221,7 @@
 					<h2 class="text-xl font-bold">Most Favourited</h2>
 				</div>
 				<button
-					onclick={() => goto('/search/staff/all')}
+					onclick={async () => await goto('/search/staff/all')}
 					class="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
 				>
 					View All <Icon icon="solar:arrow-right-linear" class="h-3.5 w-3.5" />
@@ -242,7 +242,7 @@
 					<div
 						class="-mb-5 grid auto-rows-[0px] grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] grid-rows-[repeat(2,auto)] gap-5 p-0.5"
 					>
-						{#each popular as staff, i}{@render staffCard(staff, i)}{/each}
+						{#each popular as staff, i (staff.id)}{@render staffCard(staff, i)}{/each}
 					</div>
 				</div>
 			{/if}

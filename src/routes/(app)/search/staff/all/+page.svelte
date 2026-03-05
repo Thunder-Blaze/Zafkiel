@@ -104,7 +104,7 @@
 
 {#snippet staffCard(staff: Staff, rank?: number, showBirthday?: boolean)}
 	<button
-		onclick={() => goto(`/staff/${staff.id}`)}
+		onclick={async () => await goto(`/staff/${staff.id}`)}
 		class="group relative flex w-40 shrink-0 cursor-pointer flex-col text-left transition-transform duration-200 hover:scale-[1.03]"
 	>
 		<div
@@ -122,7 +122,7 @@
 				</div>
 			{/if}
 			<div
-				class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"
+				class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent"
 			></div>
 			{#if staff.favourites}
 				<div
@@ -160,7 +160,7 @@
 	<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 		<div class="flex items-center gap-3">
 			<button
-				onclick={() => goto('/search/staff')}
+				onclick={async () => await goto('/search/staff')}
 				class="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
 			>
 				<Icon icon="solar:arrow-left-linear" class="h-4 w-4" />
@@ -240,8 +240,8 @@
 			</div>
 		</div>
 	{:else}
-		<div class="grid [grid-template-columns:repeat(auto-fill,minmax(10rem,1fr))] gap-5 p-0.5">
-			{#each activeItems as staff, i}
+		<div class="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-5 p-0.5">
+			{#each activeItems as staff, i (staff.id)}
 				{@render staffCard(
 					staff,
 					!isSearching && activeSection === 'popular' && popularPage === 1 ? i : undefined,

@@ -51,6 +51,22 @@ pub struct UiConfig {
     /// UI scale factor (0.5 to 2.0, default 1.0)
     /// Controls the overall size of UI elements via CSS zoom
     pub ui_scale: f32,
+
+    /// Last used activity feed tab: "global" or "following"
+    #[serde(default = "default_activity_feed_tab")]
+    pub activity_feed_tab: String,
+
+    /// Last used activity feed filter: "all", "list", or "text"
+    #[serde(default = "default_activity_feed_filter")]
+    pub activity_feed_filter: String,
+}
+
+fn default_activity_feed_tab() -> String {
+    "global".to_string()
+}
+
+fn default_activity_feed_filter() -> String {
+    "all".to_string()
 }
 
 impl Default for AppConfig {
@@ -88,6 +104,8 @@ impl Default for UiConfig {
             smooth_scroll: true,
             hover_card: true,
             ui_scale: 1.0,
+            activity_feed_tab: "global".to_string(),
+            activity_feed_filter: "all".to_string(),
         }
     }
 }

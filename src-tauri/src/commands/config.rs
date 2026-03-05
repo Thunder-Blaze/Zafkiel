@@ -198,6 +198,19 @@ pub fn apply_ui_scale(app: tauri::AppHandle, config: State<ConfigState>) -> Conf
     }
 }
 
+/// Update activity feed tab and filter preferences
+#[tauri::command]
+pub fn update_activity_prefs(
+    tab: String,
+    filter: String,
+    config: State<ConfigState>,
+) -> ConfigResponse<()> {
+    match config.update_activity_prefs(tab, filter) {
+        Ok(_) => ConfigResponse::success(()),
+        Err(e) => ConfigResponse::error(e.to_string()),
+    }
+}
+
 /// Open developer tools (only works in debug mode or with devtools enabled)
 #[tauri::command]
 pub fn open_devtools(app: tauri::AppHandle) -> ConfigResponse<()> {

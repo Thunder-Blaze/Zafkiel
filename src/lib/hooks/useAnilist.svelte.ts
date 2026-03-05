@@ -998,6 +998,45 @@ export function useFollowingActivity(page?: number, perPage?: number) {
 	}));
 }
 
+export type ActivityFeedFilter = 'all' | 'list' | 'text';
+
+/**
+ * Unified activity feed supporting isFollowing toggle and type filter.
+ * Uses fetch_activities with full FetchActivityOptions for proper multi-type querying.
+ */
+export function useActivityFeed(opts: {
+	isFollowing?: boolean;
+	filter?: ActivityFeedFilter;
+	page?: number;
+	perPage?: number;
+} = {}) {
+	return createQuery(() => {
+		const typeIn =
+			opts.filter === 'list'
+				? ['ANIME_LIST', 'MANGA_LIST']
+				: opts.filter === 'text'
+					? ['TEXT']
+					: ['TEXT', 'ANIME_LIST', 'MANGA_LIST', 'MEDIA_LIST'];
+		return {
+			queryKey: [
+				'activity',
+				'feed',
+				opts.isFollowing ?? false,
+				opts.filter ?? 'all',
+				opts.page ?? 1,
+			] as const,
+			queryFn: () =>
+				activityApi.fetch({
+					isFollowing: opts.isFollowing ?? null,
+					type_in: typeIn,
+					page: opts.page ?? 1,
+					perPage: opts.perPage ?? 25,
+				}),
+			staleTime: 2 * 60 * 1000,
+		};
+	});
+}
+
 /** Single activity by ID */
 export function useActivityById(id: number) {
 	return createQuery(() => ({

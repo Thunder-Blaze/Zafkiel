@@ -276,6 +276,21 @@ impl ConfigLoader {
         self.save()
     }
 
+    /// Update activity feed tab and filter preferences
+    pub fn update_activity_prefs(
+        &self,
+        tab: String,
+        filter: String,
+    ) -> Result<(), ConfigError> {
+        let mut config = self.config.write().map_err(|_| {
+            ConfigError::Deserialization("Failed to acquire write lock".to_string())
+        })?;
+        config.ui.activity_feed_tab = tab;
+        config.ui.activity_feed_filter = filter;
+        drop(config);
+        self.save()
+    }
+
     /// Get the config file path for debugging
     pub fn get_config_file_path(&self) -> PathBuf {
         self.config_path.clone()

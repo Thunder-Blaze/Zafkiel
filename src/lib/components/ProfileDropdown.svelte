@@ -106,9 +106,9 @@
 		...(narrowMode
 			? [
 					{
-						icon: 'solar:users-group-rounded-bold',
-						label: 'Social',
-						action: () => goto('/social'),
+						icon: 'solar:history-2-bold',
+						label: 'Activity',
+						action: () => goto('/activity'),
 					} as MenuItem,
 					{
 						icon: 'solar:chat-square-bold',
@@ -196,7 +196,7 @@
 	<div
 		use:portal
 		bind:this={menuEl}
-		class="fixed z-[999999]"
+		class="fixed z-999999"
 		style="top: {pos.top}px; right: {pos.right}px;"
 		transition:scale={{ duration: 150, easing: quintOut, start: 0.95, opacity: 0 }}
 	>

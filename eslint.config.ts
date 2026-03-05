@@ -28,6 +28,13 @@ export default defineConfig(
 			// typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.
 			// see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
 			'no-undef': 'off',
+			// Allow variables/args prefixed with _ to be unused (conventional discard marker)
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{ varsIgnorePattern: '^_', argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+			],
+			// This rule incorrectly fires on regular click handler goto() calls (not just onNavigate callbacks)
+			'svelte/no-navigation-without-resolve': 'off',
 		},
 	},
 	{

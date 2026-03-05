@@ -149,6 +149,7 @@ pub fn run() {
             commands::config::update_theme_mode,
             commands::config::update_ui_scale,
             commands::config::apply_ui_scale,
+            commands::config::update_activity_prefs,
             commands::config::open_devtools,
             commands::config::get_config_path,
             commands::config::get_themes_with_paths,
@@ -222,6 +223,10 @@ pub fn run() {
             commands::api::activity::delete_activity,
             commands::api::activity::delete_activity_reply,
             commands::api::activity::toggle_activity_subscription,
+
+            // ─── Utilities ──────────────────────────────────────────────
+            commands::utils::fetch_url,
+            commands::utils::upload_to_catbox,
 
             // ─── Notifications ───────────────────────────────────────────
             commands::api::notification::fetch_notifications,

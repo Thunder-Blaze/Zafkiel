@@ -156,7 +156,7 @@
 	}
 
 	const navItems = [
-		{ path: '/social', icon: 'solar:users-group-rounded-bold', label: 'Social' },
+		{ path: '/activity', icon: 'solar:history-2-bold', label: 'Activity' },
 		{ path: '/forum', icon: 'solar:chat-square-bold', label: 'Forum' },
 		{ path: '/downloads', icon: 'solar:download-bold', label: 'Downloads' },
 		{ path: '/settings', icon: 'solar:settings-bold', label: 'Settings' },

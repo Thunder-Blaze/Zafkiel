@@ -59,8 +59,8 @@
 		return text.length > 220 ? text.substring(0, 220) + '…' : text;
 	}
 
-	function handleViewDetails() {
-		if (displayedItem) goto(`/${displayedItem.type?.toLowerCase() || 'anime'}/${displayedItem.id}`);
+	async function handleViewDetails() {
+		if (displayedItem) await goto(`/${displayedItem.type?.toLowerCase() || 'anime'}/${displayedItem.id}`);
 	}
 
 	function getContentEls(): HTMLElement[] {
@@ -295,21 +295,21 @@
 		<!-- Shimmer sweep -->
 		<div
 			bind:this={shimmerEl}
-			class="pointer-events-none absolute inset-0 z-[3]"
+			class="pointer-events-none absolute inset-0 z-3"
 			style="background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.07) 50%,transparent 65%);transform:translateX(-110%)"
 		></div>
 
 		<!-- Gradient overlays -->
 		<div
-			class="pointer-events-none absolute inset-0 z-[4] bg-linear-to-r from-background/92 via-background/55 to-background/5"
+			class="pointer-events-none absolute inset-0 z-4 bg-linear-to-r from-background/92 via-background/55 to-background/5"
 		></div>
 		<div
-			class="pointer-events-none absolute inset-0 z-[4] bg-linear-to-t from-background/88 via-transparent to-transparent"
+			class="pointer-events-none absolute inset-0 z-4 bg-linear-to-t from-background/88 via-transparent to-transparent"
 		></div>
 
 		<!-- Content -->
 		<div
-			class="relative z-[5] grid h-full grid-cols-[1fr_auto] items-end gap-4 px-8 pb-10 lg:px-14"
+			class="relative z-5 grid h-full grid-cols-[1fr_auto] items-end gap-4 px-8 pb-10 lg:px-14"
 		>
 			<!-- Left text -->
 			<div class="flex min-w-0 flex-col gap-2.5">
@@ -355,7 +355,7 @@
 				</div>
 
 				<div bind:this={genresEl} class="flex flex-wrap gap-1.5">
-					{#each (displayedItem.genres ?? []).slice(0, 4) as genre}
+					{#each (displayedItem.genres ?? []).slice(0, 4) as genre (genre)}
 						<span
 							class="rounded-md border border-border/40 bg-background/40 px-2.5 py-0.5 text-[11px] font-medium backdrop-blur-sm"
 							>{genre}</span
@@ -402,14 +402,14 @@
 		{#if items.length > 1}
 			<button
 				onclick={prevSlide}
-				class="absolute top-1/2 left-4 z-[6] -translate-y-1/2 rounded-full bg-background/50 p-2.5 opacity-0 backdrop-blur-sm transition-all duration-200 group-hover:opacity-100 hover:scale-110 hover:bg-background/70"
+				class="absolute top-1/2 left-4 z-6 -translate-y-1/2 rounded-full bg-background/50 p-2.5 opacity-0 backdrop-blur-sm transition-all duration-200 group-hover:opacity-100 hover:scale-110 hover:bg-background/70"
 				aria-label="Previous slide"
 			>
 				<Icon icon="solar:alt-arrow-left-bold" class="h-5 w-5" />
 			</button>
 			<button
 				onclick={nextSlide}
-				class="absolute top-1/2 right-4 z-[6] -translate-y-1/2 rounded-full bg-background/50 p-2.5 opacity-0 backdrop-blur-sm transition-all duration-200 group-hover:opacity-100 hover:scale-110 hover:bg-background/70"
+				class="absolute top-1/2 right-4 z-6 -translate-y-1/2 rounded-full bg-background/50 p-2.5 opacity-0 backdrop-blur-sm transition-all duration-200 group-hover:opacity-100 hover:scale-110 hover:bg-background/70"
 				aria-label="Next slide"
 			>
 				<Icon icon="solar:alt-arrow-right-bold" class="h-5 w-5" />
@@ -418,8 +418,8 @@
 
 		<!-- Dot indicators -->
 		{#if items.length > 1}
-			<div class="absolute bottom-5 left-1/2 z-[6] flex -translate-x-1/2 gap-2">
-				{#each items as _, index}
+			<div class="absolute bottom-5 left-1/2 z-6 flex -translate-x-1/2 gap-2">
+				{#each items as _item, index (index)}
 					<button
 						onclick={() => goToSlide(index)}
 						class="rounded-full transition-all duration-300 {index === currentIndex
@@ -431,7 +431,7 @@
 			</div>
 
 			<!-- GSAP-driven progress bar -->
-			<div class="absolute bottom-0 left-0 z-[6] h-0.5 w-full bg-border/20">
+			<div class="absolute bottom-0 left-0 z-6 h-0.5 w-full bg-border/20">
 				<div bind:this={progressBarEl} class="h-full bg-primary/60" style="width:0%"></div>
 			</div>
 		{/if}
