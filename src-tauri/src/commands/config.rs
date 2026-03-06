@@ -2,10 +2,20 @@ use crate::config::{AppConfig, ConfigLoader, UiConfig};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs, path::PathBuf, sync::Arc};
+use std::sync::Mutex;
 use tauri::{Manager, State};
 
 /// Shared state for config loader
 pub type ConfigState = Arc<ConfigLoader>;
+
+/// In-memory theme cache. Populated on first call to `get_themes_with_paths`;
+/// cleared by `invalidate_theme_cache` when themes are installed/removed.
+pub struct ThemeCache(pub Mutex<Option<HashMap<String, String>>>);
+impl ThemeCache {
+    pub fn new() -> Self {
+        Self(Mutex::new(None))
+    }
+}
 
 /// Response type for config operations
 #[derive(Debug, Serialize, Deserialize)]
@@ -259,7 +269,6 @@ fn normalize_path_for_asset(path: &std::path::Path) -> String {
     let s: String = path.to_string_lossy().into_owned();
     #[cfg(windows)]
     {
-        // strip_prefix needs exactly 4 chars: \ \ ? \
         if let Some(stripped) = s.strip_prefix("\\\\?\\") {
             return stripped.to_string();
         }
@@ -267,85 +276,136 @@ fn normalize_path_for_asset(path: &std::path::Path) -> String {
     s
 }
 
-#[tauri::command]
-pub fn get_themes_with_paths(app: tauri::AppHandle) -> ConfigResponse<HashMap<String, String>> {
-    let mut themes = HashMap::new();
-    let project_dirs = ProjectDirs::from("", "", "zafkiel").expect("Failed to get project dirs");
-    let resources_dir = app.path().resource_dir();
-    let themes_dir_config = project_dirs.config_dir().join("themes");
-    // Resources directory as themes location for default themes
-    let themes_dir_default = if let Some(res_dir) = resources_dir.unwrap().to_str() {
-        Some(PathBuf::from(res_dir).join("themes"))
-    } else {
-        None
+/// Path to the user-installed themes index (`~/.config/zafkiel/themes.index.json`).
+/// This file is only written by the theme-install system; default themes are
+/// listed in `static/themes/themes.index.json` which ships with the app.
+fn user_themes_index_path() -> Option<PathBuf> {
+    ProjectDirs::from("", "", "zafkiel")
+        .map(|d| d.config_dir().join("themes.index.json"))
+}
+
+/// Read the user-installed themes index from `~/.config/zafkiel/themes.index.json`.
+/// Returns an empty map if the file is absent or unreadable – never an error.
+fn read_user_themes_index() -> HashMap<String, String> {
+    let Some(path) = user_themes_index_path() else {
+        return HashMap::new();
     };
-    log::info!(
-        "[Themes] Default themes directory: {:?}",
-        themes_dir_default
-    );
-    log::info!("[Themes] Config themes directory: {:?}", themes_dir_config);
+    if !path.exists() {
+        return HashMap::new();
+    }
+    let content = match fs::read_to_string(&path) {
+        Ok(c) => c,
+        Err(e) => {
+            log::warn!("[Themes] Could not read user themes index: {e}");
+            return HashMap::new();
+        }
+    };
+    serde_json::from_str(&content).unwrap_or_else(|e| {
+        log::warn!("[Themes] Could not parse user themes index: {e}");
+        HashMap::new()
+    })
+}
 
-    if let Some(themes_dir) = themes_dir_default {
-        // Read theme files
-        if let Ok(entries) = fs::read_dir(&themes_dir) {
-            for entry in entries {
-                if let Ok(entry) = entry {
-                    let path = entry.path();
-
-                    // 1. Check if the entry is a directory
-                    if path.is_dir() {
-                        // 2. Get the theme name (the directory's name)
-                        if let Some(theme_name_osstr) = path.file_name() {
-                            if let Some(theme_name) = theme_name_osstr.to_str() {
-                                // 3. Construct the path to the 'index.css' file
-                                let css_path = path.join("index.css");
-
-                                // 4. Check if 'index.css' actually exists
-                                if css_path.is_file() {
-                                    // 5. Insert the theme name and the normalised path
-                                    themes.insert(
-                                        theme_name.to_string(),
-                                        normalize_path_for_asset(&path),
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
+/// Persist the user themes index to `~/.config/zafkiel/themes.index.json`.
+/// Called by the theme-install/uninstall commands – not by the reader path.
+#[allow(dead_code)]
+pub fn write_user_themes_index(themes: &HashMap<String, String>) {
+    let Some(path) = user_themes_index_path() else { return };
+    if let Some(parent) = path.parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+    match serde_json::to_string_pretty(themes) {
+        Ok(content) => {
+            if let Err(e) = fs::write(&path, content) {
+                log::warn!("[Themes] Failed to write user themes index: {e}");
+            } else {
+                log::info!("[Themes] User themes index updated ({} entries)", themes.len());
             }
+        }
+        Err(e) => log::warn!("[Themes] Failed to serialize user themes index: {e}"),
+    }
+}
+
+/// Build the merged theme map:
+///   1. Start with built-in themes (IDs from `static/themes/themes.index.json`,
+///      paths resolved against the app resource directory).
+///   2. Overlay user-installed themes from `~/.config/zafkiel/themes.index.json`
+///      (user entries win on ID collision).
+///
+/// No directory scanning is performed.  Path validity is intentionally NOT
+/// checked here – errors are surfaced lazily when the frontend tries to load
+/// the CSS file for a specific theme.
+fn build_theme_map(app: &tauri::AppHandle) -> HashMap<String, String> {
+    let mut map: HashMap<String, String> = HashMap::new();
+
+    // ── 1. Built-in themes ───────────────────────────────────────────────────
+    let resource_dir = app.path().resource_dir().ok();
+
+    if let Some(ref res_dir) = resource_dir {
+        let index_path = res_dir.join("themes").join("themes.index.json");
+        match fs::read_to_string(&index_path) {
+            Ok(content) => {
+                let ids: Vec<String> = serde_json::from_str(&content).unwrap_or_else(|e| {
+                    log::warn!("[Themes] Could not parse built-in themes index: {e}");
+                    vec![]
+                });
+                for id in ids {
+                    let theme_dir = res_dir.join("themes").join(&id);
+                    map.insert(id, normalize_path_for_asset(&theme_dir));
+                }
+                log::info!("[Themes] Loaded {} built-in theme(s) from index", map.len());
+            }
+            Err(e) => {
+                log::warn!("[Themes] Could not read built-in themes index at {index_path:?}: {e}");
+            }
+        }
+    } else {
+        log::warn!("[Themes] Could not resolve resource directory – built-in themes unavailable");
+    }
+
+    // ── 2. User themes (override built-ins on ID collision) ──────────────────
+    let user_themes = read_user_themes_index();
+    let user_count = user_themes.len();
+    map.extend(user_themes);
+
+    if user_count > 0 {
+        log::info!("[Themes] Merged {user_count} user theme(s) (total: {})", map.len());
+    }
+
+    map
+}
+
+/// Returns a `{id → absolute_dir_path}` map for every known theme.
+///
+/// Built-in themes come from `static/themes/themes.index.json` (shipped with
+/// the app); user-installed themes come from
+/// `~/.config/zafkiel/themes.index.json`.  User entries take precedence.
+///
+/// **Path validity is not checked here.**  If a path is broken the error will
+/// surface when the frontend actually tries to load the theme's CSS.
+#[tauri::command]
+pub fn get_themes_with_paths(
+    app: tauri::AppHandle,
+    cache: tauri::State<'_, ThemeCache>,
+) -> ConfigResponse<HashMap<String, String>> {
+    // L1: in-memory cache – avoids re-reading files on every settings open
+    {
+        let guard = cache.0.lock().expect("theme cache poisoned");
+        if let Some(cached) = guard.as_ref() {
+            log::debug!("[Themes] cache hit – {} theme(s)", cached.len());
+            return ConfigResponse::success(cached.clone());
         }
     }
 
-    if let Some(themes_dir) = Some(themes_dir_config) {
-        // Read theme files
-        if let Ok(entries) = fs::read_dir(&themes_dir) {
-            for entry in entries {
-                if let Ok(entry) = entry {
-                    let path = entry.path();
-
-                    // 1. Check if the entry is a directory
-                    if path.is_dir() {
-                        // 2. Get the theme name (the directory's name)
-                        if let Some(theme_name_osstr) = path.file_name() {
-                            if let Some(theme_name) = theme_name_osstr.to_str() {
-                                // 3. Construct the path to the 'index.css' file
-                                let css_path = path.join("index.css");
-
-                                // 4. Check if 'index.css' actually exists
-                                if css_path.is_file() {
-                                    // 5. Insert the theme name and the normalised path
-                                    themes.insert(
-                                        theme_name.to_string(),
-                                        normalize_path_for_asset(&path),
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
+    let themes = build_theme_map(&app);
+    *cache.0.lock().expect("theme cache poisoned") = Some(themes.clone());
     ConfigResponse::success(themes)
+}
+
+/// Clears the in-memory theme cache so the next call to `get_themes_with_paths`
+/// re-reads the index files.  Call this after installing or removing a user theme.
+#[tauri::command]
+pub fn invalidate_theme_cache(cache: tauri::State<'_, ThemeCache>) {
+    *cache.0.lock().expect("theme cache poisoned") = None;
+    log::info!("[Themes] In-memory cache cleared");
 }

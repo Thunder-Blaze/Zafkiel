@@ -69,92 +69,93 @@ export const listThemes = async (): Promise<Themes> => {
 };
 
 export const loadTheme = async (theme: Theme, loadedThemes: Themes): Promise<void> => {
-	if (loadedThemes.get(theme.id)?.linkElement) {
-		console.log(`[ThemeManager] Theme "${theme.id}" already loaded`);
+	// Skip if already loaded in this session — no re-validation needed
+	const existing = loadedThemes.get(theme.id);
+	if (existing?.linkElement) {
 		return;
 	}
 
 	console.log(`[ThemeManager] Loading theme "${theme.id}"...`);
 
-	try {
+	return new Promise<void>((resolve, reject) => {
 		const link = document.createElement('link');
 		link.rel = 'stylesheet';
 		link.href = theme.cssPath;
 		link.dataset.themeId = theme.id;
 
-		await new Promise<void>((resolve, reject) => {
-			link.onload = () => {
-				console.log(`[ThemeManager] ✓ Theme "${theme.id}" CSS loaded`);
-				resolve();
-			};
-			link.onerror = () => {
-				console.error(`[ThemeManager] ✗ Failed to load theme CSS: ${theme.id}`);
-				reject(new Error(`Failed to load theme CSS: ${theme.id}`));
-			};
-			document.head.appendChild(link);
-		});
+		link.onload = () => {
+			console.log(`[ThemeManager] ✓ Theme "${theme.id}" CSS loaded`);
+			loadedThemes.set(theme.id, { ...theme, linkElement: link });
+			resolve();
+		};
+		link.onerror = () => {
+			document.head.removeChild(link);
+			const reason =
+				`CSS file not found or failed to load at: ${theme.cssPath}` +
+				` — the theme directory may be missing, moved, or corrupt.`;
+			console.error(`[ThemeManager] ✗ "${theme.id}": ${reason}`);
+			reject(new Error(reason));
+		};
+		document.head.appendChild(link);
+	});
+};
 
-		loadedThemes.set(theme.id, { ...theme, linkElement: link });
-	} catch (error) {
-		console.error(`[ThemeManager] Failed to load theme ${theme.id}:`, error);
-		throw error;
-	}
+/** Apply the theme id + dark-mode class to <html> without touching the store layer. */
+const applyThemeToDom = (id: string, mode: ThemeMode): void => {
+	const root = document.documentElement;
+	root.setAttribute('data-theme', id);
+	const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+	root.classList.toggle('dark', mode === 'dark' || (mode === 'system' && prefersDark));
 };
 
 export const setTheme = async (theme: Theme, mode: ThemeMode, themes: Themes): Promise<void> => {
-	try {
-		console.log(`[ThemeManager] Switching to theme: ${theme.id}`);
-
-		if (!theme.linkElement) {
-			console.log(`[ThemeManager] Theme "${theme.id}" not loaded yet, loading now...`);
-			await loadTheme(theme, themes);
-		}
-
-		const root = document.documentElement;
-		root.setAttribute('data-theme', theme.id);
+	// If already loaded, apply immediately — no CSS fetch needed
+	const existing = themes.get(theme.id);
+	if (existing?.linkElement) {
+		applyThemeToDom(theme.id, mode);
 		config.setTheme(theme.id);
-
-		const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-		root.classList.toggle('dark', mode === 'dark' || (mode === 'system' && prefersDark));
 		config.setThemeMode(mode);
+		console.log(`[ThemeManager] ✓ Switched to ${theme.id} (cached)`);
+		return;
+	}
 
+	try {
+		console.log(`[ThemeManager] Loading + switching to theme: ${theme.id}`);
+		await loadTheme(theme, themes);
+		applyThemeToDom(theme.id, mode);
+		config.setTheme(theme.id);
+		config.setThemeMode(mode);
 		console.log(`[ThemeManager] ✓ Switched to ${theme.id}`);
 	} catch (error) {
-		console.error(`[ThemeManager] ✗ Failed to switch theme:`, error);
-		throw error;
+		const msg = error instanceof Error ? error.message : String(error);
+		console.error(`[ThemeManager] ✗ Failed to load "${theme.id}": ${msg}`);
+
+		if (theme.id !== 'default') {
+			console.warn(`[ThemeManager] Falling back to default theme`);
+			const fallback = themes.get('default');
+			if (fallback) {
+				await setTheme(fallback, mode, themes);
+			}
+		}
+		// Don't re-throw — the fallback handles the UX
 	}
 };
 
 export const initTheme = async (themes: Themes): Promise<void> => {
-	try {
-		const themeId = config.theme;
-		const mode = config.themeMode;
+	const themeId = config.theme;
+	const mode = config.themeMode;
 
-		const theme = themes.get(themeId);
-		if (!theme) {
-			console.warn(`[ThemeManager] Theme "${themeId}" not found, skipping init`);
-			return;
+	const theme = themes.get(themeId);
+	if (!theme) {
+		console.warn(`[ThemeManager] Configured theme "${themeId}" not found in index`);
+		const fallback = themes.get('default');
+		if (fallback) {
+			await setTheme(fallback, mode, themes);
 		}
-
-		console.log(`[ThemeManager] Initializing theme: ${theme.id}`);
-
-		if (!theme.linkElement) {
-			await loadTheme(theme, themes);
-		}
-
-		const root = document.documentElement;
-		root.setAttribute('data-theme', theme.id);
-		config.setTheme(theme.id);
-
-		const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-		root.classList.toggle('dark', mode === 'dark' || (mode === 'system' && prefersDark));
-		config.setThemeMode(mode);
-
-		console.log(`[ThemeManager] ✓ Init finished with ${theme.id}`);
-	} catch (error) {
-		console.error(`[ThemeManager] ✗ Failed to init theme:`, error);
-		throw error;
+		return;
 	}
+
+	await setTheme(theme, mode, themes);
 };
 
 export default {

@@ -1,4 +1,20 @@
 @import 'tailwindcss';
+
+/* Tauri drag-region: elements with this attribute are draggable like a title bar */
+[data-tauri-drag-region] {
+	-webkit-app-region: drag;
+}
+
+/* Disable drag on interactive elements even when inside a drag region */
+[data-tauri-drag-region='false'],
+button,
+a,
+[role='button'],
+input,
+textarea,
+select {
+	-webkit-app-region: no-drag;
+}
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/forms";
 

@@ -1,13 +1,34 @@
 use tauri::command;
 use reqwest::Client;
+use std::collections::HashMap;
 use std::error::Error;
 
+/// Proxy-fetch a URL through the Rust backend, bypassing browser CORS restrictions.
+///
+/// `headers` is an optional map of additional HTTP headers (e.g. `Cookie`, `Referer`).
+/// The default `User-Agent` is always applied unless overridden via `headers`.
 #[command]
-pub async fn fetch_url(url: String) -> Result<String, String> {
+pub async fn fetch_url(
+    url: String,
+    headers: Option<HashMap<String, String>>,
+) -> Result<String, String> {
     log::info!("Fetching URL: {}", url);
     let client = Client::new();
-    let response = client.get(&url)
-        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+    let mut req = client
+        .get(&url)
+        .header(
+            "User-Agent",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
+             (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        );
+
+    if let Some(hdrs) = headers {
+        for (key, value) in &hdrs {
+            req = req.header(key.as_str(), value.as_str());
+        }
+    }
+
+    let response = req
         .send()
         .await
         .map_err(|e| format!("Request failed: {}", e))?;
@@ -16,10 +37,51 @@ pub async fn fetch_url(url: String) -> Result<String, String> {
         return Err(format!("Request failed with status: {}", response.status()));
     }
 
-    let text = response.text().await
+    let text = response
+        .text()
+        .await
         .map_err(|e| format!("Failed to read response body: {}", e))?;
-        
+
     Ok(text)
+}
+
+/// Proxy-POST a URL through the Rust backend (for form/JSON submissions).
+#[command]
+pub async fn post_url(
+    url: String,
+    body: String,
+    headers: Option<HashMap<String, String>>,
+) -> Result<String, String> {
+    log::info!("POSTing URL: {}", url);
+    let client = Client::new();
+    let mut req = client
+        .post(&url)
+        .header(
+            "User-Agent",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
+             (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        )
+        .body(body);
+
+    if let Some(hdrs) = headers {
+        for (key, value) in &hdrs {
+            req = req.header(key.as_str(), value.as_str());
+        }
+    }
+
+    let response = req
+        .send()
+        .await
+        .map_err(|e| format!("Request failed: {}", e))?;
+
+    if !response.status().is_success() {
+        return Err(format!("Request failed with status: {}", response.status()));
+    }
+
+    response
+        .text()
+        .await
+        .map_err(|e| format!("Failed to read response body: {}", e))
 }
 
 /// Upload a file to catbox.moe via the server-side Rust backend, bypassing CORS

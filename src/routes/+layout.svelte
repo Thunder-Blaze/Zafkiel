@@ -21,6 +21,7 @@
 
 	import { ExtensionManager } from '$lib/services/ExtensionManager';
 	import { SubsPleaseExtension } from '../extensions/torrent/subsplease';
+	import { extensionStore } from '$lib/stores/extensionStore.svelte';
 
 	let { children }: { children: any } = $props();
 
@@ -58,6 +59,9 @@
 			await config.init();
 			await theme.init();
 			await authStore.init();
+
+			// Load installed-extension index (fast – reads index.json only)
+			await extensionStore.init();
 
 			// Mark as ready once theme is loaded
 			isReady = true;

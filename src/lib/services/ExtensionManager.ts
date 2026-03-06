@@ -1,5 +1,6 @@
 import type { AnimeLarge } from '$lib/types/anime';
 import { NyaaProvider } from './NyaaProvider';
+import { ToshoProvider } from './ToshoProvider';
 
 export interface ExtensionManifest {
 	id: string;
@@ -18,6 +19,18 @@ export interface TorrentInfo {
 	magnet: string;
 	provider: string;
 	uploadedAt?: string;
+
+	// ── Episode-aware fields (populated when available) ──────────────────
+	/** Parsed episode number from the torrent title */
+	episode?: number;
+	/** Parsed resolution string (e.g. "1080p") */
+	resolution?: string;
+	/** Fansub group name (e.g. "SubsPlease") */
+	fansub?: string;
+	/** AniDB series ID – enables precise Tosho re-queries */
+	anidbId?: number;
+	/** AniDB episode ID – enables precise Tosho re-queries */
+	anidbEpisodeId?: number;
 }
 
 export interface TorrentProvider {
@@ -30,7 +43,8 @@ class ExtensionManagerService {
 	private providers: Map<string, TorrentProvider> = new Map();
 
 	constructor() {
-		// We will register built-in providers here
+		// Built-in providers – ordered by priority (Tosho first for precision)
+		this.registerProvider(new ToshoProvider());
 		this.registerProvider(new NyaaProvider());
 	}
 

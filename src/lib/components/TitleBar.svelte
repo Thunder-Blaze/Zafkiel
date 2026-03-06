@@ -159,6 +159,7 @@
 		{ path: '/activity', icon: 'solar:history-2-bold', label: 'Activity' },
 		{ path: '/forum', icon: 'solar:chat-square-bold', label: 'Forum' },
 		{ path: '/downloads', icon: 'solar:download-bold', label: 'Downloads' },
+		{ path: '/extensions', icon: 'solar:widget-add-bold', label: 'Extensions' },
 		{ path: '/settings', icon: 'solar:settings-bold', label: 'Settings' },
 	];
 

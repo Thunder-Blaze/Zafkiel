@@ -82,6 +82,9 @@ pub fn run() {
 
             app.manage(Arc::new(config_loader));
 
+            // Theme scan cache (populated lazily on first call to get_themes_with_paths)
+            app.manage(commands::config::ThemeCache::new());
+
             // AniList service — simplified, no RwLock (AniListClient is already Clone+Arc internally)
             let anilist_service = AniListService::new(token);
             app.manage(Arc::new(anilist_service));
@@ -153,6 +156,20 @@ pub fn run() {
             commands::config::open_devtools,
             commands::config::get_config_path,
             commands::config::get_themes_with_paths,
+            commands::config::invalidate_theme_cache,
+
+            // ─── Extensions ──────────────────────────────────────────────
+            commands::extensions::get_installed_extensions,
+            commands::extensions::install_extension,
+            commands::extensions::install_extension_from_local,
+            commands::extensions::reinstall_extension,
+            commands::extensions::uninstall_extension,
+            commands::extensions::get_extension_entry_path,
+            commands::extensions::ext_storage_get,
+            commands::extensions::ext_storage_set,
+            commands::extensions::ext_storage_delete,
+            commands::extensions::open_extension_auth_webview,
+            commands::extensions::collect_extension_cookies,
 
             // Auth commands
             commands::auth::start_oauth_flow,
@@ -226,6 +243,7 @@ pub fn run() {
 
             // ─── Utilities ──────────────────────────────────────────────
             commands::utils::fetch_url,
+            commands::utils::post_url,
             commands::utils::upload_to_catbox,
 
             // ─── Notifications ───────────────────────────────────────────
@@ -289,12 +307,13 @@ pub fn run() {
             commands::db::cache_image,
             commands::db::remove_cached_image,
 
-            // ─── Utils & Torrent ─────────────────────────────────────────
-            commands::utils::fetch_url,
+            // ─── Torrent ─────────────────────────────────────────────────
             commands::torrent::stream_torrent,
             commands::torrent::stream_torrent_by_id,
             commands::torrent::open_in_external_player,
             commands::torrent::get_torrents,
+            commands::torrent::get_torrent_files,
+            commands::torrent::get_torrent_files_by_id,
             commands::torrent::pause_torrent,
             commands::torrent::resume_torrent,
             commands::torrent::delete_torrent,
