@@ -785,11 +785,11 @@ fn platform_collect_cookies(wv: tauri::webview::PlatformWebview, url: String, tx
     impl ICoreWebView2GetCookiesCompletedHandler_Impl for Handler_Impl {
         fn Invoke(
             &self,
-            error_code: windows::core::HRESULT,
-            cookie_list: Option<&ICoreWebView2CookieList>,
-        ) -> windows::core::Result<()> {
+            error_code: windows_core::HRESULT,
+            cookie_list: windows_core::Ref<'_, ICoreWebView2CookieList>,
+        ) -> Result<(), windows_core::Error> {
             let cookies = if error_code.is_ok() {
-                cookie_list.map(|list| unsafe {
+                cookie_list.as_ref().map(|list| unsafe {
                     let mut count = 0u32;
                     let _ = list.Count(&mut count);
                     (0..count)

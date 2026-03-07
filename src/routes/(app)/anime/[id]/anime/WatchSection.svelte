@@ -14,6 +14,9 @@
 		Episode,
 		StreamSource,
 		ResolvedStream,
+		StartDownloadParams,
+		ExtensionDownload,
+		DownloadProgressEvent,
 	} from '$lib/types/extensions';
 	import VideoPlayer from '$lib/components/player/VideoPlayer.svelte';
 	import ProxiedImage from '$lib/components/ProxiedImage.svelte';
@@ -52,6 +55,12 @@
 	let sources = $state<StreamSource[]>([]);
 	let resolvedStream = $state<ResolvedStream | null>(null);
 	let loadingStream = $state(false);
+
+	// ── Download state ────────────────────────────────────────────────────────
+	/** Map of sourceId → download record (in-progress or completed). */
+	let downloadMap = $state<Map<string, ExtensionDownload>>(new Map());
+	let downloadingSourceId = $state<string | null>(null);
+	let downloadUnlisten: (() => void) | null = null;
 
 	let cookieUnlisten: (() => void) | null = null;
 	/** Raw "name=value; ..." cookie string for proxied image requests. */
@@ -102,10 +111,27 @@
 			step = 'searching';
 			await doSearch(searchQuery);
 		});
+
+		// Listen for download progress events
+		downloadUnlisten = await listen<DownloadProgressEvent>('extension-download-progress', (event) => {
+			const ev = event.payload;
+			downloadMap = new Map(
+				[...downloadMap.entries()].map(([key, rec]) => [
+					key,
+					rec.id === ev.id
+						? { ...rec, status: ev.status as ExtensionDownload['status'], progress: ev.progress, errorMsg: ev.errorMsg, filePath: ev.filePath }
+						: rec,
+				]),
+			);
+			if (ev.status !== 'downloading') {
+				downloadingSourceId = null;
+			}
+		});
 	});
 
 	onDestroy(() => {
 		cookieUnlisten?.();
+		downloadUnlisten?.();
 	});
 
 	// ── Helpers ───────────────────────────────────────────────────────────────
@@ -245,57 +271,14 @@
 		loadingStream = true;
 		error = null;
 		try {
-			// Step 1: Resolve the stream URL — gives us the actual CDN m3u8 URL.
-			//   For kwik.si sources this fetches the kwik.si embed page text and
-			//   extracts the tokenised m3u8 URL (e.g. vault-08.uwucdn.top/...).
+			// Resolve the stream URL — fetches the kwik embed page and extracts
+			// the packed m3u8 URL (e.g. vault-XX.owocdn.top/.../uwu.m3u8).
+			// The proxy handles all auth headers (Referer, Cookie) transparently.
 			const resolved = source.requiresResolution
 				? await ext.resolveStream(source)
 				: { url: source.id, type: 'hls' as const, headers: {} as Record<string, string> };
 
-			// Step 2: CDN cookie warm-up for kwik.si sources.
-			//
-			// The CDN (vault-XX.uwucdn.top / vault-XX.owocdn.top) is behind Cloudflare.
-			// A cf_clearance cookie is ONLY obtainable by running Cloudflare's JS
-			// challenge in a real browser visiting kwik.si.  We do this by opening a
-			// hidden WebView window, waiting for the challenge to auto-solve (~2-4 s),
-			// then reading the cookies for the CDN origin and forwarding them through
-			// the local HLS proxy so every m3u8 + segment request carries them.
-			//
-			// We resolve FIRST so we know the exact CDN origin (the CDN subdomain
-			// can change between episodes: uwucdn.top, owocdn.top, etc.).
-			let finalResolved = resolved;
-			if (source.id?.startsWith('https://kwik.si/')) {
-				let cdnOrigin = '';
-				try {
-					cdnOrigin = new URL(resolved.url).origin; // e.g. "https://vault-08.uwucdn.top"
-				} catch {
-					console.warn('[watch] could not parse CDN URL:', resolved.url);
-				}
-
-				if (cdnOrigin) {
-					console.debug('[watch] pre-warming CDN cookies for', cdnOrigin);
-					const cdnCookies = await invoke<string>('collect_cdn_cookies_for_kwik', {
-						kwikUrl: source.id,
-						cdnUrl: cdnOrigin,
-					}).catch((e: unknown) => {
-						console.warn('[watch] CDN cookie warm-up failed:', e);
-						return '';
-					});
-
-					if (cdnCookies) {
-						const existing = resolved.headers?.['Cookie'] ?? resolved.headers?.['cookie'] ?? '';
-						const mergedCookie = existing ? `${existing}; ${cdnCookies}` : cdnCookies;
-						// ResolvedStream is readonly — spread into a new object
-						finalResolved = {
-							...resolved,
-							headers: { ...resolved.headers, Cookie: mergedCookie },
-						};
-						console.debug('[watch] CDN cookies merged:', cdnCookies.length, 'chars');
-					}
-				}
-			}
-
-			resolvedStream = finalResolved;
+			resolvedStream = resolved;
 			step = 'playing';
 		} catch (e) {
 			error = String(e);
@@ -310,6 +293,59 @@
 		selectedEpisode = null;
 		sources = [];
 		error = null;
+	}
+
+	// ── Download ──────────────────────────────────────────────────────────────
+	async function downloadSource(source: StreamSource) {
+		if (!ext || !selectedResult || !selectedEpisode || downloadingSourceId) return;
+		downloadingSourceId = source.id;
+		error = null;
+
+		try {
+			// Reuse the same resolve logic as playback
+			const resolved = source.requiresResolution
+				? await ext.resolveStream(source)
+				: { url: source.id, type: 'hls' as const, headers: {} as Record<string, string> };
+
+			const season = 1; // AnimePahe doesn't expose seasons — default to 1
+			const sourceLabel = [
+				source.fansub,
+				source.resolution ? `${source.resolution}p` : null,
+				source.audio === 'jpn' ? 'JPN' : source.audio === 'eng' ? 'DUB' : source.audio,
+			]
+				.filter(Boolean)
+				.join(' ');
+
+			const params: StartDownloadParams = {
+				animeName: selectedResult.title,
+				anilistId: animeId,
+				season,
+				episodeNumber: selectedEpisode.number,
+				sourceLabel: sourceLabel || source.label,
+				extensionId: activeExtId ?? 'unknown',
+				url: resolved.url,
+				headers: resolved.headers ?? {},
+			};
+
+			const downloadId = await invoke<number>('start_extension_download', { params });
+			const placeholder: ExtensionDownload = {
+				id: downloadId,
+				animeName: params.animeName,
+				anilistId: params.anilistId,
+				season: params.season,
+				episodeNumber: params.episodeNumber,
+				sourceLabel: params.sourceLabel,
+				extensionId: params.extensionId,
+				status: 'downloading',
+				progress: 0,
+				createdAt: Date.now() / 1000,
+				updatedAt: Date.now() / 1000,
+			};
+			downloadMap = new Map([...downloadMap, [source.id, placeholder]]);
+		} catch (e) {
+			error = String(e);
+			downloadingSourceId = null;
+		}
 	}
 </script>
 
@@ -394,7 +430,7 @@
 								alt={result.title}
 								class="aspect-[2/3] w-full object-cover"
 								cookie={cookieStr}
-								referer="https://animepahe.si/"
+						referer="https://animepahe.si/"
 							/>
 							{:else}
 								<div class="flex aspect-[2/3] w-full items-center justify-center bg-muted">
@@ -462,25 +498,71 @@
 
 	<!-- Sources picker -->
 	{#if step === 'sources'}
-		<div class="space-y-2">
+		<div class="space-y-3">
 			<p class="text-sm font-medium">
 				Ep {selectedEpisode?.number}{selectedEpisode?.title ? ` — ${selectedEpisode.title}` : ''} — Choose Quality
 			</p>
-			<div class="flex flex-wrap gap-2">
+			<div class="space-y-2">
 				{#each sources as source}
-					<Button
-						variant="outline"
-						size="sm"
-						disabled={loadingStream}
-						onclick={() => playSource(source)}
-					>
-						{#if loadingStream}
-							<Icon icon="solar:refresh-circle-line-duotone" class="mr-1 size-3.5 animate-spin" />
+					{@const dl = downloadMap.get(source.id)}
+					<div class="flex items-center gap-2 rounded-lg border bg-card px-3 py-2">
+						<!-- Quality label -->
+						<span class="flex-1 text-sm">
+							{source.fansub ? `[${source.fansub}] ` : ''}{source.resolution ? `${source.resolution}p` : source.label}
+							{#if source.audio === 'jpn'}<span class="ml-1 text-[10px] text-muted-foreground">JPN</span>{/if}
+							{#if source.audio === 'eng'}<span class="ml-1 text-[10px] text-muted-foreground">DUB</span>{/if}
+						</span>
+
+						<!-- Download status badge / progress -->
+						{#if dl}
+							{#if dl.status === 'downloading'}
+								<span class="flex items-center gap-1 text-xs text-blue-500">
+									<Icon icon="solar:download-minimalistic-bold" class="size-3.5" />
+									{dl.progress.toFixed(0)}%
+								</span>
+							{:else if dl.status === 'completed'}
+								<span class="flex items-center gap-1 text-xs text-green-500">
+									<Icon icon="solar:check-circle-bold" class="size-3.5" />
+									Saved
+								</span>
+							{:else if dl.status === 'failed'}
+								<span class="flex items-center gap-1 text-xs text-destructive" title={dl.errorMsg}>
+									<Icon icon="solar:close-circle-bold" class="size-3.5" />
+									Failed
+								</span>
+							{/if}
 						{/if}
-						{source.fansub ? `[${source.fansub}] ` : ''}{source.resolution ?? source.label}
-						{#if source.audio === 'jpn'}<span class="ml-1 text-[10px] text-muted-foreground">JPN</span>{/if}
-						{#if source.audio === 'eng'}<span class="ml-1 text-[10px] text-muted-foreground">DUB</span>{/if}
-					</Button>
+
+						<!-- Play button -->
+						<Button
+							variant="default"
+							size="sm"
+							disabled={loadingStream}
+							onclick={() => playSource(source)}
+						>
+							{#if loadingStream}
+								<Icon icon="solar:refresh-circle-line-duotone" class="mr-1 size-3.5 animate-spin" />
+							{:else}
+								<Icon icon="solar:play-bold" class="mr-1 size-3.5" />
+							{/if}
+							Play
+						</Button>
+
+						<!-- Download button -->
+						<Button
+							variant="outline"
+							size="sm"
+							disabled={!!downloadingSourceId || dl?.status === 'downloading' || dl?.status === 'completed'}
+							onclick={() => downloadSource(source)}
+							title="Download episode"
+						>
+							{#if downloadingSourceId === source.id}
+								<Icon icon="solar:refresh-circle-line-duotone" class="size-3.5 animate-spin" />
+							{:else}
+								<Icon icon="solar:download-minimalistic-bold" class="size-3.5" />
+							{/if}
+						</Button>
+					</div>
 				{/each}
 			</div>
 			<Button variant="ghost" size="sm" onclick={() => { step = 'episodes'; selectedEpisode = null; }}>
@@ -511,7 +593,7 @@
 								alt={`Ep ${ep.number}`}
 								class="aspect-video w-full rounded object-cover"
 								cookie={cookieStr}
-								referer="https://animepahe.si/"
+						referer="https://animepahe.si/"
 							/>
 							{/if}
 							<span class="text-xs font-semibold">{ep.number}</span>

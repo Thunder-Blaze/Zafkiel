@@ -169,6 +169,29 @@ fn migrations() -> Migrations<'static> {
             CREATE INDEX IF NOT EXISTS idx_reviews_user
                 ON reviews_cache(user_id);",
         ),
+        // 009 — Extension episode downloads
+        M::up(
+            "CREATE TABLE IF NOT EXISTS extension_downloads (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                anime_name      TEXT    NOT NULL,
+                anilist_id      INTEGER,
+                season          INTEGER NOT NULL DEFAULT 1,
+                episode_number  REAL    NOT NULL,
+                source_label    TEXT    NOT NULL,
+                extension_id    TEXT    NOT NULL,
+                status          TEXT    NOT NULL DEFAULT 'pending',
+                progress        REAL    NOT NULL DEFAULT 0.0,
+                file_path       TEXT,
+                url             TEXT,
+                error_msg       TEXT,
+                created_at      INTEGER NOT NULL,
+                updated_at      INTEGER NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_ext_downloads_status
+                ON extension_downloads(status);
+            CREATE INDEX IF NOT EXISTS idx_ext_downloads_anime
+                ON extension_downloads(anime_name);",
+        ),
     ])
 }
 

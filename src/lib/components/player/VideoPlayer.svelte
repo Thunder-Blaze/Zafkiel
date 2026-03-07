@@ -52,12 +52,61 @@
 		destroyHls();
 		if (!videoElement) return;
 		if (Hls.isSupported()) {
-			const hls = new Hls();
+			// enableWorker: false  — WebView2 dropped native video/mp2t MSE support;
+			//                         transmux TS→fMP4 on the main thread instead.
+			// preferManagedMediaSource: false — force standard MSE (ManagedMediaSource
+			//                         is a Safari-only API; not available in WebView2).
+			const hls = new Hls({
+				enableWorker: false,
+				lowLatencyMode: false,
+				preferManagedMediaSource: false,
+			});
 			hlsInstance = hls;
 			hls.loadSource(url);
 			hls.attachMedia(videoElement);
+
+			// Log codec info once the manifest is parsed — helps diagnose codec issues.
+			hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
+				const summary = data.levels
+					.map((l) => `${l.height ?? '?'}p v=${l.videoCodec ?? '?'} a=${l.audioCodec ?? '?'}`)
+					.join(' | ');
+				console.debug('[hls] manifest parsed →', summary);
+			});
+
+			let recoveryAttempts = 0;
+			let networkRetries = 0;
 			hls.on(Hls.Events.ERROR, (_, data) => {
-				if (data.fatal) {
+				if (!data.fatal) return;
+				console.error('[hls] fatal', data.type, data.details, data.mimeType, data.error?.message);
+				if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+					if (data.details === Hls.ErrorDetails.BUFFER_ADD_CODEC_ERROR) {
+						// The codec is not supported by MSE — recoverMediaError() cannot
+						// help here.  Show the rejected MIME type so the user knows which
+						// codec failed (often HEVC on WebView2).
+						const mime = data.mimeType ? `: ${data.mimeType}` : '';
+						hasError = true;
+						errorMessage = `Codec not supported${mime} — try a lower-quality source`;
+						return;
+					}
+					recoveryAttempts++;
+					if (recoveryAttempts === 1) {
+						hls.recoverMediaError();
+					} else if (recoveryAttempts === 2) {
+						hls.swapAudioCodec();
+						hls.recoverMediaError();
+					} else {
+						hasError = true;
+						errorMessage = data.details ?? 'HLS fatal media error';
+					}
+				} else if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+					networkRetries++;
+					if (networkRetries <= 3) {
+						hls.startLoad();
+					} else {
+						hasError = true;
+						errorMessage = `Network error: ${data.details}`;
+					}
+				} else {
 					hasError = true;
 					errorMessage = data.details ?? 'HLS fatal error';
 				}
@@ -325,6 +374,16 @@
 	}
 
 	onMount(() => {
+		// WebView2 rejects 'mp4a.40.1' (AAC Main Profile) in addSourceBuffer()
+		// even though the bitstream is identical to mp4a.40.2 (AAC-LC).
+		// hls.js 1.x derives this string from parsing the fMP4 init segment atoms,
+		// not from the m3u8 CODECS attribute, so patching the m3u8 is not enough.
+		// Normalise it at the MSE API boundary before the browser sees it.
+		const _origAddSourceBuffer = MediaSource.prototype.addSourceBuffer;
+		MediaSource.prototype.addSourceBuffer = function (mimeType: string) {
+			return _origAddSourceBuffer.call(this, mimeType.replace(/mp4a\.40\.1\b/g, 'mp4a.40.2'));
+		};
+
 		// Load volume
 		const savedVol = localStorage.getItem('zafkiel-player-volume');
 		if (savedVol) {
@@ -392,8 +451,9 @@
 					variant="outline"
 					size="sm"
 					onclick={() => {
-						videoElement.load();
 						hasError = false;
+						const activeSrc = src ?? sources[0]?.src;
+						if (activeSrc) attachHls(activeSrc);
 					}}>Retry</Button
 				>
 				<Button

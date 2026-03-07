@@ -160,3 +160,49 @@ export interface SourceExtension {
 	getStreamSources(animeId: string, episodeId: string): Promise<StreamSource[]>;
 	resolveStream(source: StreamSource): Promise<ResolvedStream>;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Downloads
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Parameters passed to the `start_extension_download` Tauri command. */
+export interface StartDownloadParams {
+	animeName: string;
+	anilistId?: number;
+	/** Season number (1-based; most anime = 1). */
+	season: number;
+	/** Episode number; may be a decimal (e.g. 5.5 for specials). */
+	episodeNumber: number;
+	/** Human-readable quality label, e.g. "HorribleSubs 1080p (JPN)". */
+	sourceLabel: string;
+	extensionId: string;
+	/** Resolved HLS / MP4 URL returned by resolveStream(). */
+	url: string;
+	headers: Record<string, string>;
+}
+
+/** Mirrors the `ExtensionDownload` Rust struct returned by `get_extension_downloads`. */
+export interface ExtensionDownload {
+	readonly id: number;
+	readonly animeName: string;
+	readonly anilistId?: number;
+	readonly season: number;
+	readonly episodeNumber: number;
+	readonly sourceLabel: string;
+	readonly extensionId: string;
+	readonly status: 'pending' | 'downloading' | 'completed' | 'failed' | 'cancelled';
+	readonly progress: number;
+	readonly filePath?: string;
+	readonly errorMsg?: string;
+	readonly createdAt: number;
+	readonly updatedAt: number;
+}
+
+/** Payload of the `extension-download-progress` Tauri event. */
+export interface DownloadProgressEvent {
+	readonly id: number;
+	readonly progress: number;
+	readonly status: ExtensionDownload['status'];
+	readonly errorMsg?: string;
+	readonly filePath?: string;
+}

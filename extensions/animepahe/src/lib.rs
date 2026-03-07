@@ -7,6 +7,14 @@ use std::cell::RefCell;
 use types::*;
 use wasm_bindgen::prelude::*;
 
+/// Runs automatically when the WASM module is initialised.
+/// Installs the panic hook so that any Rust panic emits a descriptive
+/// `console.error` message instead of a silent `unreachable` trap.
+#[wasm_bindgen(start)]
+pub fn wasm_start() {
+    console_error_panic_hook::set_once();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Extension state (single-threaded WASM – RefCell is safe)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -41,18 +49,16 @@ fn set_kwik_cookies(s: String) {
 /// Returns the extension manifest as a JSON string.
 #[wasm_bindgen]
 pub fn get_manifest() -> String {
-    // Install the panic hook once so every subsequent panic emits a console.error
-    // with the exact Rust source location before triggering the WASM unreachable trap.
-    console_error_panic_hook::set_once();
     r#"{
   "id": "animepahe",
   "name": "AnimePahe",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Zafkiel",
   "description": "AnimePahe streaming source – HLS playback via Kwik.si",
   "type": "source",
   "entry": "extension.wasm",
   "minAppVersion": "0.1.0",
+  "supportsDownload": true,
   "requires": {
     "cookieAuth": true,
     "network": true,
@@ -105,7 +111,7 @@ pub async fn check_auth() -> bool {
     };
 
     // Probe with a cheap airing API call to verify cookies still work
-    match api::pahe_get("/api?m=airing&page=1", &cookies).await {
+    match api::pahe_api_get("/api?m=airing&page=1", &cookies).await {
         Ok(body) => {
             let ok = !body.contains("\"status\":403")
                 && !body.contains("Just a moment")
@@ -134,7 +140,7 @@ pub async fn search(query: String) -> Result<String, String> {
         "/api?m=search&q={}",
         url_encode(&query)
     );
-    let raw = api::pahe_get(&path, &cookies).await?;
+    let raw = api::pahe_api_get(&path, &cookies).await?;
 
     let resp: PaheSearchResponse =
         serde_json::from_str(&raw).map_err(|e| format!("Failed to parse search response: {e}"))?;
@@ -186,7 +192,7 @@ pub async fn get_episodes(anime_session: String, page: u32) -> Result<String, St
     let cookies = ensure_cookies().await?;
     let p = if page == 0 { 1 } else { page };
     let path = format!("/api?m=release&id={anime_session}&sort=episode_asc&page={p}");
-    let raw = api::pahe_get(&path, &cookies).await?;
+    let raw = api::pahe_api_get(&path, &cookies).await?;
 
     let resp: PaheEpisodesResponse = serde_json::from_str(&raw)
         .map_err(|e| format!("Failed to parse episodes response: {e}"))?;
@@ -257,10 +263,24 @@ pub async fn resolve_stream(source_json: String) -> Result<String, String> {
     let source: StreamSource = serde_json::from_str(&source_json)
         .map_err(|e| format!("Invalid source JSON: {e}"))?;
 
+    // Load kwik cookies early — needed both when fetching the Kwik page (CF challenge)
+    // and when forwarding them to the CDN for HLS segment requests.
+    let kwik_cookies = {
+        let c = get_kwik_cookies();
+        if c.is_empty() {
+            let stored = api::load_kwik_cookies().await;
+            if !stored.is_empty() {
+                set_kwik_cookies(stored.clone());
+            }
+            stored
+        } else {
+            c
+        }
+    };
+
     api::log_info(&format!("[resolve_stream] fetching kwik URL: {}", source.id));
 
-    // Fetch the Kwik page — only Referer+UA, no cookies (Kwik rejects third-party cookies)
-    let kwik_html = api::fetch_kwik(&source.id).await.map_err(|e| {
+    let kwik_html = api::fetch_kwik(&source.id, &kwik_cookies).await.map_err(|e| {
         api::log_warn(&format!("[resolve_stream] fetch_kwik FAILED: {e}"));
         e
     })?;
@@ -287,23 +307,23 @@ pub async fn resolve_stream(source_json: String) -> Result<String, String> {
 
     api::log_info(&format!("[resolve_stream] extracted URL: {video_url}"));
 
-    let mut headers = std::collections::HashMap::new();
-    headers.insert("Referer".to_owned(), "https://kwik.si/".to_owned());
-
-    // Include kwik.si Cloudflare cookies if available (needed when the CDN
-    // enforces CF protection — obtained via the kwik auth webview).
-    let kwik_cookies = {
-        let c = get_kwik_cookies();
-        if c.is_empty() {
-            api::load_kwik_cookies().await
+    // Derive the Referer from the actual kwik embed URL origin so CDN requests
+    // use the correct host (e.g. kwik.cx when source.id is kwik.cx/e/...).
+    let kwik_referer = {
+        let parts: Vec<&str> = source.id.splitn(4, '/').collect();
+        if parts.len() >= 3 {
+            format!("{}//{}/", parts[0], parts[2])
         } else {
-            c
+            "https://kwik.cx/".to_owned()
         }
     };
+
+    let mut headers = std::collections::HashMap::new();
+    headers.insert("Referer".to_owned(), kwik_referer.clone());
+    headers.insert("Origin".to_owned(), kwik_referer.trim_end_matches('/').to_owned());
     if !kwik_cookies.is_empty() {
-        set_kwik_cookies(kwik_cookies.clone());
         headers.insert("Cookie".to_owned(), kwik_cookies);
-        api::log_info("[resolve_stream] kwik cookies added to CDN headers");
+        api::log_info("[resolve_stream] kwik cookies forwarded to CDN headers");
     }
 
     let resolved = ResolvedStream {

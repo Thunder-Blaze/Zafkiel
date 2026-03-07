@@ -25,6 +25,17 @@ use std::sync::OnceLock;
 // ─── Global state ────────────────────────────────────────────────────────────
 
 static PROXY_PORT: OnceLock<u16> = OnceLock::new();
+static HTTP_CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+
+fn http_client() -> &'static reqwest::Client {
+    HTTP_CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .user_agent(UA)
+            .pool_max_idle_per_host(8)
+            .build()
+            .expect("failed to build HLS proxy HTTP client")
+    })
+}
 
 pub fn proxy_port() -> Option<u16> {
     PROXY_PORT.get().copied()
@@ -60,29 +71,29 @@ async fn proxy_handler(Query(params): Query<ProxyParams>) -> impl IntoResponse {
     let target_url = params.url.trim().to_owned();
     log::debug!("[hls_proxy] → {}", target_url);
 
-    let client = match reqwest::Client::builder().user_agent(UA).build() {
-        Ok(c) => c,
-        Err(e) => {
-            log::error!("[hls_proxy] failed to build client: {}", e);
-            return (StatusCode::INTERNAL_SERVER_ERROR, cors_headers(), format!("Client error: {e}").into_bytes());
-        }
-    };
+    let client = http_client();
 
-    // Mimic a browser loading an HLS segment from the kwik.si embed page.
+    // Mimic a browser loading an HLS segment from inside the kwik embed page.
     //
-    // Strategy (matching real browser behaviour):
-    //   1. With Referer  — browser always sends Referer: kwik.si/ when hls.js
-    //      fetches CDN segments from inside the embed iframe. The CDN cookie
-    //      (cf_clearance collected by the pre-warm webview) is also included.
-    //   2. No Referer    — fallback for servers that reject unexpected Referers.
+    // Strategy:
+    //   1. With Referer+Origin — CDN checks that requests come from the kwik
+    //      embed domain (e.g. kwik.cx). Both Referer and Origin must match.
+    //   2. No Referer          — fallback for servers that reject Referer.
     let build_req = |with_referer: bool| {
         let mut r = client
             .get(&target_url)
+            .header("User-Agent", UA)
             .header("Accept", "*/*")
-            .header("Accept-Language", "en-US,en;q=0.9");
+            .header("Accept-Language", "en-US,en;q=0.9")
+            // Do NOT send Accept-Encoding — reqwest is built without the gzip
+            // feature so it cannot decompress; the CDN must return raw bytes.
+            .header("Connection", "keep-alive");
         if with_referer {
             if let Some(ref ref_val) = params.referer {
                 r = r.header("Referer", ref_val);
+                // Also send Origin so CDN CORS checks pass
+                let origin = ref_val.trim_end_matches('/');
+                r = r.header("Origin", origin);
             }
         }
         if let Some(ref c) = params.cookie {
@@ -203,8 +214,8 @@ async fn proxy_handler(Query(params): Query<ProxyParams>) -> impl IntoResponse {
     (StatusCode::OK, headers, final_body)
 }
 
-/// Rewrite every non-comment, non-empty line in an m3u8 that looks like a URL
-/// so that it is served through our local proxy.
+/// Rewrite every URL in an m3u8 (segment lines AND #EXT-X-KEY URIs) so that
+/// every subsequent request from hls.js passes through this proxy.
 fn rewrite_m3u8(
     text: &str,
     base: &str,
@@ -212,14 +223,39 @@ fn rewrite_m3u8(
     referer: Option<&str>,
     cookie: Option<&str>,
 ) -> String {
-    text.lines()
+    let rewritten = text.lines()
         .map(|line| {
             let t = line.trim();
-            // Skip comments and empty lines
-            if t.is_empty() || t.starts_with('#') {
+            if t.is_empty() {
                 return line.to_owned();
             }
-            // Resolve to absolute URL
+
+            // Rewrite URI="..." inside #EXT-X-KEY (and similar tags).
+            // These lines are comments but contain URLs that hls.js fetches
+            // directly for AES-128 decryption keys — must also go through proxy.
+            if t.starts_with('#') {
+                if let Some(uri_start) = t.find("URI=\"") {
+                    let after = &t[uri_start + 5..];
+                    if let Some(uri_end) = after.find('"') {
+                        let raw_uri = &after[..uri_end];
+                        let abs = if raw_uri.starts_with("http://") || raw_uri.starts_with("https://") {
+                            raw_uri.to_owned()
+                        } else {
+                            format!("{}/{}", base.trim_end_matches('/'), raw_uri.trim_start_matches('/'))
+                        };
+                        let proxied = build_proxy_url(port, &abs, referer, cookie);
+                        return format!(
+                            "{}URI=\"{}\"{}",
+                            &t[..uri_start],
+                            proxied,
+                            &after[uri_end + 1..]
+                        );
+                    }
+                }
+                return line.to_owned();
+            }
+
+            // Regular segment / sub-playlist line
             let abs = if t.starts_with("http://") || t.starts_with("https://") {
                 t.to_owned()
             } else {
@@ -229,7 +265,14 @@ fn rewrite_m3u8(
             build_proxy_url(port, &abs, referer, cookie)
         })
         .collect::<Vec<_>>()
-        .join("\n")
+        .join("\n");
+
+    // Normalize AAC codec descriptor: mp4a.40.1 (AAC Main Profile) is rejected
+    // by WebView2's MSE implementation.  mp4a.40.2 (AAC-LC) is identical in
+    // practice — the bitstream is the same; only the descriptor differs — and is
+    // universally supported.  Do the replacement on the full text so it covers
+    // both EXT-X-STREAM-INF CODECS="..." attributes and EXT-X-MEDIA lines.
+    rewritten.replace("mp4a.40.1", "mp4a.40.2")
 }
 
 /// Build a proxy URL for a target URL.

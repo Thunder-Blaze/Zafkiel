@@ -206,11 +206,14 @@ class ExtensionLoaderService {
 
 		// 5a. WASM extension: `default` is the wasm-bindgen init() function
 		if (isWasmBacked && typeof mod.default === 'function') {
-			const dir = absolutePath.replace(/\/[^/]+$/, '');
-			const wasmAssetUrl = convertFileSrc(`${dir}/extension.wasm`);
+			const lastSep = Math.max(absolutePath.lastIndexOf('/'), absolutePath.lastIndexOf('\\'));
+			const dir = lastSep >= 0 ? absolutePath.substring(0, lastSep) : absolutePath;
+			const sep = lastSep >= 0 ? absolutePath[lastSep] : '/';
+			const wasmAssetUrl = convertFileSrc(`${dir}${sep}extension.wasm`);
 
 			try {
-				await (mod.default as (url: string) => Promise<unknown>)(wasmAssetUrl);
+				const initFn = mod.default as ((options: { module_or_path: string }) => Promise<unknown>) & ((url: string) => Promise<unknown>);
+				await initFn({ module_or_path: wasmAssetUrl });
 			} catch (err) {
 				const msg = err instanceof Error ? err.message : String(err);
 				throw new ExtensionLoadError(

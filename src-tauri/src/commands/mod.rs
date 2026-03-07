@@ -6,3 +6,4 @@ pub mod torrent;
 pub mod db;
 pub mod image_cache;
 pub mod extensions;
+pub mod downloads;

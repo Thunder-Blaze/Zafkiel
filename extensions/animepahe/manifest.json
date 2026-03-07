@@ -1,12 +1,13 @@
 {
   "id": "animepahe",
   "name": "AnimePahe",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Zafkiel",
   "description": "AnimePahe streaming source – HLS playback via Kwik.si",
   "type": "source",
   "entry": "extension.js",
   "minAppVersion": "0.1.0",
+  "supportsDownload": true,
   "requires": {
     "cookieAuth": true,
     "network": true,

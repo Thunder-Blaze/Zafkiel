@@ -330,6 +330,12 @@ pub fn run() {
             commands::torrent::resume_torrent,
             commands::torrent::delete_torrent,
             commands::torrent::get_stream_base_url,
+
+            // ─── Extension downloads ──────────────────────────────────────
+            commands::downloads::start_extension_download,
+            commands::downloads::get_extension_downloads,
+            commands::downloads::cancel_extension_download,
+            commands::downloads::remove_extension_download,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
