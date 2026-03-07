@@ -3,6 +3,7 @@ mod auth;
 mod commands;
 mod config;
 mod database;
+mod hls_proxy;
 
 use api::anilist::AniListService;
 use auth::anilist::AuthState;
@@ -127,6 +128,12 @@ pub fn run() {
             app.manage(session.clone());
             log::info!("[Setup] Global torrent session initialized");
 
+            // Start local HLS proxy server (random available port)
+            match hls_proxy::start_sync() {
+                Ok(port) => log::info!("[Setup] HLS proxy running on port {port}"),
+                Err(e) => log::error!("[Setup] Failed to start HLS proxy: {e}"),
+            }
+
             let app_handle = app.handle().clone();
             let session_clone = session.clone();
             tauri::async_runtime::spawn(async move {
@@ -169,7 +176,7 @@ pub fn run() {
             commands::extensions::ext_storage_set,
             commands::extensions::ext_storage_delete,
             commands::extensions::open_extension_auth_webview,
-            commands::extensions::collect_extension_cookies,
+            commands::extensions::collect_cdn_cookies_for_kwik,
 
             // Auth commands
             commands::auth::start_oauth_flow,
@@ -245,6 +252,8 @@ pub fn run() {
             commands::utils::fetch_url,
             commands::utils::post_url,
             commands::utils::upload_to_catbox,
+            commands::utils::fetch_image_base64,
+            commands::utils::fetch_bytes_base64,
 
             // ─── Notifications ───────────────────────────────────────────
             commands::api::notification::fetch_notifications,
@@ -306,6 +315,9 @@ pub fn run() {
             commands::db::get_cached_image_path,
             commands::db::cache_image,
             commands::db::remove_cached_image,
+
+            // ─── HLS proxy ───────────────────────────────────────────────
+            hls_proxy::get_hls_proxy_port,
 
             // ─── Torrent ─────────────────────────────────────────────────
             commands::torrent::stream_torrent,

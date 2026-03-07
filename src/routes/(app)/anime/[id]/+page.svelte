@@ -16,6 +16,7 @@
 	import UserActivities from './anime/UserActivities.svelte';
 
 	import TorrentsList from './anime/TorrentsList.svelte';
+	import WatchSection from './anime/WatchSection.svelte';
 	import RecommendationCard from '$lib/components/RecommendationCard.svelte';
 	import PageLoader from '$lib/components/PageLoader.svelte';
 
@@ -350,8 +351,12 @@
 
 			<!-- Tabs Section -->
 			<div class="space-y-6" in:fade={{ duration: 300 }}>
-				<Tabs value="characters" class="w-full">
-					<TabsList class="grid w-full grid-cols-7">
+				<Tabs value="watch" class="w-full">
+					<TabsList class="grid w-full grid-cols-8">
+						<TabsTrigger value="watch" class="flex items-center gap-2">
+							<Icon icon="solar:play-circle-bold" class="size-4" />
+							Watch
+						</TabsTrigger>
 						<TabsTrigger value="characters" class="flex items-center gap-2">Characters</TabsTrigger>
 						<TabsTrigger value="torrents" class="flex items-center gap-2">
 							<Icon icon="solar:download-bold-duotone" class="size-4" />
@@ -363,6 +368,10 @@
 						<TabsTrigger value="related">Related</TabsTrigger>
 						<TabsTrigger value="recommendations">Recs</TabsTrigger>
 					</TabsList>
+
+					<TabsContent value="watch" class="mt-6">
+						<WatchSection animeTitle={title} animeId={animeId} />
+					</TabsContent>
 
 					<TabsContent value="characters" class="mt-6">
 						<CharactersList

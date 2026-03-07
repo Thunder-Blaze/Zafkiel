@@ -105,7 +105,7 @@
 				// New navigation - remove any forward history and add new path
 				navigationHistory = [...navigationHistory.slice(0, currentHistoryIndex + 1), newPath];
 				currentHistoryIndex = navigationHistory.length - 1;
-				$inspect('[TitleBar] New navigation to:', newPath, 'history:', navigationHistory);
+				console.log('[TitleBar] New navigation to:', newPath, 'history:', navigationHistory);
 			}
 		}
 	});
@@ -251,7 +251,7 @@
 				<BrowseDropdown />
 
 				<!-- Remaining nav items (Social/Forum/Settings hidden below 1366px) -->
-				{#each navItems as item}
+				{#each navItems as item (item.path)}
 					{#if item.path === '/downloads' || windowWidth >= 1366}
 						{@const isActive = page.url.pathname === item.path}
 						<Button
@@ -277,7 +277,7 @@
 				type="button"
 				onclick={searchOverlay.show}
 				title="Search ({isMac ? '⌘K' : 'Ctrl+K'})"
-				class="mr-2 flex h-8 w-48 items-center gap-2 rounded-md bg-muted/40 px-3 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+				class="mr-2 flex h-8 w-48 items-center gap-2 rounded-md bg-muted/40 px-3 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
 			>
 				<Icon icon="solar:magnifer-bold" class="h-3.5 w-3.5 shrink-0" />
 				<span class="flex-1 text-left text-xs">Search…</span>

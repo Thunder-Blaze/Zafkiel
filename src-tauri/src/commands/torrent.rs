@@ -506,6 +506,11 @@ pub async fn open_in_external_player(url: String) -> Result<(), String> {
     log::info!("Opening external player for URL: {}", url);
     std::process::Command::new("mpv")
         .arg(&url)
+        // Disable yt-dlp/youtube-dl hook so MPV uses its native HLS stack.
+        // Without this, ytdl_hook intercepts the URL and yt-dlp tries to fetch
+        // the CDN directly (no cookies) → 403.  With --no-ytdl, MPV opens the
+        // proxy URL as plain HLS and all segment fetches go through our proxy.
+        .arg("--no-ytdl")
         .spawn()
         .map_err(|e| format!("Failed to launch mpv: {}", e))?;
     Ok(())

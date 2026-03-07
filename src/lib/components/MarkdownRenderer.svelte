@@ -272,11 +272,11 @@
 	.anilist-markdown {
 		font-size: 0.875rem;
 		line-height: 1.6;
-		color: hsl(var(--foreground));
+		color: var(--foreground);
 		word-break: break-word;
 	}
 	.anilist-markdown :global(a) {
-		color: hsl(var(--primary)) !important;
+		color: var(--primary) !important;
 		text-decoration: none;
 		cursor: pointer;
 	}
@@ -333,13 +333,13 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 4px;
-		background: hsl(var(--muted));
-		border: 1px solid hsl(var(--border));
+		background: var(--muted);
+		border: 1px solid var(--border);
 		border-radius: 999px;
 		padding: 1px 8px 1px 6px;
 		font-size: 0.78em;
 		font-weight: 500;
-		color: hsl(var(--muted-foreground));
+		color: var(--muted-foreground);
 		cursor: pointer;
 		transition:
 			background 0.15s,
@@ -348,8 +348,8 @@
 		line-height: 1.6;
 	}
 	.anilist-markdown :global(.al-spoiler-btn:hover) {
-		background: hsl(var(--accent));
-		color: hsl(var(--foreground));
+		background: var(--accent);
+		color: var(--foreground);
 	}
 	.anilist-markdown :global(.al-spoiler-text) {
 		display: none;
@@ -357,7 +357,7 @@
 	}
 	.anilist-markdown :global(.al-spoiler.open .al-spoiler-btn) {
 		background: hsl(var(--primary) / 0.15);
-		color: hsl(var(--primary));
+		color: var(--primary);
 		border-color: hsl(var(--primary) / 0.4);
 	}
 	.anilist-markdown :global(.al-spoiler.open .al-spoiler-text) {
@@ -427,22 +427,22 @@
 
 	/* ── Blockquotes ─────────────────────────────────────────────────────── */
 	.anilist-markdown :global(blockquote) {
-		border-left: 3px solid hsl(var(--border));
+		border-left: 3px solid var(--border);
 		padding-left: 1rem;
-		color: hsl(var(--muted-foreground));
+		color: var(--muted-foreground);
 		font-style: italic;
 		margin: 0.5rem 0;
 	}
 
 	/* ── Code ────────────────────────────────────────────────────────────── */
 	.anilist-markdown :global(code) {
-		background: hsl(var(--muted));
+		background: var(--muted);
 		border-radius: 4px;
 		padding: 1px 5px;
 		font-size: 0.85em;
 	}
 	.anilist-markdown :global(pre) {
-		background: hsl(var(--muted));
+		background: var(--muted);
 		border-radius: 8px;
 		padding: 0.75rem 1rem;
 		overflow-x: auto;
@@ -455,7 +455,7 @@
 	/* ── Misc ────────────────────────────────────────────────────────────── */
 	.anilist-markdown :global(hr) {
 		border: none;
-		border-top: 1px solid hsl(var(--border));
+		border-top: 1px solid var(--border);
 		margin: 0.1rem 0;
 	}
 	.anilist-markdown :global(p:empty) {

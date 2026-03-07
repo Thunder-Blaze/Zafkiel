@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/forms";
 
 /* Tauri drag-region: elements with this attribute are draggable like a title bar */
 [data-tauri-drag-region] {
@@ -15,8 +17,13 @@ textarea,
 select {
 	-webkit-app-region: no-drag;
 }
-@plugin "@tailwindcss/typography";
-@plugin "@tailwindcss/forms";
+
+input:focus,
+textarea:focus,
+select:focus {
+	outline: none;
+	box-shadow: none;
+}
 
 @import 'tw-animate-css';
 

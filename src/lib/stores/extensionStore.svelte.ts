@@ -115,10 +115,16 @@ class ExtensionStore {
 		this.statuses.set(id, { kind: 'downloading', progress: null });
 
 		try {
-			const entry = await invoke<ExtensionIndexEntry>('install_extension', {
-				id,
-				downloadUrl,
-			});
+			// Dev shortcut: install from a local .zext path if present in catalog
+			const entry = catalog?.localPath
+				? await invoke<ExtensionIndexEntry>('install_extension_from_local', {
+						id,
+						bundlePath: catalog.localPath,
+					})
+				: await invoke<ExtensionIndexEntry>('install_extension', {
+						id,
+						downloadUrl,
+					});
 
 			this.statuses.set(id, { kind: 'installed', entry });
 			toastSuccess(`${label} installed successfully`);

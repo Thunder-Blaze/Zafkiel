@@ -58,6 +58,8 @@ export interface CatalogExtension {
 	/** Whether the extension needs a special auth setup (e.g. Cloudflare cookies). */
 	readonly requiresAuth?: boolean;
 	readonly language?: string;
+	/** Dev-only: absolute path to a local .zext for testing without a remote URL. */
+	readonly localPath?: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -146,7 +148,9 @@ export interface CookieEntry {
 /** Interface that any source extension JS module must export. */
 export interface SourceExtension {
 	readonly manifest: ExtensionManifest;
-	onCookiesUpdated?(cookies: CookieEntry[]): void;
+	onCookiesUpdated?(cookies: CookieEntry[]): Promise<void> | void;
+	/** Optional: called after the user completes the Cloudflare challenge on kwik.si. */
+	onKwikCookiesUpdated?(cookiesString: string): Promise<void> | void;
 	checkAuth?(): Promise<boolean>;
 	search(query: string): Promise<SearchResult[]>;
 	getAnimeDetails(id: string): Promise<AnimeDetails>;

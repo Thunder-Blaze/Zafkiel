@@ -23,5 +23,7 @@ export const EXTENSION_CATALOG: readonly CatalogExtension[] = [
 		tags: ['streaming', 'anime', 'HLS'],
 		requiresAuth: true,
 		language: 'Japanese / English subtitles',
+		// Dev-only: use local .zext instead of remote download
+		localPath: '/home/ThunderBlaze/Documents/Projects/AiGen/zafkiel/extensions/animepahe/animepahe.zext',
 	},
 ] as const;

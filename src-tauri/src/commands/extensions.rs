@@ -500,8 +500,11 @@ pub fn install_extension_from_local(id: String, bundle_path: String) -> Result<E
 
 /// Open a named browser window pointing at `url` for extension auth flows.
 /// If a window with `window_label` already exists it is closed first.
-/// The injected overlay in the extension JS calls `collect_extension_cookies`
-/// when the user has passed the challenge.
+///
+/// A one-shot local TCP server is spawned on a random port. The injected script
+/// POSTs a "ping" when the user presses Done (or closes the window). The server
+/// then reads ALL cookies — including HttpOnly ones — directly from WebKit's
+/// native cookie store via `read_webview_cookies`.
 #[command]
 pub async fn open_extension_auth_webview(
     app: tauri::AppHandle,
@@ -510,6 +513,8 @@ pub async fn open_extension_auth_webview(
     title: String,
 ) -> Result<(), String> {
     use tauri::{WebviewUrl, WebviewWindowBuilder};
+    use tokio::io::AsyncWriteExt;
+    use tokio::net::TcpListener;
 
     if let Some(existing) = app.get_webview_window(&window_label) {
         let _ = existing.close();
@@ -519,32 +524,417 @@ pub async fn open_extension_auth_webview(
         .parse()
         .map_err(|e: url::ParseError| format!("Invalid URL '{url}': {e}"))?;
 
+    // Bind on an OS-assigned port so we don't collide with other windows.
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .map_err(|e| format!("Failed to bind cookie-collect server: {e}"))?;
+    let port = listener
+        .local_addr()
+        .map_err(|e| format!("Cannot get local port: {e}"))?
+        .port();
+
+    // Background task: wait for the "Done" ping, then read cookies natively.
+    let app2 = app.clone();
+    let label2 = window_label.clone();
+    let url_for_cookies = url.clone();
+    tokio::spawn(async move {
+        // Accept the signal POST – body is irrelevant, we just need the ping.
+        if let Ok((mut stream, _)) = listener.accept().await {
+            let _ = stream
+                .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n")
+                .await;
+            drop(stream);
+        }
+
+        // Brief delay so WebKit flushes any in-flight Set-Cookie headers
+        // that arrived just before the user pressed "Done".
+        tokio::time::sleep(std::time::Duration::from_millis(400)).await;
+
+        // Read cookies from WebKit's native store (includes HttpOnly).
+        let cookies = read_webview_cookies(&app2, &label2, &url_for_cookies).await;
+
+        log::info!(
+            "[Extensions] '{label2}' cookies collected ({} chars): {}",
+            cookies.len(),
+            &cookies[..cookies.len().min(200)]
+        );
+
+        let event = format!("{label2}-cookies-ready");
+        let _ = app2.emit(&event, cookies);
+
+        if let Some(win) = app2.get_webview_window(&label2) {
+            let _ = win.close();
+        }
+    });
+
+    // Injected into every page load. The script only sends a *ping* to the
+    // local server — the actual cookies are read natively in Rust, so HttpOnly
+    // cookies are included even though JS cannot see them.
+    let cookie_script = format!(
+        r#"(function(){{
+  'use strict';
+  var PORT={port};
+  var sent=false;
+
+  function ping(){{
+    if(sent)return;
+    sent=true;
+    if(navigator.sendBeacon){{
+      navigator.sendBeacon('http://127.0.0.1:'+PORT+'/collect','ping');
+    }}
+    try{{
+      fetch('http://127.0.0.1:'+PORT+'/collect',{{
+        method:'POST',mode:'no-cors',keepalive:true,
+        headers:{{'Content-Type':'text/plain'}},body:'ping'
+      }}).catch(function(){{}});
+    }}catch(e){{}}
+  }}
+
+  window.addEventListener('beforeunload',ping);
+  window.addEventListener('unload',ping);
+
+  function addButton(){{
+    if(!document.body||document.getElementById('__zafkiel_done__'))return;
+    var btn=document.createElement('div');
+    btn.id='__zafkiel_done__';
+    btn.textContent='\u2714 Done \u2014 Collect Cookies';
+    btn.style.cssText='position:fixed;bottom:24px;right:24px;z-index:2147483647;'+
+      'background:#22c55e;color:#fff;padding:10px 20px;border-radius:10px;'+
+      'cursor:pointer;font:bold 14px/1.4 sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.55);'+
+      'user-select:none;';
+    btn.addEventListener('click',function(){{
+      btn.textContent='\u23f3 Collecting\u2026';
+      btn.style.background='#2563eb';
+      ping();
+    }});
+    document.body.appendChild(btn);
+  }}
+
+  if(document.readyState==='loading'){{
+    document.addEventListener('DOMContentLoaded',addButton);
+  }}else{{
+    addButton();
+  }}
+  var _obs=new MutationObserver(function(){{addButton();}});
+  _obs.observe(document.documentElement,{{childList:true,subtree:false}});
+}})();"#,
+        port = port
+    );
+
     WebviewWindowBuilder::new(&app, &window_label, WebviewUrl::External(parsed_url))
         .title(&title)
         .inner_size(960.0, 720.0)
+        .resizable(true)
+        .decorations(true)
+        .visible(true)
+        .focused(true)
+        .initialization_script(&cookie_script)
         .build()
         .map_err(|e| format!("Failed to open auth window '{window_label}': {e}"))?;
 
     Ok(())
 }
 
-/// Called from inside the auth webview (via the extension's injected script).
-/// Emits `{window_label}-cookies-ready` to all windows so the extension JS
-/// in the main window can pick up the cookies, then closes the auth window.
-#[command]
-pub fn collect_extension_cookies(
-    app: tauri::AppHandle,
-    window_label: String,
-    cookies: String,
-) -> Result<(), String> {
-    let event = format!("{window_label}-cookies-ready");
-    app.emit(&event, cookies.clone())
-        .map_err(|e| format!("Failed to emit '{event}': {e}"))?;
+// ─────────────────────────────────────────────────────────────────────────────
+// Native cookie reading (includes HttpOnly cookies – JS cannot see these)
+// ─────────────────────────────────────────────────────────────────────────────
 
-    if let Some(win) = app.get_webview_window(&window_label) {
-        let _ = win.close();
+/// Reads **all** cookies for `url` from the named webview's native cookie store,
+/// including `HttpOnly` and `Secure` cookies that `document.cookie` never exposes.
+async fn read_webview_cookies(app: &tauri::AppHandle, window_label: &str, url: &str) -> String {
+    let Some(win) = app.get_webview_window(window_label) else {
+        log::warn!("[Extensions] read_webview_cookies: window '{window_label}' not found");
+        return String::new();
+    };
+
+    let (tx, rx) = tokio::sync::oneshot::channel::<String>();
+    let tx = std::sync::Arc::new(std::sync::Mutex::new(Some(tx)));
+    let url = url.to_owned();
+
+    if win
+        .with_webview({
+            let tx = tx.clone();
+            move |wv| platform_collect_cookies(wv, url, tx)
+        })
+        .is_err()
+    {
+        log::warn!("[Extensions] with_webview failed for '{window_label}'");
+        return String::new();
     }
 
-    log::info!("[Extensions] '{window_label}' cookies collected ({} chars)", cookies.len());
-    Ok(())
+    rx.await.unwrap_or_default()
+}
+
+type CookieTx = std::sync::Arc<std::sync::Mutex<Option<tokio::sync::oneshot::Sender<String>>>>;
+
+fn send_cookies(tx: &CookieTx, cookies: String) {
+    if let Ok(mut guard) = tx.lock() {
+        if let Some(sender) = guard.take() {
+            let _ = sender.send(cookies);
+        }
+    }
+}
+
+/// Linux: webkit2gtk CookieManager — reads all cookies including HttpOnly from
+/// the native WebKit store. Methods on `soup3::Cookie` take `&mut self` so we
+/// consume the Vec with `into_iter()` to get owned, mutable cookies.
+#[cfg(target_os = "linux")]
+fn platform_collect_cookies(wv: tauri::webview::PlatformWebview, url: String, tx: CookieTx) {
+    use webkit2gtk::{CookieManagerExt, WebContextExt, WebViewExt};
+
+    let webview = wv.inner();
+
+    let Some(ctx) = webview.web_context() else {
+        log::warn!("[Extensions] webkit: no web context");
+        send_cookies(&tx, String::new());
+        return;
+    };
+    let Some(cm) = ctx.cookie_manager() else {
+        log::warn!("[Extensions] webkit: no cookie manager");
+        send_cookies(&tx, String::new());
+        return;
+    };
+
+    // Clone url_log for use inside the move closure; `url` is borrowed by
+    // `cm.cookies()` as a `&str` argument and the borrow ends after the call.
+    let url_log = url.clone();
+    cm.cookies(&url, gio::Cancellable::NONE, move |result| {
+        let cookie_str = match result {
+            Ok(cookies) => {
+                log::debug!(
+                    "[Extensions] webkit got {} cookies for {}",
+                    cookies.len(),
+                    url_log
+                );
+                cookies
+                    .into_iter()
+                    .filter_map(|mut c| {
+                        let name = c.name()?;
+                        let value = c.value().unwrap_or_default();
+                        if name.is_empty() {
+                            None
+                        } else {
+                            Some(format!("{name}={value}"))
+                        }
+                    })
+                    .collect::<Vec<_>>()
+                    .join("; ")
+            }
+            Err(e) => {
+                log::warn!("[Extensions] get_cookies error: {e}");
+                String::new()
+            }
+        };
+        send_cookies(&tx, cookie_str);
+    });
+}
+
+/// macOS: WKHTTPCookieStore via objc — includes HttpOnly cookies.
+/// `getAllCookies:` fires an ObjC block which is bridged to our channel.
+#[cfg(target_os = "macos")]
+fn platform_collect_cookies(wv: tauri::webview::PlatformWebview, _url: String, tx: CookieTx) {
+    use objc::{msg_send, runtime::Object, sel, sel_impl};
+    use std::ffi::CStr;
+
+    unsafe {
+        let wk_webview = wv.inner() as *mut Object;
+        let config: *mut Object = msg_send![wk_webview, configuration];
+        let data_store: *mut Object = msg_send![config, websiteDataStore];
+        let cookie_store: *mut Object = msg_send![data_store, httpCookieStore];
+
+        let tx_inner = tx.clone();
+        let block = block::ConcreteBlock::new(move |cookies: *mut Object| {
+            let count: usize = msg_send![cookies, count];
+            let mut parts = Vec::with_capacity(count);
+            for i in 0..count {
+                let c: *mut Object = msg_send![cookies, objectAtIndex: i];
+                let name_ptr: *const std::os::raw::c_char = msg_send![c, name];
+                let val_ptr: *const std::os::raw::c_char = msg_send![c, value];
+                if !name_ptr.is_null() && !val_ptr.is_null() {
+                    let name = CStr::from_ptr(name_ptr).to_string_lossy().into_owned();
+                    let val = CStr::from_ptr(val_ptr).to_string_lossy().into_owned();
+                    if !name.is_empty() {
+                        parts.push(format!("{name}={val}"));
+                    }
+                }
+            }
+            send_cookies(&tx_inner, parts.join("; "));
+        });
+        let block = block.copy();
+        let _: () = msg_send![cookie_store, getAllCookies: &*block];
+    }
+}
+
+/// Windows: WebView2 CookieManager via ICoreWebView2CookieManager — includes HttpOnly.
+/// `GetCookies` is async/COM-callback based; we bridge it to our tokio oneshot
+/// via a Mutex-guarded sender that fires from the completion handler closure.
+#[cfg(target_os = "windows")]
+fn platform_collect_cookies(wv: tauri::webview::PlatformWebview, url: String, tx: CookieTx) {
+    use webview2_com::Microsoft::Web::WebView2::Win32::{
+        ICoreWebView2Cookie, ICoreWebView2CookieList, ICoreWebView2CookieManager,
+        ICoreWebView2GetCookiesCompletedHandler,
+        ICoreWebView2GetCookiesCompletedHandler_Impl, ICoreWebView2_2,
+    };
+    use windows::core::{implement, Interface, HSTRING, PWSTR};
+
+    #[implement(ICoreWebView2GetCookiesCompletedHandler)]
+    struct Handler {
+        tx: CookieTx,
+    }
+
+    impl ICoreWebView2GetCookiesCompletedHandler_Impl for Handler_Impl {
+        fn Invoke(
+            &self,
+            error_code: windows::core::HRESULT,
+            cookie_list: Option<&ICoreWebView2CookieList>,
+        ) -> windows::core::Result<()> {
+            let cookies = if error_code.is_ok() {
+                cookie_list.map(|list| unsafe {
+                    let mut count = 0u32;
+                    let _ = list.Count(&mut count);
+                    (0..count)
+                        .filter_map(|i| {
+                            let cookie: ICoreWebView2Cookie = list.GetValueAtIndex(i).ok()?;
+                            let mut name = PWSTR::null();
+                            let mut value = PWSTR::null();
+                            let _ = cookie.Name(&mut name);
+                            let _ = cookie.Value(&mut value);
+                            let n = unsafe { name.to_string() }.ok().filter(|s| !s.is_empty())?;
+                            let v = unsafe { value.to_string() }.unwrap_or_default();
+                            Some(format!("{n}={v}"))
+                        })
+                        .collect::<Vec<_>>()
+                        .join("; ")
+                }).unwrap_or_default()
+            } else {
+                log::warn!("[Extensions] WebView2 GetCookies error: {error_code:?}");
+                String::new()
+            };
+            send_cookies(&self.tx, cookies);
+            Ok(())
+        }
+    }
+
+    unsafe {
+        let controller = wv.controller();
+        let core = match controller.CoreWebView2() {
+            Ok(v) => v,
+            Err(e) => {
+                log::warn!("[Extensions] webview2 CoreWebView2: {e}");
+                send_cookies(&tx, String::new());
+                return;
+            }
+        };
+        let core2: ICoreWebView2_2 = match core.cast() {
+            Ok(v) => v,
+            Err(e) => {
+                log::warn!("[Extensions] webview2 cast to ICoreWebView2_2: {e}");
+                send_cookies(&tx, String::new());
+                return;
+            }
+        };
+        let mgr: ICoreWebView2CookieManager = match core2.CookieManager() {
+            Ok(v) => v,
+            Err(e) => {
+                log::warn!("[Extensions] webview2 CookieManager: {e}");
+                send_cookies(&tx, String::new());
+                return;
+            }
+        };
+
+        let uri = HSTRING::from(url.as_str());
+        let handler: ICoreWebView2GetCookiesCompletedHandler = Handler { tx }.into();
+        if let Err(e) = mgr.GetCookies(&uri, &handler) {
+            log::warn!("[Extensions] webview2 GetCookies call failed: {e}");
+        }
+    }
+}
+
+/// Fallback for any other platform.
+#[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
+fn platform_collect_cookies(_wv: tauri::webview::PlatformWebview, _url: String, tx: CookieTx) {
+    send_cookies(&tx, String::new());
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CDN cookie warm-up (Cloudflare JS challenge)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Open a hidden webview to a Kwik.si embed URL and wait for Cloudflare's JS
+/// challenge to auto-execute on the CDN domain, then return those cookies.
+///
+/// This mirrors exactly what Zenshin/Electron does with `webSecurity: false`:
+/// the real browser visits kwik.si, CF challenge runs, the `cf_clearance`
+/// cookie is set on `owocdn.top`, and subsequent CDN requests succeed.
+///
+/// * `kwik_url`  — `https://kwik.si/e/{embed_id}` (the source button src)
+/// * `cdn_url`   — origin of the m3u8 URL, e.g. `https://vault-99.owocdn.top`
+///
+/// Returns the collected cookie string for `cdn_url` (empty string on failure).
+#[command]
+pub async fn collect_cdn_cookies_for_kwik(
+    app: tauri::AppHandle,
+    kwik_url: String,
+    cdn_url: String,
+) -> Result<String, String> {
+    use tauri::{WebviewUrl, WebviewWindowBuilder};
+
+    const LABEL: &str = "kwik-cdn-warm";
+
+    // Close any leftover window from a previous attempt
+    if let Some(existing) = app.get_webview_window(LABEL) {
+        let _ = existing.close();
+        tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+    }
+
+    let parsed = kwik_url
+        .parse::<url::Url>()
+        .map_err(|e| format!("Invalid kwik URL: {e}"))?;
+
+    log::info!("[Extensions] kwik CDN warm-up: opening {kwik_url}");
+
+    // Use a small but visible off-screen window — hidden windows may not execute
+    // JS on all platforms (WebKit can skip rendering for invisible views).
+    let _win = WebviewWindowBuilder::new(&app, LABEL, WebviewUrl::External(parsed))
+        .title("Loading…")
+        .inner_size(400.0, 300.0)
+        .position(-8000.0, -8000.0) // off all normal screen coordinates
+        .decorations(false)
+        .resizable(false)
+        .build()
+        .map_err(|e| format!("Failed to open kwik CDN warm-up webview: {e}"))?;
+
+    // Poll every 500 ms for the cf_clearance cookie on the CDN domain.
+    // CF JS challenges typically resolve in under 3 seconds.
+    // We wait up to 20 seconds in case the challenge takes longer.
+    let mut cdn_cookies = String::new();
+    for attempt in 0u32..40 {
+        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+        cdn_cookies = read_webview_cookies(&app, LABEL, &cdn_url).await;
+
+        // Consider success either when cf_clearance is present OR after 5 s
+        // if any cookie at all appeared (CDN may use a different cookie name).
+        let has_clearance = cdn_cookies.contains("cf_clearance");
+        let has_any_cookie = !cdn_cookies.is_empty() && attempt >= 10;
+        if has_clearance || has_any_cookie {
+            log::info!(
+                "[Extensions] CDN cookies ready after {}ms ({} chars): {}",
+                (attempt + 1) * 500,
+                cdn_cookies.len(),
+                &cdn_cookies[..cdn_cookies.len().min(200)]
+            );
+            break;
+        }
+    }
+
+    if cdn_cookies.is_empty() {
+        log::warn!("[Extensions] No CDN cookies collected for {cdn_url} after 20 s");
+    }
+
+    // Close the warm-up window
+    if let Some(w) = app.get_webview_window(LABEL) {
+        let _ = w.close();
+    }
+
+    Ok(cdn_cookies)
 }

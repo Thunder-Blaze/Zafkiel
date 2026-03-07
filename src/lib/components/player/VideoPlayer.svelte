@@ -3,6 +3,7 @@
 	import PlayerControls from './PlayerControls.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '@iconify/svelte';
+	import Hls from 'hls.js';
 
 	let {
 		src,
@@ -37,6 +38,52 @@
 	let isBuffering = $state(false);
 	let hasError = $state(false);
 	let errorMessage = $state('');
+
+	let hlsInstance: Hls | null = null;
+
+	function destroyHls() {
+		if (hlsInstance) {
+			hlsInstance.destroy();
+			hlsInstance = null;
+		}
+	}
+
+	function attachHls(url: string) {
+		destroyHls();
+		if (!videoElement) return;
+		if (Hls.isSupported()) {
+			const hls = new Hls();
+			hlsInstance = hls;
+			hls.loadSource(url);
+			hls.attachMedia(videoElement);
+			hls.on(Hls.Events.ERROR, (_, data) => {
+				if (data.fatal) {
+					hasError = true;
+					errorMessage = data.details ?? 'HLS fatal error';
+				}
+			});
+		} else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+			// Native HLS (Safari / WebKit)
+			videoElement.src = url;
+		} else {
+			hasError = true;
+			errorMessage = 'HLS is not supported in this environment.';
+		}
+	}
+
+	$effect(() => {
+		const activeSrc = src ?? sources[0]?.src;
+		if (!activeSrc) return;
+		hasError = false;
+		isBuffering = true;
+		const isHls = activeSrc.includes('.m3u8') || activeSrc.includes('/m3u8');
+		if (isHls) {
+			attachHls(activeSrc);
+		} else {
+			destroyHls();
+			if (videoElement) videoElement.load();
+		}
+	});
 
 	// Animation frame ID for smooth slider updates
 	let rafId: number;
@@ -96,13 +143,6 @@
 			isBuffering = false;
 		}
 	}
-
-	$effect(() => {
-		if (src || sources.length > 0) {
-			hasError = false;
-			isBuffering = true;
-		}
-	});
 
 	function handleLoadedMetadata() {
 		duration = videoElement.duration;
@@ -298,6 +338,7 @@
 	onDestroy(() => {
 		clearTimeout(controlsTimeout);
 		window.removeEventListener('keydown', handleKeyDown);
+		destroyHls();
 	});
 </script>
 

@@ -179,7 +179,7 @@
 				<CachedImage src={media.bannerImage} alt="" class="h-full w-full object-cover opacity-60" />
 			{/if}
 			<div
-				class="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"
+				class="absolute inset-0 bg-linear-to-t from-background via-background/60 to-transparent"
 			></div>
 			<div class="absolute inset-x-0 bottom-0 flex items-end gap-3 px-5 pb-3">
 				<div class="h-16 w-12 shrink-0 overflow-hidden rounded-md shadow-lg ring-2 ring-border">
@@ -387,7 +387,7 @@
 						<input
 							type="date"
 							bind:value={startedAt}
-							class="h-9 w-full rounded-md border bg-background px-3 text-sm [color-scheme:dark] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+							class="h-9 w-full rounded-md border bg-background px-3 text-sm scheme-dark outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
 						/>
 						{#if startedAt}
 							<button
@@ -408,7 +408,7 @@
 						<input
 							type="date"
 							bind:value={completedAt}
-							class="h-9 w-full rounded-md border bg-background px-3 text-sm [color-scheme:dark] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+							class="h-9 w-full rounded-md border bg-background px-3 text-sm scheme-dark outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
 						/>
 						{#if completedAt}
 							<button
