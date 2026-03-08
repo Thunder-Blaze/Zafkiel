@@ -3,7 +3,6 @@ mod auth;
 mod commands;
 mod config;
 mod database;
-mod hls_proxy;
 
 use api::anilist::AniListService;
 use auth::anilist::AuthState;
@@ -56,6 +55,7 @@ pub fn run() {
         .init();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_libmpv::init())
         .setup(|app| {
             // Load environment variables from .env file
             if let Err(e) = dotenvy::dotenv() {
@@ -127,12 +127,6 @@ pub fn run() {
 
             app.manage(session.clone());
             log::info!("[Setup] Global torrent session initialized");
-
-            // Start local HLS proxy server (random available port)
-            match hls_proxy::start_sync() {
-                Ok(port) => log::info!("[Setup] HLS proxy running on port {port}"),
-                Err(e) => log::error!("[Setup] Failed to start HLS proxy: {e}"),
-            }
 
             let app_handle = app.handle().clone();
             let session_clone = session.clone();
@@ -316,9 +310,6 @@ pub fn run() {
             commands::db::cache_image,
             commands::db::remove_cached_image,
 
-            // ─── HLS proxy ───────────────────────────────────────────────
-            hls_proxy::get_hls_proxy_port,
-
             // ─── Torrent ─────────────────────────────────────────────────
             commands::torrent::stream_torrent,
             commands::torrent::stream_torrent_by_id,
@@ -330,6 +321,9 @@ pub fn run() {
             commands::torrent::resume_torrent,
             commands::torrent::delete_torrent,
             commands::torrent::get_stream_base_url,
+
+            // ─── Player window helpers ────────────────────────────────────
+            commands::mpv_window::lower_mpv_subwindow,
 
             // ─── Extension downloads ──────────────────────────────────────
             commands::downloads::start_extension_download,

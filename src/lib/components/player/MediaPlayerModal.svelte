@@ -92,13 +92,7 @@
 				)}
 			>
 				<VideoPlayer
-					src={currentSrc}
-					sources={[
-						{ src: currentSrc, type: 'video/mp4' },
-						{ src: currentSrc, type: 'video/webm' },
-						{ src: currentSrc, type: 'video/x-matroska' },
-					]}
-					tracks={currentSubtitleTracks}
+					url={currentSrc}
 					{title}
 					onBack={() => (open = false)}
 				/>

@@ -1,237 +1,130 @@
 <script lang="ts">
+	/**
+	 * VideoPlayer — libmpv underlay implementation.
+	 *
+	 * Architecture ("underlay trick"):
+	 *   1. tauri-plugin-libmpv grabs the raw OS window handle and renders video
+	 *      to the native window layer beneath the WebView.
+	 *   2. This component renders as a position:fixed full-viewport overlay with
+	 *      background:transparent, creating a "see-through hole" to the native
+	 *      video layer below.
+	 *   3. PlayerControls sits inside the overlay with its own dark background,
+	 *      rendering on top of the video.
+	 *
+	 * mpv handles HLS, DASH, MP4 and virtually every format/codec natively —
+	 * no hls.js transmuxing, no CORS workarounds, no WebView codec constraints.
+	 * The `referrer` and `http-header-fields` properties pass required CDN
+	 * authentication headers (Referer, Cookie) directly from mpv's HTTP client.
+	 */
 	import { onMount, onDestroy } from 'svelte';
+	import { invoke } from '@tauri-apps/api/core';
 	import PlayerControls from './PlayerControls.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '@iconify/svelte';
-	import Hls from 'hls.js';
+	import {
+		init,
+		destroy,
+		observeProperties,
+		listenEvents,
+		command,
+		setProperty,
+		type MpvObservableProperty,
+	} from 'tauri-plugin-libmpv-api';
 
 	let {
-		src,
-		sources = [],
-		tracks = [],
+		url,
+		headers = {},
 		title,
 		subtitle,
-		poster,
 		onBack,
 	} = $props<{
-		src?: string;
-		sources?: { src: string; type: string }[];
-		tracks?: { id: string; label: string; src: string; lang: string }[];
+		url: string;
+		headers?: Record<string, string>;
 		title?: string;
 		subtitle?: string;
-		poster?: string;
 		onBack?: () => void;
 	}>();
 
-	let videoElement: HTMLVideoElement;
-	let containerElement: HTMLDivElement;
+	// ── State ────────────────────────────────────────────────────────────────
 	let isPlaying = $state(false);
 	let currentTime = $state(0);
 	let duration = $state(0);
 	let volume = $state(1);
-	let showControls = $state(false);
+	let showControls = $state(true);
 	let isLocked = $state(false);
 	let showSkipIntro = $state(false);
-	let controlsTimeout: any;
-	let currentTrackIndex = $state(-1); // -1 = off
-
-	let isBuffering = $state(false);
+	let isBuffering = $state(true);
 	let hasError = $state(false);
 	let errorMessage = $state('');
-
-	let hlsInstance: Hls | null = null;
-
-	function destroyHls() {
-		if (hlsInstance) {
-			hlsInstance.destroy();
-			hlsInstance = null;
-		}
-	}
-
-	function attachHls(url: string) {
-		destroyHls();
-		if (!videoElement) return;
-		if (Hls.isSupported()) {
-			// enableWorker: false  — WebView2 dropped native video/mp2t MSE support;
-			//                         transmux TS→fMP4 on the main thread instead.
-			// preferManagedMediaSource: false — force standard MSE (ManagedMediaSource
-			//                         is a Safari-only API; not available in WebView2).
-			const hls = new Hls({
-				enableWorker: false,
-				lowLatencyMode: false,
-				preferManagedMediaSource: false,
-			});
-			hlsInstance = hls;
-			hls.loadSource(url);
-			hls.attachMedia(videoElement);
-
-			// Log codec info once the manifest is parsed — helps diagnose codec issues.
-			hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
-				const summary = data.levels
-					.map((l) => `${l.height ?? '?'}p v=${l.videoCodec ?? '?'} a=${l.audioCodec ?? '?'}`)
-					.join(' | ');
-				console.debug('[hls] manifest parsed →', summary);
-			});
-
-			let recoveryAttempts = 0;
-			let networkRetries = 0;
-			hls.on(Hls.Events.ERROR, (_, data) => {
-				if (!data.fatal) return;
-				console.error('[hls] fatal', data.type, data.details, data.mimeType, data.error?.message);
-				if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-					if (data.details === Hls.ErrorDetails.BUFFER_ADD_CODEC_ERROR) {
-						// The codec is not supported by MSE — recoverMediaError() cannot
-						// help here.  Show the rejected MIME type so the user knows which
-						// codec failed (often HEVC on WebView2).
-						const mime = data.mimeType ? `: ${data.mimeType}` : '';
-						hasError = true;
-						errorMessage = `Codec not supported${mime} — try a lower-quality source`;
-						return;
-					}
-					recoveryAttempts++;
-					if (recoveryAttempts === 1) {
-						hls.recoverMediaError();
-					} else if (recoveryAttempts === 2) {
-						hls.swapAudioCodec();
-						hls.recoverMediaError();
-					} else {
-						hasError = true;
-						errorMessage = data.details ?? 'HLS fatal media error';
-					}
-				} else if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-					networkRetries++;
-					if (networkRetries <= 3) {
-						hls.startLoad();
-					} else {
-						hasError = true;
-						errorMessage = `Network error: ${data.details}`;
-					}
-				} else {
-					hasError = true;
-					errorMessage = data.details ?? 'HLS fatal error';
-				}
-			});
-		} else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-			// Native HLS (Safari / WebKit)
-			videoElement.src = url;
-		} else {
-			hasError = true;
-			errorMessage = 'HLS is not supported in this environment.';
-		}
-	}
-
-	$effect(() => {
-		const activeSrc = src ?? sources[0]?.src;
-		if (!activeSrc) return;
-		hasError = false;
-		isBuffering = true;
-		const isHls = activeSrc.includes('.m3u8') || activeSrc.includes('/m3u8');
-		if (isHls) {
-			attachHls(activeSrc);
-		} else {
-			destroyHls();
-			if (videoElement) videoElement.load();
-		}
-	});
-
-	// Animation frame ID for smooth slider updates
-	let rafId: number;
-
-	function updateTime() {
-		if (videoElement && !videoElement.paused && !videoElement.ended) {
-			if (showControls || isLocked) {
-				currentTime = videoElement.currentTime;
-			}
-			rafId = requestAnimationFrame(updateTime);
-		}
-	}
-
-	function togglePlay() {
-		if (videoElement.paused) {
-			videoElement.play().catch((e) => {
-				// Ignore AbortError which happens when pausing while loading
-				if (e.name === 'AbortError') return;
-				console.error('Play error:', e);
-				hasError = true;
-				errorMessage = e.message;
-			});
-		} else {
-			videoElement.pause();
-		}
-	}
-
-	function handlePlay() {
-		isPlaying = true;
-		hasError = false;
-		// Start RAF loop
-		cancelAnimationFrame(rafId);
-		updateTime();
-	}
-
-	function handlePause() {
-		isPlaying = false;
-		cancelAnimationFrame(rafId);
-	}
-
-	// Throttle UI updates for smoother playback
+	let isInitialized = $state(false);
+	let controlsTimeout: ReturnType<typeof setTimeout> | undefined;
+	let unlistenProps: (() => void) | null = null;
+	let unlistenEvents: (() => void) | null = null;
 	let lastMouseMove = 0;
 
-	function handleTimeUpdate() {
-		// Use timeupdate mainly for low-freq logic if needed, or sync backup
-		if (!showControls && !isLocked) {
-			currentTime = videoElement.currentTime;
-		}
+	// ── mpv observed properties ───────────────────────────────────────────────
+	const OBSERVED_PROPERTIES = [
+		['pause', 'flag'],
+		['time-pos', 'double', 'none'],
+		['duration', 'double', 'none'],
+		['cache-buffering-state', 'int64'],
+	] as const satisfies MpvObservableProperty[];
 
-		// Mock skip intro logic - show between 1:30 and 3:00
-		// FIX: Commenting out to verify if this state change causes the specific-time flicker
-		// showSkipIntro = currentTime > 90 && currentTime < 180;
-		showSkipIntro = false;
-
-		// If time is updating, we are definitely not buffering
-		if (isBuffering && isPlaying) {
+	// ── Load a URL into mpv ───────────────────────────────────────────────────
+	async function loadUrl(streamUrl: string, streamHeaders: Record<string, string>) {
+		hasError = false;
+		isBuffering = true;
+		isPlaying = false;
+		currentTime = 0;
+		duration = 0;
+		try {
+			const referer = streamHeaders['Referer'] ?? streamHeaders['referer'];
+			if (referer) await setProperty('referrer', referer);
+			const extraHeaders = Object.entries(streamHeaders)
+				.filter(([k]) => k.toLowerCase() !== 'referer')
+				.map(([k, v]) => `${k}: ${v}`)
+				.join(',');
+			if (extraHeaders) await setProperty('http-header-fields', extraHeaders);
+			await command('loadfile', [streamUrl]);
+		} catch (e) {
+			console.error('[mpv] loadUrl error:', e);
+			hasError = true;
+			errorMessage = e instanceof Error ? e.message : String(e);
 			isBuffering = false;
 		}
 	}
 
-	function handleLoadedMetadata() {
-		duration = videoElement.duration;
-		// Initialize tracks
-		if (tracks.length > 0 && currentTrackIndex === -1) {
-			// Auto-select first track if English? Or leave off?
-			// For now leave off unless user selects
+	// ── Controls ──────────────────────────────────────────────────────────────
+	async function togglePlay() {
+		try {
+			await command('cycle', ['pause']);
+		} catch (e) {
+			console.error('[mpv] togglePlay error:', e);
 		}
 	}
 
-	function handleCanPlay() {
-		isBuffering = false;
-		hasError = false;
+	async function handleSeek(time: number) {
+		currentTime = time;
+		try {
+			await command('seek', [String(time), 'absolute']);
+		} catch (e) {
+			console.error('[mpv] seek error:', e);
+		}
 	}
 
-	function handleSeek(time: number) {
-		videoElement.currentTime = time;
-		currentTime = time; // Update immediately on seek
-	}
-
-	function handleVolumeChange(vol: number) {
+	async function handleVolumeChange(vol: number) {
 		volume = vol;
-		videoElement.volume = vol;
-		localStorage.setItem('zafkiel-player-volume', vol.toString());
-	}
-
-	function handleTrackChange(index: number) {
-		currentTrackIndex = index;
-		if (videoElement) {
-			// Loop through textTracks and set mode
-			// The tracks in videoElement.textTracks correspond to the <track> tags in order
-			for (let i = 0; i < videoElement.textTracks.length; i++) {
-				videoElement.textTracks[i].mode = i === index ? 'showing' : 'hidden';
-			}
+		try {
+			await setProperty('volume', Math.round(vol * 100));
+			localStorage.setItem('zafkiel-player-volume', vol.toString());
+		} catch (e) {
+			console.error('[mpv] volume error:', e);
 		}
 	}
 
 	function toggleFullscreen() {
 		if (!document.fullscreenElement) {
-			containerElement.requestFullscreen();
+			document.documentElement.requestFullscreen();
 		} else {
 			document.exitFullscreen();
 		}
@@ -243,21 +136,12 @@
 		resetControlsTimeout();
 	}
 
-	function handleSkipIntro() {
-		videoElement.currentTime += 85;
-	}
-
 	function handleMouseMove() {
 		if (isLocked) return;
-
-		// Throttle mouse move checks to every 100ms
 		const now = performance.now();
 		if (now - lastMouseMove < 100) return;
 		lastMouseMove = now;
-
-		if (!showControls) {
-			showControls = true;
-		}
+		if (!showControls) showControls = true;
 		resetControlsTimeout();
 	}
 
@@ -268,61 +152,17 @@
 		}, 3000);
 	}
 
-	function handleWaiting() {
-		isBuffering = true;
-	}
-
-	function handlePlaying() {
-		// Prevent flickering: Ensure we have enough buffer before resuming
-		// unless we are near the end of the video
-		if (videoElement && duration) {
-			const current = videoElement.currentTime;
-			const buffered = videoElement.buffered;
-			let bufferedEnd = 0;
-
-			for (let i = 0; i < buffered.length; i++) {
-				if (buffered.start(i) <= current && buffered.end(i) >= current) {
-					bufferedEnd = buffered.end(i);
-					break;
-				}
-			}
-
-			const remainingBuffer = bufferedEnd - current;
-			const remainingVideo = duration - current;
-
-			// If we have less than 3s buffer and we are not at the end
-			if (remainingBuffer < 3 && remainingVideo > 3) {
-				console.log(`Low buffer (${remainingBuffer.toFixed(2)}s), forcing pause to buffer...`);
-				videoElement.pause();
-				isBuffering = true;
-				return;
-			}
-		}
-
-		isBuffering = false;
-		hasError = false;
-	}
-
-	function handleError(e: Event) {
-		console.error('Video error:', e);
-		hasError = true;
-		errorMessage = videoElement.error?.message || 'Unknown error occurred';
-		isBuffering = false;
-	}
-
-	function handleKeyDown(e: KeyboardEvent) {
+	async function handleKeyDown(e: KeyboardEvent) {
 		if (isLocked) return;
-
 		if (!showControls && isPlaying) {
 			showControls = true;
 			resetControlsTimeout();
 		}
-
 		switch (e.key) {
 			case ' ':
 			case 'k':
 				e.preventDefault();
-				togglePlay();
+				await togglePlay();
 				break;
 			case 'f':
 				e.preventDefault();
@@ -330,147 +170,155 @@
 				break;
 			case 'ArrowRight':
 				e.preventDefault();
-				videoElement.currentTime += 5;
+				await command('seek', ['5', 'relative']);
 				break;
 			case 'ArrowLeft':
 				e.preventDefault();
-				videoElement.currentTime -= 5;
+				await command('seek', ['-5', 'relative']);
 				break;
 			case 'ArrowUp':
 				e.preventDefault();
-				const newVolUp = Math.min(1, videoElement.volume + 0.1);
-				handleVolumeChange(newVolUp);
+				await handleVolumeChange(Math.min(1, volume + 0.1));
 				break;
 			case 'ArrowDown':
 				e.preventDefault();
-				const newVolDown = Math.max(0, videoElement.volume - 0.1);
-				handleVolumeChange(newVolDown);
+				await handleVolumeChange(Math.max(0, volume - 0.1));
 				break;
 		}
 	}
 
-	function handleContainerClick(e: MouseEvent) {
-		const target = e.target as HTMLElement;
-		if (target.tagName === 'VIDEO' || target.classList.contains('click-area')) {
-			togglePlay();
-		}
-	}
-
-	function handleContainerDoubleClick(e: MouseEvent) {
-		const rect = containerElement.getBoundingClientRect();
-		const x = e.clientX - rect.left;
-		const width = rect.width;
-
-		if (x < width / 3) {
-			// Left third: Seek back
-			videoElement.currentTime -= 10;
-		} else if (x > (width * 2) / 3) {
-			// Right third: Seek forward
-			videoElement.currentTime += 10;
-		} else {
-			// Center: Toggle Fullscreen
-			toggleFullscreen();
-		}
-	}
-
-	onMount(() => {
-		// WebView2 rejects 'mp4a.40.1' (AAC Main Profile) in addSourceBuffer()
-		// even though the bitstream is identical to mp4a.40.2 (AAC-LC).
-		// hls.js 1.x derives this string from parsing the fMP4 init segment atoms,
-		// not from the m3u8 CODECS attribute, so patching the m3u8 is not enough.
-		// Normalise it at the MSE API boundary before the browser sees it.
-		const _origAddSourceBuffer = MediaSource.prototype.addSourceBuffer;
-		MediaSource.prototype.addSourceBuffer = function (mimeType: string) {
-			return _origAddSourceBuffer.call(this, mimeType.replace(/mp4a\.40\.1\b/g, 'mp4a.40.2'));
-		};
-
-		// Load volume
+	// ── Lifecycle ─────────────────────────────────────────────────────────────
+	onMount(async () => {
 		const savedVol = localStorage.getItem('zafkiel-player-volume');
-		if (savedVol) {
-			volume = parseFloat(savedVol);
-		}
+		if (savedVol) volume = parseFloat(savedVol);
 
-		resetControlsTimeout();
-		window.addEventListener('keydown', handleKeyDown);
+		try {
+			await init({
+				initialOptions: {
+					// gpu-next (libplacebo) is the recommended renderer.
+					// vaapi is the correct hwdec for Linux; avoids libcuda.so probing.
+					vo: 'gpu-next',
+					hwdec: 'vaapi',
+					'keep-open': 'yes',
+					'osd-level': '0',
+					'input-default-bindings': 'no',
+					'input-vo-keyboard': 'no',
+					volume: Math.round(volume * 100),
+				},
+				observedProperties: OBSERVED_PROPERTIES,
+			});
+
+			unlistenProps = await observeProperties(
+				OBSERVED_PROPERTIES,
+				({ name, data }: { name: string; data: unknown }) => {
+					switch (name) {
+						case 'pause':
+							isPlaying = data === false;
+							break;
+						case 'time-pos':
+							if (typeof data === 'number') currentTime = data;
+							break;
+						case 'duration':
+							if (typeof data === 'number') duration = data;
+							break;
+						case 'cache-buffering-state':
+							// 100 means fully buffered / not actively buffering
+							isBuffering = typeof data === 'number' ? data < 100 : false;
+							break;
+					}
+				},
+			);
+
+			unlistenEvents = await listenEvents((evt) => {
+					switch (evt.event) {
+						case 'file-loaded':
+							isBuffering = false;
+							hasError = false;
+							break;
+						case 'playback-restart':
+							isBuffering = false;
+							break;
+						case 'end-file': {
+							const reason =
+								'data' in evt &&
+								evt.data &&
+								typeof evt.data === 'object' &&
+								'reason' in evt.data
+									? (evt.data as { reason?: string }).reason
+									: undefined;
+							if (reason === 'error') {
+								hasError = true;
+								errorMessage = 'Playback error — check stream URL and headers';
+							}
+							isPlaying = false;
+							break;
+						}
+					}
+				});
+
+			isInitialized = true;
+			resetControlsTimeout();
+
+			// On Linux, mpv's X11 sub-window is created on top of the WebKit window.
+			// Lower it so the controls overlay (inside the WebView) sits above the video.
+			try {
+				await invoke('lower_mpv_subwindow');
+			} catch (e) {
+				console.warn('[mpv] lower_mpv_subwindow:', e);
+			}
+		} catch (e) {
+			console.error('[mpv] init error:', e);
+			hasError = true;
+			errorMessage = e instanceof Error ? e.message : 'Failed to initialize player';
+		}
 	});
 
-	onDestroy(() => {
+	$effect(() => {
+		if (isInitialized && url) loadUrl(url, headers);
+	});
+
+	onDestroy(async () => {
 		clearTimeout(controlsTimeout);
-		window.removeEventListener('keydown', handleKeyDown);
-		destroyHls();
+		unlistenProps?.();
+		unlistenEvents?.();
+		try {
+			await destroy();
+		} catch {}
 	});
 </script>
 
+<!--
+	Full-window transparent overlay.
+	mpv renders into the native OS window layer below the WebView.
+	This fixed div with background:transparent floats the UI on top while
+	the transparent hole reveals the mpv video surface underneath.
+-->
+<svelte:window onkeydown={handleKeyDown} />
+
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
-	bind:this={containerElement}
-	class="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-lg bg-black outline-none"
+	class="fixed inset-0 z-[100] cursor-pointer overflow-hidden bg-transparent"
 	onmousemove={handleMouseMove}
-	onmouseleave={() => (showControls = false)}
-	onclick={handleContainerClick}
-	ondblclick={handleContainerDoubleClick}
+	onmouseleave={() => {
+		if (!isLocked) showControls = false;
+	}}
 	role="application"
+	aria-label="Video player"
 >
-	<video
-		bind:this={videoElement}
-		class="h-full w-full object-contain"
-		onplay={handlePlay}
-		onpause={handlePause}
-		onwaiting={handleWaiting}
-		onplaying={handlePlaying}
-		onerror={handleError}
-		ontimeupdate={handleTimeUpdate}
-		onloadedmetadata={handleLoadedMetadata}
-		oncanplay={handleCanPlay}
-	>
-		{#if src}
-			<source {src} />
-		{:else if sources.length > 0}
-			{#each sources as source}
-				<source src={source.src} type={source.type} />
-			{/each}
-		{/if}
-
-		{#each tracks as track}
-			<track kind="subtitles" src={track.src} label={track.label} srclang={track.lang} />
-		{/each}
-	</video>
-
 	{#if hasError}
 		<div class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80">
 			<Icon icon="lucide:alert-circle" class="mb-2 h-12 w-12 text-red-500" />
 			<p class="font-medium text-white">Playback Error</p>
 			<p class="text-sm text-white/70">{errorMessage}</p>
-			<p class="max-w-md px-4 text-center text-xs text-white/50">
-				The internal player cannot play this file format. Please try opening it in an external
-				player.
-			</p>
 			<div class="mt-4 flex gap-2">
-				<Button
-					variant="outline"
-					size="sm"
-					onclick={() => {
-						hasError = false;
-						const activeSrc = src ?? sources[0]?.src;
-						if (activeSrc) attachHls(activeSrc);
-					}}>Retry</Button
-				>
+				<Button variant="outline" size="sm" onclick={() => loadUrl(url, headers)}>Retry</Button>
 				<Button
 					variant="default"
 					size="sm"
 					onclick={async () => {
 						try {
-							// For torrents, src might need to be passed differently or if it's a stream URL,
-							// external player handling might need the original magnet.
-							// Assuming src is the stream URL being played.
-							// If src is the stream URL, the backend might expect a Magnet URI for "open_in_external_player"
-							// OR the backend command handles stream URLs.
-							// Let's assume we invoke the general command.
-							// Wait, the previous implementation used `stream_torrent` which returned a port?
-							// Actually, let's use the invoke command `open_in_external_player`
 							const { invoke } = await import('@tauri-apps/api/core');
-							await invoke('open_in_external_player', { url: src });
+							await invoke('open_in_external_player', { url });
 						} catch (e) {
 							console.error('Failed to open external player:', e);
 						}
@@ -480,12 +328,6 @@
 					Open in Player
 				</Button>
 			</div>
-		</div>
-	{/if}
-
-	{#if !isPlaying && !src && !hasError}
-		<div class="absolute inset-0 flex items-center justify-center bg-black/50">
-			<p class="text-white">No video source selected</p>
 		</div>
 	{/if}
 
@@ -504,18 +346,19 @@
 				{subtitle}
 				{isLocked}
 				{showSkipIntro}
-				{tracks}
-				{currentTrackIndex}
+				tracks={[]}
+				currentTrackIndex={-1}
 				onPlayPause={togglePlay}
 				onSeek={handleSeek}
 				onVolumeChange={handleVolumeChange}
 				onFullscreen={toggleFullscreen}
 				onLockToggle={toggleLock}
 				{onBack}
-				onSkipIntro={handleSkipIntro}
+				onSkipIntro={() => command('seek', ['85', 'relative'])}
 				{isBuffering}
-				onTrackChange={handleTrackChange}
+				onTrackChange={() => {}}
 			/>
 		</div>
 	{/if}
 </div>
+

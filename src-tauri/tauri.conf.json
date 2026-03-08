@@ -20,7 +20,7 @@
 				"resizable": true,
 				"fullscreen": false,
 				"decorations": false,
-				"transparent": false,
+				"transparent": true,
 				"zoomHotkeysEnabled": false
 			}
 		],
@@ -44,7 +44,8 @@
 			"icons/icon.ico"
 		],
 		"resources": {
-			"../static/themes/": "themes/"
+			"../static/themes/": "themes/",
+			"lib/": "lib/"
 		}
 	}
 }

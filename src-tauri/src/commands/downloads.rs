@@ -196,9 +196,7 @@ pub async fn start_extension_download(
 
     let id = insert_download_record(&db, &params, &out_path_str)?;
 
-    // Build the input URL for ffmpeg: route through the local HLS proxy so
-    // auth headers (Referer, Cookie) are handled transparently.  ffmpeg only
-    // talks to 127.0.0.1 — no Cloudflare / CDN cookies needed on the ffmpeg side.
+    // Extract auth headers to pass to ffmpeg.
     let referer = params.headers.get("Referer")
         .or_else(|| params.headers.get("referer"))
         .map(|s| s.as_str());
@@ -206,14 +204,15 @@ pub async fn start_extension_download(
         .or_else(|| params.headers.get("cookie"))
         .map(|s| s.as_str());
 
-    let input_url = if let Some(port) = crate::hls_proxy::proxy_port() {
-        crate::hls_proxy::build_proxy_url(port, &params.url, referer, cookie)
-    } else {
-        log::warn!("[Downloads] HLS proxy unavailable, falling back to direct URL");
-        params.url.clone()
-    };
-
-    let url = input_url;
+    // Pass auth headers directly to ffmpeg via the -headers option ("Key: Value\r\n" format).
+    let mut ffmpeg_headers = String::new();
+    if let Some(r) = referer {
+        ffmpeg_headers.push_str(&format!("Referer: {r}\r\n"));
+    }
+    if let Some(c) = cookie {
+        ffmpeg_headers.push_str(&format!("Cookie: {c}\r\n"));
+    }
+    let url = params.url.clone();
     let db_arc = db.inner().clone();
     let app2 = app.clone();
 
@@ -234,19 +233,20 @@ pub async fn start_extension_download(
         emit(0.0, "downloading", None, None);
         db_update_status(&db_arc, id, "downloading", 0.0, None);
 
+        let mut ffmpeg_args: Vec<String> = vec!["-y".to_string()];
+        if !ffmpeg_headers.is_empty() {
+            ffmpeg_args.extend(["-headers".to_string(), ffmpeg_headers.clone()]);
+        }
+        // Note: aac_adtstoasc is intentionally omitted — fMP4 HLS segments already
+        // use AAC-LC in ASC format; applying the filter on such streams aborts ffmpeg.
+        ffmpeg_args.extend([
+            "-i".to_string(), url.clone(),
+            "-c".to_string(), "copy".to_string(),
+            out_path_str.clone(),
+        ]);
+
         let spawn_result = tokio::process::Command::new("ffmpeg")
-            .args([
-                "-y",
-                "-i", &url,
-                "-c", "copy",
-                // aac_adtstoasc is only valid for MPEG-TS-based HLS (ADTS → ASC
-                // conversion).  Modern CDN streams (e.g. kwik) use fMP4 segments
-                // where AAC is already in ASC format — applying the filter there
-                // aborts ffmpeg with "ADTS header not found".
-                // Let ffmpeg handle the muxing automatically (it does so correctly
-                // for both TS and fMP4 sources in current versions).
-                &out_path_str,
-            ])
+            .args(&ffmpeg_args)
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::piped())
             .spawn();
