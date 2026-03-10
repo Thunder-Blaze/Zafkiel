@@ -42,11 +42,9 @@
 	let addToListOpen = $state(false);
 
 	let autoplayTimer: ReturnType<typeof setInterval> | null = null;
-	let progressTween: gsap.core.Tween | undefined;
 	let kenBurnsTween: gsap.core.Tween | undefined;
 	let isAnimating = false;
 	let prevIndex = -1;
-	let isPaused = false;
 
 	// ── DOM refs ──────────────────────────────────────────────────────────────────
 	let bgSlotA: HTMLDivElement | undefined = $state();
@@ -59,7 +57,6 @@
 	let descEl: HTMLElement | undefined = $state();
 	let actionsEl: HTMLElement | undefined = $state();
 	let coverWrapper: HTMLElement | undefined = $state();
-	let progressBarEl: HTMLElement | undefined = $state();
 	let shimmerEl: HTMLElement | undefined = $state();
 
 	// ── Helpers ───────────────────────────────────────────────────────────────────
@@ -99,19 +96,6 @@
 		});
 	}
 
-	// ── Progress bar ─────────────────────────────────────────────────────────────
-	function startProgress() {
-		if (progressTween) progressTween.kill();
-		if (!progressBarEl) return;
-		gsap.set(progressBarEl, { width: '0%' });
-		progressTween = gsap.to(progressBarEl, {
-			width: '100%',
-			duration: autoplayInterval / 1000,
-			ease: 'none',
-		});
-		if (isPaused) progressTween.pause();
-	}
-
 	// ── Initial setup ─────────────────────────────────────────────────────────────
 	$effect(() => {
 		const first = items[0];
@@ -145,7 +129,6 @@
 					{ opacity: 0, y: 28, scale: 0.88 },
 					{ opacity: 1, y: 0, scale: 1, duration: 0.75, ease: 'back.out(1.6)', delay: 0.2 }
 				);
-			startProgress();
 		});
 	});
 
@@ -240,16 +223,14 @@
 	$effect(() => {
 		if (items.length > 1) {
 			autoplayTimer = setInterval(() => {
-				if (!isPaused && !isAnimating) {
+				if (!isAnimating) {
 					direction = 'right';
 					currentIndex = (currentIndex + 1) % items.length;
-					startProgress();
 				}
 			}, autoplayInterval);
 		}
 		return () => {
 			if (autoplayTimer) clearInterval(autoplayTimer);
-			if (progressTween) progressTween.kill();
 			if (kenBurnsTween) kenBurnsTween.kill();
 		};
 	});
@@ -259,30 +240,18 @@
 		if (isAnimating) return;
 		direction = 'left';
 		currentIndex = (currentIndex - 1 + items.length) % items.length;
-		startProgress();
 	}
 
 	function nextSlide() {
 		if (isAnimating) return;
 		direction = 'right';
 		currentIndex = (currentIndex + 1) % items.length;
-		startProgress();
 	}
 
 	function goToSlide(i: number) {
 		if (isAnimating) return;
 		direction = i > currentIndex ? 'right' : 'left';
 		currentIndex = i;
-		startProgress();
-	}
-
-	function handleMouseEnter() {
-		isPaused = true;
-		progressTween?.pause();
-	}
-	function handleMouseLeave() {
-		isPaused = false;
-		progressTween?.resume();
 	}
 
 	async function handleAddToList(status: MediaListStatus) {
@@ -293,12 +262,7 @@
 </script>
 
 {#if items.length > 0 && displayedItem}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div
-		class="group relative h-[460px] w-full overflow-hidden"
-		onmouseenter={handleMouseEnter}
-		onmouseleave={handleMouseLeave}
-	>
+	<div class="group relative h-[460px] w-full overflow-hidden">
 		<!-- Background slots -->
 		<div
 			bind:this={bgSlotA}
@@ -485,23 +449,6 @@
 			</button>
 		{/if}
 
-		<!-- Dots + progress bar -->
-		{#if items.length > 1}
-			<div class="absolute bottom-5 left-1/2 z-[6] flex -translate-x-1/2 gap-2">
-				{#each items as _, i}
-					<button
-						onclick={() => goToSlide(i)}
-						class="rounded-full transition-all duration-300 {i === currentIndex
-							? 'h-1.5 w-7 bg-primary shadow-[0_0_6px_1px_hsl(var(--primary)/0.5)]'
-							: 'h-1.5 w-1.5 bg-muted-foreground/40 hover:bg-muted-foreground/70'}"
-						aria-label="Go to slide {i + 1}"
-					></button>
-				{/each}
-			</div>
-			<div class="absolute bottom-0 left-0 z-[6] h-0.5 w-full bg-border/20">
-				<div bind:this={progressBarEl} class="h-full bg-primary/60" style="width:0%"></div>
-			</div>
-		{/if}
 	</div>
 {:else if items.length === 0}
 	<div class="flex h-[460px] w-full items-center justify-center text-muted-foreground">

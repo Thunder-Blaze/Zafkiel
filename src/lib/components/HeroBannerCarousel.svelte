@@ -22,13 +22,11 @@
 	// ── State ───────────────────────────────────────────────────────────────────
 	let currentIndex = $state(0);
 	let direction = $state<'left' | 'right'>('right');
-	let isPaused = $state(false);
 
 	/** The item whose data is currently rendered in the DOM */
 	let displayedItem = $state<Media | undefined>(undefined);
 
 	let autoplayTimer: ReturnType<typeof setInterval> | null = null;
-	let progressTween: gsap.core.Tween | undefined;
 	let kenBurnsTween: gsap.core.Tween | undefined;
 	let isAnimating = false;
 	let prevIndex = -1;
@@ -45,7 +43,6 @@
 	let descEl: HTMLElement | undefined = $state();
 	let actionsEl: HTMLElement | undefined = $state();
 	let coverWrapper: HTMLElement | undefined = $state();
-	let progressBarEl: HTMLElement | undefined = $state();
 	let shimmerEl: HTMLElement | undefined = $state();
 
 	// ── Helpers ─────────────────────────────────────────────────────────────────
@@ -60,7 +57,8 @@
 	}
 
 	async function handleViewDetails() {
-		if (displayedItem) await goto(`/${displayedItem.type?.toLowerCase() || 'anime'}/${displayedItem.id}`);
+		if (displayedItem)
+			await goto(`/${displayedItem.type?.toLowerCase() || 'anime'}/${displayedItem.id}`);
 	}
 
 	function getContentEls(): HTMLElement[] {
@@ -208,77 +206,44 @@
 		})();
 	});
 
-	// ── GSAP progress bar ────────────────────────────────────────────────────────
-	function startProgress() {
-		if (progressTween) progressTween.kill();
-		if (!progressBarEl) return;
-		gsap.set(progressBarEl, { width: '0%' });
-		progressTween = gsap.to(progressBarEl, {
-			width: '100%',
-			duration: autoplayInterval / 1000,
-			ease: 'none',
-		});
-		if (isPaused) progressTween.pause();
-	}
-
 	// ── Navigation ────────────────────────────────────────────────────────────────
 	function goToSlide(index: number) {
 		if (isAnimating) return;
 		direction = index > currentIndex ? 'right' : 'left';
 		currentIndex = index;
-		startProgress();
 	}
 
 	function nextSlide() {
 		if (isAnimating) return;
 		direction = 'right';
 		currentIndex = (currentIndex + 1) % items.length;
-		startProgress();
 	}
 
 	function prevSlide() {
 		if (isAnimating) return;
 		direction = 'left';
 		currentIndex = (currentIndex - 1 + items.length) % items.length;
-		startProgress();
 	}
 
 	// ── Autoplay ──────────────────────────────────────────────────────────────────
 	$effect(() => {
 		if (items.length > 1) {
-			startProgress();
 			autoplayTimer = setInterval(() => {
-				if (!isPaused && !isAnimating) {
+				if (!isAnimating) {
 					direction = 'right';
 					currentIndex = (currentIndex + 1) % items.length;
-					startProgress();
 				}
 			}, autoplayInterval);
 		}
 		return () => {
 			if (autoplayTimer) clearInterval(autoplayTimer);
-			if (progressTween) progressTween.kill();
 			if (kenBurnsTween) kenBurnsTween.kill();
 		};
 	});
-
-	function handleMouseEnter() {
-		isPaused = true;
-		progressTween?.pause();
-	}
-	function handleMouseLeave() {
-		isPaused = false;
-		progressTween?.resume();
-	}
 </script>
 
 {#if items.length > 0 && displayedItem}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div
-		class="group relative h-[460px] w-full overflow-hidden"
-		onmouseenter={handleMouseEnter}
-		onmouseleave={handleMouseLeave}
-	>
+	<div class="group relative h-[460px] w-full overflow-hidden">
 		<!-- Background slot A -->
 		<div
 			bind:this={bgSlotA}
@@ -308,9 +273,7 @@
 		></div>
 
 		<!-- Content -->
-		<div
-			class="relative z-5 grid h-full grid-cols-[1fr_auto] items-end gap-4 px-8 pb-10 lg:px-14"
-		>
+		<div class="relative z-5 grid h-full grid-cols-[1fr_auto] items-end gap-4 px-8 pb-10 lg:px-14">
 			<!-- Left text -->
 			<div class="flex min-w-0 flex-col gap-2.5">
 				<div bind:this={badgeEl}>
@@ -428,11 +391,6 @@
 						aria-label="Go to slide {index + 1}"
 					></button>
 				{/each}
-			</div>
-
-			<!-- GSAP-driven progress bar -->
-			<div class="absolute bottom-0 left-0 z-6 h-0.5 w-full bg-border/20">
-				<div bind:this={progressBarEl} class="h-full bg-primary/60" style="width:0%"></div>
 			</div>
 		{/if}
 	</div>

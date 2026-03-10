@@ -26,6 +26,22 @@ import type {
 	Review,
 	Recommendation,
 } from '$lib/types/anilist';
+import { toast } from 'svelte-sonner';
+
+/**
+ * Helper to invoke a Tauri command and show a success toast on completion
+ */
+async function invokeWithToast<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
+	try {
+		const response = await invoke<T>(cmd, args);
+		toast.success(`AniList: Fetched ${cmd.replace(/_/g, ' ')}`);
+		return response;
+	} catch (error) {
+		console.error(`[AniList API] Error in ${cmd}:`, error);
+		toast.error(`AniList: Failed ${cmd.replace(/_/g, ' ')}`);
+		throw error;
+	}
+}
 
 // ============================================================================
 // Media Browse API (Generic for both Anime and Manga)
@@ -37,7 +53,7 @@ export const mediaApi = {
 	 */
 	browse: async (params: BrowseParams): Promise<AniListResponse<Page<Media[]>>> => {
 		console.log('[AniList API] Calling browse_media:', params);
-		const response = (await invoke('browse_media', {
+		const response = (await invokeWithToast('browse_media', {
 			mediaType: params.mediaType ?? null,
 			search: params.search ?? null,
 			season: params.season ?? null,
@@ -68,7 +84,7 @@ export const animeApi = {
 	 */
 	search: async (params: SearchParams): Promise<AniListResponse<Media[]>> => {
 		console.log('[AniList API] Calling search_anime:', params);
-		const response = (await invoke('search_anime', {
+		const response = (await invokeWithToast('search_anime', {
 			query: params.query,
 			page: params.page ?? null,
 			perPage: params.perPage ?? null,
@@ -81,7 +97,7 @@ export const animeApi = {
 	 * Get anime by ID
 	 */
 	getById: async (id: number): Promise<AniListResponse<Media>> => {
-		return invoke('get_anime_by_id', { id });
+		return invokeWithToast('get_anime_by_id', { id });
 	},
 
 	/**
@@ -90,7 +106,7 @@ export const animeApi = {
 	getTrending: async (params?: PaginationParams): Promise<AniListResponse<Media[]>> => {
 		try {
 			console.log('[AniList API] Calling get_trending_anime:', params);
-			const response = (await invoke('get_trending_anime', {
+			const response = (await invokeWithToast('get_trending_anime', {
 				page: params?.page ?? null,
 				perPage: params?.perPage ?? null,
 			})) as { success: boolean; data?: { data: Media[] }; error?: string };
@@ -123,7 +139,7 @@ export const animeApi = {
 	 */
 	getPopular: async (params?: PaginationParams): Promise<AniListResponse<Media[]>> => {
 		try {
-			const response = (await invoke('get_popular_anime', {
+			const response = (await invokeWithToast('get_popular_anime', {
 				page: params?.page ?? null,
 				perPage: params?.perPage ?? null,
 			})) as { success: boolean; data?: { data: Media[] }; error?: string };
@@ -147,7 +163,7 @@ export const animeApi = {
 	 * Get seasonal anime
 	 */
 	getSeasonal: async (params: SeasonalAnimeParams): Promise<AniListResponse<Page<Media[]>>> => {
-		return invoke('get_seasonal_anime', {
+		return invokeWithToast('get_seasonal_anime', {
 			season: params.season,
 			year: params.year,
 			page: params.page ?? null,
@@ -165,7 +181,7 @@ export const mangaApi = {
 	 * Search for manga
 	 */
 	search: async (params: SearchParams): Promise<AniListResponse<Media[]>> => {
-		return invoke('search_manga', {
+		return invokeWithToast('search_manga', {
 			query: params.query,
 			page: params.page ?? null,
 			perPage: params.perPage ?? null,
@@ -176,7 +192,7 @@ export const mangaApi = {
 	 * Get manga by ID
 	 */
 	getById: async (id: number): Promise<AniListResponse<Media>> => {
-		return invoke('get_manga_by_id', { id });
+		return invokeWithToast('get_manga_by_id', { id });
 	},
 
 	/**
@@ -184,7 +200,7 @@ export const mangaApi = {
 	 */
 	getTrending: async (params?: PaginationParams): Promise<AniListResponse<Media[]>> => {
 		try {
-			const response = (await invoke('get_trending_manga', {
+			const response = (await invokeWithToast('get_trending_manga', {
 				page: params?.page ?? null,
 				perPage: params?.perPage ?? null,
 			})) as { success: boolean; data?: { data: Media[] }; error?: string };
@@ -209,7 +225,7 @@ export const mangaApi = {
 	 */
 	getPopular: async (params?: PaginationParams): Promise<AniListResponse<Media[]>> => {
 		try {
-			const response = (await invoke('get_popular_manga', {
+			const response = (await invokeWithToast('get_popular_manga', {
 				page: params?.page ?? null,
 				perPage: params?.perPage ?? null,
 			})) as { success: boolean; data?: { data: Media[] }; error?: string };
@@ -239,28 +255,28 @@ export const userApi = {
 	 * Get current authenticated user
 	 */
 	getCurrent: async (): Promise<AniListResponse<User>> => {
-		return invoke('get_current_user');
+		return invokeWithToast('get_current_user');
 	},
 
 	/**
 	 * Get user by ID
 	 */
 	getById: async (id: number): Promise<AniListResponse<User>> => {
-		return invoke('get_user_by_id', { id });
+		return invokeWithToast('get_user_by_id', { id });
 	},
 
 	/**
 	 * Get user by name
 	 */
 	getByName: async (name: string): Promise<AniListResponse<User>> => {
-		return invoke('get_user_by_name', { name });
+		return invokeWithToast('get_user_by_name', { name });
 	},
 
 	/**
 	 * Search users
 	 */
 	search: async (params: SearchParams): Promise<AniListResponse<User[]>> => {
-		return invoke('search_users', {
+		return invokeWithToast('search_users', {
 			query: params.query,
 			page: params.page ?? null,
 			perPage: params.perPage ?? null,
@@ -277,7 +293,7 @@ export const studioApi = {
 	 * Get studio by ID
 	 */
 	getById: async (id: number): Promise<AniListResponse<Studio>> => {
-		return invoke('get_studio_by_id', { id });
+		return invokeWithToast('get_studio_by_id', { id });
 	},
 };
 
@@ -290,14 +306,14 @@ export const characterApi = {
 	 * Get character by ID
 	 */
 	getById: async (id: number): Promise<AniListResponse<Character>> => {
-		return invoke('get_character_by_id', { id });
+		return invokeWithToast('get_character_by_id', { id });
 	},
 
 	/**
 	 * Get most favourited characters
 	 */
 	getPopular: async (params?: PaginationParams): Promise<AniListResponse<Page<Character[]>>> => {
-		return invoke('get_popular_characters', {
+		return invokeWithToast('get_popular_characters', {
 			page: params?.page ?? null,
 			perPage: params?.perPage ?? null,
 		});
@@ -309,7 +325,7 @@ export const characterApi = {
 	getBirthdayToday: async (
 		params?: PaginationParams
 	): Promise<AniListResponse<Page<Character[]>>> => {
-		return invoke('get_birthday_characters', {
+		return invokeWithToast('get_birthday_characters', {
 			page: params?.page ?? null,
 			perPage: params?.perPage ?? null,
 		});
@@ -322,7 +338,7 @@ export const characterApi = {
 		query: string,
 		params?: PaginationParams & { isBirthday?: boolean }
 	): Promise<AniListResponse<Page<Character[]>>> => {
-		return invoke('search_characters', {
+		return invokeWithToast('search_characters', {
 			query,
 			page: params?.page ?? null,
 			perPage: params?.perPage ?? null,
@@ -340,14 +356,14 @@ export const staffApi = {
 	 * Get staff by ID
 	 */
 	getById: async (id: number): Promise<AniListResponse<Staff>> => {
-		return invoke('get_staff_by_id', { id });
+		return invokeWithToast('get_staff_by_id', { id });
 	},
 
 	/**
 	 * Get most favourited staff
 	 */
 	getPopular: async (params?: PaginationParams): Promise<AniListResponse<Page<Staff[]>>> => {
-		return invoke('get_popular_staff', {
+		return invokeWithToast('get_popular_staff', {
 			page: params?.page ?? null,
 			perPage: params?.perPage ?? null,
 		});
@@ -357,7 +373,7 @@ export const staffApi = {
 	 * Get staff with birthday today
 	 */
 	getBirthdayToday: async (params?: PaginationParams): Promise<AniListResponse<Page<Staff[]>>> => {
-		return invoke('get_birthday_staff', {
+		return invokeWithToast('get_birthday_staff', {
 			page: params?.page ?? null,
 			perPage: params?.perPage ?? null,
 		});
@@ -370,7 +386,7 @@ export const staffApi = {
 		query: string,
 		params?: PaginationParams & { isBirthday?: boolean }
 	): Promise<AniListResponse<Page<Staff[]>>> => {
-		return invoke('search_staff', {
+		return invokeWithToast('search_staff', {
 			query,
 			page: params?.page ?? null,
 			perPage: params?.perPage ?? null,
@@ -389,14 +405,14 @@ export const staffApi = {
 
 export const mediaListApi = {
 	fetch: async (options: Record<string, unknown>): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('fetch_media_list', { options });
+		return invokeWithToast('fetch_media_list', { options });
 	},
 	getMyAnimeList: async (
 		status?: MediaListStatus,
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_my_anime_list', {
+		return invokeWithToast('get_my_anime_list', {
 			status: status ?? null,
 			page: page ?? null,
 			perPage: perPage ?? null,
@@ -407,7 +423,7 @@ export const mediaListApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_my_manga_list', {
+		return invokeWithToast('get_my_manga_list', {
 			status: status ?? null,
 			page: page ?? null,
 			perPage: perPage ?? null,
@@ -419,7 +435,7 @@ export const mediaListApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_user_anime_list', {
+		return invokeWithToast('get_user_anime_list', {
 			username,
 			status: status ?? null,
 			page: page ?? null,
@@ -432,7 +448,7 @@ export const mediaListApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_user_manga_list', {
+		return invokeWithToast('get_user_manga_list', {
 			username,
 			status: status ?? null,
 			page: page ?? null,
@@ -444,7 +460,7 @@ export const mediaListApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_watching', {
+		return invokeWithToast('get_watching', {
 			username: username ?? null,
 			page: page ?? null,
 			perPage: perPage ?? null,
@@ -455,7 +471,7 @@ export const mediaListApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_reading', {
+		return invokeWithToast('get_reading', {
 			username: username ?? null,
 			page: page ?? null,
 			perPage: perPage ?? null,
@@ -466,7 +482,7 @@ export const mediaListApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_plan_to_watch', {
+		return invokeWithToast('get_plan_to_watch', {
 			username: username ?? null,
 			page: page ?? null,
 			perPage: perPage ?? null,
@@ -477,7 +493,7 @@ export const mediaListApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_plan_to_read', {
+		return invokeWithToast('get_plan_to_read', {
 			username: username ?? null,
 			page: page ?? null,
 			perPage: perPage ?? null,
@@ -488,7 +504,7 @@ export const mediaListApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_completed_anime', {
+		return invokeWithToast('get_completed_anime', {
 			username: username ?? null,
 			page: page ?? null,
 			perPage: perPage ?? null,
@@ -499,44 +515,44 @@ export const mediaListApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<MediaList[]>>> => {
-		return invoke('get_completed_manga', {
+		return invokeWithToast('get_completed_manga', {
 			username: username ?? null,
 			page: page ?? null,
 			perPage: perPage ?? null,
 		});
 	},
 	save: async (options: Record<string, unknown>): Promise<AniListResponse<MediaList>> => {
-		return invoke('save_media_list_entry', { options });
+		return invokeWithToast('save_media_list_entry', { options });
 	},
 	addAnime: async (
 		mediaId: number,
 		status?: MediaListStatus
 	): Promise<AniListResponse<MediaList>> => {
-		return invoke('add_anime_to_list', { mediaId, status: status ?? null });
+		return invokeWithToast('add_anime_to_list', { mediaId, status: status ?? null });
 	},
 	addManga: async (
 		mediaId: number,
 		status?: MediaListStatus
 	): Promise<AniListResponse<MediaList>> => {
-		return invoke('add_manga_to_list', { mediaId, status: status ?? null });
+		return invokeWithToast('add_manga_to_list', { mediaId, status: status ?? null });
 	},
 	updateProgress: async (
 		entryId: number,
 		progress: number
 	): Promise<AniListResponse<MediaList>> => {
-		return invoke('update_media_progress', { entryId, progress });
+		return invokeWithToast('update_media_progress', { entryId, progress });
 	},
 	updateScore: async (entryId: number, score: number): Promise<AniListResponse<MediaList>> => {
-		return invoke('update_media_score', { entryId, score });
+		return invokeWithToast('update_media_score', { entryId, score });
 	},
 	updateStatus: async (
 		entryId: number,
 		status: MediaListStatus
 	): Promise<AniListResponse<MediaList>> => {
-		return invoke('update_media_status', { entryId, status });
+		return invokeWithToast('update_media_status', { entryId, status });
 	},
 	deleteEntry: async (id: number): Promise<AniListResponse<boolean>> => {
-		return invoke('delete_media_list_entry', { id });
+		return invokeWithToast('delete_media_list_entry', { id });
 	},
 };
 
@@ -548,56 +564,56 @@ export const activityApi = {
 	fetch: async (
 		options: Record<string, unknown>
 	): Promise<AniListResponse<Page<ActivityUnion[]>>> => {
-		return invoke('fetch_activities', { options });
+		return invokeWithToast('fetch_activities', { options });
 	},
 	getById: async (id: number): Promise<AniListResponse<ActivityUnion>> => {
-		return invoke('get_activity_by_id', { id });
+		return invokeWithToast('get_activity_by_id', { id });
 	},
 	getRecent: async (
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<ActivityUnion[]>>> => {
-		return invoke('get_recent_activity', { page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('get_recent_activity', { page: page ?? null, perPage: perPage ?? null });
 	},
 	getFollowing: async (
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<ActivityUnion[]>>> => {
-		return invoke('get_following_activity', { page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('get_following_activity', { page: page ?? null, perPage: perPage ?? null });
 	},
 	fetchReplies: async (
 		activityId: number,
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<ActivityReply[]>>> => {
-		return invoke('fetch_activity_replies', {
+		return invokeWithToast('fetch_activity_replies', {
 			activityId,
 			page: page ?? null,
 			perPage: perPage ?? null,
 		});
 	},
 	saveText: async (options: Record<string, unknown>): Promise<AniListResponse<ActivityUnion>> => {
-		return invoke('save_text_activity', { options });
+		return invokeWithToast('save_text_activity', { options });
 	},
 	saveMessage: async (
 		options: Record<string, unknown>
 	): Promise<AniListResponse<ActivityUnion>> => {
-		return invoke('save_message_activity', { options });
+		return invokeWithToast('save_message_activity', { options });
 	},
 	saveReply: async (options: Record<string, unknown>): Promise<AniListResponse<ActivityReply>> => {
-		return invoke('save_activity_reply', { options });
+		return invokeWithToast('save_activity_reply', { options });
 	},
 	delete: async (id: number): Promise<AniListResponse<boolean>> => {
-		return invoke('delete_activity', { id });
+		return invokeWithToast('delete_activity', { id });
 	},
 	deleteReply: async (id: number): Promise<AniListResponse<boolean>> => {
-		return invoke('delete_activity_reply', { id });
+		return invokeWithToast('delete_activity_reply', { id });
 	},
 	toggleSubscription: async (
 		id: number,
 		subscribe: boolean
 	): Promise<AniListResponse<ActivityUnion>> => {
-		return invoke('toggle_activity_subscription', { id, subscribe });
+		return invokeWithToast('toggle_activity_subscription', { id, subscribe });
 	},
 };
 
@@ -610,19 +626,19 @@ export const notificationApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<NotificationUnion[]>>> => {
-		return invoke('fetch_notifications', { page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('fetch_notifications', { page: page ?? null, perPage: perPage ?? null });
 	},
 	getAll: async (
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<NotificationUnion[]>>> => {
-		return invoke('get_all_notifications', { page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('get_all_notifications', { page: page ?? null, perPage: perPage ?? null });
 	},
 	getAndMarkRead: async (
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<NotificationUnion[]>>> => {
-		return invoke('get_and_mark_notifications_read', {
+		return invokeWithToast('get_and_mark_notifications_read', {
 			page: page ?? null,
 			perPage: perPage ?? null,
 		});
@@ -635,23 +651,23 @@ export const notificationApi = {
 
 export const forumApi = {
 	search: async (options: Record<string, unknown>): Promise<AniListResponse<Page<Thread[]>>> => {
-		return invoke('search_forum_threads', { options });
+		return invokeWithToast('search_forum_threads', { options });
 	},
 	getThread: async (id: number): Promise<AniListResponse<Thread>> => {
-		return invoke('get_forum_thread', { id });
+		return invokeWithToast('get_forum_thread', { id });
 	},
 	getRecent: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Thread[]>>> => {
-		return invoke('get_recent_forum_threads', { page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('get_recent_forum_threads', { page: page ?? null, perPage: perPage ?? null });
 	},
 	getPopular: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Thread[]>>> => {
-		return invoke('get_popular_forum_threads', { page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('get_popular_forum_threads', { page: page ?? null, perPage: perPage ?? null });
 	},
 	getByCategory: async (
 		categoryId: number,
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<Thread[]>>> => {
-		return invoke('get_forum_threads_by_category', {
+		return invokeWithToast('get_forum_threads_by_category', {
 			categoryId,
 			page: page ?? null,
 			perPage: perPage ?? null,
@@ -662,7 +678,7 @@ export const forumApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<Thread[]>>> => {
-		return invoke('get_forum_threads_by_user', {
+		return invokeWithToast('get_forum_threads_by_user', {
 			userId,
 			page: page ?? null,
 			perPage: perPage ?? null,
@@ -672,60 +688,60 @@ export const forumApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<Thread[]>>> => {
-		return invoke('get_subscribed_forum_threads', { page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('get_subscribed_forum_threads', { page: page ?? null, perPage: perPage ?? null });
 	},
 	getComments: async (
 		threadId: number,
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<ThreadComment[]>>> => {
-		return invoke('get_thread_comments', {
+		return invokeWithToast('get_thread_comments', {
 			threadId,
 			page: page ?? null,
 			perPage: perPage ?? null,
 		});
 	},
 	getComment: async (id: number): Promise<AniListResponse<ThreadComment>> => {
-		return invoke('get_thread_comment_by_id', { id });
+		return invokeWithToast('get_thread_comment_by_id', { id });
 	},
 	saveThread: async (options: Record<string, unknown>): Promise<AniListResponse<Thread>> => {
-		return invoke('save_forum_thread', { options });
+		return invokeWithToast('save_forum_thread', { options });
 	},
 	deleteThread: async (id: number): Promise<AniListResponse<boolean>> => {
-		return invoke('delete_forum_thread', { id });
+		return invokeWithToast('delete_forum_thread', { id });
 	},
 	saveComment: async (
 		options: Record<string, unknown>
 	): Promise<AniListResponse<ThreadComment>> => {
-		return invoke('save_thread_comment', { options });
+		return invokeWithToast('save_thread_comment', { options });
 	},
 	deleteComment: async (id: number): Promise<AniListResponse<boolean>> => {
-		return invoke('delete_thread_comment', { id });
+		return invokeWithToast('delete_thread_comment', { id });
 	},
 	toggleSubscription: async (
 		threadId: number,
 		subscribe: boolean
 	): Promise<AniListResponse<Thread>> => {
-		return invoke('toggle_forum_thread_subscription', { threadId, subscribe });
+		return invokeWithToast('toggle_forum_thread_subscription', { threadId, subscribe });
 	},
 	replyToThread: async (
 		threadId: number,
 		comment: string
 	): Promise<AniListResponse<ThreadComment>> => {
-		return invoke('reply_to_forum_thread', { threadId, comment });
+		return invokeWithToast('reply_to_forum_thread', { threadId, comment });
 	},
 	replyToComment: async (
 		threadId: number,
 		parentCommentId: number,
 		comment: string
 	): Promise<AniListResponse<ThreadComment>> => {
-		return invoke('reply_to_thread_comment', { threadId, parentCommentId, comment });
+		return invokeWithToast('reply_to_thread_comment', { threadId, parentCommentId, comment });
 	},
 	toggleLikeThread: async (id: number): Promise<AniListResponse<unknown>> => {
-		return invoke('toggle_like_thread', { id });
+		return invokeWithToast('toggle_like_thread', { id });
 	},
 	toggleLikeComment: async (id: number): Promise<AniListResponse<unknown>> => {
-		return invoke('toggle_like_thread_comment', { id });
+		return invokeWithToast('toggle_like_thread_comment', { id });
 	},
 };
 
@@ -735,14 +751,14 @@ export const forumApi = {
 
 export const reviewApi = {
 	fetch: async (options: Record<string, unknown>): Promise<AniListResponse<Page<Review[]>>> => {
-		return invoke('fetch_reviews', { options });
+		return invokeWithToast('fetch_reviews', { options });
 	},
 	getByMedia: async (
 		mediaId: number,
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<Review[]>>> => {
-		return invoke('get_reviews_by_media', {
+		return invokeWithToast('get_reviews_by_media', {
 			mediaId,
 			page: page ?? null,
 			perPage: perPage ?? null,
@@ -753,22 +769,22 @@ export const reviewApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<Review[]>>> => {
-		return invoke('get_reviews_by_user', { userId, page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('get_reviews_by_user', { userId, page: page ?? null, perPage: perPage ?? null });
 	},
 	getById: async (id: number): Promise<AniListResponse<Review>> => {
-		return invoke('get_review_by_id', { id });
+		return invokeWithToast('get_review_by_id', { id });
 	},
 	getRecent: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Review[]>>> => {
-		return invoke('get_recent_reviews', { page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('get_recent_reviews', { page: page ?? null, perPage: perPage ?? null });
 	},
 	save: async (options: Record<string, unknown>): Promise<AniListResponse<Review>> => {
-		return invoke('save_review', { options });
+		return invokeWithToast('save_review', { options });
 	},
 	delete: async (id: number): Promise<AniListResponse<boolean>> => {
-		return invoke('delete_review', { id });
+		return invokeWithToast('delete_review', { id });
 	},
 	rate: async (options: { reviewId: number; rating: string }): Promise<AniListResponse<Review>> => {
-		return invoke('rate_review', { options });
+		return invokeWithToast('rate_review', { options });
 	},
 };
 
@@ -780,14 +796,14 @@ export const recommendationApi = {
 	fetch: async (
 		options: Record<string, unknown>
 	): Promise<AniListResponse<Page<Recommendation[]>>> => {
-		return invoke('fetch_recommendations', { options });
+		return invokeWithToast('fetch_recommendations', { options });
 	},
 	getByMedia: async (
 		mediaId: number,
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<Recommendation[]>>> => {
-		return invoke('get_recommendations_by_media', {
+		return invokeWithToast('get_recommendations_by_media', {
 			mediaId,
 			page: page ?? null,
 			perPage: perPage ?? null,

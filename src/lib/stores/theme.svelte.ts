@@ -1,7 +1,7 @@
 import ThemeService, { type Themes, type Theme, type ThemeMode } from '$lib/services/theme.svelte';
 import { useConfigState } from './config.svelte';
 import { browser } from '$app/environment';
-import { THEME_CACHE_KEY } from '$lib/constants';
+import { THEME_CACHE_KEY } from '$lib/constants/localStorageKeys';
 import { SvelteMap } from 'svelte/reactivity';
 
 const config = useConfigState();

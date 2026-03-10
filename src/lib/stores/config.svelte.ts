@@ -1,7 +1,7 @@
 import { ConfigService } from '$lib/services/config';
 import type { AppConfig, UiConfig } from '$lib/types/config';
 import { browser } from '$app/environment';
-import { CONFIG_CACHE_KEY } from '$lib/constants';
+import { CONFIG_CACHE_KEY } from '$lib/constants/localStorageKeys';
 
 const initialConfigState = browser
 	? JSON.parse(sessionStorage.getItem(CONFIG_CACHE_KEY) || 'null')

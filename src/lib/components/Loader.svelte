@@ -36,7 +36,7 @@
 	});
 </script>
 
-<div bind:this={containerEl} class="flex min-h-screen items-center justify-center bg-background">
+<div bind:this={containerEl} class="flex h-full w-full items-center justify-center bg-background">
 	<div class="flex flex-col items-center gap-6">
 		<!-- Logo / brand mark -->
 		<div data-loader-item class="flex items-center gap-3">

@@ -13,6 +13,15 @@
 		MediaSort,
 		MediaSource,
 	} from '$lib/types/anilist';
+	import {
+		ANILIST_ANIME_FORMAT,
+		ANILIST_MANGA_FORMAT,
+		ANILIST_AIRING_STATUS,
+		ANILIST_PUBLISHING_STATUS,
+		ANILIST_SEASONS,
+		ANILIST_GENRES,
+		ANILIST_YEARS,
+	} from '$lib/constants/anilist';
 
 	// Get URL search params
 	const urlParams = $derived(page.url.searchParams);
@@ -86,28 +95,19 @@
 	const pageInfo = $derived(query.data?.data?.pageInfo);
 
 	// Available options for filters
-	const formats: MediaFormat[] = [
-		'TV',
-		'TV_SHORT',
-		'MOVIE',
-		'SPECIAL',
-		'OVA',
-		'ONA',
-		'MUSIC',
-		'MANGA',
-		'NOVEL',
-		'ONE_SHOT',
-	];
+	const formats = $derived(
+		(selectedType === 'MANGA'
+			? ANILIST_MANGA_FORMAT
+			: selectedType === 'ANIME'
+				? ANILIST_ANIME_FORMAT
+				: [...ANILIST_ANIME_FORMAT, ...ANILIST_MANGA_FORMAT]) as MediaFormat[]
+	);
 
-	const statuses: MediaStatus[] = [
-		'FINISHED',
-		'RELEASING',
-		'NOT_YET_RELEASED',
-		'CANCELLED',
-		'HIATUS',
-	];
+	const statuses = $derived(
+		(selectedType === 'MANGA' ? ANILIST_PUBLISHING_STATUS : ANILIST_AIRING_STATUS) as MediaStatus[]
+	);
 
-	const seasons: MediaSeason[] = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
+	const seasons = ANILIST_SEASONS as MediaSeason[];
 
 	const sources: MediaSource[] = [
 		'ORIGINAL',
@@ -127,30 +127,8 @@
 		'PICTURE_BOOK',
 	];
 
-	const allGenres = [
-		'Action',
-		'Adventure',
-		'Comedy',
-		'Drama',
-		'Ecchi',
-		'Fantasy',
-		'Horror',
-		'Mahou Shoujo',
-		'Mecha',
-		'Music',
-		'Mystery',
-		'Psychological',
-		'Romance',
-		'Sci-Fi',
-		'Slice of Life',
-		'Sports',
-		'Supernatural',
-		'Thriller',
-	];
-
-	// Generate years from 1940 to current year + 1
-	const currentYear = new Date().getFullYear();
-	const years = Array.from({ length: currentYear - 1939 + 2 }, (_, i) => currentYear + 1 - i);
+	const allGenres = ANILIST_GENRES;
+	const years = ANILIST_YEARS;
 
 	function toggleGenre(genre: string, excluded: boolean = false) {
 		if (excluded) {

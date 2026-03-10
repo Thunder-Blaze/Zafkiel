@@ -96,34 +96,41 @@
 
 <svelte:boundary>
 	{#snippet pending()}
-		<Loader text="Initializing Zafkiel..." />
+		<div class="flex h-screen flex-col">
+			<TitleBar />
+			<div class="relative flex-1">
+				<Loader text="Initializing Zafkiel..." />
+			</div>
+		</div>
 	{/snippet}
 
 	{#snippet failed(error, reset)}
 		{@const message = error instanceof Error ? error.message : String(error)}
 		{@const stack = error instanceof Error ? (error.stack ?? '') : ''}
-		<div class="flex h-screen flex-col items-center justify-center gap-4 p-8">
-			<p class="text-lg font-semibold text-destructive">Something went wrong</p>
-			<pre
-				class="max-h-64 w-full max-w-2xl overflow-auto rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-xs text-destructive">{message}</pre>
-			{#if stack}
-				<details class="w-full max-w-2xl">
-					<summary class="cursor-pointer text-xs text-muted-foreground hover:text-foreground"
-						>Stack trace</summary
-					>
-					<pre
-						class="mt-2 max-h-48 overflow-auto rounded border border-border bg-muted/50 p-3 text-xs text-muted-foreground">{stack}</pre>
-				</details>
-			{/if}
-			<button
-				onclick={reset}
-				class="rounded bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
-				>Reload</button
-			>
+		<div class="flex h-screen flex-col">
+			<TitleBar />
+			<div class="flex flex-1 flex-col items-center justify-center gap-4 p-8">
+				<p class="text-lg font-semibold text-destructive">Something went wrong</p>
+				<pre
+					class="max-h-64 w-full max-w-2xl overflow-auto rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-xs text-destructive">{message}</pre>
+				{#if stack}
+					<details class="w-full max-w-2xl">
+						<summary class="cursor-pointer text-xs text-muted-foreground hover:text-foreground"
+							>Stack trace</summary
+						>
+						<pre
+							class="mt-2 max-h-48 overflow-auto rounded border border-border bg-muted/50 p-3 text-xs text-muted-foreground">{stack}</pre>
+					</details>
+				{/if}
+				<button
+					onclick={reset}
+					class="rounded bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+					>Reload</button
+				>
+			</div>
 		</div>
 	{/snippet}
 
-	{#if isReady}
 		<!-- Grouped UI — hidden instantly when the mpv player overlay is active so the
 		     native video layer shows through the transparent WebView beneath it. -->
 		<div
@@ -134,31 +141,34 @@
 			<!-- Custom Title Bar -->
 			<TitleBar />
 
-			<!-- Portals (except Sonner which must stay visible for notifications) -->
-			<ContextMenu />
-			<SearchOverlay />
+			{#if isReady}
+				<!-- Portals (except Sonner which must stay visible for notifications) -->
+				<ContextMenu />
+				<SearchOverlay />
 
-			<!-- Main app content — fixed below titlebar; this owns the scrollbar so it never overlaps titlebar -->
-			<div
-				bind:this={scrollEl}
-				class="fixed inset-x-0 top-12 bottom-0 overflow-x-hidden overflow-y-auto"
-			>
-				<TanstackProvider>
-					<LenisProvider wrapper={scrollEl}>
-						<ContextMenuProvider>
-							<AnimationProvider>
-								{@render children?.()}
-							</AnimationProvider>
-						</ContextMenuProvider>
-					</LenisProvider>
-					<SvelteQueryDevtools />
-				</TanstackProvider>
-			</div>
+				<!-- Main app content — fixed below titlebar; this owns the scrollbar so it never overlaps titlebar -->
+				<div
+					bind:this={scrollEl}
+					class="fixed inset-x-0 top-12 bottom-0 overflow-x-hidden overflow-y-auto"
+				>
+					<TanstackProvider>
+						<LenisProvider wrapper={scrollEl}>
+							<ContextMenuProvider>
+								<AnimationProvider>
+									{@render children?.()}
+								</AnimationProvider>
+							</ContextMenuProvider>
+						</LenisProvider>
+						<SvelteQueryDevtools />
+					</TanstackProvider>
+				</div>
+			{:else}
+				<div class="fixed inset-x-0 top-12 bottom-0 bg-background">
+					<Loader text="Loading Zafkiel..." />
+				</div>
+			{/if}
 		</div>
 
 		<!-- Sonner toaster stays outside the hidden group so notifications show over the player -->
 		<ThemedToaster />
-	{:else}
-		<Loader text="Loading Zafkiel..." />
-	{/if}
 </svelte:boundary>

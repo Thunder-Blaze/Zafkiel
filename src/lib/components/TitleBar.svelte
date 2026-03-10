@@ -17,6 +17,7 @@
 		updateKeyBindingAction,
 	} from '$lib/utils/keybindings';
 	import { searchOverlay } from '$lib/stores/search-overlay.svelte';
+	import { titlebarIcons } from '$lib/constants/titlebar';
 
 	const appWindow: TauriWindow | null = browser ? getCurrentWindow() : null;
 
@@ -215,7 +216,7 @@
 					title="Go back (Alt+←)"
 				>
 					<Icon
-						icon="solar:alt-arrow-left-bold"
+						icon={titlebarIcons.back}
 						class="h-4 w-4 {canGoBack ? 'text-foreground' : 'text-muted-foreground'}"
 					/>
 				</Button>
@@ -241,7 +242,7 @@
 					onclick={handleReload}
 					title="Reload (⌘+R)"
 				>
-					<Icon icon="solar:refresh-bold" class="h-4 w-4 text-foreground" />
+					<Icon icon={titlebarIcons.reload} class="h-4 w-4 text-foreground" />
 				</Button>
 			</div>
 
@@ -279,7 +280,7 @@
 				title="Search ({isMac ? '⌘K' : 'Ctrl+K'})"
 				class="mr-2 flex h-8 w-48 items-center gap-2 rounded-md bg-muted/40 px-3 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
 			>
-				<Icon icon="solar:magnifer-bold" class="h-3.5 w-3.5 shrink-0" />
+				<Icon icon={titlebarIcons.search} class="h-3.5 w-3.5 shrink-0" />
 				<span class="flex-1 text-left text-xs">Search…</span>
 				<span class="flex items-center gap-0.5">
 					<kbd
@@ -301,7 +302,7 @@
 				onclick={() => goto('/notifications')}
 				title="Notifications"
 			>
-				<Icon icon="solar:bell-bold" class="h-4 w-4" />
+				<Icon icon={titlebarIcons.notification} class="h-4 w-4" />
 			</Button>
 			<div class="px-2">
 				<ProfileDropdown />
@@ -318,7 +319,7 @@
 					class="flex h-full w-11 items-center justify-center transition-colors hover:bg-foreground/5 active:bg-foreground/10"
 					aria-label="Minimize"
 				>
-					<Icon icon="solar:minus-circle-bold" class="h-5 w-5 text-foreground" />
+					<Icon icon={titlebarIcons.minimize} class="h-5 w-5 text-foreground" />
 				</button>
 
 				<button
@@ -328,9 +329,7 @@
 					aria-label={isMaximized ? 'Restore' : 'Maximize'}
 				>
 					<Icon
-						icon={isMaximized
-							? 'solar:quit-full-screen-square-bold'
-							: 'solar:full-screen-square-bold'}
+						icon={isMaximized ? titlebarIcons.restore : titlebarIcons.maximize}
 						class="h-5 w-5 text-foreground"
 					/>
 				</button>
@@ -341,7 +340,7 @@
 					class="flex h-full w-11 items-center justify-center transition-colors hover:bg-red-500 hover:text-white active:bg-red-600"
 					aria-label="Close"
 				>
-					<Icon icon="solar:close-circle-bold" class="h-5 w-5" />
+					<Icon icon={titlebarIcons.close} class="h-5 w-5" />
 				</button>
 			</div>
 		</div>

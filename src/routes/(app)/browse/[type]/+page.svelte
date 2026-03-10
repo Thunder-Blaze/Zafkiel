@@ -16,6 +16,15 @@
 		MediaSort,
 		MediaSource,
 	} from '$lib/types/anilist';
+	import {
+		ANILIST_ANIME_FORMAT,
+		ANILIST_MANGA_FORMAT,
+		ANILIST_AIRING_STATUS,
+		ANILIST_PUBLISHING_STATUS,
+		ANILIST_SEASONS,
+		ANILIST_GENRES,
+		ANILIST_YEARS,
+	} from '$lib/constants/anilist';
 
 	// Get route params
 	const routeType = $derived((page.params as { type?: string }).type);
@@ -158,28 +167,19 @@
 	);
 
 	// Available options for filters
-	const formats: MediaFormat[] = [
-		'TV',
-		'TV_SHORT',
-		'MOVIE',
-		'SPECIAL',
-		'OVA',
-		'ONA',
-		'MUSIC',
-		'MANGA',
-		'NOVEL',
-		'ONE_SHOT',
-	];
+	const formats = $derived(
+		(type === 'MANGA'
+			? ANILIST_MANGA_FORMAT
+			: type === 'ANIME'
+				? ANILIST_ANIME_FORMAT
+				: [...ANILIST_ANIME_FORMAT, ...ANILIST_MANGA_FORMAT]) as MediaFormat[]
+	);
 
-	const statuses: MediaStatus[] = [
-		'FINISHED',
-		'RELEASING',
-		'NOT_YET_RELEASED',
-		'CANCELLED',
-		'HIATUS',
-	];
+	const statuses = $derived(
+		(type === 'MANGA' ? ANILIST_PUBLISHING_STATUS : ANILIST_AIRING_STATUS) as MediaStatus[]
+	);
 
-	const seasons: MediaSeason[] = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
+	const seasons = ANILIST_SEASONS as MediaSeason[];
 
 	const sources: MediaSource[] = [
 		'ORIGINAL',
@@ -199,26 +199,7 @@
 		'PICTURE_BOOK',
 	];
 
-	const allGenres = [
-		'Action',
-		'Adventure',
-		'Comedy',
-		'Drama',
-		'Ecchi',
-		'Fantasy',
-		'Horror',
-		'Mahou Shoujo',
-		'Mecha',
-		'Music',
-		'Mystery',
-		'Psychological',
-		'Romance',
-		'Sci-Fi',
-		'Slice of Life',
-		'Sports',
-		'Supernatural',
-		'Thriller',
-	];
+	const allGenres = ANILIST_GENRES;
 
 	const sortOptions: { label: string; value: MediaSort }[] = [
 		{ label: 'Popularity (High to Low)', value: 'POPULARITY_DESC' },
@@ -235,8 +216,7 @@
 		{ label: 'Favorites (Low to High)', value: 'FAVOURITES' },
 	];
 
-	// Generate years from 1940 to current year + 1
-	const years = Array.from({ length: currentYear - 1939 + 2 }, (_, i) => currentYear + 1 - i);
+	const years = ANILIST_YEARS;
 
 	function toggleGenre(genre: string, excluded: boolean = false) {
 		if (excluded) {
