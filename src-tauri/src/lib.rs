@@ -121,7 +121,23 @@ pub fn run() {
                 .expect("Failed to create download directory");
 
             let session = tauri::async_runtime::block_on(async {
-                librqbit::Session::new(download_dir).await
+                match librqbit::Session::new(download_dir.clone()).await {
+                    Ok(s) => Ok(s),
+                    Err(e) => {
+                        log::warn!(
+                            "[Setup] Torrent session init failed ({}), retrying without persistent DHT...",
+                            e
+                        );
+                        librqbit::Session::new_with_opts(
+                            download_dir,
+                            librqbit::SessionOptions {
+                                disable_dht_persistence: true,
+                                ..Default::default()
+                            },
+                        )
+                        .await
+                    }
+                }
             })
             .expect("Failed to create torrent session");
 
@@ -322,14 +338,14 @@ pub fn run() {
             commands::torrent::delete_torrent,
             commands::torrent::get_stream_base_url,
 
-            // ─── Player window helpers ────────────────────────────────────
-            commands::mpv_window::lower_mpv_subwindow,
-
             // ─── Extension downloads ──────────────────────────────────────
             commands::downloads::start_extension_download,
             commands::downloads::get_extension_downloads,
             commands::downloads::cancel_extension_download,
             commands::downloads::remove_extension_download,
+
+            // ─── MPV window helpers ───────────────────────────────────────
+            commands::mpv_window::lower_mpv_subwindow,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

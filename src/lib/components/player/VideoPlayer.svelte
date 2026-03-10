@@ -18,6 +18,7 @@
 	 */
 	import { onMount, onDestroy } from 'svelte';
 	import { invoke } from '@tauri-apps/api/core';
+	import { playerStore } from '$lib/stores/player.svelte';
 	import PlayerControls from './PlayerControls.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '@iconify/svelte';
@@ -96,6 +97,7 @@
 
 	// ── Controls ──────────────────────────────────────────────────────────────
 	async function togglePlay() {
+		if (!isInitialized) return;
 		try {
 			await command('cycle', ['pause']);
 		} catch (e) {
@@ -104,6 +106,7 @@
 	}
 
 	async function handleSeek(time: number) {
+		if (!isInitialized) return;
 		currentTime = time;
 		try {
 			await command('seek', [String(time), 'absolute']);
@@ -113,6 +116,7 @@
 	}
 
 	async function handleVolumeChange(vol: number) {
+		if (!isInitialized) return;
 		volume = vol;
 		try {
 			await setProperty('volume', Math.round(vol * 100));
@@ -153,6 +157,7 @@
 	}
 
 	async function handleKeyDown(e: KeyboardEvent) {
+		if (!isInitialized) return;
 		if (isLocked) return;
 		if (!showControls && isPlaying) {
 			showControls = true;
@@ -189,6 +194,8 @@
 
 	// ── Lifecycle ─────────────────────────────────────────────────────────────
 	onMount(async () => {
+		playerStore.show();
+
 		const savedVol = localStorage.getItem('zafkiel-player-volume');
 		if (savedVol) volume = parseFloat(savedVol);
 
@@ -196,9 +203,10 @@
 			await init({
 				initialOptions: {
 					// gpu-next (libplacebo) is the recommended renderer.
-					// vaapi is the correct hwdec for Linux; avoids libcuda.so probing.
+					// 'auto' selects the best hardware decoder per platform:
+					// vaapi/nvdec on Linux, d3d11va/nvdec on Windows, VideoToolbox on macOS.
 					vo: 'gpu-next',
-					hwdec: 'vaapi',
+					hwdec: 'auto',
 					'keep-open': 'yes',
 					'osd-level': '0',
 					'input-default-bindings': 'no',
@@ -278,6 +286,7 @@
 	});
 
 	onDestroy(async () => {
+		playerStore.hide();
 		clearTimeout(controlsTimeout);
 		unlistenProps?.();
 		unlistenEvents?.();
@@ -298,6 +307,7 @@
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	class="fixed inset-0 z-[100] cursor-pointer overflow-hidden bg-transparent"
+	style="visibility: visible; pointer-events: auto"
 	onmousemove={handleMouseMove}
 	onmouseleave={() => {
 		if (!isLocked) showControls = false;

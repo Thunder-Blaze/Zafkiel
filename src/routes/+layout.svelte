@@ -16,6 +16,7 @@
 	import { authStore } from '$lib/stores/auth';
 	import { useUiScale } from '$lib/hooks/useUiScale.svelte';
 	import { useThemeState } from '$lib/stores/theme.svelte';
+	import { playerStore } from '$lib/stores/player.svelte';
 	import Loader from '$lib/components/Loader.svelte';
 	import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 
@@ -48,6 +49,20 @@
 			}
 		});
 	}
+
+	// When the mpv player overlay is active, make html/body background transparent
+	// so WebView2 renders alpha=0 pixels, revealing the native video layer underneath.
+	// visibility:hidden on the UI group alone isn't enough — the body background is
+	// still painted opaque and blocks the native mpv surface below the WebView.
+	$effect(() => {
+		if (playerStore.active) {
+			document.documentElement.style.background = 'transparent';
+			document.body.style.background = 'transparent';
+		} else {
+			document.documentElement.style.background = '';
+			document.body.style.background = '';
+		}
+	});
 
 	// Initialize config, auth, and theme stores on app mount
 	onMount(async () => {
@@ -109,30 +124,40 @@
 	{/snippet}
 
 	{#if isReady}
-		<!-- Custom Title Bar -->
-		<TitleBar />
-
-		<!-- Portals at root level - webview zoom scales everything -->
-		<ThemedToaster />
-		<ContextMenu />
-		<SearchOverlay />
-
-		<!-- Main app content — fixed below titlebar; this owns the scrollbar so it never overlaps titlebar -->
+		<!-- Grouped UI — hidden instantly when the mpv player overlay is active so the
+		     native video layer shows through the transparent WebView beneath it. -->
 		<div
-			bind:this={scrollEl}
-			class="fixed inset-x-0 top-12 bottom-0 overflow-x-hidden overflow-y-auto"
+			class="contents"
+			style:visibility={playerStore.active ? 'hidden' : ''}
+			style:pointer-events={playerStore.active ? 'none' : ''}
 		>
-			<TanstackProvider>
-				<LenisProvider wrapper={scrollEl}>
-					<ContextMenuProvider>
-						<AnimationProvider>
-							{@render children?.()}
-						</AnimationProvider>
-					</ContextMenuProvider>
-				</LenisProvider>
-				<SvelteQueryDevtools />
-			</TanstackProvider>
+			<!-- Custom Title Bar -->
+			<TitleBar />
+
+			<!-- Portals (except Sonner which must stay visible for notifications) -->
+			<ContextMenu />
+			<SearchOverlay />
+
+			<!-- Main app content — fixed below titlebar; this owns the scrollbar so it never overlaps titlebar -->
+			<div
+				bind:this={scrollEl}
+				class="fixed inset-x-0 top-12 bottom-0 overflow-x-hidden overflow-y-auto"
+			>
+				<TanstackProvider>
+					<LenisProvider wrapper={scrollEl}>
+						<ContextMenuProvider>
+							<AnimationProvider>
+								{@render children?.()}
+							</AnimationProvider>
+						</ContextMenuProvider>
+					</LenisProvider>
+					<SvelteQueryDevtools />
+				</TanstackProvider>
+			</div>
 		</div>
+
+		<!-- Sonner toaster stays outside the hidden group so notifications show over the player -->
+		<ThemedToaster />
 	{:else}
 		<Loader text="Loading Zafkiel..." />
 	{/if}

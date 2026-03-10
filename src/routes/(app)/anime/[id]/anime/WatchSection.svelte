@@ -65,6 +65,9 @@
 	let cookieUnlisten: (() => void) | null = null;
 	/** Raw "name=value; ..." cookie string for proxied image requests. */
 	let cookieStr = $state<string | null>(null);
+	/** Port of the local HLS proxy server (started by Tauri backend). */
+	let hlsProxyPort = $state<number | null>(null);
+
 	// ── Derived ───────────────────────────────────────────────────────────────
 	const sourceExtensions = $derived(
 		EXTENSION_CATALOG.filter((c) => c.type === 'source' && extensionStore.isInstalled(c.id)),
@@ -72,6 +75,14 @@
 
 	// ── On mount — pick the first installed source extension ──────────────────
 	onMount(async () => {
+		// Grab the local HLS proxy port so we can bypass CDN CORS restrictions.
+		try {
+			hlsProxyPort = await invoke<number>('get_hls_proxy_port');
+			console.debug('[watch] HLS proxy port:', hlsProxyPort);
+		} catch (e) {
+			console.warn('[watch] failed to get HLS proxy port — stream may fail:', e);
+		}
+
 		if (sourceExtensions.length === 0) return;
 		await loadExt(sourceExtensions[0].id);
 
@@ -163,6 +174,23 @@
 
 		step = 'searching';
 		await doSearch(searchQuery);
+	}
+
+	/** Build a localhost proxy URL for an HLS stream. */
+	function buildHlsProxySrc(url: string, headers: Record<string, string> = {}): string {
+		if (!hlsProxyPort) {
+			// Proxy not ready — fall back to direct URL (will likely CORS-fail for CDN streams)
+			console.warn('[watch] buildHlsProxySrc called before proxy port is known');
+			return url;
+		}
+		const params = new URLSearchParams({ url });
+		if (headers['Referer']) params.set('referer', headers['Referer']);
+		if (headers['referer']) params.set('referer', headers['referer']);
+		// Prefer explicit Cookie header from extension, fall back to collected session cookies
+		const cookieVal = headers['Cookie'] ?? headers['cookie'] ?? cookieStr ?? undefined;
+		if (cookieVal) params.set('cookie', cookieVal);
+		console.debug('[watch] proxy URL:', `http://127.0.0.1:${hlsProxyPort}/proxy?${params.toString()}`);
+		return `http://127.0.0.1:${hlsProxyPort}/proxy?${params.toString()}`;
 	}
 
 	async function openAuthWebview() {
