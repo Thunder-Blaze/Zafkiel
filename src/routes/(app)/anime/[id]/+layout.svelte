@@ -79,11 +79,11 @@
 </script>
 
 {#if isLoading}
-	<div class="container mx-auto max-w-7xl px-4 py-8">
+	<div class="w-full px-4 md:px-8 lg:px-10 py-8">
 		<PageLoader type="anime" />
 	</div>
 {:else if error || (animeQuery.data && !animeQuery.data.success)}
-	<div class="container mx-auto max-w-7xl px-4 py-8">
+	<div class="w-full px-4 md:px-8 lg:px-10 py-8">
 		<div class="rounded-lg border border-destructive bg-destructive/10 p-6 text-center">
 			<h2 class="text-2xl font-bold text-destructive">Error Loading Anime</h2>
 			<p class="text-muted-foreground">
@@ -93,7 +93,7 @@
 		</div>
 	</div>
 {:else if !animeData}
-	<div class="container mx-auto max-w-7xl px-4 py-8">
+	<div class="w-full px-4 md:px-8 lg:px-10 py-8">
 		<div class="rounded-lg border border-dashed p-6 text-center">
 			<h2 class="text-2xl font-bold">No Data Found</h2>
 			<p class="text-muted-foreground">Could not load anime details. ID: {animeId}</p>
@@ -124,7 +124,7 @@
 
 			<!-- Cover image positioned over everything -->
 			<div class="absolute top-0 left-0 z-2 flex h-full w-full justify-center">
-				<div class="container flex flex-col justify-end">
+				<div class="w-full px-4 md:px-8 lg:px-10 flex flex-col justify-end">
 					<div class="relative top-70 h-100 w-72">
 						<img
 							src={coverImage}
@@ -136,9 +136,14 @@
 				</div>
 			</div>
 		</div>
-		<div class="container flex flex-col gap-3 pt-4 pl-78">
-			<div>
-				<h1 class="text-2xl font-bold overflow-ellipsis">{title}</h1>
+		<div class="w-full px-4 md:px-8 lg:px-10">
+			<div class="flex flex-col sm:flex-row w-full gap-6">
+				<!-- Spacer matching the cover image width to map the absolute overlap -->
+				<div class="w-72 shrink-0 hidden sm:block"></div>
+				
+				<div class="flex min-w-0 flex-1 flex-col gap-3 pt-4">
+					<div>
+						<h1 class="text-2xl font-bold overflow-ellipsis">{title}</h1>
 				<h4 class="text-sm font-light overflow-ellipsis text-muted-foreground">
 					{japaneseTitle}
 					{animeData.seasonYear ? ` • ${animeData.seasonYear}` : ''}
@@ -411,6 +416,8 @@
 					</div>
 				</div>
 			</div>
+		</div>
+		</div>
 		</div>
 	</div>
 {/if}

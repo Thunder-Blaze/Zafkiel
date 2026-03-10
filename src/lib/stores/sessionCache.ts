@@ -17,16 +17,9 @@ interface CachedData<T> {
 	timestamp: number;
 }
 
-export interface ListStats {
-	watching: number;
-	completed: number;
-	planning: number;
-}
-
 interface AuthCacheData {
 	isAuthenticated: boolean;
 	user: User | null;
-	listStats?: ListStats | null;
 }
 
 interface SessionCacheState {
@@ -141,12 +134,11 @@ export function loadAuthCache(): AuthCacheData | null {
 
 export function saveAuthCache(
 	isAuthenticated: boolean,
-	user: User | null,
-	listStats?: ListStats | null
+	user: User | null
 ): void {
 	const cache = loadCache() || { auth: null, config: null, themes: null };
 	cache.auth = {
-		data: { isAuthenticated, user, listStats: listStats ?? null },
+		data: { isAuthenticated, user },
 		timestamp: Date.now(),
 	};
 	saveCache(cache);

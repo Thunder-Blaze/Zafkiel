@@ -5,16 +5,15 @@
 
 import { writable, derived } from 'svelte/store';
 import { checkAuthStatus, completeOAuthFlow, logout as authLogout } from '$lib/services/auth';
-import { anilistApi, mediaListApi } from '$lib/services/anilist';
+import { anilistApi } from '$lib/services/anilist';
 import type { User } from '$lib/types/anilist';
-import { loadAuthCache, saveAuthCache, clearAuthCache, type ListStats } from './sessionCache';
+import { loadAuthCache, saveAuthCache, clearAuthCache } from './sessionCache';
 
 interface AuthState {
 	isAuthenticated: boolean;
 	isLoading: boolean;
 	user: User | null;
 	error: string | null;
-	listStats: ListStats | null;
 }
 
 const initialState: AuthState = {
@@ -22,18 +21,7 @@ const initialState: AuthState = {
 	isLoading: true,
 	user: null,
 	error: null,
-	listStats: null,
 };
-
-// Helper: derive a count from a settled media list response
-function compileCount(
-	result: PromiseSettledResult<Awaited<ReturnType<typeof mediaListApi.getMyAnimeList>>>
-): number {
-	if (result.status !== 'fulfilled' || !result.value.success || !result.value.data) return 0;
-	const page = result.value.data;
-	// Prefer pageInfo.total; fall back to data.length if total is not populated by the crate
-	return page.pageInfo?.total || page.data?.length || 0;
-}
 
 function createAuthStore() {
 	const { subscribe, set, update } = writable<AuthState>(initialState);
@@ -67,7 +55,6 @@ function createAuthStore() {
 					isLoading: false,
 					user: cached.user,
 					error: null,
-					listStats: cached.listStats ?? null,
 				});
 				console.log('[AuthStore] Using cached auth state');
 				return; // Skip API call
@@ -80,50 +67,30 @@ function createAuthStore() {
 				const isAuthed = await checkAuthStatus();
 
 				if (isAuthed) {
-					// Fetch user profile + list stats in parallel
-					const [userResponse, watchRes, compRes, planRes] = await Promise.allSettled([
-						anilistApi.user.getCurrent(),
-						mediaListApi.getMyAnimeList('CURRENT', 1, 50),
-						mediaListApi.getMyAnimeList('COMPLETED', 1, 50),
-						mediaListApi.getMyAnimeList('PLANNING', 1, 50),
-					]);
+					// Fetch user profile
+					const userResponse = await anilistApi.user.fetchBasic();
 
-					if (
-						userResponse.status === 'fulfilled' &&
-						userResponse.value.success &&
-						userResponse.value.data
-					) {
-						const user = userResponse.value.data;
-						const listStats: ListStats = {
-							watching: compileCount(watchRes),
-							completed: compileCount(compRes),
-							planning: compileCount(planRes),
-						};
+					if (userResponse.success && userResponse.data) {
+						const user = userResponse.data;
 						set({
 							isAuthenticated: true,
 							isLoading: false,
 							user,
-							listStats,
 							error: null,
 						});
-						saveAuthCache(true, user, listStats);
+						saveAuthCache(true, user);
 					} else {
-						const err =
-							userResponse.status === 'fulfilled'
-								? userResponse.value.error || 'Failed to fetch user profile'
-								: 'Failed to fetch user profile';
-						throw new Error(err);
+						throw new Error(userResponse.error || 'Failed to fetch user profile');
 					}
 				} else {
 					set({
 						isAuthenticated: false,
 						isLoading: false,
 						user: null,
-						listStats: null,
 						error: null,
 					});
 					// Save to cache
-					saveAuthCache(false, null, null);
+					saveAuthCache(false, null);
 					console.log('[AuthStore] User not authenticated');
 				}
 			} catch (error) {
@@ -132,7 +99,6 @@ function createAuthStore() {
 					isAuthenticated: false,
 					isLoading: false,
 					user: null,
-					listStats: null,
 					error: error instanceof Error ? error.message : 'Unknown error',
 				});
 			}
@@ -149,39 +115,21 @@ function createAuthStore() {
 				// Complete OAuth flow (opens browser, waits for callback)
 				await completeOAuthFlow();
 
-				// Fetch user profile + list stats in parallel
-				const [userResponse, watchRes, compRes, planRes] = await Promise.allSettled([
-					anilistApi.user.getCurrent(),
-					mediaListApi.getMyAnimeList('CURRENT', 1, 50),
-					mediaListApi.getMyAnimeList('COMPLETED', 1, 50),
-					mediaListApi.getMyAnimeList('PLANNING', 1, 50),
-				]);
+				// Fetch user profile
+				const userResponse = await anilistApi.user.fetchBasic();
+				console.log(userResponse);
 
-				if (
-					userResponse.status === 'fulfilled' &&
-					userResponse.value.success &&
-					userResponse.value.data
-				) {
-					const user = userResponse.value.data;
-					const listStats: ListStats = {
-						watching: compileCount(watchRes),
-						completed: compileCount(compRes),
-						planning: compileCount(planRes),
-					};
+				if (userResponse.success && userResponse.data) {
+					const user = userResponse.data;
 					set({
 						isAuthenticated: true,
 						isLoading: false,
 						user,
-						listStats,
 						error: null,
 					});
-					saveAuthCache(true, user, listStats);
+					saveAuthCache(true, user);
 				} else {
-					throw new Error(
-						userResponse.status === 'fulfilled'
-							? userResponse.value.error || 'Failed to fetch user profile'
-							: 'Failed to fetch user profile'
-					);
+					throw new Error(userResponse.error || 'Failed to fetch user profile');
 				}
 			} catch (error) {
 				console.error('[AuthStore] Login error:', error);
@@ -205,7 +153,6 @@ function createAuthStore() {
 					isAuthenticated: false,
 					isLoading: false,
 					user: null,
-					listStats: null,
 					error: null,
 				});
 				// Clear cached state
@@ -233,4 +180,3 @@ export const isAuthenticated = derived(authStore, ($auth) => $auth.isAuthenticat
 export const currentUser = derived(authStore, ($auth) => $auth.user);
 export const authLoading = derived(authStore, ($auth) => $auth.isLoading);
 export const authError = derived(authStore, ($auth) => $auth.error);
-export const listStats = derived(authStore, ($auth) => $auth.listStats);

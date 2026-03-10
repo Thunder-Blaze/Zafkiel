@@ -799,8 +799,8 @@ fn platform_collect_cookies(wv: tauri::webview::PlatformWebview, url: String, tx
                             let mut value = PWSTR::null();
                             let _ = cookie.Name(&mut name);
                             let _ = cookie.Value(&mut value);
-                            let n = unsafe { name.to_string() }.ok().filter(|s| !s.is_empty())?;
-                            let v = unsafe { value.to_string() }.unwrap_or_default();
+                            let n = name.to_string().ok().filter(|s| !s.is_empty())?;
+                            let v = value.to_string().unwrap_or_default();
                             Some(format!("{n}={v}"))
                         })
                         .collect::<Vec<_>>()

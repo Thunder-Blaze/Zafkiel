@@ -85,7 +85,7 @@
 		<div
 			bind:this={scrollContainerRef}
 			onwheel={handleWheel}
-			class="flex-1 overflow-y-auto px-4 py-2"
+			class="flex-1 overflow-y-auto px-4 py-2" data-lenis-prevent="true"
 			style="overscroll-behavior: contain; touch-action: pan-y;"
 		>
 			<div class="flex flex-col gap-4">

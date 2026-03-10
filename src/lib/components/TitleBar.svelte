@@ -18,6 +18,7 @@
 	} from '$lib/utils/keybindings';
 	import { searchOverlay } from '$lib/stores/search-overlay.svelte';
 	import { titlebarIcons } from '$lib/constants/titlebar';
+	import { currentUser } from '$lib/stores/auth';
 
 	const appWindow: TauriWindow | null = browser ? getCurrentWindow() : null;
 
@@ -303,6 +304,17 @@
 				title="Notifications"
 			>
 				<Icon icon={titlebarIcons.notification} class="h-4 w-4" />
+				{#if $currentUser?.unreadNotificationCount && $currentUser.unreadNotificationCount > 0}
+					<span
+						class="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 font-bold text-primary-foreground {$currentUser.unreadNotificationCount > 99
+							? 'text-[7.5px]'
+							: 'text-[9px]'}"
+					>
+						{$currentUser.unreadNotificationCount > 99
+							? '99+'
+							: $currentUser.unreadNotificationCount}
+					</span>
+				{/if}
 			</Button>
 			<div class="px-2">
 				<ProfileDropdown />

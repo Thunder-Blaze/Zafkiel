@@ -275,6 +275,7 @@ pub async fn get_manga_by_id(
 // Anime Commands
 // ============================================================================
 
+
 create_anilist_command!(get_trending_anime, media, get_trending_anime, Page<Vec<Media>>, (
     page: Option<i32> => ref,
     per_page: Option<i32> => ref
@@ -314,6 +315,7 @@ create_anilist_command!(get_popular_manga, media, get_popular_manga, Page<Vec<Me
 // ============================================================================
 
 create_anilist_command!(get_current_user, user, get_current_user, User);
+create_anilist_command!(fetch_basic, user, fetch_basic, User);
 
 #[tauri::command]
 pub async fn get_user_by_id(

@@ -50,9 +50,17 @@ pub async fn get_recent_activity(
 ) -> Result<AniListResponse<Page<Vec<ActivityUnion>>>, String> {
     log::info!("get_recent_activity");
     let client = service.client().await;
+    
+    // Instead of get_recent, we use fetch to pass specific filters
     let result = client
         .activity()
-        .get_recent(page, per_page)
+        .fetch(&FetchActivityOptions {
+            page,
+            per_page,
+            is_following: Some(false), // Global feed doesn't filter by following
+            has_replies_or_type_text: Some(true), // Only fetch posts with replies or text posts
+            ..Default::default()
+        })
         .await;
     Ok(result.into())
 }

@@ -170,7 +170,7 @@
 			</div>
 
 			{#if act.text}
-				<div class="max-h-[1000px] overflow-y-auto">
+				<div class="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar" data-lenis-prevent="true">
 					<MarkdownRenderer body={act.text} class="text-sm" />
 				</div>
 			{/if}
@@ -234,7 +234,7 @@
 			</div>
 
 			{#if act.message}
-				<div class="max-h-[1000px] overflow-y-auto">
+				<div class="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar" data-lenis-prevent="true">
 					<MarkdownRenderer body={act.message} class="text-sm" />
 				</div>
 			{/if}

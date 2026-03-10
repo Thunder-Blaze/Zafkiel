@@ -8,7 +8,8 @@
 	import Icon from '@iconify/svelte';
 	import { useQueryClient } from '@tanstack/svelte-query';
 	import { invoke } from '@tauri-apps/api/core';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
+	import VirtualList from 'svelte-virtual-list';
 
 	const queryClient = useQueryClient();
 
@@ -214,10 +215,12 @@
 					</div>
 				</div>
 			{:else}
-				<div class="flex flex-col gap-3">
-					{#each activities as activity, i (i)}
-						<ActivityCard {activity} />
-					{/each}
+				<div class="flex h-[800px] w-full flex-col gap-3" data-lenis-prevent="true">
+					<VirtualList items={activities} let:item>
+						<div class="mb-3">
+							<ActivityCard activity={item} />
+						</div>
+					</VirtualList>
 				</div>
 
 				<!-- Pagination -->

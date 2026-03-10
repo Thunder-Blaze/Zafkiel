@@ -209,6 +209,7 @@ pub fn run() {
             commands::api::anilist::get_popular_manga,
             // User commands
             commands::api::anilist::get_current_user,
+            commands::api::anilist::fetch_basic,
             commands::api::anilist::get_user_by_id,
             commands::api::anilist::get_user_by_name,
             commands::api::anilist::search_users,

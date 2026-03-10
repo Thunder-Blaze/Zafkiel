@@ -174,6 +174,7 @@ export function useAnimeById(
 	}));
 }
 
+
 /**
  * Get trending anime with caching
  */
@@ -1028,6 +1029,7 @@ export function useActivityFeed(opts: {
 			queryFn: () =>
 				activityApi.fetch({
 					isFollowing: opts.isFollowing ?? null,
+					hasRepliesOrTypeText: !opts.isFollowing ? true : undefined,
 					type_in: typeIn,
 					page: opts.page ?? 1,
 					perPage: opts.perPage ?? 25,

@@ -251,11 +251,15 @@ export const mangaApi = {
 // ============================================================================
 
 export const userApi = {
-	/**
-	 * Get current authenticated user
-	 */
 	getCurrent: async (): Promise<AniListResponse<User>> => {
 		return invokeWithToast('get_current_user');
+	},
+
+	/**
+	 * Get basic user info (for dashboard)
+	 */
+	fetchBasic: async (): Promise<AniListResponse<User>> => {
+		return invokeWithToast('fetch_basic');
 	},
 
 	/**

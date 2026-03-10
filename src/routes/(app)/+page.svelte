@@ -3,7 +3,6 @@
 	import { Card } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { authStore, isAuthenticated, currentUser, authLoading } from '$lib/stores/auth';
-	import { listStats } from '$lib/stores/auth';
 	import { useThemeState } from '$lib/stores/theme.svelte';
 	import Loader from '$lib/components/Loader.svelte';
 	import { goto } from '$app/navigation';
@@ -11,57 +10,41 @@
 	import CalendarWidget from '$lib/components/dashboard/CalendarWidget.svelte';
 	import ProfileWidget from '$lib/components/dashboard/ProfileWidget.svelte';
 	import CachedImage from '$lib/components/ui/CachedImage.svelte';
-	import { useMyAnimeList, useFollowingActivity } from '$lib/hooks/useAnilist.svelte';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-
-	// Real data hooks (only active when authenticated)
-	const watchingQuery = useMyAnimeList('CURRENT', 1, 5);
-	const activityQuery = useFollowingActivity(1, 3);
-
-	// Stats from auth store (fetched in parallel during auth check)
-	const watchingCount = $derived($listStats?.watching ?? 0);
-	const completedCount = $derived($listStats?.completed ?? 0);
-	const planningCount = $derived($listStats?.planning ?? 0);
+	// Stats from auth store
+	console.log($currentUser);
+	const animeCount = $derived($currentUser?.statistics?.anime?.count ?? 0);
 	const episodesWatched = $derived($currentUser?.statistics?.anime?.episodesWatched ?? 0);
-
-	// Continue watching strip (top 5 CURRENT entries by last updated)
-	const continueWatching = $derived(
-		(watchingQuery.data?.data?.data ?? [])
-			.slice()
-			.sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
-			.slice(0, 5)
-	);
-
-	// Recent activity
-	const recentActivities = $derived(activityQuery.data?.data?.data ?? []);
+	const mangaCount = $derived($currentUser?.statistics?.manga?.count ?? 0);
+	const chaptersRead = $derived($currentUser?.statistics?.manga?.chaptersRead ?? 0);
 
 	const stats = $derived([
 		{
-			label: 'Watching',
-			value: watchingCount,
-			icon: 'solar:play-bold',
+			label: 'Anime Count',
+			value: animeCount,
+			icon: 'solar:videocamera-record-bold',
 			bgColor: 'bg-primary/10',
 			iconColor: 'text-primary',
 		},
 		{
-			label: 'Completed',
-			value: completedCount,
-			icon: 'solar:check-circle-bold',
-			bgColor: 'bg-primary/10',
-			iconColor: 'text-primary',
-		},
-		{
-			label: 'Plan to Watch',
-			value: planningCount,
-			icon: 'solar:bookmark-bold',
-			bgColor: 'bg-primary/10',
-			iconColor: 'text-primary',
-		},
-		{
-			label: 'Episodes',
+			label: 'Episodes Watched',
 			value: episodesWatched,
 			icon: 'solar:video-library-bold',
+			bgColor: 'bg-primary/10',
+			iconColor: 'text-primary',
+		},
+		{
+			label: 'Manga Count',
+			value: mangaCount,
+			icon: 'solar:book-bold',
+			bgColor: 'bg-primary/10',
+			iconColor: 'text-primary',
+		},
+		{
+			label: 'Chapters Read',
+			value: chaptersRead,
+			icon: 'solar:bookmark-bold',
 			bgColor: 'bg-primary/10',
 			iconColor: 'text-primary',
 		},
@@ -186,10 +169,7 @@
 
 				<!-- Profile Card -->
 				{#if $isAuthenticated && $currentUser}
-					<ProfileWidget
-						name={$currentUser.name}
-						avatar={$currentUser.avatar?.large || $currentUser.avatar?.medium || null}
-					/>
+					<ProfileWidget currentUser={$currentUser} />
 				{/if}
 			</div>
 
@@ -225,65 +205,6 @@
 				<!-- Theme Badge -->
 				<ThemeBadge />
 			</div>
-
-			<!-- BOTTOM CENTER: Continue Watching -->
-			{#if $isAuthenticated && continueWatching.length > 0}
-				<div data-dash-panel class="absolute bottom-6 left-1/2 -translate-x-1/2">
-					<Card class="border-border/50 bg-card/70 p-3 backdrop-blur-md">
-						<div class="mb-2 flex items-center justify-between gap-4">
-							<h2 class="flex items-center gap-1.5 text-xs font-semibold">
-								<Icon icon="solar:play-circle-bold" class="h-3.5 w-3.5 text-primary" />
-								Continue Watching
-							</h2>
-							<button class="text-[10px] text-primary hover:underline" onclick={() => goto('/list')}
-								>View all</button
-							>
-						</div>
-						<div class="flex items-end gap-2">
-							{#each continueWatching as entry}
-								<button
-									class="group flex flex-col items-center gap-1"
-									onclick={() => entry.media?.id && goto(`/anime/${entry.media.id}`)}
-								>
-									<div
-										class="relative overflow-hidden rounded-md transition-transform group-hover:scale-105"
-									>
-										{#if entry.media?.coverImage?.medium}
-											<CachedImage
-												src={entry.media.coverImage.medium}
-												alt={entry.media.title?.userPreferred ?? ''}
-												class="h-16 w-11 object-cover"
-											/>
-										{:else}
-											<div class="flex h-16 w-11 items-center justify-center rounded-md bg-muted">
-												<Icon
-													icon="solar:videocamera-record-bold"
-													class="h-5 w-5 text-muted-foreground"
-												/>
-											</div>
-										{/if}
-										<!-- Progress indicator -->
-										{#if entry.progress != null && entry.media?.episodes}
-											<div class="absolute right-0 bottom-0 left-0 h-1 bg-black/40">
-												<div
-													class="h-full bg-primary"
-													style="width: {Math.min(
-														100,
-														(entry.progress / entry.media.episodes) * 100
-													)}%"
-												></div>
-											</div>
-										{/if}
-									</div>
-									<p class="w-11 truncate text-center text-[9px] text-muted-foreground">
-										{entry.media?.title?.userPreferred ?? 'Unknown'}
-									</p>
-								</button>
-							{/each}
-						</div>
-					</Card>
-				</div>
-			{/if}
 		</div>
 	</div>
 {/if}
