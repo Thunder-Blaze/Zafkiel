@@ -8,7 +8,6 @@
 	import { cubicOut } from 'svelte/easing';
 	import { gsapReveal } from '$lib/utils/gsap-animations';
 	import PageLoader from '$lib/components/PageLoader.svelte';
-	import type { PageData } from './$types';
 
 	// Import setting components
 	import InterfaceSettings from '$lib/components/settings/InterfaceSettings.svelte';
@@ -21,9 +20,6 @@
 	import ImageCacheManager from '$lib/components/settings/ImageCacheManager.svelte';
 	import ListSettings from '$lib/components/settings/ListSettings.svelte';
 	import NotificationSettings from '$lib/components/settings/NotificationSettings.svelte';
-
-	// Get data from load function
-	let { data }: { data: PageData } = $props();
 
 	let activeSection = $state('general');
 

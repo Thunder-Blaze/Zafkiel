@@ -82,6 +82,7 @@
 		"@studio-freight/lenis": "^1.0.42",
 		"@tanstack/svelte-query": "^6.0.10",
 		"@tanstack/svelte-query-devtools": "^6.0.2",
+		"@tanstack/svelte-virtual": "^3.13.21",
 		"@tauri-apps/api": "^2.9.1",
 		"better-sqlite3": "^12.5.0",
 		"cors": "^2.8.5",
@@ -94,7 +95,6 @@
 		"prettier-plugin-tailwind-css": "^1.5.0",
 		"range-parser": "^1.2.1",
 		"runed": "^0.34.0",
-		"svelte-virtual-list": "^3.0.1",
 		"tauri-plugin-libmpv-api": "^0.3.2",
 		"torrent-stream": "^1.2.1",
 		"webtorrent": "^2.8.5"

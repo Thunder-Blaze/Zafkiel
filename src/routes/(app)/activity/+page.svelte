@@ -9,7 +9,7 @@
 	import { useQueryClient } from '@tanstack/svelte-query';
 	import { invoke } from '@tauri-apps/api/core';
 	import { onMount, tick } from 'svelte';
-	import VirtualList from 'svelte-virtual-list';
+	import { createVirtualizer } from '@tanstack/svelte-virtual';
 
 	const queryClient = useQueryClient();
 
@@ -86,6 +86,33 @@
 		{ label: 'List Activity', value: 'list', icon: 'solar:list-heart-minimalistic-bold-duotone' },
 		{ label: 'Text Status', value: 'text', icon: 'solar:chat-square-bold-duotone' },
 	];
+
+	let activityScrollEl = $state<HTMLDivElement>();
+
+	const virtualizer = createVirtualizer({
+		count: 0,
+		getScrollElement: () => activityScrollEl ?? null,
+		estimateSize: () => 160,
+		overscan: 5,
+	});
+
+	$effect(() => {
+		$virtualizer.setOptions({
+			count: activities.length,
+			getScrollElement: () => activityScrollEl ?? null,
+			estimateSize: () => 160,
+			overscan: 5,
+		});
+	});
+
+	function measure(node: HTMLElement) {
+		$virtualizer.measureElement(node);
+		return {
+			destroy() {
+				$virtualizer.measureElement(node);
+			},
+		};
+	}
 </script>
 
 <svelte:head>
@@ -215,12 +242,24 @@
 					</div>
 				</div>
 			{:else}
-				<div class="flex h-[800px] w-full flex-col gap-3" data-lenis-prevent="true">
-					<VirtualList items={activities} let:item>
-						<div class="mb-3">
-							<ActivityCard activity={item} />
-						</div>
-					</VirtualList>
+				<div
+					class="h-[800px] w-full overflow-y-auto"
+					data-lenis-prevent="true"
+					bind:this={activityScrollEl}
+				>
+					<div style="height: {$virtualizer.getTotalSize()}px; width: 100%; position: relative;">
+						{#each $virtualizer.getVirtualItems() as virtualRow (virtualRow.index)}
+							<div
+								use:measure
+								data-index={virtualRow.index}
+								style="position: absolute; top: 0; left: 0; width: 100%; transform: translateY({virtualRow.start}px);"
+							>
+								<div class="pb-3">
+									<ActivityCard activity={activities[virtualRow.index]} />
+								</div>
+							</div>
+						{/each}
+					</div>
 				</div>
 
 				<!-- Pagination -->

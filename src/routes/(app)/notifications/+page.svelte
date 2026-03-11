@@ -7,6 +7,7 @@
 	import { gsapReveal, gsapStagger } from '$lib/utils/gsap-animations';
 	import PageLoader from '$lib/components/PageLoader.svelte';
 	import { goto } from '$app/navigation';
+	import { createVirtualizer } from '@tanstack/svelte-virtual';
 
 	type FilterCategory = 'ALL' | 'AIRING' | 'ACTIVITY' | 'FORUM' | 'FOLLOWS' | 'MEDIA';
 
@@ -79,14 +80,10 @@
 	interface NotifInfo {
 		icon: string;
 		iconClass: string;
-		/** Rich HTML with embedded <a> hyperlinks */
 		html: string;
 		time: number | undefined;
-		/** Poster/cover image for media notifications */
 		coverImage?: string;
-		/** Round avatar for user notifications */
 		avatar?: string;
-		/** Primary navigation target when clicking the row */
 		link?: string;
 	}
 
@@ -247,10 +244,6 @@
 		}
 	}
 
-	/**
-	 * Event delegation: if the click lands on an <a> inside the notification row,
-	 * navigate via SvelteKit router; otherwise go to the row's primary link.
-	 */
 	function handleRowClick(e: MouseEvent, info: NotifInfo) {
 		const anchor = (e.target as HTMLElement).closest('a');
 		if (anchor) {
@@ -266,13 +259,40 @@
 		activeFilter = f;
 		currentPage = 1;
 	}
+
+	let notifScrollEl = $state<HTMLDivElement>();
+
+	const virtualizer = createVirtualizer({
+		count: 0,
+		getScrollElement: () => notifScrollEl ?? null,
+		estimateSize: () => 80,
+		overscan: 10,
+	});
+
+	$effect(() => {
+		$virtualizer.setOptions({
+			count: notifications.length,
+			getScrollElement: () => notifScrollEl ?? null,
+			estimateSize: () => 80,
+			overscan: 10,
+		});
+	});
+
+	function measure(node: HTMLElement) {
+		$virtualizer.measureElement(node);
+		return {
+			destroy() {
+				$virtualizer.measureElement(node);
+			},
+		};
+	}
 </script>
 
 <svelte:head>
 	<title>Notifications — Zafkiel</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-5xl px-4 py-6">
+<div class="container mx-auto max-w-7xl px-4 py-6 lg:px-8">
 	<!-- Page header -->
 	<div use:gsapReveal class="mb-6 flex items-center justify-between">
 		<h1 class="text-2xl font-bold">Notifications</h1>
@@ -345,7 +365,7 @@
 
 				<!-- Empty -->
 			{:else if notifications.length === 0}
-				<div class="flex min-h-[300px] flex-col items-center justify-center gap-3 text-center">
+				<div class="flex min-h-[200px] flex-col items-center justify-center gap-3 text-center">
 					<Icon icon="solar:bell-off-bold-duotone" class="h-16 w-16 text-muted-foreground" />
 					<h3 class="text-lg font-semibold">No notifications</h3>
 					<p class="text-sm text-muted-foreground">
@@ -355,101 +375,122 @@
 
 				<!-- Notification list -->
 			{:else}
-				<ul use:gsapStagger class="flex flex-col gap-2">
-					{#each notifications as notif (notif.id)}
-						{@const info = getNotifInfo(notif)}
-						<li class="group relative rounded-lg border bg-card transition-colors hover:bg-card/80">
-							<button
-								type="button"
-								class="flex w-full cursor-pointer items-center gap-3 p-4 text-left"
-								onclick={(e) => handleRowClick(e, info)}
+				<div
+					class="h-[calc(100vh-280px)] min-h-[400px] w-full overflow-y-auto"
+					data-lenis-prevent="true"
+					bind:this={notifScrollEl}
+				>
+					<div style="height: {$virtualizer.getTotalSize()}px; width: 100%; position: relative;">
+						{#each $virtualizer.getVirtualItems() as virtualRow (virtualRow.index)}
+							{@const notif = notifications[virtualRow.index]}
+							{#if notif}
+							{@const info = getNotifInfo(notif)}
+							<div
+								use:measure
+								data-index={virtualRow.index}
+								style="position: absolute; top: 0; left: 0; width: 100%; transform: translateY({virtualRow.start}px);"
 							>
-								<!-- Cover image (media notifications) or Avatar (user notifications) -->
-								<div class="relative shrink-0">
-									{#if info.coverImage}
-										<!-- Anime/manga poster thumbnail -->
-										<div class="relative h-16 w-11 overflow-hidden rounded-sm bg-muted shadow-sm">
-											<CachedImage
-												src={info.coverImage}
-												alt=""
-												class="h-full w-full object-cover"
-											/>
-										</div>
-										<!-- Icon badge on cover -->
-										<div
-											class="absolute -right-1 -bottom-1 rounded-full border border-border bg-card p-0.5"
+								<div class="mb-2">
+									<div
+										class="group relative rounded-lg border bg-card transition-colors hover:bg-card/80"
+									>
+										<button
+											type="button"
+											class="flex w-full cursor-pointer items-center gap-3 p-4 text-left"
+											onclick={(e) => handleRowClick(e, info)}
 										>
-											<Icon icon={info.icon} class="size-3 {info.iconClass}" />
-										</div>
-									{:else if info.avatar}
-										<!-- User avatar circle -->
-										<div class="relative h-10 w-10">
-											<CachedImage
-												src={info.avatar}
-												alt=""
-												class="h-10 w-10 rounded-full object-cover ring-1 ring-border"
-											/>
-											<div
-												class="absolute -right-1 -bottom-1 rounded-full border border-border bg-card p-0.5"
-											>
-												<Icon icon={info.icon} class="size-3 {info.iconClass}" />
+											<!-- Cover image or Avatar -->
+											<div class="relative shrink-0">
+												{#if info.coverImage}
+													<div
+														class="relative h-16 w-11 overflow-hidden rounded-sm bg-muted shadow-sm"
+													>
+														<CachedImage
+															src={info.coverImage}
+															alt=""
+															class="h-full w-full object-cover"
+														/>
+													</div>
+													<div
+														class="absolute -right-1 -bottom-1 rounded-full border border-border bg-card p-0.5"
+													>
+														<Icon icon={info.icon} class="size-3 {info.iconClass}" />
+													</div>
+												{:else if info.avatar}
+													<div class="relative h-10 w-10">
+														<CachedImage
+															src={info.avatar}
+															alt=""
+															class="h-10 w-10 rounded-full object-cover ring-1 ring-border"
+														/>
+														<div
+															class="absolute -right-1 -bottom-1 rounded-full border border-border bg-card p-0.5"
+														>
+															<Icon icon={info.icon} class="size-3 {info.iconClass}" />
+														</div>
+													</div>
+												{:else}
+													<div
+														class="flex h-10 w-10 items-center justify-center rounded-full bg-muted"
+													>
+														<Icon icon={info.icon} class="size-5 {info.iconClass}" />
+													</div>
+												{/if}
 											</div>
-										</div>
-									{:else}
-										<!-- Fallback icon circle -->
-										<div class="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-											<Icon icon={info.icon} class="size-5 {info.iconClass}" />
-										</div>
-									{/if}
+
+											<!-- Text content -->
+											<div class="min-w-0 flex-1">
+												<p class="text-sm leading-snug">
+													<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+													{@html info.html}
+												</p>
+												{#if info.time}
+													<p class="mt-1 text-xs text-muted-foreground">
+														{timeAgo(info.time)}
+													</p>
+												{/if}
+											</div>
+
+											<!-- Navigation arrow -->
+											{#if info.link}
+												<Icon
+													icon="solar:arrow-right-linear"
+													class="size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+												/>
+											{/if}
+										</button>
+									</div>
 								</div>
-
-								<!-- Text content -->
-								<div class="min-w-0 flex-1">
-									<p class="text-sm leading-snug">
-										<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-										{@html info.html}
-									</p>
-									{#if info.time}
-										<p class="mt-1 text-xs text-muted-foreground">{timeAgo(info.time)}</p>
-									{/if}
-								</div>
-
-								<!-- Navigation arrow (shows on hover when there's a primary link) -->
-								{#if info.link}
-									<Icon
-										icon="solar:arrow-right-linear"
-										class="size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
-									/>
-								{/if}
-							</button>
-						</li>
-					{/each}
-				</ul>
-
-				<!-- Pagination -->
-				{#if pageInfo}
-					<div class="mt-6 flex items-center justify-center gap-3">
-						<Button
-							variant="outline"
-							size="sm"
-							disabled={currentPage <= 1}
-							onclick={() => (currentPage -= 1)}
-						>
-							<Icon icon="solar:arrow-left-linear" class="size-4" />
-							Previous
-						</Button>
-						<span class="text-sm text-muted-foreground">Page {currentPage}</span>
-						<Button
-							variant="outline"
-							size="sm"
-							disabled={!pageInfo.hasNextPage}
-							onclick={() => (currentPage += 1)}
-						>
-							Next
-							<Icon icon="solar:arrow-right-linear" class="size-4" />
-						</Button>
+							</div>
+							{/if}
+						{/each}
 					</div>
-				{/if}
+				</div>
+			{/if}
+
+			<!-- Pagination — always visible when pageInfo exists (even if filtered category is empty) -->
+			{#if pageInfo && !isLoading}
+				<div class="mt-6 flex items-center justify-center gap-3">
+					<Button
+						variant="outline"
+						size="sm"
+						disabled={currentPage <= 1}
+						onclick={() => (currentPage -= 1)}
+					>
+						<Icon icon="solar:arrow-left-linear" class="size-4" />
+						Previous
+					</Button>
+					<span class="text-sm text-muted-foreground">Page {currentPage}</span>
+					<Button
+						variant="outline"
+						size="sm"
+						disabled={!pageInfo.hasNextPage}
+						onclick={() => (currentPage += 1)}
+					>
+						Next
+						<Icon icon="solar:arrow-right-linear" class="size-4" />
+					</Button>
+				</div>
 			{/if}
 		</div>
 	</div>
