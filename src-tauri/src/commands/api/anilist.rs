@@ -4,7 +4,7 @@ use anilist_moe::{
     endpoints::character::FetchCharacterOptions,
     endpoints::staff::FetchStaffOptions,
     endpoints::user::FetchUserOptions,
-    objects::{media::Media, responses::Page, user::User, studio::Studio, character::Character, staff::Staff},
+    objects::{media::Media, responses::Page, user::User, studio::Studio, character::Character, staff::Staff, favourites::Favourites},
     enums::media::{MediaType, MediaFormat, MediaStatus, MediaSeason, MediaSort, MediaSource},
     enums::character::CharacterSort,
     enums::staff::StaffSort,
@@ -695,6 +695,19 @@ pub struct SearchAllResults {
     pub staff:      Page<Vec<SearchStaffResult>>,
     pub studios:    Page<Vec<SearchStudioResult>>,
     pub users:      Page<Vec<SearchUserResult>>,
+}
+
+#[tauri::command]
+pub async fn favourite_character(
+    id: i32,
+    service: State<'_, AniListState>
+) -> Result<AniListResponse<Favourites>, String> {
+    log::info!("Executing command: favourite_character id={}", id);
+    let client = service.client().await;
+    match client.common().favourite_character(id).await {
+        Ok(favs) => Ok(AniListResponse::success(favs)),
+        Err(e) => Ok(AniListResponse::error(format!("{:?}", e)))
+    }
 }
 
 #[tauri::command]
