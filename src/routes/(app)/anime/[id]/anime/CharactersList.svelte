@@ -58,9 +58,9 @@
 					/>
 					<div class="flex min-w-0 flex-col overflow-hidden py-1">
 						<span
-							class="mb-0.5 block truncate text-[10px] font-bold tracking-wider text-muted-foreground"
+							class="mb-0.5 block truncate text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
 						>
-							Character
+							CHARACTER
 						</span>
 						<span
 							class="mb-1.5 truncate text-sm font-semibold leading-none text-foreground transition-colors group-hover:text-primary"
@@ -68,18 +68,16 @@
 							{character.name.full}
 						</span>
 						<span class="flex items-center gap-1.5 text-xs text-muted-foreground">
-							<Icon icon="solar:star-bold-duotone" class="size-3.5 shrink-0 text-yellow-500" />
-							<span class="truncate">{character.role}</span>
+							<Icon icon="solar:star-bold-duotone" class="size-3.5 shrink-0 text-current" />
+							<span class="truncate capitalize">{character.role?.toLowerCase()}</span>
 						</span>
 					</div>
 				</a>
 
-				<!-- Voice Actor (Japanese preferred) -->
+				<!-- Voice Actor (Preferred Language) -->
 				{#if character.voiceActors && character.voiceActors.length > 0}
-					<!-- Try to find Japanese VA, otherwise first one -->
-					{@const va =
-						character.voiceActors.find((v) => v.languageV2 === 'Japanese' || v.languageV2 === 'JAPANESE') ||
-						character.voiceActors[0]}
+					<!-- Try to find VA in selected language, otherwise first one -->
+					{@const va = character.voiceActors[0]}
 					
 					<!-- Middle Icon -->
 					<div class="flex shrink-0 items-center justify-center px-1.5 md:px-2">
@@ -92,9 +90,9 @@
 					>
 						<div class="flex min-w-0 flex-col items-end overflow-hidden py-1">
 							<span
-								class="mb-0.5 block w-full truncate text-right text-[10px] font-bold tracking-wider text-muted-foreground"
+								class="mb-0.5 block w-full truncate text-right text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
 							>
-								Voice Actor
+								VOICE ACTOR
 							</span>
 							<span
 								class="mb-1.5 w-full truncate text-right text-sm font-semibold leading-none text-foreground transition-colors group-hover:text-primary"
@@ -104,7 +102,7 @@
 							<span class="flex w-full items-center justify-end gap-1.5 text-xs text-muted-foreground">
 								<Icon
 									icon="solar:microphone-3-bold-duotone"
-									class="size-3.5 shrink-0 text-primary/70"
+									class="size-3.5 shrink-0 text-current"
 								/>
 								<span class="truncate capitalize">{va.languageV2.toLowerCase()}</span>
 							</span>

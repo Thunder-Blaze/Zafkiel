@@ -5,7 +5,12 @@ export interface AnimeLarge extends Media {
 		edges?: {
 			node?: Character;
 			role?: string;
-			voiceActors?: (Staff & { languageV2?: string })[];
+			voiceActors?: (Staff & { languageV2?: string; language?: string })[];
+			voiceActorRoles?: {
+				voiceActor?: Staff & { languageV2?: string; language?: string };
+				roleNotes?: string;
+				dubGroup?: string;
+			}[];
 		}[];
 		nodes?: Character[];
 		pageInfo?: PageInfo;

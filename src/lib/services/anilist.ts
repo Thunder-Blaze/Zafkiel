@@ -101,6 +101,23 @@ export const animeApi = {
 	},
 
 	/**
+	 * Get anime characters by ID with language and pagination
+	 */
+	getCharactersById: async (
+		id: number,
+		page?: number,
+		perPage?: number,
+		language?: string
+	): Promise<AniListResponse<Media>> => {
+		return invokeWithToast('get_anime_characters_by_id', {
+			id,
+			page,
+			perPage,
+			language,
+		});
+	},
+
+	/**
 	 * Get trending anime
 	 */
 	getTrending: async (params?: PaginationParams): Promise<AniListResponse<Media[]>> => {

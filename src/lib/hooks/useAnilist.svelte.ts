@@ -176,6 +176,27 @@ export function useAnimeById(
 
 
 /**
+ * Get anime characters by ID with language filter and caching
+ */
+export function useAnimeCharactersById(
+	id: number,
+	page?: number,
+	perPage?: number,
+	language?: string,
+	options?: Partial<CreateQueryOptions<AniListResponse<Media>>>
+) {
+	return createQuery(() => ({
+		// Include page, perPage, and language in the query key so changing them refetches
+		queryKey: [...anilistKeys.anime.detail(id), 'characters', page, perPage, language],
+		queryFn: () => animeApi.getCharactersById(id, page, perPage, language),
+		staleTime: defaultStaleTime.detail,
+		enabled: id > 0,
+		...options,
+	}));
+}
+
+
+/**
  * Get trending anime with caching
  */
 export function useTrendingAnime(

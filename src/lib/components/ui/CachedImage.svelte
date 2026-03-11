@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
 	import { ImageCacheService, type ImageCacheOptions } from '$lib/services/imageCache';
+	import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 
 	interface Props {
 		src?: string | null;
@@ -60,9 +61,11 @@
 		isLoading = true;
 
 		ImageCacheService.getCachedImage(src, cacheOptions)
-			.then((path) => {
+			.then(async (path) => {
 				if (path) {
-					cachedAssetSrc = `asset://localhost/${path}`;
+					// Resolve relative cache path to absolute via Tauri backend
+					const absolutePath = await invoke<string>('get_cached_file_path', { relativePath: path });
+					cachedAssetSrc = convertFileSrc(absolutePath);
 					displaySrc = cachedAssetSrc;
 				}
 				// If no cached path, displaySrc stays as the CDN URL (already set above)

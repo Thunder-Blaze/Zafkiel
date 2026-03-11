@@ -200,6 +200,7 @@ pub fn run() {
             commands::api::anilist::browse_media,
             commands::api::anilist::get_media_by_id,
             commands::api::anilist::get_anime_by_id,
+            commands::api::anilist::get_anime_characters_by_id,
             commands::api::anilist::get_manga_by_id,
             commands::api::anilist::get_trending_anime,
             commands::api::anilist::get_popular_anime,
