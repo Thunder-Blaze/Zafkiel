@@ -8,6 +8,7 @@
 	import { extensionStore } from '$lib/stores/extensionStore.svelte';
 	import { ExtensionLoader } from '$lib/services/ExtensionLoader';
 	import { EXTENSION_CATALOG } from '$lib/services/extensionCatalog';
+	import { useQueryClient } from '@tanstack/svelte-query';
 	import type {
 		SourceExtension,
 		SearchResult,
@@ -22,6 +23,9 @@
 	import ProxiedImage from '$lib/components/ProxiedImage.svelte';
 
 	const { animeTitle, animeId }: { animeTitle: string; animeId: number } = $props();
+
+	const CACHE_STALE_TIME = 5 * 60 * 1000; // 5 minutes
+	const queryClient = useQueryClient();
 
 	// ── State ──────────────────────────────────────────────────────────────────
 	type Step =
@@ -54,6 +58,7 @@
 	let selectedEpisode = $state<Episode | null>(null);
 	let sources = $state<StreamSource[]>([]);
 	let resolvedStream = $state<ResolvedStream | null>(null);
+	let activeSource = $state<StreamSource | null>(null);
 	let loadingStream = $state(false);
 
 	// ── Download state ────────────────────────────────────────────────────────
@@ -226,7 +231,11 @@
 		step = 'searching';
 		error = null;
 		try {
-			searchResults = await ext.search(q);
+			searchResults = await queryClient.fetchQuery({
+				queryKey: ['ext-search', activeExtId, q],
+				queryFn: () => ext!.search(q),
+				staleTime: CACHE_STALE_TIME,
+			});
 			// Auto-select if only one result
 			if (searchResults.length === 1) {
 				await selectResult(searchResults[0]);
@@ -254,7 +263,11 @@
 		loadingEpisodes = true;
 		try {
 			// `id` on SearchResult from AnimePahe is the session slug
-			const pageData = await ext.getEpisodes(selectedResult.id, page);
+			const pageData = await queryClient.fetchQuery({
+				queryKey: ['ext-episodes', activeExtId, selectedResult.id, page],
+				queryFn: () => ext!.getEpisodes(selectedResult!.id, page),
+				staleTime: CACHE_STALE_TIME,
+			});
 			if (page === 1) episodes = pageData.data;
 			else episodes = [...episodes, ...pageData.data];
 			episodePage = pageData.currentPage;
@@ -294,12 +307,39 @@
 				: { url: source.id, type: 'hls' as const, headers: {} as Record<string, string> };
 
 			resolvedStream = resolved;
+			activeSource = source;
 			step = 'playing';
 		} catch (e) {
 			error = String(e);
 		} finally {
 			loadingStream = false;
 		}
+	}
+
+	/** Called when user picks an episode from the player's playlist panel. */
+	async function handlePlayerEpisodeSelect(ep: Episode) {
+		if (!ext || !selectedResult) return;
+		selectedEpisode = ep;
+		sources = [];
+		activeSource = null;
+		resolvedStream = null;
+		try {
+			sources = await ext.getStreamSources(selectedResult.id, ep.id);
+			// Auto-play the first source
+			if (sources.length > 0) {
+				await playSource(sources[0]);
+			} else {
+				step = 'sources';
+			}
+		} catch (e) {
+			error = String(e);
+			step = 'episodes';
+		}
+	}
+
+	/** Called when user picks a quality from the player's quality menu. */
+	async function handlePlayerSourceSelect(source: StreamSource) {
+		await playSource(source);
 	}
 
 	function reset() {
@@ -438,29 +478,44 @@
 			{#if searchResults.length === 0 && !error}
 				<p class="py-8 text-center text-sm text-muted-foreground">No results found.</p>
 			{:else}
-				<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+				<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
 					{#each searchResults as result}
 						<button
-							class="group flex flex-col overflow-hidden rounded-lg border bg-card transition-shadow hover:shadow-md"
+							class="group flex flex-col rounded-lg border bg-card p-2 transition-all duration-200 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
 							onclick={() => selectResult(result)}
 						>
-							{#if result.coverUrl}
-								<ProxiedImage
-									src={result.coverUrl}
-									alt={result.title}
-									class="aspect-[2/3] w-full object-cover"
-									cookie={cookieStr}
-									referer="https://animepahe.si/"
-								/>
-							{:else}
-								<div class="flex aspect-[2/3] w-full items-center justify-center bg-muted">
-									<Icon icon="solar:tv-bold" class="size-10 text-muted-foreground" />
+							<div class="relative overflow-hidden rounded-md">
+								{#if result.coverUrl}
+									<ProxiedImage
+										src={result.coverUrl}
+										alt={result.title}
+										class="aspect-[2/3] w-full object-cover"
+										cookie={cookieStr}
+										referer="https://animepahe.si/"
+									/>
+								{:else}
+									<div class="flex aspect-[2/3] w-full items-center justify-center rounded-md bg-muted">
+										<Icon icon="solar:tv-bold" class="size-10 text-muted-foreground" />
+									</div>
+								{/if}
+								<!-- Hover overlay -->
+								<div class="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-200 group-hover:bg-black/40">
+									<Icon icon="solar:play-bold" class="size-8 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
 								</div>
-							{/if}
-							<div class="p-2">
+								{#if result.type}
+									<span class="absolute top-1.5 right-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-semibold text-white/80">
+										{result.type}
+									</span>
+								{/if}
+							</div>
+							<div class="pt-2">
 								<p class="line-clamp-2 text-xs font-medium">{result.title}</p>
-								{#if result.year}
-									<p class="mt-0.5 text-[10px] text-muted-foreground">{result.year}</p>
+								{#if result.year || result.status}
+									<p class="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+										{#if result.year}<span>{result.year}</span>{/if}
+										{#if result.year && result.status}<span class="text-muted-foreground/40">·</span>{/if}
+										{#if result.status}<span>{result.status}</span>{/if}
+									</p>
 								{/if}
 							</div>
 						</button>
@@ -499,13 +554,19 @@
 
 	<!-- Video player -->
 	{#if step === 'playing' && resolvedStream}
-		<div class="space-y-3">
+		<div>
 			<VideoPlayer
 				url={resolvedStream.url}
 				headers={resolvedStream.headers ?? {}}
 				title={selectedResult?.title}
 				subtitle={selectedEpisode?.title ?? `Episode ${selectedEpisode?.number}`}
 				onBack={reset}
+				{episodes}
+				currentEpisode={selectedEpisode}
+				{sources}
+				currentSource={activeSource}
+				onEpisodeSelect={handlePlayerEpisodeSelect}
+				onSourceSelect={handlePlayerSourceSelect}
 			/>
 			<div class="flex items-center justify-between text-sm text-muted-foreground">
 				<span>
@@ -620,26 +681,46 @@
 				<span class="text-sm">Loading episodes…</span>
 			</div>
 		{:else}
-			<ScrollArea class="h-96">
-				<div class="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
+			<ScrollArea class="h-[28rem]">
+				<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
 					{#each episodes as ep}
 						<button
-							class="flex flex-col items-center gap-1 rounded-md border bg-card p-2 text-center transition-colors hover:bg-muted
-								{selectedEpisode?.id === ep.id ? 'border-primary bg-primary/10' : ''}"
+							class="group flex flex-col rounded-lg border bg-card p-2 transition-all duration-200 hover:border-primary/40 hover:shadow-lg
+								{selectedEpisode?.id === ep.id ? 'border-primary ring-1 ring-primary/30' : ''}"
 							onclick={() => playEpisode(ep)}
 						>
-							{#if ep.thumbnailUrl}
-								<ProxiedImage
-									src={ep.thumbnailUrl}
-									alt={`Ep ${ep.number}`}
-									class="aspect-video w-full rounded object-cover"
-									cookie={cookieStr}
-									referer="https://animepahe.si/"
-								/>
-							{/if}
-							<span class="text-xs font-semibold">{ep.number}</span>
+							<div class="relative overflow-hidden rounded-md">
+								{#if ep.thumbnailUrl}
+									<ProxiedImage
+										src={ep.thumbnailUrl}
+										alt={`Ep ${ep.number}`}
+										class="aspect-video w-full object-cover"
+										cookie={cookieStr}
+										referer="https://animepahe.si/"
+									/>
+								{:else}
+									<div class="flex aspect-video w-full items-center justify-center rounded-md bg-muted">
+										<Icon icon="solar:play-bold" class="size-6 text-muted-foreground/40" />
+									</div>
+								{/if}
+								<!-- Episode number badge -->
+								<span class="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white">
+									EP {ep.number}
+								</span>
+								{#if selectedEpisode?.id === ep.id}
+									<div class="absolute inset-0 flex items-center justify-center rounded-md bg-black/40">
+										<Icon icon="solar:play-bold" class="size-6 text-primary" />
+									</div>
+								{/if}
+								<!-- Hover overlay -->
+								<div class="absolute inset-0 flex items-center justify-center rounded-md bg-black/0 transition-all duration-200 group-hover:bg-black/30">
+									<Icon icon="solar:play-bold" class="size-6 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+								</div>
+							</div>
 							{#if ep.title}
-								<span class="line-clamp-1 text-[10px] text-muted-foreground">{ep.title}</span>
+								<div class="pt-1.5">
+									<p class="line-clamp-1 text-[11px] font-medium">{ep.title}</p>
+								</div>
 							{/if}
 						</button>
 					{/each}

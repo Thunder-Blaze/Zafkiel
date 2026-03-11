@@ -3,6 +3,8 @@
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import Icon from '@iconify/svelte';
 	import { cn } from '$lib/utils';
+	import { ScrollArea } from '$lib/components/ui/scroll-area';
+	import type { Episode, StreamSource } from '$lib/types/extensions';
 
 	let {
 		isPlaying,
@@ -24,6 +26,12 @@
 		tracks = [],
 		currentTrackIndex = -1,
 		onTrackChange = () => {},
+		episodes = [],
+		currentEpisode = null,
+		sources = [],
+		currentSource = null,
+		onEpisodeSelect,
+		onSourceSelect,
 	} = $props<{
 		isPlaying: boolean;
 		currentTime: number;
@@ -44,9 +52,17 @@
 		tracks?: { id: string; label: string; src: string; lang: string }[];
 		currentTrackIndex?: number;
 		onTrackChange?: (index: number) => void;
+		episodes?: Episode[];
+		currentEpisode?: Episode | null;
+		sources?: StreamSource[];
+		currentSource?: StreamSource | null;
+		onEpisodeSelect?: (ep: Episode) => void;
+		onSourceSelect?: (src: StreamSource) => void;
 	}>();
 
 	let showSubtitleMenu = $state(false);
+	let showPlaylist = $state(false);
+	let showQualityMenu = $state(false);
 
 	function formatTime(seconds: number): string {
 		if (!seconds || isNaN(seconds)) return '00:00';
@@ -64,6 +80,17 @@
 
 	function handleSeek(vals: number[]) {
 		onSeek(vals[0]);
+	}
+
+	function formatSourceLabel(source: StreamSource): string {
+		const parts: string[] = [];
+		if (source.fansub) parts.push(`[${source.fansub}]`);
+		if (source.resolution) parts.push(`${source.resolution}p`);
+		else if (source.label) parts.push(source.label);
+		if (source.audio === 'jpn') parts.push('JPN');
+		else if (source.audio === 'eng') parts.push('DUB');
+		else if (source.audio) parts.push(source.audio.toUpperCase());
+		return parts.join(' ') || source.label || source.id;
 	}
 </script>
 
@@ -260,7 +287,18 @@
 					<div class="flex items-center gap-2">
 						<Tooltip.Root>
 							<Tooltip.Trigger>
-								<Button variant="ghost" size="icon" class="text-white hover:bg-white/20">
+								<Button
+									variant="ghost"
+									size="icon"
+									class={cn('text-white hover:bg-white/20', showPlaylist && 'bg-white/20')}
+									onclick={(e) => {
+										e.stopPropagation();
+										showPlaylist = !showPlaylist;
+										showQualityMenu = false;
+										showSubtitleMenu = false;
+									}}
+									disabled={episodes.length === 0}
+								>
 									<Icon icon="lucide:list" class="h-5 w-5" />
 								</Button>
 							</Tooltip.Trigger>
@@ -375,6 +413,62 @@
 							{/if}
 						</div>
 
+						<!-- Quality / Source Switcher -->
+						{#if sources.length > 0}
+							<div class="relative">
+								<Tooltip.Root>
+									<Tooltip.Trigger>
+										<Button
+											variant="ghost"
+											size="icon"
+											class={cn('text-white hover:bg-white/20', showQualityMenu && 'bg-white/20')}
+											onclick={(e) => {
+												e.stopPropagation();
+												showQualityMenu = !showQualityMenu;
+												showSubtitleMenu = false;
+												showPlaylist = false;
+											}}
+										>
+											<Icon icon="lucide:settings-2" class="h-5 w-5" />
+										</Button>
+									</Tooltip.Trigger>
+									<Tooltip.Content>
+										<p>Quality</p>
+									</Tooltip.Content>
+								</Tooltip.Root>
+
+								{#if showQualityMenu}
+									<div
+										class="absolute bottom-full left-1/2 mb-2 w-56 -translate-x-1/2 overflow-hidden rounded-md bg-black/90 p-1 shadow-lg backdrop-blur-sm"
+									>
+										<div class="border-b border-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/40">
+											Quality
+										</div>
+										{#each sources as source}
+											<button
+												class={cn(
+													'flex w-full items-center rounded-sm px-3 py-2 text-left text-sm hover:bg-white/10',
+													currentSource?.id === source.id && 'font-medium text-primary'
+												)}
+												onclick={(e) => {
+													e.stopPropagation();
+													onSourceSelect?.(source);
+													showQualityMenu = false;
+												}}
+											>
+												{#if currentSource?.id === source.id}
+													<Icon icon="lucide:check" class="mr-2 h-3 w-3" />
+												{:else}
+													<div class="mr-2 h-3 w-3"></div>
+												{/if}
+												<span class="truncate text-white">{formatSourceLabel(source)}</span>
+											</button>
+										{/each}
+									</div>
+								{/if}
+							</div>
+						{/if}
+
 						<Tooltip.Root>
 							<Tooltip.Trigger>
 								<Button variant="ghost" size="icon" class="text-white hover:bg-white/20">
@@ -428,4 +522,76 @@
 			</div>
 		{/if}
 	</div>
+
+	<!-- Playlist Side Panel -->
+	{#if showPlaylist && episodes.length > 0}
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="absolute top-0 right-0 z-50 flex h-full w-[22rem] flex-col border-l border-white/10 bg-black/95 backdrop-blur-sm"
+			onclick={(e) => e.stopPropagation()}
+		>
+			<div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
+				<div>
+					<h3 class="text-sm font-bold text-white">Episodes</h3>
+					<p class="text-[10px] text-white/40">{episodes.length} episodes</p>
+				</div>
+				<Button
+					variant="ghost"
+					size="icon"
+					class="h-7 w-7 text-white/50 hover:bg-white/10 hover:text-white"
+					onclick={() => (showPlaylist = false)}
+				>
+					<Icon icon="lucide:x" class="h-4 w-4" />
+				</Button>
+			</div>
+			<ScrollArea class="flex-1">
+				<div class="flex flex-col gap-0.5 p-1.5">
+					{#each episodes as ep (ep.id)}
+						{@const isCurrent = currentEpisode?.id === ep.id}
+						<button
+							class={cn(
+								'flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left transition-colors',
+								isCurrent
+									? 'bg-primary/20 text-primary'
+									: 'text-white/70 hover:bg-white/10 hover:text-white'
+							)}
+							onclick={(e) => {
+								e.stopPropagation();
+								onEpisodeSelect?.(ep);
+							}}
+						>
+							<!-- Thumbnail -->
+							<div class="relative h-12 w-20 shrink-0 overflow-hidden rounded">
+								{#if ep.thumbnailUrl}
+									<img
+										src={ep.thumbnailUrl}
+										alt={`Ep ${ep.number}`}
+										class="h-full w-full object-cover"
+									/>
+								{:else}
+									<div class="flex h-full w-full items-center justify-center bg-white/5">
+										<Icon icon="lucide:play" class="h-3 w-3 text-white/20" />
+									</div>
+								{/if}
+								{#if isCurrent}
+									<div class="absolute inset-0 flex items-center justify-center bg-black/50">
+										<Icon icon="lucide:play" class="h-4 w-4 text-primary" />
+									</div>
+								{/if}
+							</div>
+							<!-- Info -->
+							<div class="min-w-0 flex-1">
+								<p class="text-xs font-medium">
+									Episode {ep.number}
+								</p>
+								{#if ep.title}
+									<p class="line-clamp-1 text-[10px] opacity-60">{ep.title}</p>
+								{/if}
+							</div>
+						</button>
+					{/each}
+				</div>
+			</ScrollArea>
+		</div>
+	{/if}
 </Tooltip.Provider>

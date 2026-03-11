@@ -362,17 +362,17 @@
 								class="grid inline-flex h-10 w-full grid-cols-8 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground"
 							>
 								<a
-									href={`/anime/${animeId}`}
-									class={page.url.pathname === `/anime/${animeId}` ||
-									page.url.pathname === `/anime/${animeId}/`
-										? activeTabClass
-										: inactiveTabClass}
-								>
-									<div class="flex items-center gap-2">
-										<Icon icon="solar:play-circle-bold" class="size-4" />
-										Watch
-									</div>
-								</a>
+								href={`/anime/${animeId}/anime`}
+								class={page.url.pathname === `/anime/${animeId}/anime` ||
+								page.url.pathname === `/anime/${animeId}/anime/`
+									? activeTabClass
+									: inactiveTabClass}
+							>
+								<div class="flex items-center gap-2">
+									<Icon icon="solar:play-circle-bold" class="size-4" />
+									Watch
+								</div>
+							</a>
 								<a
 									href={`/anime/${animeId}/characters`}
 									class={page.url.pathname.endsWith('/characters')

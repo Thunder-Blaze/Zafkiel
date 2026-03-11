@@ -31,6 +31,7 @@
 		setProperty,
 		type MpvObservableProperty,
 	} from 'tauri-plugin-libmpv-api';
+	import type { Episode, StreamSource } from '$lib/types/extensions';
 
 	let {
 		url,
@@ -38,12 +39,24 @@
 		title,
 		subtitle,
 		onBack,
+		episodes = [],
+		currentEpisode = null,
+		sources = [],
+		currentSource = null,
+		onEpisodeSelect,
+		onSourceSelect,
 	} = $props<{
 		url: string;
 		headers?: Record<string, string>;
 		title?: string;
 		subtitle?: string;
 		onBack?: () => void;
+		episodes?: Episode[];
+		currentEpisode?: Episode | null;
+		sources?: StreamSource[];
+		currentSource?: StreamSource | null;
+		onEpisodeSelect?: (ep: Episode) => void;
+		onSourceSelect?: (src: StreamSource) => void;
 	}>();
 
 	// ── State ────────────────────────────────────────────────────────────────
@@ -364,6 +377,12 @@
 				onSkipIntro={() => command('seek', ['85', 'relative'])}
 				{isBuffering}
 				onTrackChange={() => {}}
+				{episodes}
+				{currentEpisode}
+				{sources}
+				{currentSource}
+				{onEpisodeSelect}
+				{onSourceSelect}
 			/>
 		</div>
 	{/if}

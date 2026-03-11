@@ -1,18 +1,13 @@
 <script lang="ts">
-	import { page } from '$app/state';
-	import { useAnimeById } from '$lib/hooks/useAnilist.svelte';
-	import WatchSection from './anime/WatchSection.svelte';
-	import type { AnimeLarge } from '$lib/types/anime';
-	import { filterTitle } from '$lib/utils/data-filters';
-
-	const animeId = $derived(page.params.id ? parseInt(page.params.id) : 0);
-	const animeQuery = $derived(useAnimeById(animeId));
-	const animeData = $derived(animeQuery.data?.data as AnimeLarge | undefined);
-	const title = $derived(animeData ? filterTitle(animeData.title || {}) : '');
+	import Icon from '@iconify/svelte';
 </script>
 
-{#if animeData}
-	<div class="mt-6">
-		<WatchSection animeTitle={title} {animeId} />
+<div class="flex flex-col items-center justify-center gap-4 py-20 text-center">
+	<Icon icon="solar:widget-5-bold-duotone" class="size-16 text-muted-foreground/40" />
+	<div>
+		<h3 class="text-lg font-semibold text-muted-foreground">Select a section</h3>
+		<p class="mt-1 max-w-sm text-sm text-muted-foreground/70">
+			Choose a tab above to view details about this anime.
+		</p>
 	</div>
-{/if}
+</div>
