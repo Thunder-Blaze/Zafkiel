@@ -103,12 +103,26 @@
 </script>
 
 <Tooltip.Provider>
-	<!-- Subtle gradients for top and bottom only using background variable -->
+	<!-- Subtle gradients base (playing state) -->
 	<div
-		class="pointer-events-none absolute top-0 right-0 left-0 z-40 h-48 bg-gradient-to-b from-background/90 via-background/40 to-transparent"
+		class="pointer-events-none absolute top-0 right-0 left-0 z-40 h-48 bg-gradient-to-b from-background/80 via-background/20 to-transparent"
 	></div>
 	<div
-		class="pointer-events-none absolute right-0 bottom-0 left-0 z-40 h-80 bg-gradient-to-t from-background/95 via-background/60 to-transparent"
+		class="pointer-events-none absolute right-0 bottom-0 left-0 z-40 h-80 bg-gradient-to-t from-background/90 via-background/40 to-transparent"
+	></div>
+
+	<!-- Strong gradients overlay (paused state) -->
+	<div
+		class={cn(
+			'pointer-events-none absolute top-0 right-0 left-0 z-40 h-48 bg-gradient-to-b from-background via-background/60 to-transparent transition-opacity duration-300',
+			isPlaying ? 'opacity-0' : 'opacity-60'
+		)}
+	></div>
+	<div
+		class={cn(
+			'pointer-events-none absolute right-0 bottom-0 left-0 z-40 h-80 bg-gradient-to-t from-background via-background/75 to-transparent transition-opacity duration-300',
+			isPlaying ? 'opacity-0' : 'opacity-60'
+		)}
 	></div>
 
 	<!-- Reduced outer padding to p-4 md:p-6 -->
@@ -163,15 +177,13 @@
 
 			<!-- Center Content (Clickable area to play/pause in middle of screen) -->
 			<!-- Removed focus borders and outline. Negative tabindex added -->
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div
-				class="pointer-events-auto flex-1 cursor-pointer ring-0 outline-none focus:ring-0 focus:outline-none"
+			<button
+				type="button"
+				class="pointer-events-auto flex-1 cursor-pointer appearance-none border-none bg-transparent ring-0 outline-none focus:ring-0 focus:outline-none"
 				onclick={onPlayPause}
-				role="button"
 				tabindex="-1"
 				aria-label="Toggle Playback"
-			></div>
+			></button>
 
 			<!-- Bottom Content Area -->
 			<div
@@ -195,9 +207,9 @@
 				</div>
 
 				<!-- Progress Bar and Time -->
-				<div class="flex w-full flex-col gap-2 px-1">
+				<div class="flex w-full items-center gap-3 px-1 md:gap-4">
 					<div
-						class="group relative flex h-5 w-full cursor-pointer items-center"
+						class="group relative flex h-5 flex-1 cursor-pointer items-center"
 						onwheel={(e) => e.stopPropagation()}
 					>
 						<!-- Background track -->
@@ -223,11 +235,11 @@
 
 					<!-- Time Display -->
 					<div
-						class="pointer-events-none mt-1 flex w-full justify-end text-xs font-semibold tracking-wide text-foreground/70 md:text-sm"
+						class="pointer-events-none flex shrink-0 justify-end text-xs font-semibold tracking-wide text-foreground/90 md:text-sm"
 					>
-						<span class="text-foreground/90">{formatTime(currentTime)}</span>
-						<span class="mx-1">/</span>
-						<span>{formatTime(duration)}</span>
+						<span>{formatTime(currentTime)}</span>
+						<span class="mx-1 text-foreground/50">/</span>
+						<span class="text-foreground/70">{formatTime(duration)}</span>
 					</div>
 				</div>
 
@@ -595,6 +607,7 @@
 
 	<!-- Playlist Side Panel (Apple TV style width and backdrop) -->
 	{#if showPlaylist && episodes.length > 0}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="pointer-events-auto absolute top-0 right-0 z-[60] flex h-full w-full animate-in flex-col border-l border-border bg-background/90 shadow-2xl backdrop-blur-3xl duration-200 slide-in-from-right sm:w-[28rem]"
