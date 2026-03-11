@@ -109,7 +109,7 @@ export const episodeTorrentStore = {
 		anilistId: number,
 		torrentId: number,
 		magnetUri: string,
-		files: TorrentFile[],
+		files: TorrentFile[]
 	): void {
 		for (const file of files) {
 			const epNum = parseEpisodeNumber(file.name);

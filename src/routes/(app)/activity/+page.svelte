@@ -154,7 +154,7 @@
 		{#each filterOptions as opt (opt.value)}
 			<button
 				onclick={() => setFilter(opt.value)}
-			class="flex items-center gap-1.5 rounded-[var(--radius)] border px-3 py-1.5 text-xs font-medium transition-all {activeFilter ===
+				class="flex items-center gap-1.5 rounded-[var(--radius)] border px-3 py-1.5 text-xs font-medium transition-all {activeFilter ===
 				opt.value
 					? 'border-primary bg-primary text-primary-foreground'
 					: 'border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground'}"
@@ -215,10 +215,7 @@
 				<div
 					class="flex min-h-[300px] flex-col items-center justify-center gap-4 rounded-xl border bg-card px-8 py-12 text-center"
 				>
-					<Icon
-						icon="solar:danger-triangle-bold-duotone"
-						class="h-12 w-12 text-destructive"
-					/>
+					<Icon icon="solar:danger-triangle-bold-duotone" class="h-12 w-12 text-destructive" />
 					<p class="text-muted-foreground">{errorMsg || 'Failed to load activity'}</p>
 					<Button variant="outline" onclick={refetch}>
 						<Icon icon="solar:refresh-bold" class="mr-1.5 size-4" />
@@ -291,7 +288,7 @@
 		<aside class="hidden lg:block">
 			<div class="sticky top-6 space-y-4">
 				<div class="rounded-xl border bg-card p-4">
-					<h3 class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+					<h3 class="mb-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
 						Feed Info
 					</h3>
 					<ul class="space-y-2 text-sm">
@@ -313,15 +310,12 @@
 				</div>
 
 				<Button variant="outline" class="w-full" onclick={refetch} disabled={isLoading}>
-					<Icon
-						icon="solar:refresh-bold"
-						class="mr-1.5 size-4 {isLoading ? 'animate-spin' : ''}"
-					/>
+					<Icon icon="solar:refresh-bold" class="mr-1.5 size-4 {isLoading ? 'animate-spin' : ''}" />
 					Refresh Feed
 				</Button>
 
 				<div class="rounded-xl border bg-card p-4">
-					<h3 class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+					<h3 class="mb-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
 						Activity Types
 					</h3>
 					<ul class="space-y-2.5 text-xs text-muted-foreground">
@@ -333,17 +327,11 @@
 							Anime &amp; manga list updates
 						</li>
 						<li class="flex items-center gap-2">
-							<Icon
-								icon="solar:chat-square-bold-duotone"
-								class="size-4 shrink-0 text-green-500"
-							/>
+							<Icon icon="solar:chat-square-bold-duotone" class="size-4 shrink-0 text-green-500" />
 							Text status posts
 						</li>
 						<li class="flex items-center gap-2">
-							<Icon
-								icon="solar:letter-bold-duotone"
-								class="size-4 shrink-0 text-purple-500"
-							/>
+							<Icon icon="solar:letter-bold-duotone" class="size-4 shrink-0 text-purple-500" />
 							Messages between users
 						</li>
 					</ul>

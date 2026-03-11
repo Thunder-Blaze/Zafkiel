@@ -174,7 +174,6 @@ export function useAnimeById(
 	}));
 }
 
-
 /**
  * Get anime characters by ID with language filter and caching
  */
@@ -194,7 +193,6 @@ export function useAnimeCharactersById(
 		...options,
 	}));
 }
-
 
 /**
  * Get trending anime with caching
@@ -1026,12 +1024,14 @@ export type ActivityFeedFilter = 'all' | 'list' | 'text';
  * Unified activity feed supporting isFollowing toggle and type filter.
  * Uses fetch_activities with full FetchActivityOptions for proper multi-type querying.
  */
-export function useActivityFeed(opts: {
-	isFollowing?: boolean;
-	filter?: ActivityFeedFilter;
-	page?: number;
-	perPage?: number;
-} = {}) {
+export function useActivityFeed(
+	opts: {
+		isFollowing?: boolean;
+		filter?: ActivityFeedFilter;
+		page?: number;
+		perPage?: number;
+	} = {}
+) {
 	return createQuery(() => {
 		const typeIn =
 			opts.filter === 'list'

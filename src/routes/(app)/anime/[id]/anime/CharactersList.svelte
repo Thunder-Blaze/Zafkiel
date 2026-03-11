@@ -63,7 +63,7 @@
 							CHARACTER
 						</span>
 						<span
-							class="mb-1.5 truncate text-sm font-semibold leading-none text-foreground transition-colors group-hover:text-primary"
+							class="mb-1.5 truncate text-sm leading-none font-semibold text-foreground transition-colors group-hover:text-primary"
 						>
 							{character.name.full}
 						</span>
@@ -78,10 +78,13 @@
 				{#if character.voiceActors && character.voiceActors.length > 0}
 					<!-- Try to find VA in selected language, otherwise first one -->
 					{@const va = character.voiceActors[0]}
-					
+
 					<!-- Middle Icon -->
 					<div class="flex shrink-0 items-center justify-center px-1.5 md:px-2">
-						<Icon icon="solar:link-bold-duotone" class="size-4 -rotate-45 text-muted-foreground/40" />
+						<Icon
+							icon="solar:link-bold-duotone"
+							class="size-4 -rotate-45 text-muted-foreground/40"
+						/>
 					</div>
 
 					<a
@@ -95,11 +98,13 @@
 								VOICE ACTOR
 							</span>
 							<span
-								class="mb-1.5 w-full truncate text-right text-sm font-semibold leading-none text-foreground transition-colors group-hover:text-primary"
+								class="mb-1.5 w-full truncate text-right text-sm leading-none font-semibold text-foreground transition-colors group-hover:text-primary"
 							>
 								{va.name.full}
 							</span>
-							<span class="flex w-full items-center justify-end gap-1.5 text-xs text-muted-foreground">
+							<span
+								class="flex w-full items-center justify-end gap-1.5 text-xs text-muted-foreground"
+							>
 								<Icon
 									icon="solar:microphone-3-bold-duotone"
 									class="size-3.5 shrink-0 text-current"

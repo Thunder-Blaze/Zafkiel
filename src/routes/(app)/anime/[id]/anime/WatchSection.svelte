@@ -70,7 +70,7 @@
 
 	// ── Derived ───────────────────────────────────────────────────────────────
 	const sourceExtensions = $derived(
-		EXTENSION_CATALOG.filter((c) => c.type === 'source' && extensionStore.isInstalled(c.id)),
+		EXTENSION_CATALOG.filter((c) => c.type === 'source' && extensionStore.isInstalled(c.id))
 	);
 
 	// ── On mount — pick the first installed source extension ──────────────────
@@ -103,7 +103,10 @@
 						const [name, ...rest] = part.split('=');
 						return { name: name.trim(), value: rest.join('=').trim() };
 					});
-				console.debug(`[watch] parsed ${parsed.length} cookies:`, parsed.map((c) => c.name));
+				console.debug(
+					`[watch] parsed ${parsed.length} cookies:`,
+					parsed.map((c) => c.name)
+				);
 				// Await so WASM set_cookies() runs before doSearch
 				await ext.onCookiesUpdated(parsed);
 				console.debug('[watch] onCookiesUpdated complete, starting search');
@@ -113,20 +116,29 @@
 		});
 
 		// Listen for download progress events
-		downloadUnlisten = await listen<DownloadProgressEvent>('extension-download-progress', (event) => {
-			const ev = event.payload;
-			downloadMap = new Map(
-				[...downloadMap.entries()].map(([key, rec]) => [
-					key,
-					rec.id === ev.id
-						? { ...rec, status: ev.status as ExtensionDownload['status'], progress: ev.progress, errorMsg: ev.errorMsg, filePath: ev.filePath }
-						: rec,
-				]),
-			);
-			if (ev.status !== 'downloading') {
-				downloadingSourceId = null;
+		downloadUnlisten = await listen<DownloadProgressEvent>(
+			'extension-download-progress',
+			(event) => {
+				const ev = event.payload;
+				downloadMap = new Map(
+					[...downloadMap.entries()].map(([key, rec]) => [
+						key,
+						rec.id === ev.id
+							? {
+									...rec,
+									status: ev.status as ExtensionDownload['status'],
+									progress: ev.progress,
+									errorMsg: ev.errorMsg,
+									filePath: ev.filePath,
+								}
+							: rec,
+					])
+				);
+				if (ev.status !== 'downloading') {
+					downloadingSourceId = null;
+				}
 			}
-		});
+		);
 	});
 
 	onDestroy(() => {
@@ -189,7 +201,10 @@
 		// Prefer explicit Cookie header from extension, fall back to collected session cookies
 		const cookieVal = headers['Cookie'] ?? headers['cookie'] ?? cookieStr ?? undefined;
 		if (cookieVal) params.set('cookie', cookieVal);
-		console.debug('[watch] proxy URL:', `http://127.0.0.1:${hlsProxyPort}/proxy?${params.toString()}`);
+		console.debug(
+			'[watch] proxy URL:',
+			`http://127.0.0.1:${hlsProxyPort}/proxy?${params.toString()}`
+		);
 		return `http://127.0.0.1:${hlsProxyPort}/proxy?${params.toString()}`;
 	}
 
@@ -366,18 +381,23 @@
 	{#if step === 'loading-ext' || step === 'checking-auth'}
 		<div class="flex items-center justify-center gap-3 py-12 text-muted-foreground">
 			<Icon icon="solar:refresh-circle-line-duotone" class="size-6 animate-spin" />
-			<span class="text-sm">{step === 'loading-ext' ? 'Loading extension…' : 'Checking authentication…'}</span>
+			<span class="text-sm"
+				>{step === 'loading-ext' ? 'Loading extension…' : 'Checking authentication…'}</span
+			>
 		</div>
 	{/if}
 
 	<!-- Auth needed -->
 	{#if step === 'auth-needed'}
-		<div class="flex flex-col items-center gap-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-8 text-center">
+		<div
+			class="flex flex-col items-center gap-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-8 text-center"
+		>
 			<Icon icon="solar:shield-warning-bold-duotone" class="size-10 text-amber-500" />
 			<div>
 				<h3 class="font-semibold">Authentication Required</h3>
 				<p class="mt-1 max-w-sm text-sm text-muted-foreground">
-					AnimePahe requires completing a Cloudflare challenge once. A browser window will open — complete the check, then come back.
+					AnimePahe requires completing a Cloudflare challenge once. A browser window will open —
+					complete the check, then come back.
 				</p>
 			</div>
 			<Button onclick={openAuthWebview}>
@@ -425,13 +445,13 @@
 							onclick={() => selectResult(result)}
 						>
 							{#if result.coverUrl}
-							<ProxiedImage
-								src={result.coverUrl}
-								alt={result.title}
-								class="aspect-[2/3] w-full object-cover"
-								cookie={cookieStr}
-						referer="https://animepahe.si/"
-							/>
+								<ProxiedImage
+									src={result.coverUrl}
+									alt={result.title}
+									class="aspect-[2/3] w-full object-cover"
+									cookie={cookieStr}
+									referer="https://animepahe.si/"
+								/>
 							{:else}
 								<div class="flex aspect-[2/3] w-full items-center justify-center bg-muted">
 									<Icon icon="solar:tv-bold" class="size-10 text-muted-foreground" />
@@ -458,7 +478,10 @@
 				<Button
 					variant="ghost"
 					size="sm"
-					onclick={() => { step = 'results'; selectedResult = null; }}
+					onclick={() => {
+						step = 'results';
+						selectedResult = null;
+					}}
 				>
 					<Icon icon="solar:arrow-left-bold" class="mr-1 size-4" />
 					Back
@@ -487,7 +510,8 @@
 			<div class="flex items-center justify-between text-sm text-muted-foreground">
 				<span>
 					{selectedResult?.title} — Ep {selectedEpisode?.number}
-					{#if selectedEpisode?.title} · {selectedEpisode.title}{/if}
+					{#if selectedEpisode?.title}
+						· {selectedEpisode.title}{/if}
 				</span>
 				<Button variant="ghost" size="sm" onclick={reset}>
 					<Icon icon="solar:list-bold" class="mr-1 size-4" />
@@ -501,7 +525,8 @@
 	{#if step === 'sources'}
 		<div class="space-y-3">
 			<p class="text-sm font-medium">
-				Ep {selectedEpisode?.number}{selectedEpisode?.title ? ` — ${selectedEpisode.title}` : ''} — Choose Quality
+				Ep {selectedEpisode?.number}{selectedEpisode?.title ? ` — ${selectedEpisode.title}` : ''} — Choose
+				Quality
 			</p>
 			<div class="space-y-2">
 				{#each sources as source}
@@ -509,9 +534,15 @@
 					<div class="flex items-center gap-2 rounded-lg border bg-card px-3 py-2">
 						<!-- Quality label -->
 						<span class="flex-1 text-sm">
-							{source.fansub ? `[${source.fansub}] ` : ''}{source.resolution ? `${source.resolution}p` : source.label}
-							{#if source.audio === 'jpn'}<span class="ml-1 text-[10px] text-muted-foreground">JPN</span>{/if}
-							{#if source.audio === 'eng'}<span class="ml-1 text-[10px] text-muted-foreground">DUB</span>{/if}
+							{source.fansub ? `[${source.fansub}] ` : ''}{source.resolution
+								? `${source.resolution}p`
+								: source.label}
+							{#if source.audio === 'jpn'}<span class="ml-1 text-[10px] text-muted-foreground"
+									>JPN</span
+								>{/if}
+							{#if source.audio === 'eng'}<span class="ml-1 text-[10px] text-muted-foreground"
+									>DUB</span
+								>{/if}
 						</span>
 
 						<!-- Download status badge / progress -->
@@ -553,7 +584,9 @@
 						<Button
 							variant="outline"
 							size="sm"
-							disabled={!!downloadingSourceId || dl?.status === 'downloading' || dl?.status === 'completed'}
+							disabled={!!downloadingSourceId ||
+								dl?.status === 'downloading' ||
+								dl?.status === 'completed'}
 							onclick={() => downloadSource(source)}
 							title="Download episode"
 						>
@@ -566,7 +599,14 @@
 					</div>
 				{/each}
 			</div>
-			<Button variant="ghost" size="sm" onclick={() => { step = 'episodes'; selectedEpisode = null; }}>
+			<Button
+				variant="ghost"
+				size="sm"
+				onclick={() => {
+					step = 'episodes';
+					selectedEpisode = null;
+				}}
+			>
 				Back to episodes
 			</Button>
 		</div>
@@ -588,14 +628,14 @@
 								{selectedEpisode?.id === ep.id ? 'border-primary bg-primary/10' : ''}"
 							onclick={() => playEpisode(ep)}
 						>
-						{#if ep.thumbnailUrl}
-							<ProxiedImage
-								src={ep.thumbnailUrl}
-								alt={`Ep ${ep.number}`}
-								class="aspect-video w-full rounded object-cover"
-								cookie={cookieStr}
-						referer="https://animepahe.si/"
-							/>
+							{#if ep.thumbnailUrl}
+								<ProxiedImage
+									src={ep.thumbnailUrl}
+									alt={`Ep ${ep.number}`}
+									class="aspect-video w-full rounded object-cover"
+									cookie={cookieStr}
+									referer="https://animepahe.si/"
+								/>
 							{/if}
 							<span class="text-xs font-semibold">{ep.number}</span>
 							{#if ep.title}

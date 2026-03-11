@@ -35,10 +35,10 @@ import type {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type ExtensionErrorKind =
-	| 'entry-missing'     // manifest.entry file not found on disk
-	| 'import-failed'     // dynamic import threw (syntax / runtime error)
-	| 'no-export'         // JS module has no `default` export
-	| 'version-mismatch'  // minAppVersion > current app version
+	| 'entry-missing' // manifest.entry file not found on disk
+	| 'import-failed' // dynamic import threw (syntax / runtime error)
+	| 'no-export' // JS module has no `default` export
+	| 'version-mismatch' // minAppVersion > current app version
 	| 'unknown';
 
 export class ExtensionLoadError extends Error {
@@ -46,7 +46,7 @@ export class ExtensionLoadError extends Error {
 		public readonly extensionId: string,
 		public readonly kind: ExtensionErrorKind,
 		message: string,
-		public readonly canReinstall: boolean = true,
+		public readonly canReinstall: boolean = true
 	) {
 		super(message);
 		this.name = 'ExtensionLoadError';
@@ -75,7 +75,8 @@ function injectHostAPI(extId: string): void {
 		},
 		log: (level: string, message: string): void => {
 			const fn = (console as unknown as Record<string, unknown>)[level];
-			if (typeof fn === 'function') (fn as (...a: unknown[]) => void).call(console, `[ext:${extId}]`, message);
+			if (typeof fn === 'function')
+				(fn as (...a: unknown[]) => void).call(console, `[ext:${extId}]`, message);
 			else console.log(`[ext:${extId}] [${level}]`, message);
 		},
 	};
@@ -113,9 +114,7 @@ function buildWasmWrapper(entry: ExtensionIndexEntry, raw: WasmExports): SourceE
 	return {
 		manifest,
 
-		checkAuth: raw.check_auth
-			? () => raw.check_auth!()
-			: undefined,
+		checkAuth: raw.check_auth ? () => raw.check_auth!() : undefined,
 
 		onCookiesUpdated: raw.on_cookies_updated
 			? async (cookies: CookieEntry[]) => {
@@ -132,8 +131,7 @@ function buildWasmWrapper(entry: ExtensionIndexEntry, raw: WasmExports): SourceE
 				}
 			: undefined,
 
-		search: async (query: string): Promise<SearchResult[]> =>
-			JSON.parse(await raw.search(query)),
+		search: async (query: string): Promise<SearchResult[]> => JSON.parse(await raw.search(query)),
 
 		getAnimeDetails: async (id: string): Promise<AnimeDetails> =>
 			JSON.parse(await raw.get_anime_details(id)),
@@ -177,7 +175,7 @@ class ExtensionLoaderService {
 				entry.id,
 				'entry-missing',
 				`Extension "${entry.name}": entry file is missing. Try reinstalling. (${err})`,
-				true,
+				true
 			);
 		}
 
@@ -200,7 +198,7 @@ class ExtensionLoaderService {
 				entry.id,
 				'import-failed',
 				`Extension "${entry.name}": failed to load module — ${msg}`,
-				true,
+				true
 			);
 		}
 
@@ -212,7 +210,8 @@ class ExtensionLoaderService {
 			const wasmAssetUrl = convertFileSrc(`${dir}${sep}extension.wasm`);
 
 			try {
-				const initFn = mod.default as ((options: { module_or_path: string }) => Promise<unknown>) & ((url: string) => Promise<unknown>);
+				const initFn = mod.default as ((options: { module_or_path: string }) => Promise<unknown>) &
+					((url: string) => Promise<unknown>);
 				await initFn({ module_or_path: wasmAssetUrl });
 			} catch (err) {
 				const msg = err instanceof Error ? err.message : String(err);
@@ -220,7 +219,7 @@ class ExtensionLoaderService {
 					entry.id,
 					'import-failed',
 					`Extension "${entry.name}": WASM initialization failed — ${msg}`,
-					true,
+					true
 				);
 			}
 
@@ -238,7 +237,7 @@ class ExtensionLoaderService {
 				'no-export',
 				`Extension "${entry.name}": module has no valid default export. ` +
 					`Make sure extension.js exports an object as \`export default\`.`,
-				false,
+				false
 			);
 		}
 

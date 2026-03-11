@@ -144,11 +144,7 @@ export function buildEpisodeMetas(mappings: AniZipMappings): EpisodeMeta[] {
 
 			return {
 				number: num,
-				title:
-					ep.title.en ??
-					ep.title['x-jat'] ??
-					ep.title.ja ??
-					`Episode ${num}`,
+				title: ep.title.en ?? ep.title['x-jat'] ?? ep.title.ja ?? `Episode ${num}`,
 				thumbnailUrl: ep.image ?? undefined,
 				airDate: ep.airdate ?? undefined,
 				overview: ep.overview ?? undefined,
@@ -173,7 +169,7 @@ export function buildEpisodeMetas(mappings: AniZipMappings): EpisodeMeta[] {
 export async function fetchToshoEpisode(
 	anidbId: number,
 	anidbEpisodeId: number | null,
-	quality: TorrentQuality = 'all',
+	quality: TorrentQuality = 'all'
 ): Promise<EpisodeTorrentEntry[]> {
 	let url: string;
 
@@ -204,7 +200,7 @@ export async function fetchToshoEpisode(
 export async function fetchNyaaEpisode(
 	animeTitle: string,
 	episodeNumber: number,
-	quality: TorrentQuality = '1080p',
+	quality: TorrentQuality = '1080p'
 ): Promise<EpisodeTorrentEntry[]> {
 	const epStr = episodeNumber < 10 ? `0${episodeNumber}` : `${episodeNumber}`;
 	const qualityStr = quality !== 'all' ? ` ${quality}` : '';
@@ -222,10 +218,7 @@ export async function fetchNyaaEpisode(
 /**
  * Free-text Tosho search (used by the manual search dialog and ToshoProvider).
  */
-export async function searchTosho(
-	query: string,
-	page = 1,
-): Promise<EpisodeTorrentEntry[]> {
+export async function searchTosho(query: string, page = 1): Promise<EpisodeTorrentEntry[]> {
 	const url = `${TOSHO_BASE}/json?qx=1&q=${encodeURIComponent(query)}&page=${page}`;
 	try {
 		const raw = await invoke<string>('fetch_url', { url, headers: null });
@@ -271,7 +264,7 @@ export function parseEpisodeNumber(filename: string): number | null {
 
 function normalizeToshoEntry(
 	e: ToshoRawEntry,
-	provider: EpisodeTorrentEntry['provider'],
+	provider: EpisodeTorrentEntry['provider']
 ): EpisodeTorrentEntry {
 	return {
 		title: e.title,
@@ -280,9 +273,7 @@ function normalizeToshoEntry(
 		sizeBytes: e.total_size ?? 0,
 		seeds: e.num_seeders ?? 0,
 		peers: e.num_leechers ?? 0,
-		uploadedAt: e.timestamp
-			? new Date(e.timestamp * 1000).toLocaleDateString()
-			: '',
+		uploadedAt: e.timestamp ? new Date(e.timestamp * 1000).toLocaleDateString() : '',
 		resolution: extractResolution(e.title),
 		fansub: extractFansub(e.title),
 		anidbId: e.anidb_aid,
@@ -302,14 +293,8 @@ function parseNyaaRss(xml: string): EpisodeTorrentEntry[] {
 		const link = item.querySelector('link')?.textContent ?? '';
 		const pubDate = item.querySelector('pubDate')?.textContent ?? '';
 
-		const seeds = parseInt(
-			item.getElementsByTagName('nyaa:seeders')[0]?.textContent ?? '0',
-			10,
-		);
-		const peers = parseInt(
-			item.getElementsByTagName('nyaa:leechers')[0]?.textContent ?? '0',
-			10,
-		);
+		const seeds = parseInt(item.getElementsByTagName('nyaa:seeders')[0]?.textContent ?? '0', 10);
+		const peers = parseInt(item.getElementsByTagName('nyaa:leechers')[0]?.textContent ?? '0', 10);
 		const sizeStr = item.getElementsByTagName('nyaa:size')[0]?.textContent ?? '0 B';
 		const infoHash = item.getElementsByTagName('nyaa:infoHash')[0]?.textContent;
 
@@ -335,8 +320,7 @@ function parseNyaaRss(xml: string): EpisodeTorrentEntry[] {
 }
 
 function formatBytes(bytes: number): string {
-	if (bytes >= 1_073_741_824)
-		return `${(bytes / 1_073_741_824).toFixed(2)} GiB`;
+	if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toFixed(2)} GiB`;
 	if (bytes >= 1_048_576) return `${(bytes / 1_048_576).toFixed(2)} MiB`;
 	if (bytes >= 1_024) return `${(bytes / 1_024).toFixed(1)} KiB`;
 	return `${bytes} B`;

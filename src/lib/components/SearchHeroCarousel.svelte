@@ -448,7 +448,6 @@
 				<Icon icon="solar:alt-arrow-right-bold" class="h-5 w-5" />
 			</button>
 		{/if}
-
 	</div>
 {:else if items.length === 0}
 	<div class="flex h-[460px] w-full items-center justify-center text-muted-foreground">

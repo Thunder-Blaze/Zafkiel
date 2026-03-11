@@ -234,35 +234,32 @@
 							isBuffering = typeof data === 'number' ? data < 100 : false;
 							break;
 					}
-				},
+				}
 			);
 
 			unlistenEvents = await listenEvents((evt) => {
-					switch (evt.event) {
-						case 'file-loaded':
-							isBuffering = false;
-							hasError = false;
-							break;
-						case 'playback-restart':
-							isBuffering = false;
-							break;
-						case 'end-file': {
-							const reason =
-								'data' in evt &&
-								evt.data &&
-								typeof evt.data === 'object' &&
-								'reason' in evt.data
-									? (evt.data as { reason?: string }).reason
-									: undefined;
-							if (reason === 'error') {
-								hasError = true;
-								errorMessage = 'Playback error — check stream URL and headers';
-							}
-							isPlaying = false;
-							break;
+				switch (evt.event) {
+					case 'file-loaded':
+						isBuffering = false;
+						hasError = false;
+						break;
+					case 'playback-restart':
+						isBuffering = false;
+						break;
+					case 'end-file': {
+						const reason =
+							'data' in evt && evt.data && typeof evt.data === 'object' && 'reason' in evt.data
+								? (evt.data as { reason?: string }).reason
+								: undefined;
+						if (reason === 'error') {
+							hasError = true;
+							errorMessage = 'Playback error — check stream URL and headers';
 						}
+						isPlaying = false;
+						break;
 					}
-				});
+				}
+			});
 
 			isInitialized = true;
 			resetControlsTimeout();
@@ -371,4 +368,3 @@
 		</div>
 	{/if}
 </div>
-

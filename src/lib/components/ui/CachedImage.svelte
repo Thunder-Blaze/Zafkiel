@@ -110,7 +110,9 @@
 	{width}
 	{height}
 	{loading}
-	class="transition-opacity duration-200 {hasError ? 'opacity-60 grayscale filter' : 'opacity-100'} {className}"
+	class="transition-opacity duration-200 {hasError
+		? 'opacity-60 grayscale filter'
+		: 'opacity-100'} {className}"
 	onload={handleLoad}
 	onerror={handleError}
 	{...rest}

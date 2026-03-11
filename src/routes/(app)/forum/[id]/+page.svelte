@@ -148,7 +148,7 @@
 
 			<!-- Body -->
 			{#if comment.comment}
-				<div class="prose prose-sm dark:prose-invert max-w-none text-sm">
+				<div class="prose prose-sm max-w-none text-sm dark:prose-invert">
 					<MarkdownRenderer body={comment.comment} />
 				</div>
 			{/if}
@@ -312,7 +312,7 @@
 
 				<!-- Body -->
 				{#if thread.body}
-					<div class="prose prose-sm dark:prose-invert max-w-none">
+					<div class="prose prose-sm max-w-none dark:prose-invert">
 						<MarkdownRenderer body={thread.body} />
 					</div>
 				{/if}

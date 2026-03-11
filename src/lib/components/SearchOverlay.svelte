@@ -149,7 +149,7 @@
 					bind:value={searchQuery}
 					type="text"
 					placeholder="Search anime, manga, characters…"
-					class="flex-1 bg-transparent text-base outline-none border-none placeholder:text-muted-foreground/60"
+					class="flex-1 border-none bg-transparent text-base outline-none placeholder:text-muted-foreground/60"
 				/>
 				{#if searchQuery}
 					<button

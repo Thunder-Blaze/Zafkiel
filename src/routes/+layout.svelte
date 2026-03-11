@@ -131,44 +131,44 @@
 		</div>
 	{/snippet}
 
-		<!-- Grouped UI — hidden instantly when the mpv player overlay is active so the
+	<!-- Grouped UI — hidden instantly when the mpv player overlay is active so the
 		     native video layer shows through the transparent WebView beneath it. -->
-		<div
-			class="contents"
-			style:visibility={playerStore.active ? 'hidden' : ''}
-			style:pointer-events={playerStore.active ? 'none' : ''}
-		>
-			<!-- Custom Title Bar -->
-			<TitleBar />
+	<div
+		class="contents"
+		style:visibility={playerStore.active ? 'hidden' : ''}
+		style:pointer-events={playerStore.active ? 'none' : ''}
+	>
+		<!-- Custom Title Bar -->
+		<TitleBar />
 
-			{#if isReady}
-				<!-- Portals (except Sonner which must stay visible for notifications) -->
-				<ContextMenu />
-				<SearchOverlay />
+		{#if isReady}
+			<!-- Portals (except Sonner which must stay visible for notifications) -->
+			<ContextMenu />
+			<SearchOverlay />
 
-				<!-- Main app content — fixed below titlebar; this owns the scrollbar so it never overlaps titlebar -->
-				<div
-					bind:this={scrollEl}
-					class="fixed inset-x-0 top-12 bottom-0 overflow-x-hidden overflow-y-auto"
-				>
-					<TanstackProvider>
-						<LenisProvider wrapper={scrollEl}>
-							<ContextMenuProvider>
-								<AnimationProvider>
-									{@render children?.()}
-								</AnimationProvider>
-							</ContextMenuProvider>
-						</LenisProvider>
-						<SvelteQueryDevtools />
-					</TanstackProvider>
-				</div>
-			{:else}
-				<div class="fixed inset-x-0 top-12 bottom-0 bg-background">
-					<Loader text="Loading Zafkiel..." />
-				</div>
-			{/if}
-		</div>
+			<!-- Main app content — fixed below titlebar; this owns the scrollbar so it never overlaps titlebar -->
+			<div
+				bind:this={scrollEl}
+				class="fixed inset-x-0 top-12 bottom-0 overflow-x-hidden overflow-y-auto"
+			>
+				<TanstackProvider>
+					<LenisProvider wrapper={scrollEl}>
+						<ContextMenuProvider>
+							<AnimationProvider>
+								{@render children?.()}
+							</AnimationProvider>
+						</ContextMenuProvider>
+					</LenisProvider>
+					<SvelteQueryDevtools />
+				</TanstackProvider>
+			</div>
+		{:else}
+			<div class="fixed inset-x-0 top-12 bottom-0 bg-background">
+				<Loader text="Loading Zafkiel..." />
+			</div>
+		{/if}
+	</div>
 
-		<!-- Sonner toaster stays outside the hidden group so notifications show over the player -->
-		<ThemedToaster />
+	<!-- Sonner toaster stays outside the hidden group so notifications show over the player -->
+	<ThemedToaster />
 </svelte:boundary>

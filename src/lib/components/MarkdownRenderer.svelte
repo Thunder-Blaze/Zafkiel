@@ -36,7 +36,12 @@
 		tokenizer(this: TokenizerThis, src: string) {
 			const match = /^~!([\s\S]*?)!~/.exec(src);
 			if (match) {
-				const token: Tokens.Generic = { type: 'spoiler', raw: match[0], text: match[1], tokens: [] as Token[] };
+				const token: Tokens.Generic = {
+					type: 'spoiler',
+					raw: match[0],
+					text: match[1],
+					tokens: [] as Token[],
+				};
 				this.lexer.inline(match[1], token.tokens as Token[]);
 				return token;
 			}
@@ -138,7 +143,11 @@
 
 	/** Minimal HTML attribute escaping */
 	function escAttr(s: string): string {
-		return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+		return s
+			.replace(/&/g, '&amp;')
+			.replace(/"/g, '&quot;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;');
 	}
 
 	/**
@@ -154,7 +163,10 @@
 	/** Convert raw bare <a> and <a href=""> tags to accent-color spans (AniList decoration) */
 	function applyAccentTags(s: string): string {
 		// <a href="">text</a> or <a href=''>text</a> or bare <a>text</a>
-		return s.replace(/<a(?:\s+href=['"]['"])?\s*>([/\s\S]*?)<\/a>/g, '<span class="al-accent">$1</span>');
+		return s.replace(
+			/<a(?:\s+href=['"]['"])?\s*>([/\s\S]*?)<\/a>/g,
+			'<span class="al-accent">$1</span>'
+		);
 	}
 	/**
 	 * AniList heading rule: # followed immediately by non-space starts a heading
@@ -321,9 +333,15 @@
 		line-height: 1.3;
 		margin: 0.3rem 0 0.1rem;
 	}
-	.anilist-markdown :global(h1) { font-size: 1.4em; }
-	.anilist-markdown :global(h2) { font-size: 1.25em; }
-	.anilist-markdown :global(h3) { font-size: 1.1em; }
+	.anilist-markdown :global(h1) {
+		font-size: 1.4em;
+	}
+	.anilist-markdown :global(h2) {
+		font-size: 1.25em;
+	}
+	.anilist-markdown :global(h3) {
+		font-size: 1.1em;
+	}
 
 	/* ── Spoiler ──────────────────────────────────────────────────────────── */
 	.anilist-markdown :global(.al-spoiler) {
@@ -473,4 +491,3 @@
 		display: none;
 	}
 </style>
-

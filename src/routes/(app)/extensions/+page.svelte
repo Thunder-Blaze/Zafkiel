@@ -13,11 +13,9 @@
 
 	// ── Derived state ──────────────────────────────────────────────────────────
 
-	const installed = $derived(
-		EXTENSION_CATALOG.filter((ext) => extensionStore.isInstalled(ext.id)),
-	);
+	const installed = $derived(EXTENSION_CATALOG.filter((ext) => extensionStore.isInstalled(ext.id)));
 	const available = $derived(
-		EXTENSION_CATALOG.filter((ext) => !extensionStore.isInstalled(ext.id)),
+		EXTENSION_CATALOG.filter((ext) => !extensionStore.isInstalled(ext.id))
 	);
 
 	// ── Type helpers ──────────────────────────────────────────────────────────
@@ -130,7 +128,7 @@
 										{/if}
 									</Button>
 								{/if}
-								{#if status.kind === 'loading' || (status.kind === 'downloading')}
+								{#if status.kind === 'loading' || status.kind === 'downloading'}
 									<div class="flex h-7 items-center gap-1.5 text-xs text-muted-foreground">
 										<Icon icon="solar:refresh-bold" class="h-3.5 w-3.5 animate-spin" />
 										{status.kind === 'downloading' ? 'Downloading…' : 'Loading…'}
@@ -157,9 +155,7 @@
 						{#if ext.tags && ext.tags.length > 0}
 							<div class="mt-3 flex flex-wrap gap-1">
 								{#each ext.tags as tag (tag)}
-									<span
-										class="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground"
-									>
+									<span class="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
 										{tag}
 									</span>
 								{/each}

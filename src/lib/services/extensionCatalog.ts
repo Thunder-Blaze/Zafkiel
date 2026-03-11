@@ -18,12 +18,13 @@ export const EXTENSION_CATALOG: readonly CatalogExtension[] = [
 			'Requires a one-time Cloudflare challenge to be solved in a browser window.',
 		type: 'source',
 		// Placeholder URL — replace with real GitHub release asset URL when built
-		downloadUrl: 'https://github.com/zafkiel-app/extensions/releases/download/animepahe-v0.1.0/animepahe.zext',
+		downloadUrl:
+			'https://github.com/zafkiel-app/extensions/releases/download/animepahe-v0.1.0/animepahe.zext',
 		iconUrl: 'https://animepahe.si/favicon.ico',
 		tags: ['streaming', 'anime', 'HLS'],
 		requiresAuth: true,
 		language: 'Japanese / English subtitles',
 		// Dev-only: use local .zext instead of remote download
-		localPath: "D:\\Files\\Projects\\Zafkiel\\extensions\\animepahe\\animepahe.zext",
+		localPath: 'D:\\Files\\Projects\\Zafkiel\\extensions\\animepahe\\animepahe.zext',
 	},
 ] as const;

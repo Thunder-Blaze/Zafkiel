@@ -91,11 +91,7 @@
 					showPlaylist && files.length > 1 ? 'w-[75%]' : 'w-full'
 				)}
 			>
-				<VideoPlayer
-					url={currentSrc}
-					{title}
-					onBack={() => (open = false)}
-				/>
+				<VideoPlayer url={currentSrc} {title} onBack={() => (open = false)} />
 				{#if files.length > 1}
 					<Button
 						variant="ghost"

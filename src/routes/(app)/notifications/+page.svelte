@@ -384,84 +384,84 @@
 						{#each $virtualizer.getVirtualItems() as virtualRow (virtualRow.index)}
 							{@const notif = notifications[virtualRow.index]}
 							{#if notif}
-							{@const info = getNotifInfo(notif)}
-							<div
-								use:measure
-								data-index={virtualRow.index}
-								style="position: absolute; top: 0; left: 0; width: 100%; transform: translateY({virtualRow.start}px);"
-							>
-								<div class="mb-2">
-									<div
-										class="group relative rounded-lg border bg-card transition-colors hover:bg-card/80"
-									>
-										<button
-											type="button"
-											class="flex w-full cursor-pointer items-center gap-3 p-4 text-left"
-											onclick={(e) => handleRowClick(e, info)}
+								{@const info = getNotifInfo(notif)}
+								<div
+									use:measure
+									data-index={virtualRow.index}
+									style="position: absolute; top: 0; left: 0; width: 100%; transform: translateY({virtualRow.start}px);"
+								>
+									<div class="mb-2">
+										<div
+											class="group relative rounded-lg border bg-card transition-colors hover:bg-card/80"
 										>
-											<!-- Cover image or Avatar -->
-											<div class="relative shrink-0">
-												{#if info.coverImage}
-													<div
-														class="relative h-16 w-11 overflow-hidden rounded-sm bg-muted shadow-sm"
-													>
-														<CachedImage
-															src={info.coverImage}
-															alt=""
-															class="h-full w-full object-cover"
-														/>
-													</div>
-													<div
-														class="absolute -right-1 -bottom-1 rounded-full border border-border bg-card p-0.5"
-													>
-														<Icon icon={info.icon} class="size-3 {info.iconClass}" />
-													</div>
-												{:else if info.avatar}
-													<div class="relative h-10 w-10">
-														<CachedImage
-															src={info.avatar}
-															alt=""
-															class="h-10 w-10 rounded-full object-cover ring-1 ring-border"
-														/>
+											<button
+												type="button"
+												class="flex w-full cursor-pointer items-center gap-3 p-4 text-left"
+												onclick={(e) => handleRowClick(e, info)}
+											>
+												<!-- Cover image or Avatar -->
+												<div class="relative shrink-0">
+													{#if info.coverImage}
+														<div
+															class="relative h-16 w-11 overflow-hidden rounded-sm bg-muted shadow-sm"
+														>
+															<CachedImage
+																src={info.coverImage}
+																alt=""
+																class="h-full w-full object-cover"
+															/>
+														</div>
 														<div
 															class="absolute -right-1 -bottom-1 rounded-full border border-border bg-card p-0.5"
 														>
 															<Icon icon={info.icon} class="size-3 {info.iconClass}" />
 														</div>
-													</div>
-												{:else}
-													<div
-														class="flex h-10 w-10 items-center justify-center rounded-full bg-muted"
-													>
-														<Icon icon={info.icon} class="size-5 {info.iconClass}" />
-													</div>
-												{/if}
-											</div>
+													{:else if info.avatar}
+														<div class="relative h-10 w-10">
+															<CachedImage
+																src={info.avatar}
+																alt=""
+																class="h-10 w-10 rounded-full object-cover ring-1 ring-border"
+															/>
+															<div
+																class="absolute -right-1 -bottom-1 rounded-full border border-border bg-card p-0.5"
+															>
+																<Icon icon={info.icon} class="size-3 {info.iconClass}" />
+															</div>
+														</div>
+													{:else}
+														<div
+															class="flex h-10 w-10 items-center justify-center rounded-full bg-muted"
+														>
+															<Icon icon={info.icon} class="size-5 {info.iconClass}" />
+														</div>
+													{/if}
+												</div>
 
-											<!-- Text content -->
-											<div class="min-w-0 flex-1">
-												<p class="text-sm leading-snug">
-													<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-													{@html info.html}
-												</p>
-												{#if info.time}
-													<p class="mt-1 text-xs text-muted-foreground">
-														{timeAgo(info.time)}
+												<!-- Text content -->
+												<div class="min-w-0 flex-1">
+													<p class="text-sm leading-snug">
+														<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+														{@html info.html}
 													</p>
-												{/if}
-											</div>
+													{#if info.time}
+														<p class="mt-1 text-xs text-muted-foreground">
+															{timeAgo(info.time)}
+														</p>
+													{/if}
+												</div>
 
-											<!-- Navigation arrow -->
-											{#if info.link}
-												<Icon
-													icon="solar:arrow-right-linear"
-													class="size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
-												/>
-											{/if}
-										</button>
+												<!-- Navigation arrow -->
+												{#if info.link}
+													<Icon
+														icon="solar:arrow-right-linear"
+														class="size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
+													/>
+												{/if}
+											</button>
+										</div>
 									</div>
 								</div>
-							</div>
 							{/if}
 						{/each}
 					</div>

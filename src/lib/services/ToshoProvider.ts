@@ -94,11 +94,7 @@ export class ToshoProvider implements TorrentProvider {
 		const quality = query.quality ?? 'all';
 
 		if (query.anidbId) {
-			const entries = await fetchToshoEpisode(
-				query.anidbId,
-				query.anidbEpisodeId ?? null,
-				quality,
-			);
+			const entries = await fetchToshoEpisode(query.anidbId, query.anidbEpisodeId ?? null, quality);
 			if (entries.length > 0) return entries.map(toTorrentInfo);
 		}
 
@@ -106,7 +102,7 @@ export class ToshoProvider implements TorrentProvider {
 		const nyaaEntries = await fetchNyaaEpisode(
 			query.animeTitle,
 			query.episodeNumber,
-			quality === 'all' ? '1080p' : quality,
+			quality === 'all' ? '1080p' : quality
 		);
 
 		return nyaaEntries.map(toTorrentInfo);

@@ -1,6 +1,6 @@
 @import 'tailwindcss';
-@plugin "@tailwindcss/typography";
-@plugin "@tailwindcss/forms";
+@plugin '@tailwindcss/typography';
+@plugin '@tailwindcss/forms';
 
 /* Tauri drag-region: elements with this attribute are draggable like a title bar */
 [data-tauri-drag-region] {

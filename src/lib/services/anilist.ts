@@ -600,7 +600,10 @@ export const activityApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<ActivityUnion[]>>> => {
-		return invokeWithToast('get_following_activity', { page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('get_following_activity', {
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
 	fetchReplies: async (
 		activityId: number,
@@ -653,7 +656,10 @@ export const notificationApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<NotificationUnion[]>>> => {
-		return invokeWithToast('get_all_notifications', { page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('get_all_notifications', {
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
 	getAndMarkRead: async (
 		page?: number,
@@ -678,10 +684,16 @@ export const forumApi = {
 		return invokeWithToast('get_forum_thread', { id });
 	},
 	getRecent: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Thread[]>>> => {
-		return invokeWithToast('get_recent_forum_threads', { page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('get_recent_forum_threads', {
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
 	getPopular: async (page?: number, perPage?: number): Promise<AniListResponse<Page<Thread[]>>> => {
-		return invokeWithToast('get_popular_forum_threads', { page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('get_popular_forum_threads', {
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
 	getByCategory: async (
 		categoryId: number,
@@ -709,7 +721,10 @@ export const forumApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<Thread[]>>> => {
-		return invokeWithToast('get_subscribed_forum_threads', { page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('get_subscribed_forum_threads', {
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
 	getComments: async (
 		threadId: number,
@@ -790,7 +805,11 @@ export const reviewApi = {
 		page?: number,
 		perPage?: number
 	): Promise<AniListResponse<Page<Review[]>>> => {
-		return invokeWithToast('get_reviews_by_user', { userId, page: page ?? null, perPage: perPage ?? null });
+		return invokeWithToast('get_reviews_by_user', {
+			userId,
+			page: page ?? null,
+			perPage: perPage ?? null,
+		});
 	},
 	getById: async (id: number): Promise<AniListResponse<Review>> => {
 		return invokeWithToast('get_review_by_id', { id });

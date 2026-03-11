@@ -25,16 +25,14 @@ export const episodeKeys = {
 	all: ['episode-metadata'] as const,
 
 	/** AniZip episode list keyed by AniList ID */
-	anizip: (anilistId: number | null) =>
-		[...episodeKeys.all, 'anizip', anilistId] as const,
+	anizip: (anilistId: number | null) => [...episodeKeys.all, 'anizip', anilistId] as const,
 
 	/** Tosho torrent entries keyed by AniDB IDs + quality */
 	episodeTorrents: (
 		anidbId: number | null,
 		anidbEpisodeId: number | null,
-		quality: TorrentQuality,
-	) =>
-		[...episodeKeys.all, 'torrents', anidbId, anidbEpisodeId, quality] as const,
+		quality: TorrentQuality
+	) => [...episodeKeys.all, 'torrents', anidbId, anidbEpisodeId, quality] as const,
 
 	/** All-episode torrent listing keyed by AniDB series ID */
 	animeTorrents: (anidbId: number | null) =>
@@ -64,8 +62,8 @@ export function useAniZipEpisodes(anilistId: number | null) {
 			return buildEpisodeMetas(mappings);
 		},
 		enabled: !!anilistId,
-		staleTime: 1000 * 60 * 60,        // 1 hour – episode data rarely changes
-		gcTime: 1000 * 60 * 60 * 24,      // 24 hours cache
+		staleTime: 1000 * 60 * 60, // 1 hour – episode data rarely changes
+		gcTime: 1000 * 60 * 60 * 24, // 24 hours cache
 		retry: 2,
 	}));
 }
@@ -85,25 +83,18 @@ export function useAniZipEpisodes(anilistId: number | null) {
  * @param episode   EpisodeMeta from useAniZipEpisodes (pass null to disable)
  * @param quality   Quality filter: "720p", "1080p", or "all" (default "1080p")
  */
-export function useEpisodeTorrents(
-	episode: EpisodeMeta | null,
-	quality: TorrentQuality = '1080p',
-) {
+export function useEpisodeTorrents(episode: EpisodeMeta | null, quality: TorrentQuality = '1080p') {
 	return createQuery(() => ({
 		queryKey: episodeKeys.episodeTorrents(
 			episode?.anidbId ?? null,
 			episode?.anidbEpisodeId ?? null,
-			quality,
+			quality
 		),
 		queryFn: async (): Promise<EpisodeTorrentEntry[]> => {
 			if (!episode) return [];
 
 			// Primary: Tosho lookup with AniDB IDs
-			let results = await fetchToshoEpisode(
-				episode.anidbId,
-				episode.anidbEpisodeId,
-				quality,
-			);
+			let results = await fetchToshoEpisode(episode.anidbId, episode.anidbEpisodeId, quality);
 
 			// Fallback: Nyaa SubsPlease search
 			if (results.length === 0) {
@@ -113,7 +104,7 @@ export function useEpisodeTorrents(
 			return [...results].sort((a, b) => b.seeds - a.seeds);
 		},
 		enabled: !!episode,
-		staleTime: 1000 * 60 * 10,   // 10 minutes – new releases appear frequently
+		staleTime: 1000 * 60 * 10, // 10 minutes – new releases appear frequently
 		gcTime: 1000 * 60 * 30,
 		retry: 1,
 	}));

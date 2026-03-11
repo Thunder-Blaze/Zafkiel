@@ -78,7 +78,9 @@
 				</button>
 				{#if act.status}
 					<span
-						class="inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium {statusColor(act.status)}"
+						class="inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium {statusColor(
+							act.status
+						)}"
 					>
 						{act.status}
 					</span>
@@ -91,8 +93,7 @@
 				<button
 					class="font-medium hover:text-primary hover:underline"
 					onclick={() =>
-						act.media?.id &&
-						goto(`/${(act.media?.type ?? 'anime').toLowerCase()}/${act.media.id}`)}
+						act.media?.id && goto(`/${(act.media?.type ?? 'anime').toLowerCase()}/${act.media.id}`)}
 				>
 					{act.media?.title?.userPreferred ?? 'Unknown'}
 				</button>
@@ -116,7 +117,9 @@
 					</button>
 				{/if}
 
-				<div class="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+				<div
+					class="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
+				>
 					<span class="flex items-center gap-1">
 						<Icon icon="solar:heart-linear" class="size-3.5" />
 						{act.likeCount ?? 0}
@@ -163,14 +166,12 @@
 				>
 					{act.user?.name ?? 'Unknown'}
 				</button>
-				<span class="rounded bg-green-500/10 px-1.5 py-0.5 text-xs text-green-500">
-					Status
-				</span>
+				<span class="rounded bg-green-500/10 px-1.5 py-0.5 text-xs text-green-500"> Status </span>
 				<span class="ml-auto text-xs text-muted-foreground">{timeAgo(act.createdAt)}</span>
 			</div>
 
 			{#if act.text}
-				<div class="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar" data-lenis-prevent="true">
+				<div class="custom-scrollbar max-h-[300px] overflow-y-auto pr-2" data-lenis-prevent="true">
 					<MarkdownRenderer body={act.text} class="text-sm" />
 				</div>
 			{/if}
@@ -234,7 +235,7 @@
 			</div>
 
 			{#if act.message}
-				<div class="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar" data-lenis-prevent="true">
+				<div class="custom-scrollbar max-h-[300px] overflow-y-auto pr-2" data-lenis-prevent="true">
 					<MarkdownRenderer body={act.message} class="text-sm" />
 				</div>
 			{/if}
@@ -248,4 +249,3 @@
 		</div>
 	</article>
 {/if}
-

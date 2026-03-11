@@ -132,10 +132,7 @@ export function loadAuthCache(): AuthCacheData | null {
 	return null;
 }
 
-export function saveAuthCache(
-	isAuthenticated: boolean,
-	user: User | null
-): void {
+export function saveAuthCache(isAuthenticated: boolean, user: User | null): void {
 	const cache = loadCache() || { auth: null, config: null, themes: null };
 	cache.auth = {
 		data: { isAuthenticated, user },

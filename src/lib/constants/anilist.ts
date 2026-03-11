@@ -380,15 +380,7 @@ export const ANILIST_TAGS = [
 
 export const ANILIST_SEASONS = ['WINTER', 'SPRING', 'SUMMER', 'FALL'];
 
-export const ANILIST_ANIME_FORMAT = [
-	'TV',
-	'TV_SHORT',
-	'MOVIE',
-	'SPECIAL',
-	'OVA',
-	'ONA',
-	'MUSIC',
-];
+export const ANILIST_ANIME_FORMAT = ['TV', 'TV_SHORT', 'MOVIE', 'SPECIAL', 'OVA', 'ONA', 'MUSIC'];
 
 export const ANILIST_MANGA_FORMAT = ['MANGA', 'NOVEL', 'ONE_SHOT'];
 

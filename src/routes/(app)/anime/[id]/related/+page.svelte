@@ -60,10 +60,7 @@
 				<div
 					class="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/50 p-8 text-center"
 				>
-					<Icon
-						icon="lucide:list-plus"
-						class="mx-auto mb-3 size-12 text-muted-foreground/50"
-					/>
+					<Icon icon="lucide:list-plus" class="mx-auto mb-3 size-12 text-muted-foreground/50" />
 					<p class="text-muted-foreground">No related anime found.</p>
 				</div>
 			{/if}

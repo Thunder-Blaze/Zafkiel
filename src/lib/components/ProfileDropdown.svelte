@@ -92,7 +92,11 @@
 
 	// Menu items for authenticated users — reactive so username and width are always current
 	const authenticatedMenuItems = $derived<MenuItemType[]>([
-		{ icon: 'solar:user-bold', label: 'Profile', action: () => goto(`/user/${$currentUser?.name}`) },
+		{
+			icon: 'solar:user-bold',
+			label: 'Profile',
+			action: () => goto(`/user/${$currentUser?.name}`),
+		},
 		{
 			icon: 'solar:play-circle-bold',
 			label: 'Anime List',

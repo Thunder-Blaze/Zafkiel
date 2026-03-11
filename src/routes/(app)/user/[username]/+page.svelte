@@ -185,7 +185,9 @@
 
 		<!-- Tabs -->
 		<Tabs value="overview" class="mt-0 w-full">
-			<TabsList class="w-full justify-start overflow-x-auto rounded-none border-b bg-transparent p-0">
+			<TabsList
+				class="w-full justify-start overflow-x-auto rounded-none border-b bg-transparent p-0"
+			>
 				{#each [['overview', 'Overview'], ['stats', 'Statistics'], ['activity', 'Activity'], ['reviews', 'Reviews']] as [val, label] (val)}
 					<TabsTrigger
 						value={val}
@@ -257,12 +259,7 @@
 									</CardTitle>
 								</CardHeader>
 								<CardContent class="space-y-0">
-									{#each [
-										['Total', user.statistics.anime.count],
-										['Episodes Watched', user.statistics.anime.episodesWatched],
-										['Time Watched', formatMinutes(user.statistics.anime.minutesWatched)],
-										['Mean Score', user.statistics.anime.meanScore ? `${user.statistics.anime.meanScore}/100` : null],
-									] as [label, val] (label)}
+									{#each [['Total', user.statistics.anime.count], ['Episodes Watched', user.statistics.anime.episodesWatched], ['Time Watched', formatMinutes(user.statistics.anime.minutesWatched)], ['Mean Score', user.statistics.anime.meanScore ? `${user.statistics.anime.meanScore}/100` : null]] as [label, val] (label)}
 										{#if val !== null && val !== undefined}
 											<div class="flex justify-between border-b py-2 last:border-0">
 												<span class="text-sm text-muted-foreground">{label}</span>
@@ -283,12 +280,7 @@
 									</CardTitle>
 								</CardHeader>
 								<CardContent class="space-y-0">
-									{#each [
-										['Total', user.statistics.manga.count],
-										['Chapters Read', user.statistics.manga.chaptersRead],
-										['Volumes Read', user.statistics.manga.volumesRead],
-										['Mean Score', user.statistics.manga.meanScore ? `${user.statistics.manga.meanScore}/100` : null],
-									] as [label, val] (label)}
+									{#each [['Total', user.statistics.manga.count], ['Chapters Read', user.statistics.manga.chaptersRead], ['Volumes Read', user.statistics.manga.volumesRead], ['Mean Score', user.statistics.manga.meanScore ? `${user.statistics.manga.meanScore}/100` : null]] as [label, val] (label)}
 										{#if val !== null && val !== undefined}
 											<div class="flex justify-between border-b py-2 last:border-0">
 												<span class="text-sm text-muted-foreground">{label}</span>
@@ -314,7 +306,10 @@
 			<TabsContent value="activity" class="mt-6">
 				{#if activityQuery.isLoading}
 					<div class="flex min-h-[200px] items-center justify-center">
-						<Icon icon="solar:refresh-circle-line-duotone" class="h-8 w-8 animate-spin text-primary" />
+						<Icon
+							icon="solar:refresh-circle-line-duotone"
+							class="h-8 w-8 animate-spin text-primary"
+						/>
 					</div>
 				{:else if activities.length === 0}
 					<div
@@ -336,7 +331,10 @@
 			<TabsContent value="reviews" class="mt-6">
 				{#if reviewsQuery.isLoading}
 					<div class="flex min-h-[200px] items-center justify-center">
-						<Icon icon="solar:refresh-circle-line-duotone" class="h-8 w-8 animate-spin text-primary" />
+						<Icon
+							icon="solar:refresh-circle-line-duotone"
+							class="h-8 w-8 animate-spin text-primary"
+						/>
 					</div>
 				{:else if reviews.length === 0}
 					<div

@@ -12,10 +12,7 @@
 <div class="mt-6">
 	{#if recsQuery.isLoading}
 		<div class="flex items-center justify-center p-8">
-			<Icon
-				icon="solar:refresh-circle-line-duotone"
-				class="h-8 w-8 animate-spin text-primary"
-			/>
+			<Icon icon="solar:refresh-circle-line-duotone" class="h-8 w-8 animate-spin text-primary" />
 		</div>
 	{:else if recs.length > 0}
 		<div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

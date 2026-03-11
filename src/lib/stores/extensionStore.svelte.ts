@@ -25,7 +25,12 @@ import type { ExtensionIndexEntry, ExtensionStatus } from '$lib/types/extensions
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-function toastError(title: string, description: string, actionLabel?: string, onAction?: () => void) {
+function toastError(
+	title: string,
+	description: string,
+	actionLabel?: string,
+	onAction?: () => void
+) {
 	if (actionLabel && onAction) {
 		toast.error(title, {
 			description,
@@ -96,7 +101,9 @@ class ExtensionStore {
 
 	isInstalled(id: string): boolean {
 		const s = this.getStatus(id);
-		return s.kind === 'installed' || s.kind === 'ready' || s.kind === 'loading' || s.kind === 'error';
+		return (
+			s.kind === 'installed' || s.kind === 'ready' || s.kind === 'loading' || s.kind === 'error'
+		);
 	}
 
 	isBusy(id: string): boolean {
@@ -140,7 +147,7 @@ class ExtensionStore {
 				`Failed to install ${label}`,
 				message,
 				'Retry',
-				() => void this.install(id, downloadUrl),
+				() => void this.install(id, downloadUrl)
 			);
 			return false;
 		} finally {
@@ -247,8 +254,8 @@ class ExtensionStore {
 							void this.reinstall(id).then((ok) => {
 								if (!ok && downloadUrl) void this.install(id, downloadUrl);
 							});
-					  }
-					: undefined,
+						}
+					: undefined
 			);
 
 			return false;
@@ -260,7 +267,12 @@ class ExtensionStore {
 	get installedCount(): number {
 		let count = 0;
 		for (const [, s] of this.statuses) {
-			if (s.kind === 'installed' || s.kind === 'ready' || s.kind === 'loading' || s.kind === 'error') {
+			if (
+				s.kind === 'installed' ||
+				s.kind === 'ready' ||
+				s.kind === 'loading' ||
+				s.kind === 'error'
+			) {
 				count++;
 			}
 		}

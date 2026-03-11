@@ -37,7 +37,12 @@
 		expanded = true;
 		tick().then(() => {
 			if (editorAreaEl) {
-				gsap.to(editorAreaEl, { height: 'auto', duration: 0.25, ease: 'power2.out', clearProps: 'height' });
+				gsap.to(editorAreaEl, {
+					height: 'auto',
+					duration: 0.25,
+					ease: 'power2.out',
+					clearProps: 'height',
+				});
 			}
 			setTimeout(() => textarea?.focus(), 200);
 		});
@@ -234,7 +239,11 @@
 		>
 			<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted">
 				{#if userAvatar}
-					<img src={userAvatar} alt={userName ?? 'You'} class="h-full w-full rounded-full object-cover" />
+					<img
+						src={userAvatar}
+						alt={userName ?? 'You'}
+						class="h-full w-full rounded-full object-cover"
+					/>
 				{:else}
 					<Icon icon="solar:user-bold" class="size-5 text-muted-foreground" />
 				{/if}
@@ -246,7 +255,11 @@
 		<div class="flex items-center gap-3 px-4 py-3">
 			<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted">
 				{#if userAvatar}
-					<img src={userAvatar} alt={userName ?? 'You'} class="h-full w-full rounded-full object-cover" />
+					<img
+						src={userAvatar}
+						alt={userName ?? 'You'}
+						class="h-full w-full rounded-full object-cover"
+					/>
 				{:else}
 					<Icon icon="solar:user-bold" class="size-5 text-muted-foreground" />
 				{/if}
@@ -309,11 +322,14 @@
 		<!-- Editor / Preview area -->
 		<div class="min-h-[120px] p-3">
 			{#if preview}
-				<div class="prose prose-sm dark:prose-invert max-w-none" transition:fade={{ duration: 100 }}>
+				<div
+					class="prose prose-sm max-w-none dark:prose-invert"
+					transition:fade={{ duration: 100 }}
+				>
 					{#if text.trim()}
 						<MarkdownRenderer body={text} />
 					{:else}
-						<p class="text-sm italic text-muted-foreground">Nothing to preview yet…</p>
+						<p class="text-sm text-muted-foreground italic">Nothing to preview yet…</p>
 					{/if}
 				</div>
 			{:else}
@@ -322,7 +338,7 @@
 					bind:value={text}
 					placeholder="Write a status update… Markdown is supported"
 					rows={5}
-					class="w-full resize-none border-0 bg-transparent text-sm text-foreground shadow-none outline-none ring-0 placeholder:text-muted-foreground focus:border-0 focus:outline-none focus:ring-0"
+					class="w-full resize-none border-0 bg-transparent text-sm text-foreground shadow-none ring-0 outline-none placeholder:text-muted-foreground focus:border-0 focus:ring-0 focus:outline-none"
 					transition:fade={{ duration: 100 }}
 				></textarea>
 			{/if}
@@ -330,7 +346,9 @@
 
 		<!-- Upload error -->
 		{#if uploadError}
-			<div class="mx-3 mb-2 flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+			<div
+				class="mx-3 mb-2 flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive"
+			>
 				<Icon icon="solar:danger-triangle-bold" class="size-3.5 shrink-0" />
 				{uploadError}
 			</div>
@@ -338,7 +356,9 @@
 
 		<!-- Save error -->
 		{#if saveMutation.error}
-			<div class="mx-3 mb-2 flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+			<div
+				class="mx-3 mb-2 flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive"
+			>
 				<Icon icon="solar:danger-triangle-bold" class="size-3.5 shrink-0" />
 				{(saveMutation.error as Error).message ?? 'Failed to post'}
 			</div>
@@ -349,7 +369,7 @@
 			<span
 				class="text-xs {remaining < 50
 					? remaining < 0
-						? 'text-destructive font-medium'
+						? 'font-medium text-destructive'
 						: 'text-amber-500'
 					: 'text-muted-foreground'}"
 			>

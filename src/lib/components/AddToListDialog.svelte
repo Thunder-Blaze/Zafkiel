@@ -207,7 +207,10 @@
 		</div>
 
 		<!-- Scrollable form body ──────────────────────────────────────────── -->
-		<div class="flex max-h-[70vh] flex-col gap-5 overflow-y-auto px-5 py-5" data-lenis-prevent="true">
+		<div
+			class="flex max-h-[70vh] flex-col gap-5 overflow-y-auto px-5 py-5"
+			data-lenis-prevent="true"
+		>
 			<!-- Status ─────────────────────────────────────────────────────── -->
 			<div>
 				<p class="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">

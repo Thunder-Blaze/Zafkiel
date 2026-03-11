@@ -10,6 +10,7 @@ native playback backend.
 
 [ExoPlayer (Media3)](https://developer.android.com/guide/topics/media/exoplayer) is
 Google's recommended media player for Android. It:
+
 - Natively supports HLS, DASH, MP4, MKV, and virtually all common formats
 - Handles custom HTTP headers (Referer, Cookie) via `DefaultHttpDataSource.Factory`
 - Renders to a `SurfaceView` / `TextureView` embedded in the Tauri `WebView` overlay
@@ -25,6 +26,7 @@ Android LayerDrawable / SurfaceView (below WebView)
 ```
 
 The same "underlay trick" used for libmpv on desktop applies on Android:
+
 1. The native Android window lays out the ExoPlayer `SurfaceView` behind the `WebView`.
 2. The `WebView` background is set to transparent via `Tauri.setBackgroundColor(0x00000000)`.
 3. `PlayerControls.svelte` floats on top with a dark scrim background.
@@ -147,6 +149,7 @@ class MainActivity : TauriActivity() {
 ### 3. Add Media3 dependencies
 
 In `src-tauri/gen/android/app/build.gradle`:
+
 ```gradle
 dependencies {
     implementation "androidx.media3:media3-exoplayer:1.3.0"
@@ -164,9 +167,9 @@ appropriate backend:
 ```typescript
 import { platform } from '@tauri-apps/plugin-os';
 import {
-  init as libmpvInit,
-  destroy as libmpvDestroy,
-  // ...
+	init as libmpvInit,
+	destroy as libmpvDestroy,
+	// ...
 } from 'tauri-plugin-libmpv-api';
 import { invoke } from '@tauri-apps/api/core';
 
@@ -174,13 +177,16 @@ const currentPlatform = await platform();
 const isAndroid = currentPlatform === 'android';
 
 if (isAndroid) {
-  await invoke('plugin:MediaPlayerPlugin|initPlayer');
+	await invoke('plugin:MediaPlayerPlugin|initPlayer');
 } else {
-  await libmpvInit({ /* ... */ });
+	await libmpvInit({
+		/* ... */
+	});
 }
 ```
 
 A cleaner architecture is a shared `IMediaPlayer` interface with two implementations:
+
 - `src/lib/player/libmpv-player.ts` — desktop (Linux/Windows/macOS)
 - `src/lib/player/exoplayer-player.ts` — Android
 
@@ -211,15 +217,15 @@ player?.addListener(object : Player.Listener {
 
 ## Limitations vs. Desktop libmpv
 
-| Feature | libmpv (desktop) | ExoPlayer (Android) |
-|---------|-----------------|----------------------|
-| HLS | ✅ | ✅ |
-| Custom headers | ✅ | ✅ |
-| Hardware decode | ✅ auto | ✅ MediaCodec |
-| Subtitles (ASS/SSA) | ✅ | ⚠️ SRT/VTT only |
-| Audio tracks | ✅ | ✅ |
-| DASH | ✅ | ✅ |
-| MKV/VP9 | ✅ | ✅ (Android 5+) |
+| Feature             | libmpv (desktop) | ExoPlayer (Android) |
+| ------------------- | ---------------- | ------------------- |
+| HLS                 | ✅               | ✅                  |
+| Custom headers      | ✅               | ✅                  |
+| Hardware decode     | ✅ auto          | ✅ MediaCodec       |
+| Subtitles (ASS/SSA) | ✅               | ⚠️ SRT/VTT only     |
+| Audio tracks        | ✅               | ✅                  |
+| DASH                | ✅               | ✅                  |
+| MKV/VP9             | ✅               | ✅ (Android 5+)     |
 
 SSA/ASS subtitle rendering on Android requires a custom solution such as
 [libass-android](https://github.com/xiongyihui/libass-android) or
@@ -232,6 +238,7 @@ SSA/ASS subtitle rendering on Android requires a custom solution such as
 An alternative to ExoPlayer is to bind directly to
 [mpv-android](https://github.com/mpv-android/mpv-android) (the library variant).
 This provides full mpv feature parity including ASS subtitle rendering, but requires:
+
 - Shipping libmpv.so ARM/ARM64 builds (~10 MB)
 - JNI wrapper for the `mpv_*` C API
 

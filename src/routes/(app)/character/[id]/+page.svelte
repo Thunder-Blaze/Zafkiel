@@ -136,7 +136,7 @@
 							{#if character.description}
 								<div class="space-y-4">
 									<h3 class="text-lg font-semibold">Description</h3>
-									<div class="prose prose-sm dark:prose-invert max-w-none text-muted-foreground">
+									<div class="prose prose-sm max-w-none text-muted-foreground dark:prose-invert">
 										{@html character.description}
 									</div>
 								</div>

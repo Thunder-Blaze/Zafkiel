@@ -6,14 +6,14 @@ This document describes exactly **how** extensions are packaged, distributed, lo
 
 ## Design Goals
 
-| Goal | Decision |
-|------|----------|
-| First-class Rust support | Extensions are Rust crates compiled to `wasm32-unknown-unknown` |
+| Goal                      | Decision                                                                                                 |
+| ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| First-class Rust support  | Extensions are Rust crates compiled to `wasm32-unknown-unknown`                                          |
 | TypeScript extensions too | TS extensions transpile to a tiny WASM shim via `wasm-bindgen` OR run as plain JS modules (lighter path) |
-| CORS bypass | All network I/O is routed through Tauri's Rust backend |
-| Sandbox | WASM has no OS access; only the host-provided `HostAPI` imports are available |
-| Hot-reload in dev | WASM bytes are loaded at runtime via `WebAssembly.instantiate()` |
-| No bundler change | Extensions do not require changes to the main Vite build |
+| CORS bypass               | All network I/O is routed through Tauri's Rust backend                                                   |
+| Sandbox                   | WASM has no OS access; only the host-provided `HostAPI` imports are available                            |
+| Hot-reload in dev         | WASM bytes are loaded at runtime via `WebAssembly.instantiate()`                                         |
+| No bundler change         | Extensions do not require changes to the main Vite build                                                 |
 
 ---
 
@@ -156,6 +156,7 @@ pub fn get_manifest() -> JsValue {
 ```
 
 Build command:
+
 ```bash
 wasm-pack build --target web --out-dir pkg
 # Then package: cp pkg/extension_bg.wasm extension.wasm && zip -j animepahe-ext.zext manifest.json extension.wasm icon.png
@@ -174,69 +175,72 @@ import type { SourceExtension, ExtensionManifest } from '$lib/types/extensions';
  * WASM code calls these via the `extern "C"` declarations above.
  */
 function buildHostAPI(extensionId: string) {
-  return {
-    fetchUrl: async (url: string, headers?: string): Promise<string> => {
-      const parsedHeaders = headers ? JSON.parse(headers) : {};
-      return invoke<string>('fetch_url', { url, headers: parsedHeaders });
-    },
-    postUrl: async (url: string, body: string, headers?: string): Promise<string> => {
-      const parsedHeaders = headers ? JSON.parse(headers) : {};
-      return invoke<string>('post_url', { url, body, headers: parsedHeaders });
-    },
-    storageGet: async (key: string): Promise<string | null> => {
-      return invoke<string | null>('ext_storage_get', { extId: extensionId, key });
-    },
-    storageSet: async (key: string, value: string): Promise<void> => {
-      return invoke<void>('ext_storage_set', { extId: extensionId, key, value });
-    },
-    log: (level: string, msg: string) => {
-      console[level as 'log'](`[ext:${extensionId}] ${msg}`);
-    },
-  };
+	return {
+		fetchUrl: async (url: string, headers?: string): Promise<string> => {
+			const parsedHeaders = headers ? JSON.parse(headers) : {};
+			return invoke<string>('fetch_url', { url, headers: parsedHeaders });
+		},
+		postUrl: async (url: string, body: string, headers?: string): Promise<string> => {
+			const parsedHeaders = headers ? JSON.parse(headers) : {};
+			return invoke<string>('post_url', { url, body, headers: parsedHeaders });
+		},
+		storageGet: async (key: string): Promise<string | null> => {
+			return invoke<string | null>('ext_storage_get', { extId: extensionId, key });
+		},
+		storageSet: async (key: string, value: string): Promise<void> => {
+			return invoke<void>('ext_storage_set', { extId: extensionId, key, value });
+		},
+		log: (level: string, msg: string) => {
+			console[level as 'log'](`[ext:${extensionId}] ${msg}`);
+		},
+	};
 }
 
-export async function loadWasmExtension(wasmBytes: ArrayBuffer, manifest: ExtensionManifest): Promise<SourceExtension> {
-  const hostAPI = buildHostAPI(manifest.id);
+export async function loadWasmExtension(
+	wasmBytes: ArrayBuffer,
+	manifest: ExtensionManifest
+): Promise<SourceExtension> {
+	const hostAPI = buildHostAPI(manifest.id);
 
-  const { instance } = await WebAssembly.instantiate(wasmBytes, {
-    // wasm-bindgen imports namespace
-    './extension_bg.js': {}, // auto-generated glue
-    __zafkiel_host__: hostAPI,
-  });
+	const { instance } = await WebAssembly.instantiate(wasmBytes, {
+		// wasm-bindgen imports namespace
+		'./extension_bg.js': {}, // auto-generated glue
+		__zafkiel_host__: hostAPI,
+	});
 
-  const exports = instance.exports as Record<string, CallableFunction>;
+	const exports = instance.exports as Record<string, CallableFunction>;
 
-  // Wrap raw WASM exports into a typed SourceExtension
-  return {
-    manifest,
-    search: async (query) => {
-      const result = await exports.search(query);
-      return JSON.parse(result as string);
-    },
-    getByAnilistId: async (anilistId) => {
-      const result = await exports.get_by_anilist_id(anilistId);
-      return result ? JSON.parse(result as string) : null;
-    },
-    getAnimeDetails: async (id) => {
-      const result = await exports.get_anime_details(id);
-      return JSON.parse(result as string);
-    },
-    getEpisodes: async (id, page = 1) => {
-      const result = await exports.get_episodes(id, page);
-      return JSON.parse(result as string);
-    },
-    getStreamSources: async (animeId, episodeId) => {
-      const result = await exports.get_stream_sources(animeId, episodeId);
-      return JSON.parse(result as string);
-    },
-    resolveStream: async (source) => {
-      const result = await exports.resolve_stream(JSON.stringify(source));
-      return JSON.parse(result as string);
-    },
-    checkAuth: async () => {
-      return (exports.check_auth as () => Promise<boolean>)();
-    },
-  };
+	// Wrap raw WASM exports into a typed SourceExtension
+	return {
+		manifest,
+		search: async (query) => {
+			const result = await exports.search(query);
+			return JSON.parse(result as string);
+		},
+		getByAnilistId: async (anilistId) => {
+			const result = await exports.get_by_anilist_id(anilistId);
+			return result ? JSON.parse(result as string) : null;
+		},
+		getAnimeDetails: async (id) => {
+			const result = await exports.get_anime_details(id);
+			return JSON.parse(result as string);
+		},
+		getEpisodes: async (id, page = 1) => {
+			const result = await exports.get_episodes(id, page);
+			return JSON.parse(result as string);
+		},
+		getStreamSources: async (animeId, episodeId) => {
+			const result = await exports.get_stream_sources(animeId, episodeId);
+			return JSON.parse(result as string);
+		},
+		resolveStream: async (source) => {
+			const result = await exports.resolve_stream(JSON.stringify(source));
+			return JSON.parse(result as string);
+		},
+		checkAuth: async () => {
+			return (exports.check_auth as () => Promise<boolean>)();
+		},
+	};
 }
 ```
 
@@ -249,21 +253,24 @@ For TypeScript/JS extensions (simpler, no WASM compilation step):
 ```typescript
 import type { SourceExtension, ExtensionManifest } from '$lib/types/extensions';
 
-export async function loadJsExtension(jsCode: string, manifest: ExtensionManifest): Promise<SourceExtension> {
-  // Create a sandboxed module via blob URL
-  const blob = new Blob([jsCode], { type: 'application/javascript' });
-  const url = URL.createObjectURL(blob);
+export async function loadJsExtension(
+	jsCode: string,
+	manifest: ExtensionManifest
+): Promise<SourceExtension> {
+	// Create a sandboxed module via blob URL
+	const blob = new Blob([jsCode], { type: 'application/javascript' });
+	const url = URL.createObjectURL(blob);
 
-  try {
-    const module = await import(/* @vite-ignore */ url);
-    const ext = module.default ?? module.extension;
+	try {
+		const module = await import(/* @vite-ignore */ url);
+		const ext = module.default ?? module.extension;
 
-    if (!ext) throw new Error(`JS extension ${manifest.id} has no default or .extension export`);
+		if (!ext) throw new Error(`JS extension ${manifest.id} has no default or .extension export`);
 
-    return { ...ext, manifest };
-  } finally {
-    URL.revokeObjectURL(url);
-  }
+		return { ...ext, manifest };
+	} finally {
+		URL.revokeObjectURL(url);
+	}
 }
 ```
 
@@ -393,18 +400,18 @@ src-tauri/
 
 ## Security Considerations
 
-| Threat | Mitigation |
-|--------|-----------|
-| Malicious WASM reading OS files | WASM has no file system access; only `HostAPI` imports are available |
+| Threat                                       | Mitigation                                                                                |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Malicious WASM reading OS files              | WASM has no file system access; only `HostAPI` imports are available                      |
 | Malicious extension exfiltrating auth tokens | `fetch_url` goes through Rust, which can check allowlisted domains per extension manifest |
-| Prototype pollution from dynamic JS import | JS extension loader uses blob URLs in a new module scope; no `eval` |
-| Infinite loops in extension | `WebAssembly.instantiate` can be wrapped in a 30s timeout |
+| Prototype pollution from dynamic JS import   | JS extension loader uses blob URLs in a new module scope; no `eval`                       |
+| Infinite loops in extension                  | `WebAssembly.instantiate` can be wrapped in a 30s timeout                                 |
 
 ---
 
 ## Open Questions (to resolve before implementation)
 
-1. **Domain allowlist**: should we let the manifest declare which domains it can fetch, with Rust enforcing this?  E.g. `"allowedDomains": ["animepahe.si", "kwik.si"]`  → Yes, recommended.
-2. **wasm-pack vs manual**: use `wasm-pack build --target web` for Rust extensions.  Keep JS path for lighter 1st-party providers.
+1. **Domain allowlist**: should we let the manifest declare which domains it can fetch, with Rust enforcing this? E.g. `"allowedDomains": ["animepahe.si", "kwik.si"]` → Yes, recommended.
+2. **wasm-pack vs manual**: use `wasm-pack build --target web` for Rust extensions. Keep JS path for lighter 1st-party providers.
 3. **Extension update mechanism**: not scoped for v1 – manual `.zext` replacement is fine.
 4. **Capability negotiation**: if host is missing a required capability (e.g. `cookieAuth`), fail loudly at load-time with a clear error.

@@ -48,7 +48,9 @@
 {:else if loading}
 	<div class="animate-pulse bg-muted {className}"></div>
 {:else if failed}
-	<div class="flex items-center justify-center bg-muted/50 text-[10px] text-muted-foreground {className}">
+	<div
+		class="flex items-center justify-center bg-muted/50 text-[10px] text-muted-foreground {className}"
+	>
 		✕
 	</div>
 {/if}

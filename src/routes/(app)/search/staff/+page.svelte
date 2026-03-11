@@ -170,7 +170,7 @@
 				</div>
 			{:else}
 				<div class="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-5 p-0.5">
-				{#each searchResults as staff (staff.id)}{@render staffCard(staff)}{/each}
+					{#each searchResults as staff (staff.id)}{@render staffCard(staff)}{/each}
 				</div>
 			{/if}
 		</section>
