@@ -181,6 +181,7 @@
 	<div
 		data-tauri-drag-region
 		class="fixed top-0 right-0 left-0 z-999999 flex h-12 items-center justify-between border-b border-border/50 bg-background/95 backdrop-blur-xl select-none"
+		style="view-transition-name: titlebar;"
 	>
 		<!-- Left Section: Logo + Navigation Buttons + Nav Items -->
 		<div class="flex h-full items-center gap-2 pl-3" data-tauri-drag-region>
