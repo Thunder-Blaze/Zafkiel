@@ -3,13 +3,13 @@
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import Icon from '@iconify/svelte';
 	import { cn } from '$lib/utils';
-	import { ScrollArea } from '$lib/components/ui/scroll-area';
+	import ProxiedImage from '$lib/components/ProxiedImage.svelte';
 	import type { Episode, StreamSource } from '$lib/types/extensions';
 
 	let {
 		isPlaying,
-		currentTime,
-		duration,
+		currentTime = 0,
+		duration = 0,
 		volume,
 		title,
 		subtitle,
@@ -92,22 +92,45 @@
 		else if (source.audio) parts.push(source.audio.toUpperCase());
 		return parts.join(' ') || source.label || source.id;
 	}
+
+	function truncateString(str: string | undefined, num: number): string {
+		if (!str) return '';
+		if (str.length <= num) {
+			return str;
+		}
+		return str.slice(0, num) + '...';
+	}
 </script>
 
 <Tooltip.Provider>
-	<div class="absolute inset-0 z-50 flex flex-col justify-between bg-black/60 p-4">
+	<!-- Subtle gradients for top and bottom only using background variable -->
+	<div
+		class="pointer-events-none absolute top-0 right-0 left-0 z-40 h-48 bg-gradient-to-b from-background/90 via-background/40 to-transparent"
+	></div>
+	<div
+		class="pointer-events-none absolute right-0 bottom-0 left-0 z-40 h-80 bg-gradient-to-t from-background/95 via-background/60 to-transparent"
+	></div>
+
+	<!-- Reduced outer padding to p-4 md:p-6 -->
+	<div
+		class="absolute inset-0 z-50 flex flex-col justify-between p-4 pb-6 md:p-6"
+		data-lenis-prevent="true"
+		onwheel={(e) => {
+			if (isLocked) e.stopPropagation();
+		}}
+	>
 		<!-- Locked State Overlay -->
 		{#if isLocked}
-			<div class="absolute inset-0 flex flex-col items-end justify-start p-4">
+			<div class="pointer-events-auto absolute inset-0 flex flex-col items-end justify-start p-4">
 				<Tooltip.Root>
 					<Tooltip.Trigger>
 						<Button
 							variant="ghost"
 							size="icon"
-							class="text-white hover:bg-white/20"
+							class="h-10 w-10 p-0 text-foreground hover:bg-foreground/20 md:h-12 md:w-12"
 							onclick={onLockToggle}
 						>
-							<Icon icon="lucide:lock" class="h-6 w-6" />
+							<Icon icon="mingcute:lock-fill" class="h-8 w-8 md:h-10 md:w-10" />
 						</Button>
 					</Tooltip.Trigger>
 					<Tooltip.Content>
@@ -117,203 +140,173 @@
 			</div>
 		{:else}
 			<!-- Top Bar -->
-			<div class="flex items-start justify-between">
-				<div class="flex flex-col">
-					<h2 class="line-clamp-1 text-lg font-bold text-white">{title || 'Unknown Title'}</h2>
-					{#if subtitle}
-						<p class="line-clamp-1 text-sm text-white/70">{subtitle}</p>
-					{/if}
-				</div>
-				<div class="flex items-center gap-2">
-					<Tooltip.Root>
-						<Tooltip.Trigger>
-							<Button variant="ghost" size="icon" class="text-white hover:bg-white/20">
-								<Icon icon="lucide:picture-in-picture-2" class="h-6 w-6" />
-							</Button>
-						</Tooltip.Trigger>
-						<Tooltip.Content>
-							<p>Picture in Picture</p>
-						</Tooltip.Content>
-					</Tooltip.Root>
-
-					<Tooltip.Root>
-						<Tooltip.Trigger>
-							<Button variant="ghost" size="icon" class="text-white hover:bg-white/20">
-								<Icon icon="lucide:settings" class="h-6 w-6" />
-							</Button>
-						</Tooltip.Trigger>
-						<Tooltip.Content>
-							<p>Settings</p>
-						</Tooltip.Content>
-					</Tooltip.Root>
-
+			<div class="pointer-events-none flex items-start justify-between">
+				<!-- Just the Back Button on top left -->
+				<div class="pointer-events-auto">
 					<Tooltip.Root>
 						<Tooltip.Trigger>
 							<Button
 								variant="ghost"
 								size="icon"
-								class="text-white hover:bg-white/20"
-								onclick={onLockToggle}
-							>
-								<Icon icon="lucide:unlock" class="h-6 w-6" />
-							</Button>
-						</Tooltip.Trigger>
-						<Tooltip.Content>
-							<p>Lock Controls</p>
-						</Tooltip.Content>
-					</Tooltip.Root>
-
-					<Tooltip.Root>
-						<Tooltip.Trigger>
-							<Button
-								variant="ghost"
-								size="icon"
-								class="text-white hover:bg-white/20"
+								class="h-10 w-10 p-0 text-foreground transition-transform hover:bg-foreground/20 active:scale-95 md:h-12 md:w-12"
 								onclick={onBack}
 							>
-								<Icon icon="lucide:x" class="h-6 w-6" />
+								<Icon icon="mingcute:arrow-left-fill" class="aspect-square w-full" />
 							</Button>
 						</Tooltip.Trigger>
 						<Tooltip.Content>
-							<p>Close</p>
+							<p>Back</p>
 						</Tooltip.Content>
 					</Tooltip.Root>
 				</div>
 			</div>
 
-			<!-- Center Controls -->
-			<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
-				<div class="pointer-events-auto flex items-center gap-12">
-					<Tooltip.Root>
-						<Tooltip.Trigger>
-							<Button
-								variant="ghost"
-								size="icon"
-								class="h-12 w-12 rounded-full text-white hover:bg-white/20"
-								onclick={() => onSeek(Math.max(0, currentTime - 10))}
-							>
-								<Icon icon="lucide:skip-back" class="h-8 w-8" />
-							</Button>
-						</Tooltip.Trigger>
-						<Tooltip.Content>
-							<p>Rewind 10s</p>
-						</Tooltip.Content>
-					</Tooltip.Root>
-
-					<Tooltip.Root>
-						<Tooltip.Trigger>
-							<Button
-								variant="ghost"
-								size="icon"
-								class="h-16 w-16 rounded-full text-white hover:bg-white/20"
-								onclick={onPlayPause}
-							>
-								{#if isBuffering}
-									<Icon icon="lucide:loader-2" class="h-10 w-10 animate-spin" />
-								{:else}
-									<Icon icon={isPlaying ? 'lucide:pause' : 'lucide:play'} class="h-10 w-10" />
-								{/if}
-							</Button>
-						</Tooltip.Trigger>
-						<Tooltip.Content>
-							<p>{isPlaying ? 'Pause' : 'Play'}</p>
-						</Tooltip.Content>
-					</Tooltip.Root>
-
-					<Tooltip.Root>
-						<Tooltip.Trigger>
-							<Button
-								variant="ghost"
-								size="icon"
-								class="h-12 w-12 rounded-full text-white hover:bg-white/20"
-								onclick={() => onSeek(Math.min(duration, currentTime + 10))}
-							>
-								<Icon icon="lucide:skip-forward" class="h-8 w-8" />
-							</Button>
-						</Tooltip.Trigger>
-						<Tooltip.Content>
-							<p>Forward 10s</p>
-						</Tooltip.Content>
-					</Tooltip.Root>
-				</div>
-			</div>
-
-			<!-- Skip Button (Overlay) -->
-			<!-- 
-				FIX: We use CSS opacity instead of {#if} here.
-				Using {#if} causes the button to mount/unmount at specific timestamps (e.g. 1:30),
-				which triggers a layout shift/repaint and causes the video to flicker/stutter.
-				Always mounting it and toggling opacity prevents this.
-			-->
+			<!-- Center Content (Clickable area to play/pause in middle of screen) -->
+			<!-- Removed focus borders and outline. Negative tabindex added -->
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
-				class="absolute right-4 bottom-24 transition-opacity duration-200"
-				class:opacity-0={!showSkipIntro || !onSkipIntro}
-				class:pointer-events-none={!showSkipIntro || !onSkipIntro}
+				class="pointer-events-auto flex-1 cursor-pointer ring-0 outline-none focus:ring-0 focus:outline-none"
+				onclick={onPlayPause}
+				role="button"
+				tabindex="-1"
+				aria-label="Toggle Playback"
+			></div>
+
+			<!-- Bottom Content Area -->
+			<div
+				class="pointer-events-auto flex w-full flex-col justify-end gap-3 drop-shadow-lg md:gap-4"
 			>
-				<Button
-					variant="secondary"
-					class="bg-white font-semibold text-black hover:bg-white/90"
-					onclick={onSkipIntro}
+				<!-- Title & Info Space (Only visible when paused) -->
+				<div
+					class="pointer-events-none mb-2 flex h-[5rem] flex-col justify-end px-2 transition-opacity duration-300 md:mb-4 md:h-[6rem]"
+					class:opacity-0={isPlaying}
 				>
-					Skip Intro
-					<Icon icon="lucide:skip-forward" class="ml-2 h-4 w-4" />
-				</Button>
-			</div>
-
-			<!-- Bottom Controls -->
-			<div class="flex w-full flex-col gap-2">
-				<div class="flex items-center gap-3 text-sm font-medium text-white">
-					<span>{formatTime(currentTime)}</span>
-					<span class="text-white/50">/</span>
-					<span class="text-white/70">{formatTime(duration)}</span>
+					<h2
+						class="pb-1 text-3xl font-extrabold tracking-tight text-foreground uppercase drop-shadow-md md:text-5xl"
+					>
+						{truncateString(title || 'Unknown Title', 45)}
+					</h2>
+					{#if subtitle}
+						<p class="mt-1 text-base font-medium text-foreground/80 md:mt-2 md:text-xl">
+							{truncateString(subtitle, 65)}
+						</p>
+					{/if}
 				</div>
 
-				<!-- Optimized Native Seek Slider -->
-				<div class="relative flex h-4 w-full items-center">
-					<input
-						type="range"
-						min="0"
-						max={duration || 1}
-						step="0.01"
-						value={currentTime}
-						oninput={(e) => handleSeek([parseFloat(e.currentTarget.value)])}
-						class="w-full cursor-pointer appearance-none rounded-full bg-white/30 outline-none [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:transition-all hover:[&::-webkit-slider-thumb]:h-4 hover:[&::-webkit-slider-thumb]:w-4"
-						style="--seek-pos: {(currentTime / (duration || 1)) *
-							100}%; background: linear-gradient(to right, var(--primary) var(--seek-pos), rgba(255, 255, 255, 0.3) var(--seek-pos)); height: 4px;"
-					/>
+				<!-- Progress Bar and Time -->
+				<div class="flex w-full flex-col gap-2 px-1">
+					<div
+						class="group relative flex h-5 w-full cursor-pointer items-center"
+						onwheel={(e) => e.stopPropagation()}
+					>
+						<!-- Background track -->
+						<div
+							class="pointer-events-none absolute inset-x-0 z-0 h-1.5 rounded-full bg-white/20 md:h-2"
+						></div>
+						<!-- Progress Fill -->
+						<div
+							class="pointer-events-none absolute left-0 z-0 h-1.5 rounded-full bg-primary md:h-2"
+							style="width: {(currentTime / (duration || 1)) * 100}%;"
+						></div>
+						<!-- Slider -->
+						<input
+							type="range"
+							min="0"
+							max={duration || 1}
+							step="0.01"
+							value={currentTime}
+							oninput={(e) => handleSeek([parseFloat(e.currentTarget.value)])}
+							class="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none bg-transparent outline-none focus:outline-none [&::-webkit-slider-thumb]:h-0 [&::-webkit-slider-thumb]:w-0 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:transition-all group-hover:[&::-webkit-slider-thumb]:h-4 group-hover:[&::-webkit-slider-thumb]:w-4 md:group-hover:[&::-webkit-slider-thumb]:h-5 md:group-hover:[&::-webkit-slider-thumb]:w-5"
+						/>
+					</div>
+
+					<!-- Time Display -->
+					<div
+						class="pointer-events-none mt-1 flex w-full justify-end text-xs font-semibold tracking-wide text-foreground/70 md:text-sm"
+					>
+						<span class="text-foreground/90">{formatTime(currentTime)}</span>
+						<span class="mx-1">/</span>
+						<span>{formatTime(duration)}</span>
+					</div>
 				</div>
 
-				<div class="mt-1 flex items-center justify-between">
-					<div class="flex items-center gap-2">
+				<!-- Control Bar -->
+				<div class="mt-1 flex items-center justify-between px-1 md:mt-2">
+					<!-- Left Controls -->
+					<div class="flex items-center gap-1.5 md:gap-3">
 						<Tooltip.Root>
 							<Tooltip.Trigger>
 								<Button
 									variant="ghost"
 									size="icon"
-									class={cn('text-white hover:bg-white/20', showPlaylist && 'bg-white/20')}
-									onclick={(e) => {
-										e.stopPropagation();
-										showPlaylist = !showPlaylist;
-										showQualityMenu = false;
-										showSubtitleMenu = false;
-									}}
-									disabled={episodes.length === 0}
+									class="h-10 w-10 p-0 text-foreground transition-transform hover:bg-foreground/20 active:scale-90 md:h-12 md:w-12"
+									onclick={onPlayPause}
 								>
-									<Icon icon="lucide:list" class="h-5 w-5" />
+									{#if isBuffering}
+										<Icon
+											icon="mingcute:loading-fill"
+											class="h-8 w-8 animate-spin md:h-10 md:w-10"
+										/>
+									{:else}
+										<Icon
+											icon={isPlaying ? 'mingcute:pause-fill' : 'mingcute:play-fill'}
+											class="h-8 w-8 md:h-10 md:w-10"
+										/>
+									{/if}
 								</Button>
 							</Tooltip.Trigger>
 							<Tooltip.Content>
-								<p>Playlist</p>
+								<p>{isPlaying ? 'Pause' : 'Play'}</p>
 							</Tooltip.Content>
 						</Tooltip.Root>
 
-						<div class="flex items-center">
+						<Tooltip.Root>
+							<Tooltip.Trigger>
+								<Button
+									variant="ghost"
+									size="icon"
+									class="h-8 w-8 p-0 text-foreground transition-transform hover:bg-foreground/20 active:scale-95 md:h-10 md:w-10"
+									onclick={() => onSeek(Math.max(0, currentTime - 10))}
+								>
+									<!-- using rewind and forward fills -->
+									<Icon icon="mingcute:fast-rewind-fill" class="h-7 w-7 md:h-9 md:w-9" />
+								</Button>
+							</Tooltip.Trigger>
+							<Tooltip.Content>
+								<p>Rewind 10s</p>
+							</Tooltip.Content>
+						</Tooltip.Root>
+
+						<Tooltip.Root>
+							<Tooltip.Trigger>
+								<Button
+									variant="ghost"
+									size="icon"
+									class="h-8 w-8 p-0 text-foreground transition-transform hover:bg-foreground/20 active:scale-95 md:h-10 md:w-10"
+									onclick={() => onSeek(Math.min(duration, currentTime + 10))}
+								>
+									<Icon icon="mingcute:fast-forward-fill" class="h-7 w-7 md:h-9 md:w-9" />
+								</Button>
+							</Tooltip.Trigger>
+							<Tooltip.Content>
+								<p>Forward 10s</p>
+							</Tooltip.Content>
+						</Tooltip.Root>
+
+						<!-- Volume Slider -->
+						<div class="group ml-1 flex items-center gap-1 md:ml-2">
 							<Tooltip.Root>
 								<Tooltip.Trigger>
-									<Button variant="ghost" size="icon" class="text-white hover:bg-white/20">
+									<Button
+										variant="ghost"
+										size="icon"
+										class="h-8 w-8 p-0 text-foreground transition-transform hover:bg-foreground/20 active:scale-95 md:h-10 md:w-10"
+										onclick={() => onVolumeChange(volume === 0 ? 1 : 0)}
+									>
 										<Icon
-											icon={volume === 0 ? 'lucide:volume-x' : 'lucide:volume-2'}
-											class="h-5 w-5"
+											icon={volume === 0 ? 'mingcute:volume-mute-fill' : 'mingcute:volume-fill'}
+											class="h-7 w-7 md:h-9 md:w-9"
 										/>
 									</Button>
 								</Tooltip.Trigger>
@@ -322,8 +315,17 @@
 								</Tooltip.Content>
 							</Tooltip.Root>
 
-							<!-- Optimized Native Volume Slider -->
-							<div class="relative flex h-full w-24 items-center">
+							<div
+								class="relative flex h-5 w-0 cursor-pointer items-center overflow-hidden opacity-0 transition-all duration-300 group-hover:w-24 group-hover:opacity-100 md:group-hover:w-28"
+								onwheel={(e) => e.stopPropagation()}
+							>
+								<div
+									class="pointer-events-none absolute inset-x-0 z-0 h-1.5 rounded-full bg-white/20"
+								></div>
+								<div
+									class="pointer-events-none absolute left-0 z-0 h-1.5 rounded-full bg-primary"
+									style="width: {volume * 100}%;"
+								></div>
 								<input
 									type="range"
 									min="0"
@@ -331,89 +333,129 @@
 									step="0.01"
 									value={volume}
 									oninput={(e) => onVolumeChange(parseFloat(e.currentTarget.value))}
-									class="w-full cursor-pointer appearance-none rounded-full bg-white/30 outline-none [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:transition-all hover:[&::-webkit-slider-thumb]:h-4 hover:[&::-webkit-slider-thumb]:w-4"
-									style="--vol-pos: {volume *
-										100}%; background: linear-gradient(to right, var(--primary) var(--vol-pos), rgba(255, 255, 255, 0.3) var(--vol-pos)); height: 4px;"
+									class="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none bg-transparent outline-none focus:outline-none [&::-webkit-slider-thumb]:h-0 [&::-webkit-slider-thumb]:w-0 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-foreground hover:[&::-webkit-slider-thumb]:h-3 hover:[&::-webkit-slider-thumb]:w-3 md:hover:[&::-webkit-slider-thumb]:h-4 md:hover:[&::-webkit-slider-thumb]:w-4"
 								/>
 							</div>
 						</div>
 					</div>
 
-					<div class="flex items-center gap-2">
-						<!-- Subtitles Button -->
+					<!-- Right Controls -->
+					<div class="flex items-center gap-1.5 md:gap-3">
+						<Tooltip.Root>
+							<Tooltip.Trigger>
+								<Button
+									variant="ghost"
+									size="icon"
+									class={cn(
+										'h-8 w-8 p-0 text-foreground transition-colors hover:bg-foreground/20 md:h-10 md:w-10',
+										showPlaylist && 'bg-foreground/20 text-primary'
+									)}
+									onclick={(e) => {
+										e.stopPropagation();
+										showPlaylist = !showPlaylist;
+										showQualityMenu = false;
+										showSubtitleMenu = false;
+									}}
+									disabled={episodes.length === 0}
+								>
+									<Icon icon="mingcute:playlist-2-fill" class="h-7 w-7 md:h-9 md:w-9" />
+								</Button>
+							</Tooltip.Trigger>
+							<Tooltip.Content>
+								<p>Episodes</p>
+							</Tooltip.Content>
+						</Tooltip.Root>
+
 						<div class="relative">
 							<Tooltip.Root>
 								<Tooltip.Trigger>
 									<Button
 										variant="ghost"
 										size="icon"
-										class={cn('text-white hover:bg-white/20', showSubtitleMenu && 'bg-white/20')}
+										class={cn(
+											'h-8 w-8 p-0 text-foreground transition-colors hover:bg-foreground/20 md:h-10 md:w-10',
+											showSubtitleMenu && 'bg-foreground/20 text-primary'
+										)}
 										onclick={(e) => {
 											e.stopPropagation();
 											showSubtitleMenu = !showSubtitleMenu;
+											showPlaylist = false;
+											showQualityMenu = false;
 										}}
 									>
-										<Icon icon="lucide:captions" class="h-5 w-5" />
+										<!-- mingcute doesn't have a specific subtitle CC. Usually closed caption -->
+										<Icon icon="mingcute:subtitle-fill" class="h-7 w-7 md:h-9 md:w-9" />
 									</Button>
 								</Tooltip.Trigger>
 								<Tooltip.Content>
-									<p>Subtitles / Captions</p>
+									<p>Subtitles</p>
 								</Tooltip.Content>
 							</Tooltip.Root>
 
 							{#if showSubtitleMenu}
+								<!-- Replaced ScrollArea with a native overflow div to perfectly match lenis requirements -->
 								<div
-									class="absolute bottom-full left-1/2 mb-2 w-48 -translate-x-1/2 overflow-hidden rounded-md bg-black/90 p-1 shadow-lg backdrop-blur-sm"
+									class="absolute right-0 bottom-full z-50 mb-4 flex w-52 origin-bottom-right animate-in flex-col rounded-xl border border-border bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl duration-200 zoom-in-95 fade-in"
 								>
-									{#if tracks.length === 0}
-										<div class="px-3 py-2 text-center text-sm text-white/50">
-											No subtitles available
-										</div>
-									{:else}
-										<button
-											class={cn(
-												'flex w-full items-center rounded-sm px-3 py-2 text-left text-sm hover:bg-white/10',
-												currentTrackIndex === -1 && 'font-medium text-primary'
-											)}
-											onclick={(e) => {
-												e.stopPropagation();
-												onTrackChange(-1);
-												showSubtitleMenu = false;
-											}}
-										>
-											{#if currentTrackIndex === -1}
-												<Icon icon="lucide:check" class="mr-2 h-3 w-3" />
-											{:else}
-												<div class="mr-2 h-3 w-3"></div>
-											{/if}
-											<span class="text-white">Off</span>
-										</button>
-										{#each tracks as track, i}
+									<div
+										class="mb-1 shrink-0 border-b border-border px-3 py-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+									>
+										Subtitles
+									</div>
+									<div
+										class="max-h-[300px] w-full overflow-y-auto pr-1"
+										data-lenis-prevent="true"
+										onwheel={(e) => e.stopPropagation()}
+									>
+										{#if tracks.length === 0}
+											<div class="px-3 py-3 text-center text-sm text-muted-foreground">
+												No subtitles
+											</div>
+										{:else}
 											<button
 												class={cn(
-													'flex w-full items-center rounded-sm px-3 py-2 text-left text-sm hover:bg-white/10',
-													currentTrackIndex === i && 'font-medium text-primary'
+													'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted',
+													currentTrackIndex === -1 && 'bg-primary/10 font-medium text-primary'
 												)}
 												onclick={(e) => {
 													e.stopPropagation();
-													onTrackChange(i);
+													onTrackChange(-1);
 													showSubtitleMenu = false;
 												}}
 											>
-												{#if currentTrackIndex === i}
-													<Icon icon="lucide:check" class="mr-2 h-3 w-3" />
+												{#if currentTrackIndex === -1}
+													<Icon icon="mingcute:check-fill" class="mr-2.5 h-4 w-4 text-primary" />
 												{:else}
-													<div class="mr-2 h-3 w-3"></div>
+													<div class="mr-2.5 h-4 w-4"></div>
 												{/if}
-												<span class="truncate text-white">{track.label}</span>
+												<span class="truncate">Off</span>
 											</button>
-										{/each}
-									{/if}
+											{#each tracks as track, i}
+												<button
+													class={cn(
+														'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted',
+														currentTrackIndex === i && 'bg-primary/10 font-medium text-primary'
+													)}
+													onclick={(e) => {
+														e.stopPropagation();
+														onTrackChange(i);
+														showSubtitleMenu = false;
+													}}
+												>
+													{#if currentTrackIndex === i}
+														<Icon icon="mingcute:check-fill" class="mr-2.5 h-4 w-4 text-primary" />
+													{:else}
+														<div class="mr-2.5 h-4 w-4"></div>
+													{/if}
+													<span class="truncate">{track.label}</span>
+												</button>
+											{/each}
+										{/if}
+									</div>
 								</div>
 							{/if}
 						</div>
 
-						<!-- Quality / Source Switcher -->
 						{#if sources.length > 0}
 							<div class="relative">
 								<Tooltip.Root>
@@ -421,7 +463,10 @@
 										<Button
 											variant="ghost"
 											size="icon"
-											class={cn('text-white hover:bg-white/20', showQualityMenu && 'bg-white/20')}
+											class={cn(
+												'h-8 w-8 p-0 text-foreground transition-colors hover:bg-foreground/20 md:h-10 md:w-10',
+												showQualityMenu && 'bg-foreground/20 text-primary'
+											)}
 											onclick={(e) => {
 												e.stopPropagation();
 												showQualityMenu = !showQualityMenu;
@@ -429,41 +474,51 @@
 												showPlaylist = false;
 											}}
 										>
-											<Icon icon="lucide:settings-2" class="h-5 w-5" />
+											<Icon icon="mingcute:settings-1-fill" class="h-7 w-7 md:h-9 md:w-9" />
 										</Button>
 									</Tooltip.Trigger>
 									<Tooltip.Content>
-										<p>Quality</p>
+										<p>Quality Settings</p>
 									</Tooltip.Content>
 								</Tooltip.Root>
 
 								{#if showQualityMenu}
 									<div
-										class="absolute bottom-full left-1/2 mb-2 w-56 -translate-x-1/2 overflow-hidden rounded-md bg-black/90 p-1 shadow-lg backdrop-blur-sm"
+										class="absolute right-0 bottom-full z-50 mb-4 flex w-60 origin-bottom-right animate-in flex-col rounded-xl border border-border bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl duration-200 zoom-in-95 fade-in"
 									>
-										<div class="border-b border-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/40">
-											Quality
+										<div
+											class="mb-1 shrink-0 border-b border-border px-3 py-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+										>
+											Quality settings
 										</div>
-										{#each sources as source}
-											<button
-												class={cn(
-													'flex w-full items-center rounded-sm px-3 py-2 text-left text-sm hover:bg-white/10',
-													currentSource?.id === source.id && 'font-medium text-primary'
-												)}
-												onclick={(e) => {
-													e.stopPropagation();
-													onSourceSelect?.(source);
-													showQualityMenu = false;
-												}}
-											>
-												{#if currentSource?.id === source.id}
-													<Icon icon="lucide:check" class="mr-2 h-3 w-3" />
-												{:else}
-													<div class="mr-2 h-3 w-3"></div>
-												{/if}
-												<span class="truncate text-white">{formatSourceLabel(source)}</span>
-											</button>
-										{/each}
+										<!-- Swapped to native div overflow to fix lenis scroll locking issues -->
+										<div
+											class="max-h-[300px] w-full overflow-y-auto pr-1"
+											data-lenis-prevent="true"
+											onwheel={(e) => e.stopPropagation()}
+										>
+											{#each sources as source}
+												<button
+													class={cn(
+														'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted',
+														currentSource?.id === source.id &&
+															'bg-primary/10 font-medium text-primary'
+													)}
+													onclick={(e) => {
+														e.stopPropagation();
+														onSourceSelect?.(source);
+														showQualityMenu = false;
+													}}
+												>
+													{#if currentSource?.id === source.id}
+														<Icon icon="mingcute:check-fill" class="mr-2.5 h-4 w-4 text-primary" />
+													{:else}
+														<div class="mr-2.5 h-4 w-4"></div>
+													{/if}
+													<span class="truncate">{formatSourceLabel(source)}</span>
+												</button>
+											{/each}
+										</div>
 									</div>
 								{/if}
 							</div>
@@ -471,30 +526,12 @@
 
 						<Tooltip.Root>
 							<Tooltip.Trigger>
-								<Button variant="ghost" size="icon" class="text-white hover:bg-white/20">
-									<Icon icon="lucide:rotate-ccw" class="h-5 w-5" />
-								</Button>
-							</Tooltip.Trigger>
-							<Tooltip.Content>
-								<p>Reset Speed</p>
-							</Tooltip.Content>
-						</Tooltip.Root>
-
-						<Tooltip.Root>
-							<Tooltip.Trigger>
-								<Button variant="ghost" size="icon" class="text-white hover:bg-white/20">
-									<Icon icon="lucide:cast" class="h-5 w-5" />
-								</Button>
-							</Tooltip.Trigger>
-							<Tooltip.Content>
-								<p>Cast</p>
-							</Tooltip.Content>
-						</Tooltip.Root>
-
-						<Tooltip.Root>
-							<Tooltip.Trigger>
-								<Button variant="ghost" size="icon" class="text-white hover:bg-white/20">
-									<Icon icon="lucide:picture-in-picture" class="h-5 w-5" />
+								<Button
+									variant="ghost"
+									size="icon"
+									class="h-8 w-8 p-0 text-foreground transition-transform hover:bg-foreground/20 active:scale-95 md:h-10 md:w-10"
+								>
+									<Icon icon="mingcute:miniplayer-fill" class="h-7 w-7 md:h-9 md:w-9" />
 								</Button>
 							</Tooltip.Trigger>
 							<Tooltip.Content>
@@ -507,53 +544,92 @@
 								<Button
 									variant="ghost"
 									size="icon"
-									class="text-white hover:bg-white/20"
+									class="h-8 w-8 p-0 text-foreground transition-transform hover:bg-foreground/20 active:scale-95 md:h-10 md:w-10"
 									onclick={onFullscreen}
 								>
-									<Icon icon="lucide:maximize" class="h-5 w-5" />
+									<Icon icon="mingcute:fullscreen-2-fill" class="h-7 w-7 md:h-9 md:w-9" />
 								</Button>
 							</Tooltip.Trigger>
 							<Tooltip.Content>
 								<p>Fullscreen</p>
 							</Tooltip.Content>
 						</Tooltip.Root>
+
+						<Tooltip.Root>
+							<Tooltip.Trigger>
+								<Button
+									variant="ghost"
+									size="icon"
+									class="h-8 w-8 p-0 text-foreground transition-transform hover:bg-foreground/20 active:scale-95 md:h-10 md:w-10"
+									onclick={onLockToggle}
+								>
+									<Icon icon="mingcute:unlock-fill" class="h-7 w-7 md:h-9 md:w-9" />
+								</Button>
+							</Tooltip.Trigger>
+							<Tooltip.Content>
+								<p>Lock Controls</p>
+							</Tooltip.Content>
+						</Tooltip.Root>
 					</div>
 				</div>
+			</div>
+
+			<!-- Skip Button (Overlay) placed in bottom right above controls -->
+			<div
+				class="absolute right-4 bottom-40 z-50 drop-shadow-2xl transition-all duration-300 md:right-6 md:bottom-48"
+				class:opacity-0={!showSkipIntro || !onSkipIntro}
+				class:scale-95={!showSkipIntro || !onSkipIntro}
+				class:pointer-events-none={!showSkipIntro || !onSkipIntro}
+			>
+				<Button
+					variant="secondary"
+					class="rounded-full bg-foreground px-6 py-5 text-sm font-bold text-background shadow-xl transition-transform hover:scale-105 hover:bg-foreground/90 active:scale-95 md:px-8 md:py-6 md:text-base"
+					onclick={onSkipIntro}
+				>
+					Skip Intro
+					<Icon icon="mingcute:skip-forward-fill" class="ml-2.5 h-6 w-6" />
+				</Button>
 			</div>
 		{/if}
 	</div>
 
-	<!-- Playlist Side Panel -->
+	<!-- Playlist Side Panel (Apple TV style width and backdrop) -->
 	{#if showPlaylist && episodes.length > 0}
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="absolute top-0 right-0 z-50 flex h-full w-[22rem] flex-col border-l border-white/10 bg-black/95 backdrop-blur-sm"
+			class="pointer-events-auto absolute top-0 right-0 z-[60] flex h-full w-full animate-in flex-col border-l border-border bg-background/90 shadow-2xl backdrop-blur-3xl duration-200 slide-in-from-right sm:w-[28rem]"
 			onclick={(e) => e.stopPropagation()}
+			data-lenis-prevent="true"
+			onwheel={(e) => e.stopPropagation()}
 		>
-			<div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
+			<div class="flex items-center justify-between border-b border-border/50 px-6 py-5">
 				<div>
-					<h3 class="text-sm font-bold text-white">Episodes</h3>
-					<p class="text-[10px] text-white/40">{episodes.length} episodes</p>
+					<h3 class="text-2xl font-bold tracking-tight text-foreground">Episodes</h3>
+					<p class="text-sm text-foreground/60">{episodes.length} episodes</p>
 				</div>
 				<Button
 					variant="ghost"
 					size="icon"
-					class="h-7 w-7 text-white/50 hover:bg-white/10 hover:text-white"
+					class="h-10 w-10 rounded-full p-0 text-foreground/70 transition-colors hover:bg-foreground/10 hover:text-foreground"
 					onclick={() => (showPlaylist = false)}
 				>
-					<Icon icon="lucide:x" class="h-4 w-4" />
+					<Icon icon="mingcute:close-fill" class="h-8 w-8" />
 				</Button>
 			</div>
-			<ScrollArea class="flex-1">
-				<div class="flex flex-col gap-0.5 p-1.5">
+
+			<!-- Replaced ScrollArea with standard div for lenis compatibility -->
+			<div
+				class="w-full flex-1 overflow-y-auto bg-transparent"
+				data-lenis-prevent="true"
+				onwheel={(e) => e.stopPropagation()}
+			>
+				<div class="flex flex-col gap-1.5 p-4 pr-6">
 					{#each episodes as ep (ep.id)}
 						{@const isCurrent = currentEpisode?.id === ep.id}
 						<button
 							class={cn(
-								'flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left transition-colors',
-								isCurrent
-									? 'bg-primary/20 text-primary'
-									: 'text-white/70 hover:bg-white/10 hover:text-white'
+								'group flex w-full items-center gap-4 rounded-xl px-3 py-3 text-left transition-all duration-200',
+								isCurrent ? 'bg-primary/10 ring-1 ring-primary/30' : 'hover:bg-foreground/10'
 							)}
 							onclick={(e) => {
 								e.stopPropagation();
@@ -561,37 +637,55 @@
 							}}
 						>
 							<!-- Thumbnail -->
-							<div class="relative h-12 w-20 shrink-0 overflow-hidden rounded">
+							<div
+								class={cn(
+									'relative h-20 w-[8.5rem] shrink-0 overflow-hidden rounded-[10px] bg-background/40 shadow-sm transition-transform duration-300',
+									isCurrent && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+									!isCurrent && 'group-hover:scale-105 group-hover:shadow-md'
+								)}
+							>
 								{#if ep.thumbnailUrl}
-									<img
+									<ProxiedImage
 										src={ep.thumbnailUrl}
 										alt={`Ep ${ep.number}`}
 										class="h-full w-full object-cover"
 									/>
 								{:else}
-									<div class="flex h-full w-full items-center justify-center bg-white/5">
-										<Icon icon="lucide:play" class="h-3 w-3 text-white/20" />
+									<div class="flex h-full w-full items-center justify-center bg-foreground/10">
+										<Icon icon="mingcute:play-fill" class="h-8 w-8 text-foreground/40" />
 									</div>
 								{/if}
 								{#if isCurrent}
-									<div class="absolute inset-0 flex items-center justify-center bg-black/50">
-										<Icon icon="lucide:play" class="h-4 w-4 text-primary" />
+									<div
+										class="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]"
+									>
+										<Icon icon="mingcute:play-fill" class="h-8 w-8 text-primary shadow-2xl" />
 									</div>
 								{/if}
 							</div>
 							<!-- Info -->
 							<div class="min-w-0 flex-1">
-								<p class="text-xs font-medium">
+								<p
+									class={cn(
+										'text-lg leading-tight font-bold drop-shadow-sm',
+										isCurrent ? 'text-primary' : 'text-foreground'
+									)}
+								>
 									Episode {ep.number}
 								</p>
 								{#if ep.title}
-									<p class="line-clamp-1 text-[10px] opacity-60">{ep.title}</p>
+									<p
+										class="mt-1 text-[13px] font-medium break-words text-foreground/70"
+										title={ep.title}
+									>
+										{truncateString(ep.title, 60)}
+									</p>
 								{/if}
 							</div>
 						</button>
 					{/each}
 				</div>
-			</ScrollArea>
+			</div>
 		</div>
 	{/if}
 </Tooltip.Provider>

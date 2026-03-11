@@ -1,6 +1,11 @@
-<script lang="ts">
+<script lang="ts" module>
 	import { invoke } from '@tauri-apps/api/core';
 
+	/** Module-level cache shared across all ProxiedImage instances. */
+	const imageCache = new Map<string, string>();
+</script>
+
+<script lang="ts">
 	interface Props {
 		src: string | undefined | null;
 		alt?: string;
@@ -15,11 +20,20 @@
 	let loading = $state(false);
 	let failed = $state(false);
 
-	// Fetch image as base64 whenever src changes.
+	// Fetch image as base64 whenever src changes, with caching.
 	$effect(() => {
 		const url = src;
 		if (!url) {
 			dataSrc = null;
+			return;
+		}
+
+		// Serve from cache instantly
+		const cached = imageCache.get(url);
+		if (cached) {
+			dataSrc = cached;
+			loading = false;
+			failed = false;
 			return;
 		}
 
@@ -33,6 +47,7 @@
 			referer: referer ?? null,
 		})
 			.then((dataUrl) => {
+				imageCache.set(url, dataUrl);
 				dataSrc = dataUrl;
 				loading = false;
 			})
