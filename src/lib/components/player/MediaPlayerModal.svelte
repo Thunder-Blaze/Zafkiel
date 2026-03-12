@@ -101,29 +101,56 @@
 	}
 </script>
 
-<Dialog bind:open>
+{#if open && playerMode === 'libmpv'}
+	<!-- libmpv uses a fixed full-screen transparent overlay over the native
+	     video layer. Wrapping it in a Dialog breaks that by constraining the
+	     viewport hole — render it directly at the top level instead. -->
+	<VideoPlayer url={currentSrc} {title} onBack={() => (open = false)} />
+	<!-- Mode switcher floats above the VideoPlayer's z-[100] overlay -->
+	<div class="fixed top-3 left-1/2 z-[101] flex -translate-x-1/2 overflow-hidden rounded-full border border-white/20 bg-black/60 backdrop-blur-sm">
+		<button
+			class="flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors text-white/50 hover:text-white"
+			onclick={() => (playerMode = 'internal')}
+			title="Browser (hls.js)"
+		>
+			<Icon icon="solar:monitor-smartphone-bold-duotone" class="size-3.5" />
+			Browser
+		</button>
+		<div class="w-px bg-white/20"></div>
+		<button
+			class="flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors bg-white/20 text-white"
+			onclick={() => (playerMode = 'libmpv')}
+			title="Libmpv (hardware-accelerated)"
+		>
+			<Icon icon="solar:play-circle-bold-duotone" class="size-3.5" />
+			Libmpv
+		</button>
+	</div>
+{/if}
+
+{#if playerMode === 'internal'}
+<Dialog
+	bind:open={open}
+	onOpenChange={(v) => {
+		if (!v) open = false;
+	}}
+>
 	<DialogContent
-		class={playerMode === 'libmpv'
-			? 'h-screen w-screen max-w-none rounded-none overflow-hidden border-none bg-black p-0 shadow-none [&>button]:hidden'
-			: 'flex h-[85vh] w-[85vw] max-w-none flex-row rounded-xl gap-0 overflow-hidden border-none bg-black p-0 shadow-2xl [&>button]:hidden'}
+		class="flex h-[90vh] w-[90vw] max-w-none sm:max-w-none flex-row rounded-xl gap-0 overflow-hidden border-none bg-black p-0 shadow-2xl [&>button]:hidden"
 	>
-		{#if open}
+		{#if open && playerMode === 'internal'}
 			<div
 				class={clsx(
 					'relative flex-1 transition-all duration-300',
 					showPlaylist && files.length > 1 ? 'w-[75%]' : 'w-full'
 				)}
 			>
-				{#if playerMode === 'libmpv'}
-					<VideoPlayer url={currentSrc} {title} onBack={() => (open = false)} />
-				{:else}
-					<InternalPlayer src={currentSrc} {title} onBack={() => (open = false)} />
-				{/if}
+				<InternalPlayer src={currentSrc} {title} onBack={() => (open = false)} />
 
 				<!-- Player mode switcher overlay -->
 				<div class="absolute top-3 left-1/2 z-50 flex -translate-x-1/2 overflow-hidden rounded-full border border-white/20 bg-black/60 backdrop-blur-sm">
 					<button
-						class="flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors {playerMode === 'internal' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white'}"
+						class="flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors bg-white/20 text-white"
 						onclick={() => (playerMode = 'internal')}
 						title="Browser (hls.js)"
 					>
@@ -132,7 +159,7 @@
 					</button>
 					<div class="w-px bg-white/20"></div>
 					<button
-						class="flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors {playerMode === 'libmpv' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white'}"
+						class="flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors text-white/50 hover:text-white"
 						onclick={() => (playerMode = 'libmpv')}
 						title="Libmpv (hardware-accelerated)"
 					>
@@ -181,3 +208,4 @@
 		{/if}
 	</DialogContent>
 </Dialog>
+{/if}

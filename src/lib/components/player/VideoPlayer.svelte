@@ -261,9 +261,11 @@
 					case 'file-loaded':
 						isBuffering = false;
 						hasError = false;
+						isPlaying = true;
 						break;
 					case 'playback-restart':
 						isBuffering = false;
+						isPlaying = true;
 						break;
 					case 'end-file': {
 						const reason =

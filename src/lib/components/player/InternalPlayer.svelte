@@ -309,6 +309,11 @@
 		if ((!isPlaying || !showControls) && !isLocked) {
 			currentTime = videoElement.currentTime;
 		}
+		// Keep isPlaying in sync with the actual element state. This catches
+		// cases where the video starts playing before our 'play' event handler
+		// fires (e.g. autoplay, hls.js triggers, or rapid src swaps).
+		const actuallyPlaying = !videoElement.paused && !videoElement.ended;
+		if (isPlaying !== actuallyPlaying) isPlaying = actuallyPlaying;
 		showSkipIntro = false;
 		if (isBuffering && isPlaying) {
 			isBuffering = false;
@@ -389,6 +394,9 @@
 		// The browser fires 'waiting' when the buffer is too low to continue;
 		// there is no need to manually inspect the buffer here or force a pause.
 		// Doing so just creates a play → pause → waiting → play oscillation.
+		// 'playing' fires whenever the video actually starts rendering frames
+		// (autoplay, hls.js implicit start, resume after buffering) — always sync here.
+		isPlaying = true;
 		isBuffering = false;
 		hasError = false;
 	}
