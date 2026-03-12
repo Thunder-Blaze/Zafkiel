@@ -19,6 +19,7 @@
 	let torrents = $state<TorrentState[]>([]);
 	let interval: any;
 	let isPlayerOpen = $state(false);
+	let playerModalMode = $state<'internal' | 'libmpv'>('libmpv');
 	let streamUrl = $state('');
 	let selectedTorrent = $state<TorrentState | null>(null);
 
@@ -69,9 +70,10 @@
 		}
 	}
 
-	async function onPlay(torrent: TorrentState) {
+	async function onPlay(torrent: TorrentState, mode: 'internal' | 'libmpv' = 'libmpv') {
 		try {
 			selectedTorrent = torrent;
+			playerModalMode = mode;
 			toast.info('Starting stream...');
 			const url = await TorrentService.streamTorrentById(torrent.id);
 			console.log('Stream URL:', url);
@@ -117,6 +119,7 @@
 	src={streamUrl}
 	torrentId={selectedTorrent?.id}
 	title={selectedTorrent ? cleanName(selectedTorrent.name) : 'Unknown'}
+	mode={playerModalMode}
 />
 
 <div class="container mx-auto space-y-8 p-6">
@@ -207,13 +210,23 @@
 									<div class="flex items-center gap-2 self-end sm:self-auto">
 										{#if torrent.state === 'downloading' || torrent.state === 'seeding' || torrent.state === 'starting' || torrent.state === 'paused'}
 											<Button
+												variant="outline"
+												size="icon"
+												class="h-9 w-9 rounded-full shadow-sm"
+												onclick={() => onPlay(torrent, 'internal')}
+												title="Play in Browser (hls.js)"
+											>
+												<Icon icon="solar:monitor-smartphone-bold-duotone" class="h-4 w-4" />
+											</Button>
+
+											<Button
 												variant="default"
 												size="icon"
 												class="h-9 w-9 rounded-full shadow-sm"
-												onclick={() => onPlay(torrent)}
-												title="Play Internal"
+												onclick={() => onPlay(torrent, 'libmpv')}
+												title="Play in Libmpv"
 											>
-												<Icon icon="lucide:play" class="h-4 w-4" />
+												<Icon icon="solar:play-circle-bold-duotone" class="h-4 w-4" />
 											</Button>
 
 											<Button
@@ -229,9 +242,9 @@
 														toast.error('Failed to open external player: ' + e);
 													}
 												}}
-												title="Open in MPV"
+												title="Open in external player (mpv)"
 											>
-												<Icon icon="lucide:external-link" class="h-4 w-4" />
+												<Icon icon="solar:export-bold-duotone" class="h-4 w-4" />
 											</Button>
 										{/if}
 

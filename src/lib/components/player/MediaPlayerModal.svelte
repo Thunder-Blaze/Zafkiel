@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Dialog, DialogContent } from '$lib/components/ui/dialog';
 	import VideoPlayer from './VideoPlayer.svelte';
+	import InternalPlayer from './InternalPlayer.svelte';
 	import { TorrentService, type TorrentFile } from '$lib/services/TorrentService';
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '@iconify/svelte';
@@ -15,6 +16,7 @@
 		magnet,
 		torrentId,
 		poster,
+		mode,
 	} = $props<{
 		open: boolean;
 		src: string;
@@ -22,6 +24,7 @@
 		magnet?: string;
 		torrentId?: number;
 		poster?: string;
+		mode?: 'internal' | 'libmpv';
 	}>();
 
 	let files: TorrentFile[] = $state([]);
@@ -32,6 +35,24 @@
 	let currentSubtitleTracks: { id: string; label: string; src: string; lang: string }[] = $state(
 		[]
 	);
+
+	type PlayerMode = 'internal' | 'libmpv';
+	// Initialise from the prop (set by the caller's button choice), falling back
+	// to the last-used value persisted in localStorage.
+	let playerMode = $state<PlayerMode>(
+		(localStorage.getItem('zafkiel-player-mode') as PlayerMode | null) ?? 'libmpv'
+	);
+
+	// When the caller changes the `mode` prop (e.g. re-opening with a different button),
+	// sync it into local state.
+	$effect(() => {
+		if (mode) playerMode = mode;
+	});
+
+	// Persist whenever the user switches inside the modal.
+	$effect(() => {
+		localStorage.setItem('zafkiel-player-mode', playerMode);
+	});
 
 	async function loadFiles() {
 		if (!magnet && torrentId === undefined) return;
@@ -82,7 +103,9 @@
 
 <Dialog bind:open>
 	<DialogContent
-		class="flex aspect-video w-[80vw] max-w-[1200px] flex-row gap-0 overflow-hidden border-none bg-black p-0 shadow-2xl [&>button]:hidden"
+		class={playerMode === 'libmpv'
+			? 'h-screen w-screen max-w-none rounded-none overflow-hidden border-none bg-black p-0 shadow-none [&>button]:hidden'
+			: 'flex h-[85vh] w-[85vw] max-w-none flex-row rounded-xl gap-0 overflow-hidden border-none bg-black p-0 shadow-2xl [&>button]:hidden'}
 	>
 		{#if open}
 			<div
@@ -91,7 +114,32 @@
 					showPlaylist && files.length > 1 ? 'w-[75%]' : 'w-full'
 				)}
 			>
-				<VideoPlayer url={currentSrc} {title} onBack={() => (open = false)} />
+				{#if playerMode === 'libmpv'}
+					<VideoPlayer url={currentSrc} {title} onBack={() => (open = false)} />
+				{:else}
+					<InternalPlayer src={currentSrc} {title} onBack={() => (open = false)} />
+				{/if}
+
+				<!-- Player mode switcher overlay -->
+				<div class="absolute top-3 left-1/2 z-50 flex -translate-x-1/2 overflow-hidden rounded-full border border-white/20 bg-black/60 backdrop-blur-sm">
+					<button
+						class="flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors {playerMode === 'internal' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white'}"
+						onclick={() => (playerMode = 'internal')}
+						title="Browser (hls.js)"
+					>
+						<Icon icon="solar:monitor-smartphone-bold-duotone" class="size-3.5" />
+						Browser
+					</button>
+					<div class="w-px bg-white/20"></div>
+					<button
+						class="flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors {playerMode === 'libmpv' ? 'bg-white/20 text-white' : 'text-white/50 hover:text-white'}"
+						onclick={() => (playerMode = 'libmpv')}
+						title="Libmpv (hardware-accelerated)"
+					>
+						<Icon icon="solar:play-circle-bold-duotone" class="size-3.5" />
+						Libmpv
+					</button>
+				</div>
 				{#if files.length > 1}
 					<Button
 						variant="ghost"

@@ -177,6 +177,12 @@
 			resetControlsTimeout();
 		}
 		switch (e.key) {
+			case 'Escape':
+			case 'q':
+			case 'Q':
+				e.preventDefault();
+				onBack?.();
+				break;
 			case ' ':
 			case 'k':
 				e.preventDefault();

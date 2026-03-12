@@ -195,13 +195,13 @@
 					class:opacity-0={isPlaying}
 				>
 					<h2
-						class="pb-1 text-3xl font-extrabold tracking-tight text-foreground uppercase drop-shadow-md md:text-5xl"
+						class="truncate pb-1 text-3xl font-extrabold tracking-tight text-foreground uppercase drop-shadow-md md:text-5xl"
 					>
-						{truncateString(title || 'Unknown Title', 45)}
+						{title || 'Unknown Title'}
 					</h2>
 					{#if subtitle}
-						<p class="mt-1 text-base font-medium text-foreground/80 md:mt-2 md:text-xl">
-							{truncateString(subtitle, 65)}
+						<p class="mt-1 truncate text-base font-medium text-foreground/80 md:mt-2 md:text-xl">
+							{subtitle}
 						</p>
 					{/if}
 				</div>
@@ -209,7 +209,7 @@
 				<!-- Progress Bar and Time -->
 				<div class="flex w-full items-center gap-3 px-1 md:gap-4">
 					<div
-						class="group relative flex h-5 flex-1 cursor-pointer items-center"
+						class="group/seekbar relative flex h-5 flex-1 cursor-pointer items-center"
 						onwheel={(e) => e.stopPropagation()}
 					>
 						<!-- Background track -->
@@ -229,7 +229,7 @@
 							step="0.01"
 							value={currentTime}
 							oninput={(e) => handleSeek([parseFloat(e.currentTarget.value)])}
-							class="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none bg-transparent outline-none focus:outline-none [&::-webkit-slider-thumb]:h-0 [&::-webkit-slider-thumb]:w-0 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:transition-all group-hover:[&::-webkit-slider-thumb]:h-4 group-hover:[&::-webkit-slider-thumb]:w-4 md:group-hover:[&::-webkit-slider-thumb]:h-5 md:group-hover:[&::-webkit-slider-thumb]:w-5"
+						class="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none bg-transparent outline-none focus:outline-none [&::-webkit-slider-thumb]:h-0 [&::-webkit-slider-thumb]:w-0 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:transition-all group-hover/seekbar:[&::-webkit-slider-thumb]:h-4 group-hover/seekbar:[&::-webkit-slider-thumb]:w-4 md:group-hover/seekbar:[&::-webkit-slider-thumb]:h-5 md:group-hover/seekbar:[&::-webkit-slider-thumb]:w-5"
 						/>
 					</div>
 
@@ -307,7 +307,7 @@
 						</Tooltip.Root>
 
 						<!-- Volume Slider -->
-						<div class="group ml-1 flex items-center gap-1 md:ml-2">
+						<div class="group/volume ml-1 flex items-center gap-1 md:ml-2">
 							<Tooltip.Root>
 								<Tooltip.Trigger>
 									<Button
@@ -328,7 +328,7 @@
 							</Tooltip.Root>
 
 							<div
-								class="relative flex h-5 w-0 cursor-pointer items-center overflow-hidden opacity-0 transition-all duration-300 group-hover:w-24 group-hover:opacity-100 md:group-hover:w-28"
+							class="relative flex h-5 w-0 cursor-pointer items-center overflow-hidden opacity-0 transition-all duration-300 group-hover/volume:w-24 group-hover/volume:opacity-100 md:group-hover/volume:w-28"
 								onwheel={(e) => e.stopPropagation()}
 							>
 								<div

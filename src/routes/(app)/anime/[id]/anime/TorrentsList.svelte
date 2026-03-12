@@ -17,6 +17,7 @@
 	let { anime }: { anime: AnimeLarge } = $props();
 	let selectedTorrent = $state<TorrentInfo | null>(null);
 	let isPlayerOpen = $state(false);
+	let playerModalMode = $state<'internal' | 'libmpv'>('libmpv');
 	let streamUrl = $state('');
 
 	const torrentsQuery = createQuery(() => ({
@@ -42,9 +43,10 @@
 		window.open(magnet, '_self');
 	}
 
-	async function onPlay(torrent: TorrentInfo) {
+	async function onPlay(torrent: TorrentInfo, mode: 'internal' | 'libmpv' = 'libmpv') {
 		try {
 			selectedTorrent = torrent;
+			playerModalMode = mode;
 			toast.info('Starting stream...');
 			// Start streaming via Rust backend
 			const url = await TorrentService.streamTorrent(torrent.magnet);
@@ -52,11 +54,23 @@
 
 			// Set the stream URL for the player
 			streamUrl = url;
-			isPlayerOpen = true; // Open the internal player
+			isPlayerOpen = true;
 			toast.success('Stream started');
 		} catch (error) {
 			console.error('Failed to start stream:', error);
 			toast.error('Failed to start stream: ' + error);
+		}
+	}
+
+	async function onPlayExternal(torrent: TorrentInfo) {
+		try {
+			toast.info('Starting stream...');
+			const url = await TorrentService.streamTorrent(torrent.magnet);
+			await TorrentService.openInExternalPlayer(url);
+			toast.success('Opened in external player');
+		} catch (error) {
+			console.error('Failed to open external player:', error);
+			toast.error('Failed to open external player: ' + error);
 		}
 	}
 </script>
@@ -67,6 +81,7 @@
 	magnet={selectedTorrent?.magnet}
 	title={selectedTorrent?.title}
 	poster={anime.coverImage?.extraLarge || anime.coverImage?.large}
+	mode={playerModalMode}
 />
 
 <div class="space-y-4">
@@ -143,7 +158,7 @@
 								<td class="px-4 py-3 text-center font-medium text-green-500">{torrent.seeds}</td>
 								<td class="px-4 py-3 text-center text-muted-foreground">{torrent.peers}</td>
 								<td class="px-4 py-3 text-right">
-									<div class="flex justify-end gap-2">
+									<div class="flex justify-end gap-1.5">
 										<Button
 											variant="ghost"
 											size="icon"
@@ -158,18 +173,36 @@
 											size="icon"
 											class="h-8 w-8 text-primary"
 											onclick={() => openMagnet(torrent.magnet)}
-											title="Download"
+											title="Download with torrent client"
 										>
 											<Icon icon="solar:download-bold-duotone" class="h-4 w-4" />
+										</Button>
+										<Button
+											variant="outline"
+											size="icon"
+											class="h-8 w-8"
+											onclick={() => onPlay(torrent, 'internal')}
+											title="Play in Browser (hls.js)"
+										>
+											<Icon icon="solar:monitor-smartphone-bold-duotone" class="h-4 w-4" />
 										</Button>
 										<Button
 											variant="default"
 											size="icon"
 											class="h-8 w-8"
-											onclick={() => onPlay(torrent)}
-											title="Play"
+											onclick={() => onPlay(torrent, 'libmpv')}
+											title="Play in Libmpv"
 										>
-											<Icon icon="solar:play-bold-duotone" class="h-4 w-4" />
+											<Icon icon="solar:play-circle-bold-duotone" class="h-4 w-4" />
+										</Button>
+										<Button
+											variant="secondary"
+											size="icon"
+											class="h-8 w-8"
+											onclick={() => onPlayExternal(torrent)}
+											title="Open in external player (mpv)"
+										>
+											<Icon icon="solar:export-bold-duotone" class="h-4 w-4" />
 										</Button>
 									</div>
 								</td>

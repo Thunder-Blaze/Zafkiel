@@ -20,12 +20,23 @@
 		DownloadProgressEvent,
 	} from '$lib/types/extensions';
 	import VideoPlayer from '$lib/components/player/VideoPlayer.svelte';
+	import InternalPlayer from '$lib/components/player/InternalPlayer.svelte';
 	import ProxiedImage from '$lib/components/ProxiedImage.svelte';
 
 	const { animeTitle, animeId }: { animeTitle: string; animeId: number } = $props();
 
 	const CACHE_STALE_TIME = 5 * 60 * 1000; // 5 minutes
 	const queryClient = useQueryClient();
+
+	// ── Player Mode ───────────────────────────────────────────────────────────
+	type PlayerMode = 'internal' | 'libmpv' | 'external';
+	let playerMode = $state<PlayerMode>(
+		(localStorage.getItem('zafkiel-player-mode') as PlayerMode | null) ?? 'libmpv'
+	);
+
+	$effect(() => {
+		localStorage.setItem('zafkiel-player-mode', playerMode);
+	});
 
 	// ── State ──────────────────────────────────────────────────────────────────
 	type Step =
@@ -70,8 +81,6 @@
 	let cookieUnlisten: (() => void) | null = null;
 	/** Raw "name=value; ..." cookie string for proxied image requests. */
 	let cookieStr = $state<string | null>(null);
-	/** Port of the local HLS proxy server (started by Tauri backend). */
-	let hlsProxyPort = $state<number | null>(null);
 
 	// ── Derived ───────────────────────────────────────────────────────────────
 	const sourceExtensions = $derived(
@@ -82,10 +91,11 @@
 	onMount(async () => {
 		// Grab the local HLS proxy port so we can bypass CDN CORS restrictions.
 		try {
-			hlsProxyPort = await invoke<number>('get_hls_proxy_port');
-			console.debug('[watch] HLS proxy port:', hlsProxyPort);
+			// NOTE: hlsProxyPort is no longer used — the InternalPlayer handles CORS
+			// bypassing via a custom hls.js loader (invoke → fetch_url / fetch_bytes_base64).
+			// This block is kept as a no-op reference and can be removed safely.
 		} catch (e) {
-			console.warn('[watch] failed to get HLS proxy port — stream may fail:', e);
+			console.warn('[watch] note: HLS proxy is not used for InternalPlayer', e);
 		}
 
 		if (sourceExtensions.length === 0) return;
@@ -194,23 +204,20 @@
 	}
 
 	/** Build a localhost proxy URL for an HLS stream. */
-	function buildHlsProxySrc(url: string, headers: Record<string, string> = {}): string {
-		if (!hlsProxyPort) {
-			// Proxy not ready — fall back to direct URL (will likely CORS-fail for CDN streams)
-			console.warn('[watch] buildHlsProxySrc called before proxy port is known');
-			return url;
-		}
-		const params = new URLSearchParams({ url });
-		if (headers['Referer']) params.set('referer', headers['Referer']);
-		if (headers['referer']) params.set('referer', headers['referer']);
-		// Prefer explicit Cookie header from extension, fall back to collected session cookies
-		const cookieVal = headers['Cookie'] ?? headers['cookie'] ?? cookieStr ?? undefined;
-		if (cookieVal) params.set('cookie', cookieVal);
-		console.debug(
-			'[watch] proxy URL:',
-			`http://127.0.0.1:${hlsProxyPort}/proxy?${params.toString()}`
-		);
-		return `http://127.0.0.1:${hlsProxyPort}/proxy?${params.toString()}`;
+	function buildHlsProxySrc(url: string, _headers: Record<string, string> = {}): string {
+		// The HLS proxy server has been removed. CORS bypass for the InternalPlayer
+		// is handled by the custom Tauri loader inside InternalPlayer.svelte.
+		// This helper is kept only for the external player path which passes
+		// headers directly to mpv instead.
+		return url;
+	}
+
+	/**
+	 * Lazily ensures the HLS proxy port is known.
+	 * @deprecated The HLS proxy server has been removed. No-op, always returns true.
+	 */
+	async function ensureHlsProxyPort(): Promise<boolean> {
+		return true;
 	}
 
 	async function openAuthWebview() {
@@ -294,17 +301,40 @@
 		}
 	}
 
-	async function playSource(source: StreamSource) {
+	async function playSource(source: StreamSource, mode: PlayerMode = playerMode) {
 		if (!ext) return;
+		playerMode = mode;
 		loadingStream = true;
 		error = null;
 		try {
+			// Browser and External players both route through the HLS proxy.
+			// Ensure the port is known before resolving the stream so we never
+			// fall back to a raw CDN URL that will be blocked by CORS.
+			if (mode === 'internal' || mode === 'external') {
+				const ready = await ensureHlsProxyPort();
+				if (!ready && mode === 'internal') {
+					error =
+						'HLS proxy server is not available. Try Libmpv or External player instead.';
+					return;
+				}
+			}
+
 			// Resolve the stream URL — fetches the kwik embed page and extracts
 			// the packed m3u8 URL (e.g. vault-XX.owocdn.top/.../uwu.m3u8).
 			// The proxy handles all auth headers (Referer, Cookie) transparently.
 			const resolved = source.requiresResolution
 				? await ext.resolveStream(source)
 				: { url: source.id, type: 'hls' as const, headers: {} as Record<string, string> };
+
+			if (mode === 'external') {
+				// Open directly in the system's external player (mpv CLI).
+				// Use the HLS proxy URL so the external player receives auth headers
+				// (Referer, Cookie) transparently via the localhost proxy.
+				const proxyUrl = buildHlsProxySrc(resolved.url, resolved.headers ?? {});
+				await invoke('open_in_external_player', { url: proxyUrl });
+				// Stay on the sources step — don't switch to playing.
+				return;
+			}
 
 			resolvedStream = resolved;
 			activeSource = source;
@@ -555,19 +585,29 @@
 	<!-- Video player -->
 	{#if step === 'playing' && resolvedStream}
 		<div>
-			<VideoPlayer
-				url={resolvedStream.url}
-				headers={resolvedStream.headers ?? {}}
-				title={selectedResult?.title}
-				subtitle={selectedEpisode?.title ?? `Episode ${selectedEpisode?.number}`}
-				onBack={reset}
-				{episodes}
-				currentEpisode={selectedEpisode}
-				{sources}
-				currentSource={activeSource}
-				onEpisodeSelect={handlePlayerEpisodeSelect}
-				onSourceSelect={handlePlayerSourceSelect}
-			/>
+			{#if playerMode === 'libmpv'}
+				<VideoPlayer
+					url={resolvedStream.url}
+					headers={resolvedStream.headers ?? {}}
+					title={selectedResult?.title}
+					subtitle={selectedEpisode?.title ?? `Episode ${selectedEpisode?.number}`}
+					onBack={reset}
+					{episodes}
+					currentEpisode={selectedEpisode}
+					{sources}
+					currentSource={activeSource}
+					onEpisodeSelect={handlePlayerEpisodeSelect}
+					onSourceSelect={handlePlayerSourceSelect}
+				/>
+			{:else}
+				<InternalPlayer
+					src={resolvedStream.url}
+					headers={resolvedStream.headers ?? {}}
+					title={selectedResult?.title}
+					subtitle={selectedEpisode?.title ?? `Episode ${selectedEpisode?.number}`}
+					onBack={reset}
+				/>
+			{/if}
 			<div class="flex items-center justify-between text-sm text-muted-foreground">
 				<span>
 					{selectedResult?.title} — Ep {selectedEpisode?.number}
@@ -626,25 +666,50 @@
 							{/if}
 						{/if}
 
-						<!-- Play button -->
-						<Button
-							variant="default"
-							size="sm"
-							disabled={loadingStream}
-							onclick={() => playSource(source)}
-						>
-							{#if loadingStream}
-								<Icon icon="solar:refresh-circle-line-duotone" class="mr-1 size-3.5 animate-spin" />
-							{:else}
-								<Icon icon="solar:play-bold" class="mr-1 size-3.5" />
-							{/if}
-							Play
-						</Button>
+						<!-- 3 play buttons: Internal · Libmpv · External -->
+						{#if loadingStream && playerMode !== 'external'}
+							<span class="flex items-center gap-1 text-xs text-muted-foreground">
+								<Icon icon="solar:refresh-circle-line-duotone" class="size-3.5 animate-spin" />
+								Loading…
+							</span>
+						{:else}
+							<Button
+								variant="outline"
+								size="sm"
+								disabled={loadingStream}
+								onclick={() => playSource(source, 'internal')}
+								title="Play in Browser (hls.js)"
+							>
+								<Icon icon="solar:monitor-smartphone-bold-duotone" class="mr-1 size-3.5" />
+								Browser
+							</Button>
+							<Button
+								variant="default"
+								size="sm"
+								disabled={loadingStream}
+								onclick={() => playSource(source, 'libmpv')}
+								title="Play in Libmpv (hardware-accelerated)"
+							>
+								<Icon icon="solar:play-circle-bold-duotone" class="mr-1 size-3.5" />
+								Libmpv
+							</Button>
+							<Button
+								variant="secondary"
+								size="sm"
+								disabled={loadingStream}
+								onclick={() => playSource(source, 'external')}
+								title="Open in external player (mpv)"
+							>
+								<Icon icon="solar:export-bold-duotone" class="mr-1 size-3.5" />
+								External
+							</Button>
+						{/if}
 
 						<!-- Download button -->
 						<Button
-							variant="outline"
-							size="sm"
+							variant="ghost"
+							size="icon"
+							class="size-8 shrink-0"
 							disabled={!!downloadingSourceId ||
 								dl?.status === 'downloading' ||
 								dl?.status === 'completed'}

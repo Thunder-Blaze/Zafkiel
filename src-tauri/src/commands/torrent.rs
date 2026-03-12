@@ -502,17 +502,27 @@ pub async fn delete_torrent(app: AppHandle, session: State<'_, Arc<Session>>, id
 }
 
 #[command]
-pub async fn open_in_external_player(url: String) -> Result<(), String> {
+pub async fn open_in_external_player(
+    url: String,
+    headers: Option<std::collections::HashMap<String, String>>,
+) -> Result<(), String> {
     log::info!("Opening external player for URL: {}", url);
-    std::process::Command::new("mpv")
-        .arg(&url)
-        // Disable yt-dlp/youtube-dl hook so MPV uses its native HLS stack.
-        // Without this, ytdl_hook intercepts the URL and yt-dlp tries to fetch
-        // the CDN directly (no cookies) → 403.  With --no-ytdl, MPV opens the
-        // proxy URL as plain HLS and all segment fetches go through our proxy.
-        .arg("--no-ytdl")
-        .spawn()
-        .map_err(|e| format!("Failed to launch mpv: {}", e))?;
+    let mut cmd = std::process::Command::new("mpv");
+    cmd.arg(&url);
+    // Disable yt-dlp/youtube-dl hook so MPV uses its native HLS stack directly.
+    cmd.arg("--no-ytdl");
+    // Forward any CDN-required headers (e.g. Referer, Cookie) to mpv so it can
+    // fetch HLS segments without a proxy relay.
+    if let Some(hdrs) = headers {
+        if !hdrs.is_empty() {
+            let fields: Vec<String> = hdrs
+                .iter()
+                .map(|(k, v)| format!("{}: {}", k, v))
+                .collect();
+            cmd.arg(format!("--http-header-fields={}", fields.join(",")));
+        }
+    }
+    cmd.spawn().map_err(|e| format!("Failed to launch mpv: {}", e))?;
     Ok(())
 }
 
