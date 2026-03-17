@@ -3,8 +3,8 @@
  * Updated to use only fetch commands from anilist_moe crate
  */
 
-import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-import type { CreateQueryOptions } from '@tanstack/svelte-query';
+import { createQuery, createMutation, createInfiniteQuery, useQueryClient } from '@tanstack/svelte-query';
+import type { CreateQueryOptions, CreateInfiniteQueryOptions, InfiniteData } from '@tanstack/svelte-query';
 import {
 	animeApi,
 	mangaApi,
@@ -44,6 +44,7 @@ import type {
 	Review,
 	Recommendation,
 } from '$lib/types/anilist';
+import type { AnimeLarge } from '$lib/types/anime';
 
 // ============================================================================
 // Query Key Factories
@@ -188,6 +189,34 @@ export function useAnimeCharactersById(
 		// Include page, perPage, and language in the query key so changing them refetches
 		queryKey: [...anilistKeys.anime.detail(id), 'characters', page, perPage, language],
 		queryFn: () => animeApi.getCharactersById(id, page, perPage, language),
+		staleTime: defaultStaleTime.detail,
+		enabled: id > 0,
+		...options,
+	}));
+}
+
+/**
+ * Get anime characters by ID with infinite pagination
+ */
+export function useInfiniteAnimeCharactersById(
+	id: number,
+	perPage: number = 25,
+	language?: string,
+	options?: Partial<CreateInfiniteQueryOptions<AniListResponse<Media>, Error, InfiniteData<AniListResponse<Media>, number>, any, number>>
+) {
+	return createInfiniteQuery<AniListResponse<Media>, Error, InfiniteData<AniListResponse<Media>, number>, any, number>(() => ({
+		queryKey: [...anilistKeys.anime.detail(id), 'characters', 'infinite', perPage, language],
+		queryFn: ({ pageParam }) =>
+			animeApi.getCharactersById(id, pageParam as number, perPage, language),
+		initialPageParam: 1,
+		getNextPageParam: (lastPage) => {
+			const pageInfo = (lastPage.data as AnimeLarge | undefined)?.characters?.pageInfo;
+			return pageInfo?.hasNextPage ? pageInfo.currentPage + 1 : undefined;
+		},
+		getPreviousPageParam: (firstPage) => {
+			const pageInfo = (firstPage.data as AnimeLarge | undefined)?.characters?.pageInfo;
+			return pageInfo?.currentPage && pageInfo.currentPage > 1 ? pageInfo.currentPage - 1 : undefined;
+		},
 		staleTime: defaultStaleTime.detail,
 		enabled: id > 0,
 		...options,
