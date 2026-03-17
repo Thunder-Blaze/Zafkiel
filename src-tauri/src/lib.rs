@@ -2,14 +2,41 @@ mod api;
 mod auth;
 mod commands;
 mod config;
+mod constants;
 mod database;
 
 use api::anilist::AniListService;
 use auth::anilist::AuthState;
+use constants::DATABASE_URL;
 use database::Database;
 use std::sync::Arc;
 use tauri::Manager;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, Layer};
+
+fn setup_libs_early() {
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(dir) = exe.parent() {
+            let lib_dir = dir.join("lib");
+
+            // DLL aliasing was removed as actual binaries should be present via Git LFS.
+
+
+            #[cfg(target_os = "windows")]
+            {
+                let mut path = std::env::var("PATH").unwrap_or_default();
+                path = format!("{};{}", lib_dir.display(), path);
+                unsafe { std::env::set_var("PATH", path); }
+            }
+
+            #[cfg(target_os = "linux")]
+            {
+                let mut path = std::env::var("LD_LIBRARY_PATH").unwrap_or_default();
+                path = format!("{}:{}", lib_dir.display(), path);
+                unsafe { std::env::set_var("LD_LIBRARY_PATH", path); }
+            }
+        }
+    }
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -53,21 +80,12 @@ pub fn run() {
                 .with_filter(app_filter),
         )
         .init();
+    
+    setup_libs_early();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_libmpv::init())
         .setup(|app| {
-            // Load environment variables from .env file
-            if let Err(e) = dotenvy::dotenv() {
-                log::warn!(
-                    "[Setup] Failed to load .env file: {}. \
-                     Make sure .env exists with ANILIST_CLIENT_ID and ANILIST_CLIENT_SECRET",
-                    e
-                );
-            } else {
-                log::info!("[Setup] Successfully loaded .env file");
-            }
-
             // Initialize config loader
             let config_loader =
                 config::ConfigLoader::new().expect("Failed to initialize config loader");
@@ -99,7 +117,7 @@ pub fn run() {
                 .path()
                 .app_data_dir()
                 .expect("Failed to get app data dir")
-                .join("zafkiel.db");
+                .join(DATABASE_URL);
 
             if let Some(parent) = db_path.parent() {
                 std::fs::create_dir_all(parent)
@@ -174,6 +192,9 @@ pub fn run() {
             commands::config::get_config_path,
             commands::config::get_themes_with_paths,
             commands::config::invalidate_theme_cache,
+            commands::config::get_player_config,
+            commands::config::update_external_player_path,
+            commands::config::update_auto_select_next_stream,
 
             // ─── Extensions ──────────────────────────────────────────────
             commands::extensions::get_installed_extensions,

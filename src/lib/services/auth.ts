@@ -31,7 +31,7 @@ export async function openAuthBrowser(authUrl: string): Promise<void> {
 }
 
 /**
- * Wait for OAuth callback and exchange code for token
+ * Wait for OAuth callback and receive implicit access token
  * This will block until the user completes authorization or timeout (5 minutes)
  */
 export async function waitForOAuthCallback(): Promise<string> {
@@ -82,7 +82,7 @@ export async function completeOAuthFlow(): Promise<string> {
 	// Open browser (or fallback to webview)
 	await openAuthBrowser(authUrl);
 
-	// Wait for callback and exchange code for token
+	// Wait for callback and receive token
 	const token = await waitForOAuthCallback();
 
 	console.log('[Auth] Complete OAuth flow finished successfully');

@@ -1,4 +1,4 @@
-use crate::config::{AppConfig, ConfigLoader, UiConfig};
+use crate::config::{AppConfig, ConfigLoader, PlayerConfig, UiConfig};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs, path::PathBuf, sync::Arc};
@@ -255,6 +255,39 @@ pub fn open_devtools(app: tauri::AppHandle) -> ConfigResponse<()> {
 pub fn get_config_path(config: State<ConfigState>) -> ConfigResponse<String> {
     let path = config.get_config_file_path();
     ConfigResponse::success(path.to_string_lossy().to_string())
+}
+
+/// Get player configuration
+#[tauri::command]
+pub fn get_player_config(config: State<ConfigState>) -> ConfigResponse<PlayerConfig> {
+    match config.get_player_config() {
+        Ok(player_config) => ConfigResponse::success(player_config),
+        Err(e) => ConfigResponse::error(e.to_string()),
+    }
+}
+
+/// Update external player executable path (None = use system default "mpv")
+#[tauri::command]
+pub fn update_external_player_path(
+    path: Option<String>,
+    config: State<ConfigState>,
+) -> ConfigResponse<()> {
+    match config.update_external_player_path(path) {
+        Ok(_) => ConfigResponse::success(()),
+        Err(e) => ConfigResponse::error(e.to_string()),
+    }
+}
+
+/// Update auto-select next stream setting
+#[tauri::command]
+pub fn update_auto_select_next_stream(
+    enabled: bool,
+    config: State<ConfigState>,
+) -> ConfigResponse<()> {
+    match config.update_auto_select_next_stream(enabled) {
+        Ok(_) => ConfigResponse::success(()),
+        Err(e) => ConfigResponse::error(e.to_string()),
+    }
 }
 
 /// Converts a filesystem `Path` to a plain UTF-8 string that Tauri's

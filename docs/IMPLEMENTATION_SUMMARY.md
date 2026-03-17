@@ -83,7 +83,7 @@ src/
 1. **Create AniList OAuth App**:
    - Go to https://anilist.co/settings/developer
    - Create new client with redirect URL: `http://localhost:57575/auth/callback`
-   - Copy Client ID and Client Secret
+   - Copy Client ID
 
 2. **Configure Environment**:
 
@@ -95,7 +95,6 @@ src/
 
    ```env
    ANILIST_CLIENT_ID=your_client_id
-   ANILIST_CLIENT_SECRET=your_client_secret
    ```
 
 3. **Start Development Server**:

@@ -3,4 +3,4 @@ pub mod loader;
 pub mod types;
 
 pub use loader::ConfigLoader;
-pub use types::{AppConfig, UiConfig};
+pub use types::{AppConfig, PlayerConfig, UiConfig};

@@ -1,6 +1,6 @@
 use super::{
     encryption::{self, EncryptionError},
-    types::{AppConfig, UiConfig},
+    types::{AppConfig, PlayerConfig, UiConfig},
 };
 use directories::ProjectDirs;
 use std::{
@@ -287,6 +287,35 @@ impl ConfigLoader {
         })?;
         config.ui.activity_feed_tab = tab;
         config.ui.activity_feed_filter = filter;
+        drop(config);
+        self.save()
+    }
+
+    /// Get player configuration
+    pub fn get_player_config(&self) -> Result<PlayerConfig, ConfigError> {
+        let config = self
+            .config
+            .read()
+            .map_err(|_| ConfigError::Deserialization("Failed to acquire read lock".to_string()))?;
+        Ok(config.player.clone())
+    }
+
+    /// Update external player executable path
+    pub fn update_external_player_path(&self, path: Option<String>) -> Result<(), ConfigError> {
+        let mut config = self.config.write().map_err(|_| {
+            ConfigError::Deserialization("Failed to acquire write lock".to_string())
+        })?;
+        config.player.external_player_path = path;
+        drop(config);
+        self.save()
+    }
+
+    /// Update auto-select next stream setting
+    pub fn update_auto_select_next_stream(&self, enabled: bool) -> Result<(), ConfigError> {
+        let mut config = self.config.write().map_err(|_| {
+            ConfigError::Deserialization("Failed to acquire write lock".to_string())
+        })?;
+        config.player.auto_select_next_stream = enabled;
         drop(config);
         self.save()
     }

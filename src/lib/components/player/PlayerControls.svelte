@@ -5,6 +5,9 @@
 	import { cn } from '$lib/utils';
 	import ProxiedImage from '$lib/components/ProxiedImage.svelte';
 	import type { Episode, StreamSource } from '$lib/types/extensions';
+	import { useConfigState } from '$lib/stores/config.svelte';
+	import { parseSourceLabel } from '$lib/utils/source-parser';
+	import { fly, fade, scale } from 'svelte/transition';
 
 	let {
 		isPlaying,
@@ -32,6 +35,7 @@
 		currentSource = null,
 		onEpisodeSelect,
 		onSourceSelect,
+		onOverlayToggle,
 	} = $props<{
 		isPlaying: boolean;
 		currentTime: number;
@@ -58,11 +62,20 @@
 		currentSource?: StreamSource | null;
 		onEpisodeSelect?: (ep: Episode) => void;
 		onSourceSelect?: (src: StreamSource) => void;
+		onOverlayToggle?: (open: boolean) => void;
 	}>();
+
+	const config = useConfigState();
 
 	let showSubtitleMenu = $state(false);
 	let showPlaylist = $state(false);
 	let showQualityMenu = $state(false);
+
+	// Notify parent when any overlay is open so it can prevent controls timeout
+	$effect(() => {
+		const anyOpen = showPlaylist || showSubtitleMenu || showQualityMenu;
+		onOverlayToggle?.(anyOpen);
+	});
 
 	function formatTime(seconds: number): string {
 		if (!seconds || isNaN(seconds)) return '00:00';
@@ -83,13 +96,19 @@
 	}
 
 	function formatSourceLabel(source: StreamSource): string {
+		const meta = parseSourceLabel({
+			label: source.label,
+			fansub: source.fansub,
+			resolution: source.resolution,
+			audio: source.audio
+		});
+		
 		const parts: string[] = [];
-		if (source.fansub) parts.push(`[${source.fansub}]`);
-		if (source.resolution) parts.push(`${source.resolution}p`);
-		else if (source.label) parts.push(source.label);
-		if (source.audio === 'jpn') parts.push('JPN');
-		else if (source.audio === 'eng') parts.push('DUB');
-		else if (source.audio) parts.push(source.audio.toUpperCase());
+		if (meta.source) parts.push(`[${meta.source}]`);
+		if (meta.quality) parts.push(meta.quality);
+		if (meta.language === 'dub') parts.push('DUB');
+		else if (meta.language === 'sub') parts.push('SUB');
+		
 		return parts.join(' ') || source.label || source.id;
 	}
 
@@ -221,6 +240,11 @@
 							class="pointer-events-none absolute left-0 z-0 h-1.5 rounded-full bg-primary md:h-2"
 							style="width: {(currentTime / (duration || 1)) * 100}%;"
 						></div>
+						<!-- Visual Thumb (Dot) -->
+						<div
+							class="pointer-events-none absolute z-20 h-4 w-4 rounded-full bg-primary shadow-lg transition-all opacity-0 group-hover/seekbar:opacity-100 md:h-5 md:w-5"
+							style="left: {(currentTime / (duration || 1)) * 100}%; transform: translateX(-50%);"
+						></div>
 						<!-- Slider -->
 						<input
 							type="range"
@@ -229,7 +253,7 @@
 							step="0.01"
 							value={currentTime}
 							oninput={(e) => handleSeek([parseFloat(e.currentTarget.value)])}
-						class="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none bg-transparent outline-none focus:outline-none [&::-webkit-slider-thumb]:h-0 [&::-webkit-slider-thumb]:w-0 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:transition-all group-hover/seekbar:[&::-webkit-slider-thumb]:h-4 group-hover/seekbar:[&::-webkit-slider-thumb]:w-4 md:group-hover/seekbar:[&::-webkit-slider-thumb]:h-5 md:group-hover/seekbar:[&::-webkit-slider-thumb]:w-5"
+							class="absolute inset-x-0 z-30 h-full w-full cursor-pointer appearance-none bg-transparent outline-none focus:outline-none [&::-webkit-slider-thumb]:h-0 [&::-webkit-slider-thumb]:w-0 [&::-webkit-slider-thumb]:appearance-none"
 						/>
 					</div>
 
@@ -328,7 +352,7 @@
 							</Tooltip.Root>
 
 							<div
-							class="relative flex h-5 w-0 cursor-pointer items-center overflow-hidden opacity-0 transition-all duration-300 group-hover/volume:w-24 group-hover/volume:opacity-100 md:group-hover/volume:w-28"
+								class="relative flex h-5 w-0 cursor-pointer items-center overflow-hidden opacity-0 transition-all duration-300 group-hover/volume:w-24 group-hover/volume:opacity-100 md:group-hover/volume:w-28"
 								onwheel={(e) => e.stopPropagation()}
 							>
 								<div
@@ -405,9 +429,9 @@
 							</Tooltip.Root>
 
 							{#if showSubtitleMenu}
-								<!-- Replaced ScrollArea with a native overflow div to perfectly match lenis requirements -->
 								<div
-									class="absolute right-0 bottom-full z-50 mb-4 flex w-52 origin-bottom-right animate-in flex-col rounded-xl border border-border bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl duration-200 zoom-in-95 fade-in"
+									class="absolute right-0 bottom-full z-50 mb-4 flex w-52 origin-bottom-right flex-col rounded-xl border border-border bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl"
+									transition:scale={{ duration: 150, start: 0.95, opacity: 0 }}
 								>
 									<div
 										class="mb-1 shrink-0 border-b border-border px-3 py-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
@@ -496,20 +520,46 @@
 
 								{#if showQualityMenu}
 									<div
-										class="absolute right-0 bottom-full z-50 mb-4 flex w-60 origin-bottom-right animate-in flex-col rounded-xl border border-border bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl duration-200 zoom-in-95 fade-in"
+										class="absolute right-0 bottom-full z-50 mb-4 flex w-60 origin-bottom-right flex-col rounded-xl border border-border bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl"
+										transition:scale={{ duration: 150, start: 0.95, opacity: 0 }}
 									>
 										<div
 											class="mb-1 shrink-0 border-b border-border px-3 py-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
 										>
 											Quality settings
 										</div>
-										<!-- Swapped to native div overflow to fix lenis scroll locking issues -->
 										<div
 											class="max-h-[300px] w-full overflow-y-auto pr-1"
 											data-lenis-prevent="true"
 											onwheel={(e) => e.stopPropagation()}
 										>
+											<!-- Auto-select Next Stream Toggle -->
+											<button
+												class={cn(
+													'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted mb-1',
+													config.autoSelectNextStream && 'bg-primary/5 text-primary'
+												)}
+												onclick={(e) => {
+													e.stopPropagation();
+													config.setAutoSelectNextStream(!config.autoSelectNextStream);
+												}}
+											>
+												<Icon 
+													icon={config.autoSelectNextStream ? 'mingcute:check-circle-fill' : 'mingcute:circle-line'} 
+													class={cn("mr-2.5 h-4 w-4", config.autoSelectNextStream ? "text-primary" : "text-muted-foreground")} 
+												/>
+												<span class="flex-1 font-medium">Auto-select Next</span>
+											</button>
+											
+											<div class="h-px bg-border/50 my-1 mx-2"></div>
+
 											{#each sources as source}
+												{@const meta = parseSourceLabel({
+													label: source.label,
+													fansub: source.fansub,
+													resolution: source.resolution,
+													audio: source.audio
+												})}
 												<button
 													class={cn(
 														'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted',
@@ -527,7 +577,30 @@
 													{:else}
 														<div class="mr-2.5 h-4 w-4"></div>
 													{/if}
-													<span class="truncate">{formatSourceLabel(source)}</span>
+													<div class="flex items-center gap-2 flex-1 min-w-0">
+														{#if meta.source}
+															<span class="rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold text-foreground uppercase truncate max-w-[80px]">
+																{meta.source}
+															</span>
+														{/if}
+														{#if meta.quality}
+															<span class="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+																{meta.quality}
+															</span>
+														{/if}
+														{#if meta.language === 'dub'}
+															<span class="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-500">
+																DUB
+															</span>
+														{:else if meta.language === 'sub'}
+															<span class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-500">
+																SUB
+															</span>
+														{/if}
+														{#if !meta.source && !meta.quality && !meta.language}
+															<span class="truncate">{source.label || source.id}</span>
+														{/if}
+													</div>
 												</button>
 											{/each}
 										</div>
@@ -607,10 +680,20 @@
 
 	<!-- Playlist Side Panel (Apple TV style width and backdrop) -->
 	{#if showPlaylist && episodes.length > 0}
+		<!-- Backdrop for closing when clicking outside -->
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div 
+			class="absolute inset-0 z-[55] bg-black/20 backdrop-blur-sm"
+			transition:fade={{ duration: 200 }}
+			onclick={() => (showPlaylist = false)}
+		></div>
+
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class="pointer-events-auto absolute top-0 right-0 z-[60] flex h-full w-full animate-in flex-col border-l border-border bg-background/90 shadow-2xl backdrop-blur-3xl duration-200 slide-in-from-right sm:w-[28rem]"
+			class="pointer-events-auto absolute top-0 right-0 z-[60] flex h-full w-full flex-col border-l border-border bg-background/90 shadow-2xl backdrop-blur-3xl sm:w-[28rem]"
+			transition:fly={{ x: 400, duration: 250 }}
 			onclick={(e) => e.stopPropagation()}
 			data-lenis-prevent="true"
 			onwheel={(e) => e.stopPropagation()}

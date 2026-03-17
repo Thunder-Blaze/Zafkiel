@@ -75,6 +75,7 @@
 	let unlistenProps: (() => void) | null = null;
 	let unlistenEvents: (() => void) | null = null;
 	let lastMouseMove = 0;
+	let overlayOpen = $state(false);
 
 	// ── mpv observed properties ───────────────────────────────────────────────
 	const OBSERVED_PROPERTIES = [
@@ -83,6 +84,7 @@
 		['duration', 'double', 'none'],
 		['cache-buffering-state', 'int64'],
 	] as const satisfies MpvObservableProperty[];
+	const MPV_WINDOW_LABEL = 'main';
 
 	// ── Load a URL into mpv ───────────────────────────────────────────────────
 	async function loadUrl(streamUrl: string, streamHeaders: Record<string, string>) {
@@ -93,13 +95,13 @@
 		duration = 0;
 		try {
 			const referer = streamHeaders['Referer'] ?? streamHeaders['referer'];
-			if (referer) await setProperty('referrer', referer);
+			if (referer) await setProperty('referrer', referer, MPV_WINDOW_LABEL);
 			const extraHeaders = Object.entries(streamHeaders)
 				.filter(([k]) => k.toLowerCase() !== 'referer')
 				.map(([k, v]) => `${k}: ${v}`)
 				.join(',');
-			if (extraHeaders) await setProperty('http-header-fields', extraHeaders);
-			await command('loadfile', [streamUrl]);
+			if (extraHeaders) await setProperty('http-header-fields', extraHeaders, MPV_WINDOW_LABEL);
+			await command('loadfile', [streamUrl], MPV_WINDOW_LABEL);
 		} catch (e) {
 			console.error('[mpv] loadUrl error:', e);
 			hasError = true;
@@ -112,7 +114,7 @@
 	async function togglePlay() {
 		if (!isInitialized) return;
 		try {
-			await command('cycle', ['pause']);
+			await command('cycle', ['pause'], MPV_WINDOW_LABEL);
 		} catch (e) {
 			console.error('[mpv] togglePlay error:', e);
 		}
@@ -122,7 +124,7 @@
 		if (!isInitialized) return;
 		currentTime = time;
 		try {
-			await command('seek', [String(time), 'absolute']);
+			await command('seek', [String(time), 'absolute'], MPV_WINDOW_LABEL);
 		} catch (e) {
 			console.error('[mpv] seek error:', e);
 		}
@@ -132,7 +134,7 @@
 		if (!isInitialized) return;
 		volume = vol;
 		try {
-			await setProperty('volume', Math.round(vol * 100));
+			await setProperty('volume', Math.round(vol * 100), MPV_WINDOW_LABEL);
 			localStorage.setItem('zafkiel-player-volume', vol.toString());
 		} catch (e) {
 			console.error('[mpv] volume error:', e);
@@ -164,6 +166,7 @@
 
 	function resetControlsTimeout() {
 		clearTimeout(controlsTimeout);
+		if (overlayOpen) return; // Don't hide controls while overlay is open
 		controlsTimeout = setTimeout(() => {
 			if (isPlaying) showControls = false;
 		}, 3000);
@@ -194,11 +197,11 @@
 				break;
 			case 'ArrowRight':
 				e.preventDefault();
-				await command('seek', ['5', 'relative']);
+				await command('seek', ['5', 'relative'], MPV_WINDOW_LABEL);
 				break;
 			case 'ArrowLeft':
 				e.preventDefault();
-				await command('seek', ['-5', 'relative']);
+				await command('seek', ['-5', 'relative'], MPV_WINDOW_LABEL);
 				break;
 			case 'ArrowUp':
 				e.preventDefault();
@@ -233,7 +236,7 @@
 					volume: Math.round(volume * 100),
 				},
 				observedProperties: OBSERVED_PROPERTIES,
-			});
+			}, MPV_WINDOW_LABEL);
 
 			unlistenProps = await observeProperties(
 				OBSERVED_PROPERTIES,
@@ -253,7 +256,8 @@
 							isBuffering = typeof data === 'number' ? data < 100 : false;
 							break;
 					}
-				}
+				},
+				MPV_WINDOW_LABEL
 			);
 
 			unlistenEvents = await listenEvents((evt) => {
@@ -280,7 +284,7 @@
 						break;
 					}
 				}
-			});
+			}, MPV_WINDOW_LABEL);
 
 			isInitialized = true;
 			resetControlsTimeout();
@@ -309,7 +313,7 @@
 		unlistenProps?.();
 		unlistenEvents?.();
 		try {
-			await destroy();
+			await destroy(MPV_WINDOW_LABEL);
 		} catch {}
 	});
 </script>
@@ -339,6 +343,10 @@
 			<p class="font-medium text-white">Playback Error</p>
 			<p class="text-sm text-white/70">{errorMessage}</p>
 			<div class="mt-4 flex gap-2">
+				<Button variant="ghost" size="sm" onclick={() => onBack?.()}>
+					<Icon icon="lucide:x" class="mr-2 h-4 w-4" />
+					Close
+				</Button>
 				<Button variant="outline" size="sm" onclick={() => loadUrl(url, headers)}>Retry</Button>
 				<Button
 					variant="default"
@@ -382,7 +390,7 @@
 				onFullscreen={toggleFullscreen}
 				onLockToggle={toggleLock}
 				{onBack}
-				onSkipIntro={() => command('seek', ['85', 'relative'])}
+				onSkipIntro={() => command('seek', ['85', 'relative'], MPV_WINDOW_LABEL)}
 				{isBuffering}
 				onTrackChange={() => {}}
 				{episodes}
@@ -391,7 +399,16 @@
 				{currentSource}
 				{onEpisodeSelect}
 				{onSourceSelect}
-			/>
+			onOverlayToggle={(open) => {
+				overlayOpen = open;
+				if (open) {
+					clearTimeout(controlsTimeout);
+					showControls = true;
+				} else {
+					resetControlsTimeout();
+				}
+			}}
+		/>
 		</div>
 	{/if}
 </div>

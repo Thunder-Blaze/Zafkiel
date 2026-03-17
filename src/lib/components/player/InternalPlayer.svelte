@@ -14,12 +14,19 @@
 	import PlayerControls from './PlayerControls.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '@iconify/svelte';
+import type { Episode, StreamSource } from '$lib/types/extensions';
 	import Hls from 'hls.js';
 
 	let {
 		src,
 		headers = {},
-		sources = [],
+		mediaSources = [],
+	episodes = [],
+	currentEpisode = null,
+	sources = [],
+	currentSource = null,
+	onEpisodeSelect,
+	onSourceSelect,
 		tracks = [],
 		title,
 		subtitle,
@@ -28,7 +35,13 @@
 		src?: string;
 		/** HTTP request headers required by the stream (e.g. Referer, Cookie). */
 		headers?: Record<string, string>;
-		sources?: { src: string; type: string }[];
+		mediaSources?: { src: string; type: string }[];
+	episodes?: Episode[];
+	currentEpisode?: Episode | null;
+	sources?: StreamSource[];
+	currentSource?: StreamSource | null;
+	onEpisodeSelect?: (ep: Episode) => void;
+	onSourceSelect?: (src: StreamSource) => void;
 		tracks?: { id: string; label: string; src: string; lang: string }[];
 		title?: string;
 		subtitle?: string;
@@ -50,6 +63,7 @@
 	let isBuffering = $state(false);
 	let hasError = $state(false);
 	let errorMessage = $state('');
+	let overlayOpen = $state(false);
 
 	let hlsInstance: Hls | null = null;
 
@@ -243,7 +257,7 @@
 	}
 
 	$effect(() => {
-		const activeSrc = src ?? sources[0]?.src;
+		const activeSrc = src ?? mediaSources[0]?.src;
 		if (!activeSrc) return;
 		hasError = false;
 		isBuffering = true;
@@ -381,6 +395,7 @@
 
 	function resetControlsTimeout() {
 		clearTimeout(controlsTimeout);
+		if (overlayOpen) return; // Don't hide controls while overlay is open
 		controlsTimeout = setTimeout(() => {
 			if (isPlaying) showControls = false;
 		}, 3000);
@@ -527,8 +542,8 @@
 	>
 		{#if src}
 			<source {src} />
-		{:else if sources.length > 0}
-			{#each sources as source}
+		{:else if mediaSources.length > 0}
+			{#each mediaSources as source}
 				<source src={source.src} type={source.type} />
 			{/each}
 		{/if}
@@ -553,7 +568,7 @@
 					size="sm"
 					onclick={() => {
 						hasError = false;
-						const activeSrc = src ?? sources[0]?.src;
+						const activeSrc = src ?? mediaSources[0]?.src;
 						if (activeSrc) attachHls(activeSrc);
 					}}>Retry</Button
 				>
@@ -562,7 +577,7 @@
 					size="sm"
 					onclick={async () => {
 						try {
-							const activeSrc = src ?? sources[0]?.src;
+							const activeSrc = src ?? mediaSources[0]?.src;
 							if (activeSrc) await invoke('open_in_external_player', { url: activeSrc });
 						} catch (e) {
 							console.error('Failed to open external player:', e);
@@ -576,7 +591,7 @@
 		</div>
 	{/if}
 
-	{#if !isPlaying && !src && sources.length === 0 && !hasError}
+	{#if !isPlaying && !src && mediaSources.length === 0 && !hasError}
 		<div class="absolute inset-0 flex items-center justify-center bg-black/50">
 			<p class="text-white">No video source selected</p>
 		</div>
@@ -608,7 +623,22 @@
 					onSkipIntro={handleSkipIntro}
 					{isBuffering}
 					onTrackChange={handleTrackChange}
-				/>
+				{episodes}
+				{currentEpisode}
+				sources={sources}
+				{currentSource}
+				{onEpisodeSelect}
+				{onSourceSelect}
+				onOverlayToggle={(open) => {
+					overlayOpen = open;
+					if (open) {
+						clearTimeout(controlsTimeout);
+						showControls = true;
+					} else {
+						resetControlsTimeout();
+					}
+				}}
+			/>
 			</div>
 		{/if}
 	{/if}

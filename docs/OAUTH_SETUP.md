@@ -16,7 +16,6 @@ This guide will help you set up AniList OAuth authentication for Zafkiel.
 4. Click **"Save"**
 5. You'll receive:
    - **Client ID** (a long string of numbers)
-   - **Client Secret** (click "Show Secret" to reveal it)
 
 ## Step 2: Configure Environment Variables
 
@@ -30,7 +29,6 @@ This guide will help you set up AniList OAuth authentication for Zafkiel.
 
    ```env
    ANILIST_CLIENT_ID=1234567890  # Your actual Client ID
-   ANILIST_CLIENT_SECRET=abcdef123456  # Your actual Client Secret
    ```
 
 3. Save the file
@@ -93,9 +91,9 @@ The `.env` file is already in `.gitignore`, but make sure you don't accidentally
 
 Your credentials should remain private:
 
-- Don't share your Client Secret with anyone
-- Don't commit it to public repositories
-- Don't include it in screenshots or logs
+- Don't share sensitive local config files
+- Don't commit secrets or tokens to public repositories
+- Don't include tokens in screenshots or logs
 
 ## Advanced Configuration
 
@@ -115,6 +113,7 @@ You can create different OAuth apps for development, staging, and production:
 - Production: `.env.production`
 
 Use different Client IDs and Secrets for each environment.
+Use different Client IDs for each environment.
 
 ## Getting Help
 

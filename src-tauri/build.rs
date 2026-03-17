@@ -1,6 +1,5 @@
 fn main() {
-    // On Windows, copy libmpv-wrapper.dll and libmpv-2.dll from src-tauri/lib/
-    // to the output directory so the plugin can find them at runtime during dev.
+    // On Windows, ensure libmpv aliases exist and copy runtime DLLs for dev builds.
     #[cfg(target_os = "windows")]
     {
         let out_dir = std::env::var("OUT_DIR").unwrap();
@@ -12,7 +11,14 @@ fn main() {
             .to_path_buf();
 
         let lib_dir = std::path::Path::new("lib");
-        for dll in &["libmpv-wrapper.dll", "libmpv-2.dll"] {
+
+
+        for dll in &[
+            "libmpv-wrapper.dll",
+            "libmpv-2.dll",
+            "libmpv-1.dll",
+            "libmpv.dll",
+        ] {
             let src = lib_dir.join(dll);
             if src.exists() {
                 let dst = target_dir.join(dll);

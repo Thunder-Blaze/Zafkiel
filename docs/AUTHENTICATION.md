@@ -76,10 +76,10 @@ sequenceDiagram
     App->>App: Generate auth URL
     App->>Browser: Open auth URL
     Browser->>AniList: User logs in
-    AniList->>Server: Redirect with code
-    Server->>App: Send code
-    App->>AniList: Exchange code for token
-    AniList->>App: Return access token
+   AniList->>Server: Redirect with URL fragment token
+   Server->>Browser: Return callback bridge page
+   Browser->>Server: Re-request with access_token query
+   Server->>App: Send access token
     App->>App: Save token to config
     App->>App: Update AniListService with token
 ```
@@ -91,7 +91,7 @@ sequenceDiagram
 1. Go to https://anilist.co/settings/developer
 2. Create a new client
 3. Set redirect URI: `http://localhost:57575/auth/callback`
-4. Copy Client ID and Client Secret
+4. Copy Client ID
 
 ### 2. Configure Environment
 
@@ -99,7 +99,6 @@ Create `.env` file:
 
 ```env
 ANILIST_CLIENT_ID=your_client_id
-ANILIST_CLIENT_SECRET=your_client_secret
 ```
 
 ## Usage

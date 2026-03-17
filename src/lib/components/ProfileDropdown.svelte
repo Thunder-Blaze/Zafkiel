@@ -3,7 +3,7 @@
 	import { scale } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import Icon from '@iconify/svelte';
-	import { currentUser, isAuthenticated } from '$lib/stores/auth';
+	import { authStore, currentUser, isAuthenticated } from '$lib/stores/auth';
 	import { goto } from '$app/navigation';
 	import { useConfigState } from '$lib/stores/config.svelte';
 
@@ -132,7 +132,7 @@
 					{ type: 'separator' as const },
 				]
 			: []),
-		{ icon: 'solar:logout-2-bold', label: 'Logout', action: () => goto('/logout'), danger: true },
+		{ icon: 'solar:logout-2-bold', label: 'Logout', action: async () => { await authStore.logout(); goto('/'); }, danger: true },
 	]);
 
 	// Menu items for guest users

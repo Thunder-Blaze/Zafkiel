@@ -1,6 +1,7 @@
 import { ConfigService } from '$lib/services/config';
-import type { AppConfig, UiConfig } from '$lib/types/config';
+import type { AppConfig, UiConfig, PlayerConfig } from '$lib/types/config';
 import { browser } from '$app/environment';
+import { invoke } from '@tauri-apps/api/core';
 import { CONFIG_CACHE_KEY } from '$lib/constants/localStorageKeys';
 
 const initialConfigState = browser
@@ -154,6 +155,31 @@ export const useConfigState = () => {
 		},
 		setUiScale: (scale: number) => {
 			if (configState) configState.ui.ui_scale = scale;
+		},
+
+		get playerConfig() {
+			return (
+				configState?.player ||
+				({
+					external_player_path: null,
+					auto_select_next_stream: true,
+				} as PlayerConfig)
+			);
+		},
+		setPlayerConfig: (playerConfig: PlayerConfig) => {
+			if (configState) configState.player = playerConfig;
+		},
+
+		get autoSelectNextStream() {
+			return configState?.player.auto_select_next_stream ?? true;
+		},
+		setAutoSelectNextStream: async (enabled: boolean) => {
+			if (configState) configState.player.auto_select_next_stream = enabled;
+			try {
+				await invoke('update_auto_select_next_stream', { enabled });
+			} catch (error) {
+				console.error('[Config] ✗ Failed to update auto-select next stream:', error);
+			}
 		},
 
 		clearAnilistToken: async () => {

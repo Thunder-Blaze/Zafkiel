@@ -36,8 +36,19 @@ export interface UiConfig {
 }
 
 /**
+ * Player/playback configuration
+ */
+export interface PlayerConfig {
+	/** Path to external media player executable */
+	external_player_path: string | null;
+	/** Whether to automatically select the next best stream when switching episodes */
+	auto_select_next_stream: boolean;
+}
+
+/**
  * Application configuration structure
  */
 export interface AppConfig {
 	ui: UiConfig;
+	player: PlayerConfig;
 }

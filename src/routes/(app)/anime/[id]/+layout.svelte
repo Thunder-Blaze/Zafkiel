@@ -8,7 +8,6 @@
 	import Icon from '@iconify/svelte';
 	import TrailerPill from '$lib/components/TrailerPill.svelte';
 	import { glow } from '$lib/stores/zafkielStore';
-	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { toast } from 'svelte-sonner';
 	import PageLoader from '$lib/components/PageLoader.svelte';
 
@@ -23,14 +22,6 @@
 	let isFavorite = $state(false);
 
 	$effect(() => {
-		console.log('Anime Layout Debug:', {
-			params: page.params,
-			animeId,
-			isLoading,
-			error,
-			hasData: !!animeData,
-			mounted,
-		});
 		if (animeData) {
 			isFavorite = animeData.isFavourite || false;
 		}
@@ -74,10 +65,37 @@
 		}
 	};
 
-	const activeTabClass =
-		'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-background text-foreground shadow-sm h-full';
-	const inactiveTabClass =
-		'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-background/50 text-muted-foreground hover:text-foreground h-full';
+	// ── Tab configuration ─────────────────────────────────────────────────
+	interface TabDef {
+		slug: string;
+		label: string;
+		icon: string;
+	}
+
+	const tabs: TabDef[] = [
+		{ slug: '', label: 'About', icon: 'solar:info-circle-bold' },
+		{ slug: 'anime', label: 'Watch', icon: 'solar:play-circle-bold' },
+		{ slug: 'characters', label: 'Characters', icon: 'solar:users-group-rounded-bold' },
+		{ slug: 'torrents', label: 'Torrents', icon: 'solar:download-bold-duotone' },
+		{ slug: 'staff', label: 'Staff', icon: 'solar:user-id-bold' },
+		{ slug: 'reviews', label: 'Reviews', icon: 'solar:chat-square-bold' },
+		{ slug: 'stats', label: 'Stats', icon: 'solar:chart-2-bold' },
+		{ slug: 'related', label: 'Related', icon: 'solar:link-round-bold' },
+		{ slug: 'recommendations', label: 'Recs', icon: 'solar:star-bold' },
+	];
+
+	function isTabActive(tabSlug: string): boolean {
+		const pathname = page.url.pathname.replace(/\/$/, '');
+		const base = `/anime/${animeId}`;
+		if (tabSlug === '') {
+			return pathname === base;
+		}
+		return pathname === `${base}/${tabSlug}` || pathname.startsWith(`${base}/${tabSlug}/`);
+	}
+
+	function tabHref(tabSlug: string): string {
+		return tabSlug === '' ? `/anime/${animeId}` : `/anime/${animeId}/${tabSlug}`;
+	}
 </script>
 
 {#if isLoading}
@@ -104,16 +122,14 @@
 	</div>
 {:else if animeData && mounted}
 	<div class="flex w-full flex-col items-center">
+		<!-- ── Banner ────────────────────────────────────────────────── -->
 		<div class="relative flex h-[24vw] w-full flex-col">
-			<!-- Background banner image -->
 			<img
 				src={bannerImage || coverImage}
 				alt={title}
 				class="absolute inset-0 z-1 h-full w-full object-cover"
 				in:fly={{ y: -100, duration: 300 }}
 			/>
-
-			<!-- Blur effect layer -->
 			{#if $glow}
 				<img
 					src={bannerImage || coverImage}
@@ -123,8 +139,6 @@
 					in:fly={{ y: -100, duration: 300 }}
 				/>
 			{/if}
-
-			<!-- Cover image positioned over everything -->
 			<div class="absolute top-0 left-0 z-2 flex h-full w-full justify-center">
 				<div class="flex w-full flex-col justify-end px-4 md:px-8 lg:px-10">
 					<div class="relative top-70 h-100 w-72">
@@ -138,6 +152,8 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- ── Header row (title, buttons) ───────────────────────────── -->
 		<div class="w-full px-4 md:px-8 lg:px-10">
 			<div class="flex w-full flex-col gap-6 sm:flex-row">
 				<!-- Spacer matching the cover image width to map the absolute overlap -->
@@ -257,181 +273,58 @@
 							</div>
 						</div>
 					{/if}
+				</div>
+			</div>
+		</div>
 
-					<Separator class="my-6" />
+		<!-- ── Main content: vertical tabs + page slot ───────────────── -->
+		<div class="mt-8 flex w-full gap-6 px-4 md:px-8 lg:px-10 pb-12" in:fade={{ duration: 300 }}>
+			<!-- Vertical tab sidebar -->
+			<nav class="hidden w-48 shrink-0 md:block">
+				<div class="sticky top-16 space-y-1">
+					{#each tabs as tab}
+						{@const active = isTabActive(tab.slug)}
+						<a
+							href={tabHref(tab.slug)}
+							class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150
+								{active
+									? 'bg-primary/10 text-primary shadow-sm'
+									: 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}"
+						>
+							<Icon icon={tab.icon} class="size-4 shrink-0" />
+							{tab.label}
+						</a>
+					{/each}
+				</div>
+			</nav>
 
-					<!-- Synopsis Section -->
-					{#if animeData.description}
-						<div class="space-y-3" in:fade={{ duration: 300 }}>
-							<h2 class="text-xl font-semibold">Synopsis</h2>
-							<div class="prose prose-sm max-w-none leading-relaxed text-muted-foreground">
-								<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-								{@html animeData.description}
-							</div>
-						</div>
-						<Separator class="my-6" />
-					{/if}
+			<!-- Mobile horizontal tab bar (visible below md) -->
+			<div class="contents md:hidden">
+				<!-- This wrapper ensures the mobile bar + content flow vertically -->
+			</div>
 
-					<!-- Information Grid -->
-					<div class="space-y-4" in:fade={{ duration: 300 }}>
-						<h2 class="text-xl font-semibold">Information</h2>
-						<div class="rounded-lg border bg-card p-6">
-							<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-								<div class="space-y-4">
-									<div class="flex items-center justify-between border-b border-border/50 py-2">
-										<span class="font-medium text-muted-foreground">Format</span>
-										<span class="font-semibold">{animeData.format || 'Unknown'}</span>
-									</div>
-									<div class="flex items-center justify-between border-b border-border/50 py-2">
-										<span class="font-medium text-muted-foreground">Season</span>
-										<span class="font-semibold">
-											{animeData.season && animeData.seasonYear
-												? `${animeData.season.charAt(0) + animeData.season.slice(1).toLowerCase()} ${animeData.seasonYear}`
-												: 'Unknown'}
-										</span>
-									</div>
-									{#if animeData.duration}
-										<div class="flex items-center justify-between border-b border-border/50 py-2">
-											<span class="font-medium text-muted-foreground">Episode Duration</span>
-											<span class="font-semibold">{animeData.duration} minutes</span>
-										</div>
-									{/if}
-									<div class="flex items-center justify-between border-b border-border/50 py-2">
-										<span class="font-medium text-muted-foreground">Status</span>
-										<span class="font-semibold capitalize">
-											{animeData.status
-												? animeData.status.toLowerCase().replace('_', ' ')
-												: 'Unknown'}
-										</span>
-									</div>
-								</div>
-								<div class="space-y-4">
-									<div class="flex items-center justify-between border-b border-border/50 py-2">
-										<span class="font-medium text-muted-foreground">Type</span>
-										<span class="font-semibold">{animeData.type || 'TV'}</span>
-									</div>
-									{#if animeData.studios?.nodes && animeData.studios.nodes.length > 0}
-										<div class="flex items-center justify-between border-b border-border/50 py-2">
-											<span class="font-medium text-muted-foreground">Studio</span>
-											<span class="font-semibold">{animeData.studios.nodes[0].name}</span>
-										</div>
-									{/if}
-									{#if animeData.source}
-										<div class="flex items-center justify-between border-b border-border/50 py-2">
-											<span class="font-medium text-muted-foreground">Source</span>
-											<span class="font-semibold capitalize">
-												{animeData.source.toLowerCase().replace('_', ' ')}
-											</span>
-										</div>
-									{/if}
-									{#if animeData.idMal}
-										<div class="flex items-center justify-between border-b border-border/50 py-2">
-											<span class="font-medium text-muted-foreground">MAL ID</span>
-											<a
-												href="https://myanimelist.net/anime/{animeData.idMal}"
-												target="_blank"
-												class="flex items-center gap-1 font-semibold text-primary hover:underline"
-											>
-												{animeData.idMal}
-												<Icon icon="lucide:external-link" class="size-3" />
-											</a>
-										</div>
-									{/if}
-									<div class="flex items-center justify-between py-2">
-										<span class="font-medium text-muted-foreground">AniList ID</span>
-										<a
-											href="https://anilist.co/anime/{animeData.id}"
-											target="_blank"
-											class="flex items-center gap-1 font-semibold text-primary hover:underline"
-										>
-											{animeData.id}
-											<Icon icon="lucide:external-link" class="size-3" />
-										</a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<Separator class="my-6" />
-
-					<!-- Tabs Section -->
-					<div class="space-y-6" in:fade={{ duration: 300 }}>
-						<div class="w-full">
-							<div
-								class="grid inline-flex h-10 w-full grid-cols-8 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground"
+			<!-- Tab content area -->
+			<div class="min-w-0 flex-1">
+				<!-- Mobile horizontal scrollable tabs -->
+				<div class="mb-6 -mx-4 px-4 md:hidden overflow-x-auto">
+					<div class="flex gap-1 rounded-lg bg-muted p-1 w-max">
+						{#each tabs as tab}
+							{@const active = isTabActive(tab.slug)}
+							<a
+								href={tabHref(tab.slug)}
+								class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all
+									{active
+										? 'bg-background text-foreground shadow-sm'
+										: 'text-muted-foreground hover:text-foreground'}"
 							>
-								<a
-								href={`/anime/${animeId}/anime`}
-								class={page.url.pathname === `/anime/${animeId}/anime` ||
-								page.url.pathname === `/anime/${animeId}/anime/`
-									? activeTabClass
-									: inactiveTabClass}
-							>
-								<div class="flex items-center gap-2">
-									<Icon icon="solar:play-circle-bold" class="size-4" />
-									Watch
-								</div>
+								<Icon icon={tab.icon} class="size-3.5" />
+								{tab.label}
 							</a>
-								<a
-									href={`/anime/${animeId}/characters`}
-									class={page.url.pathname.endsWith('/characters')
-										? activeTabClass
-										: inactiveTabClass}
-								>
-									Characters
-								</a>
-								<a
-									href={`/anime/${animeId}/torrents`}
-									class={page.url.pathname.endsWith('/torrents')
-										? activeTabClass
-										: inactiveTabClass}
-								>
-									<div class="flex items-center gap-2">
-										<Icon icon="solar:download-bold-duotone" class="size-4" />
-										Torrents
-									</div>
-								</a>
-								<a
-									href={`/anime/${animeId}/staff`}
-									class={page.url.pathname.endsWith('/staff') ? activeTabClass : inactiveTabClass}
-								>
-									Staff
-								</a>
-								<a
-									href={`/anime/${animeId}/reviews`}
-									class={page.url.pathname.endsWith('/reviews') ? activeTabClass : inactiveTabClass}
-								>
-									Reviews
-								</a>
-								<a
-									href={`/anime/${animeId}/stats`}
-									class={page.url.pathname.endsWith('/stats') ? activeTabClass : inactiveTabClass}
-								>
-									Stats
-								</a>
-								<a
-									href={`/anime/${animeId}/related`}
-									class={page.url.pathname.endsWith('/related') ? activeTabClass : inactiveTabClass}
-								>
-									Related
-								</a>
-								<a
-									href={`/anime/${animeId}/recommendations`}
-									class={page.url.pathname.endsWith('/recommendations')
-										? activeTabClass
-										: inactiveTabClass}
-								>
-									Recs
-								</a>
-							</div>
-
-							<div class="mt-6 w-full">
-								{@render children()}
-							</div>
-						</div>
+						{/each}
 					</div>
 				</div>
+
+				{@render children()}
 			</div>
 		</div>
 	</div>

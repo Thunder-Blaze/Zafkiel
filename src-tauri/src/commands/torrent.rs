@@ -1,5 +1,6 @@
 use tauri::{command, AppHandle, State, Manager};
 use librqbit::{Session, AddTorrent, AddTorrentOptions, AddTorrentResponse, ManagedTorrent, api::TorrentIdOrHash};
+use crate::commands::config::ConfigState;
 use axum::{
     body::Body,
     http::{header, StatusCode, Request},
@@ -505,9 +506,18 @@ pub async fn delete_torrent(app: AppHandle, session: State<'_, Arc<Session>>, id
 pub async fn open_in_external_player(
     url: String,
     headers: Option<std::collections::HashMap<String, String>>,
+    config: State<'_, ConfigState>,
 ) -> Result<(), String> {
     log::info!("Opening external player for URL: {}", url);
-    let mut cmd = std::process::Command::new("mpv");
+
+    // Resolve player executable: use configured path, fall back to "mpv"
+    let player_exe = config
+        .get_player_config()
+        .ok()
+        .and_then(|c| c.external_player_path)
+        .unwrap_or_else(|| "mpv".to_string());
+
+    let mut cmd = std::process::Command::new(&player_exe);
     cmd.arg(&url);
     // Disable yt-dlp/youtube-dl hook so MPV uses its native HLS stack directly.
     cmd.arg("--no-ytdl");
@@ -522,7 +532,7 @@ pub async fn open_in_external_player(
             cmd.arg(format!("--http-header-fields={}", fields.join(",")));
         }
     }
-    cmd.spawn().map_err(|e| format!("Failed to launch mpv: {}", e))?;
+    cmd.spawn().map_err(|e| format!("Failed to launch '{}': {}", player_exe, e))?;
     Ok(())
 }
 
@@ -567,9 +577,11 @@ async fn stream_handler(
 
     match stream_result {
         Ok(mut s) => {
-             if let Err(e) = tokio::io::AsyncSeekExt::seek(&mut s, std::io::SeekFrom::Start(start)).await {
-                 return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to seek").into_response();
-             }
+            if let Err(_) =
+                tokio::io::AsyncSeekExt::seek(&mut s, std::io::SeekFrom::Start(start)).await
+            {
+                return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to seek").into_response();
+            }
 
              let limited_stream = tokio::io::AsyncReadExt::take(s, len);
              let reader_stream = ReaderStream::new(limited_stream);

@@ -6,6 +6,24 @@ pub struct AppConfig {
     pub anilist: AniListConfig,
     pub security: SecurityConfig,
     pub ui: UiConfig,
+    #[serde(default)]
+    pub player: PlayerConfig,
+}
+
+/// Player/playback configuration
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct PlayerConfig {
+    /// Path to the external media player executable.
+    /// If None, defaults to "mpv" (expected to be on PATH).
+    #[serde(default)]
+    pub external_player_path: Option<String>,
+    /// Whether to automatically select the next best stream when switching episodes.
+    #[serde(default = "default_true")]
+    pub auto_select_next_stream: bool,
+}
+
+fn default_true() -> bool {
+    true
 }
 
 /// AniList API configuration
@@ -69,12 +87,22 @@ fn default_activity_feed_filter() -> String {
     "all".to_string()
 }
 
+impl Default for PlayerConfig {
+    fn default() -> Self {
+        Self {
+            external_player_path: None,
+            auto_select_next_stream: true,
+        }
+    }
+}
+
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
             anilist: AniListConfig::default(),
             security: SecurityConfig::default(),
             ui: UiConfig::default(),
+            player: PlayerConfig::default(),
         }
     }
 }

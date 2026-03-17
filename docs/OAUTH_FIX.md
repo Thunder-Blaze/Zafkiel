@@ -6,7 +6,7 @@ The authentication was stuck on "Connecting..." even though the callback was rec
 
 ```
 [Auth] Received callback connection
-[Auth] Extracted authorization code
+[Auth] Extracted implicit access token
 ```
 
 But the frontend never got the token.
@@ -127,7 +127,7 @@ No cleanup needed - the task and listener are dropped after the callback.
 
 ### Better Error Messages
 
-- Missing .env: `"ANILIST_CLIENT_ID not found in environment. Make sure .env file exists with ANILIST_CLIENT_ID and ANILIST_CLIENT_SECRET"`
+- Missing .env: `"ANILIST_CLIENT_ID not found in environment. Make sure .env file exists with ANILIST_CLIENT_ID"`
 - No pending flow: `"No pending OAuth flow. Call start_oauth_flow first."`
 - Timeout: `"OAuth timeout - no callback received within 5 minutes"`
 
@@ -144,8 +144,8 @@ Successful flow logs:
 [Auth Command] Opening authorization URL
 [Auth Command] Waiting for OAuth callback
 [Auth] Received callback connection
-[Auth] Extracted authorization code
-[Auth Command] Received authorization code, exchanging for token
+[Auth] Extracted implicit access token
+[Auth Command] Received implicit access token
 [Auth Command] Token saved to config
 [Auth Command] OAuth flow completed successfully
 ```
