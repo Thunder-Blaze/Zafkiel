@@ -75,9 +75,7 @@
 	const tabs: TabDef[] = [
 		{ slug: '', label: 'About', icon: 'solar:info-circle-bold' },
 		{ slug: 'anime', label: 'Watch', icon: 'solar:play-circle-bold' },
-		{ slug: 'characters', label: 'Characters', icon: 'solar:users-group-rounded-bold' },
 		{ slug: 'torrents', label: 'Torrents', icon: 'solar:download-bold-duotone' },
-		{ slug: 'staff', label: 'Staff', icon: 'solar:user-id-bold' },
 		{ slug: 'reviews', label: 'Reviews', icon: 'solar:chat-square-bold' },
 		{ slug: 'stats', label: 'Stats', icon: 'solar:chart-2-bold' },
 		{ slug: 'related', label: 'Related', icon: 'solar:link-round-bold' },
@@ -162,126 +160,18 @@
 				<div class="flex min-w-0 flex-1 flex-col gap-3 pt-4">
 					<div>
 						<h1 class="text-2xl font-bold overflow-ellipsis">{title}</h1>
-						<h4 class="text-sm font-light overflow-ellipsis text-muted-foreground">
-							{japaneseTitle}
-							{animeData.seasonYear ? ` • ${animeData.seasonYear}` : ''}
-							{animeData.duration ? ` • ${animeData.duration} mins` : ''}
-						</h4>
 					</div>
-					<div class="flex gap-3">
-						<Button
-							class="cursor-pointer rounded-md bg-accent text-accent-foreground hover:bg-accent/90"
-						>
-							<Icon icon="lucide:plus" class="-mx-1 size-6" />
-							Add to List
-						</Button>
-						<Button
-							class="cursor-pointer rounded-md hover:bg-accent/10 hover:text-accent"
-							variant="outline"
-							onclick={() => {
-								isFavorite = !isFavorite;
-							}}
-						>
-							{#if isFavorite}
-								<Icon icon="lucide:heart" class="-mx-1 size-6 fill-current" />
-							{:else}
-								<Icon icon="lucide:heart" class="-mx-1 size-6" />
-							{/if}
-						</Button>
-						<Button
-							class="cursor-pointer rounded-md hover:bg-accent/10 hover:text-accent"
-							variant="outline"
-							onclick={shareAnime}
-						>
-							<Icon icon="lucide:share-2" class="-mx-1 size-6" />
-						</Button>
-					</div>
-
-					<!-- Statistics Section -->
-					<div class="flex flex-wrap gap-4 text-sm">
-						{#if animeData.averageScore}
-							<div class="flex items-center gap-2 rounded-md bg-muted/30 px-3 py-2">
-								<Icon icon="lucide:star" class="size-4" />
-								<span class="font-semibold">{animeData.averageScore}%</span>
-								<span class="text-muted-foreground">Score</span>
-							</div>
-						{/if}
-						{#if animeData.popularity}
-							<div class="flex items-center gap-2 rounded-md bg-muted/30 px-3 py-2">
-								<Icon icon="lucide:trending-up" class="size-4" />
-								<span class="font-semibold">
-									{animeData.popularity > 1000
-										? `${(animeData.popularity / 1000).toFixed(1)}k`
-										: animeData.popularity}
-								</span>
-								<span class="text-muted-foreground">Popularity</span>
-							</div>
-						{/if}
-						{#if animeData.episodes}
-							<div class="flex items-center gap-2 rounded-md bg-muted/30 px-3 py-2">
-								<Icon icon="lucide:play-circle" class="size-4" />
-								<span class="font-semibold">{animeData.episodes}</span>
-								<span class="text-muted-foreground">Episodes</span>
-							</div>
-						{/if}
-						{#if animeData.status}
-							<div class="flex items-center gap-2 rounded-md bg-muted/30 px-3 py-2">
-								<Icon icon="lucide:info" class="size-4" />
-								<span class="font-semibold">
-									{animeData.status.charAt(0) + animeData.status.slice(1).toLowerCase()}
-								</span>
-							</div>
-						{/if}
-						{#if animeData.duration}
-							<div class="flex items-center gap-2 rounded-md bg-muted/30 px-3 py-2">
-								<Icon icon="lucide:clock" class="size-4" />
-								<span class="font-semibold">{animeData.duration}m</span>
-							</div>
-						{/if}
-					</div>
-
-					<div class="flex flex-wrap gap-3">
-						{#each animeData.genres || [] as genre}
-							<span
-								class="shrink-0 rounded-sm bg-primary/20 px-2 py-0.5 text-[11px] font-semibold tracking-[0.01em] whitespace-nowrap text-primary"
-								in:fade={{ duration: 150 }}
-							>
-								{genre}
-							</span>
-						{/each}
-					</div>
-					<div>
-						{#if animeData.trailer}
-							<TrailerPill trailer={animeData.trailer} banner={bannerImage || coverImage || ''} />
-						{/if}
-					</div>
-
-					<!-- Airing Schedule -->
-					{#if animeData.nextAiringEpisode}
-						<div
-							class="rounded-lg border border-primary/30 bg-linear-to-r from-primary/20 to-primary/10 p-4"
-							in:fade={{ duration: 300 }}
-						>
-							<div class="flex items-center gap-3">
-								<Icon icon="lucide:clock" class="size-5 text-primary" />
-								<div>
-									<h3 class="font-semibold">Next Episode</h3>
-									<p class="text-sm text-muted-foreground">
-										Episode {animeData.nextAiringEpisode.episode} airing in {nextAiringEpisodeTime}
-									</p>
-								</div>
-							</div>
-						</div>
-					{/if}
 				</div>
 			</div>
 		</div>
 
 		<!-- ── Main content: vertical tabs + page slot ───────────────── -->
-		<div class="mt-8 flex w-full gap-6 px-4 md:px-8 lg:px-10 pb-12" in:fade={{ duration: 300 }}>
+		<div class="mt-4 flex w-full gap-6 px-4 md:px-8 lg:px-10 pb-12" in:fade={{ duration: 300 }}>
 			<!-- Vertical tab sidebar -->
-			<nav class="hidden w-48 shrink-0 md:block">
+			<nav class="hidden w-72 shrink-0 md:block">
 				<div class="sticky top-16 space-y-1">
+					<!-- Spacer to clear the absolutely positioned poster -->
+					<div class="h-80 w-full mb-4"></div>
 					{#each tabs as tab}
 						{@const active = isTabActive(tab.slug)}
 						<a

@@ -10,7 +10,8 @@
 </script>
 
 {#if animeData}
-	<div class="mt-6">
+	<div class="mt-2">
+		<h2 class="mb-4 text-xl font-semibold">Related</h2>
 		<div class="space-y-6">
 			{#if animeData.relations?.edges && animeData.relations.edges.length > 0}
 				<div class="space-y-4">

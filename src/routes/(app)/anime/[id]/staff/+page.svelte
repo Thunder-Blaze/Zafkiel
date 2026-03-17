@@ -10,7 +10,8 @@
 </script>
 
 {#if animeData}
-	<div class="mt-6">
+	<div class="mt-2">
+		<h2 class="mb-4 text-xl font-semibold">Staff</h2>
 		<div class="space-y-4">
 			{#if animeData.staff?.edges && animeData.staff.edges.length > 0}
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">

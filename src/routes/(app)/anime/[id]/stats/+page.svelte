@@ -9,7 +9,8 @@
 </script>
 
 {#if animeData}
-	<div class="mt-6">
+	<div class="mt-2">
+		<h2 class="mb-4 text-xl font-semibold">Stats</h2>
 		<div class="space-y-6">
 			<!-- Score Distribution -->
 			<div class="rounded-lg border border-border bg-card p-6">

@@ -9,7 +9,8 @@
 	const recs = $derived(recsQuery.data?.data?.data ?? []);
 </script>
 
-<div class="mt-6">
+<div class="mt-2">
+	<h2 class="mb-4 text-xl font-semibold">Recommendations</h2>
 	{#if recsQuery.isLoading}
 		<div class="flex items-center justify-center p-8">
 			<Icon icon="solar:refresh-circle-line-duotone" class="h-8 w-8 animate-spin text-primary" />

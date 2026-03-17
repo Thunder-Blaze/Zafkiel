@@ -18,8 +18,8 @@
 	const isLoading = $derived(animeQuery.isLoading);
 </script>
 
-<div class="mt-6 flex flex-col gap-4">
-	<div class="flex items-center justify-between">
+<div class="mt-2 flex flex-col gap-4">
+	<div class="mb-4 flex items-center justify-between">
 		<h2 class="text-xl font-semibold">Characters</h2>
 		<div class="flex items-center gap-2">
 			<label for="va-language" class="mr-1 text-xs font-medium text-muted-foreground"

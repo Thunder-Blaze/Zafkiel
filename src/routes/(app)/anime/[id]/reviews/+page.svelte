@@ -10,7 +10,8 @@
 </script>
 
 {#if animeData}
-	<div class="mt-6">
+	<div class="mt-2">
+		<h2 class="mb-4 text-xl font-semibold">Reviews</h2>
 		<ReviewsList mediaId={animeId} />
 	</div>
 {/if}
