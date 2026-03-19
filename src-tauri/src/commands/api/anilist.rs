@@ -280,6 +280,37 @@ pub async fn get_anime_characters_by_id(
 }
 
 #[tauri::command]
+pub async fn get_anime_staff_by_id(
+    id: i32,
+    page: Option<i32>,
+    per_page: Option<i32>,
+    service: State<'_, AniListState>
+) -> Result<AniListResponse<Media>, String> {
+    log::info!("Executing command: get_anime_staff_by_id");
+    let client = service.client().await;
+    
+    let options = FetchMediaOptions {
+        id: Some(id),
+        include_staff: Some(true),
+        staff_page: page,
+        staff_per_page: per_page,
+        ..Default::default()
+    };
+    
+    match client.media().fetch(&options).await {
+        Ok(mut res) => {
+            if let Some(media) = res.data.pop() {
+                Ok(AniListResponse::success(media))
+            } else {
+                Ok(AniListResponse::error("Anime not found".to_string()))
+            }
+        },
+        Err(e) => Ok(AniListResponse::error(format!("{:?}", e)))
+    }
+}
+
+
+#[tauri::command]
 pub async fn get_manga_by_id(
     id: i32,
     service: State<'_, AniListState>

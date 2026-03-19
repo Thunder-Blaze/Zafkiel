@@ -224,6 +224,34 @@ export function useInfiniteAnimeCharactersById(
 }
 
 /**
+ * Get anime staff by ID with infinite pagination
+ */
+export function useInfiniteAnimeStaffById(
+	id: number,
+	perPage: number = 25,
+	options?: Partial<CreateInfiniteQueryOptions<AniListResponse<Media>, Error, InfiniteData<AniListResponse<Media>, number>, any, number>>
+) {
+	return createInfiniteQuery<AniListResponse<Media>, Error, InfiniteData<AniListResponse<Media>, number>, any, number>(() => ({
+		queryKey: [...anilistKeys.anime.detail(id), 'staff', 'infinite', perPage],
+		queryFn: ({ pageParam }) =>
+			animeApi.getStaffById(id, pageParam as number, perPage),
+		initialPageParam: 1,
+		getNextPageParam: (lastPage) => {
+			const pageInfo = (lastPage.data as AnimeLarge | undefined)?.staff?.pageInfo;
+			return pageInfo?.hasNextPage ? pageInfo.currentPage + 1 : undefined;
+		},
+		getPreviousPageParam: (firstPage) => {
+			const pageInfo = (firstPage.data as AnimeLarge | undefined)?.staff?.pageInfo;
+			return pageInfo?.currentPage && pageInfo.currentPage > 1 ? pageInfo.currentPage - 1 : undefined;
+		},
+		staleTime: defaultStaleTime.detail,
+		enabled: id > 0,
+		...options,
+	}));
+}
+
+
+/**
  * Get trending anime with caching
  */
 export function useTrendingAnime(
