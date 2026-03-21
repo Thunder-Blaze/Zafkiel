@@ -4,10 +4,13 @@
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
-	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
+	import { toast } from 'svelte-sonner';
+	import { isAuthenticated } from '$lib/stores/auth';
+	import { invoke } from '@tauri-apps/api/core';
 	import CachedImage from '$lib/components/ui/CachedImage.svelte';
 	import Icon from '@iconify/svelte';
 	import PageLoader from '$lib/components/PageLoader.svelte';
+	import MarkdownRenderer from '$lib/components/MarkdownRenderer.svelte';
 
 	const staffId = $derived(page.params.id ? parseInt(page.params.id) : 0);
 	const staffQuery = $derived(useStaffById(staffId));
@@ -15,6 +18,44 @@
 	const staff = $derived(staffQuery.data?.data);
 	const isLoading = $derived(staffQuery.isLoading);
 	const error = $derived(staffQuery.error);
+
+	let activeTab = $state('overview');
+
+	let isFavourite = $state(false);
+	let favouritesCount = $state(0);
+	
+	$effect(() => {
+		if (staff) {
+			isFavourite = staff?.isFavourite || false;
+			favouritesCount = staff?.favourites || 0;
+		}
+	});
+
+	let isToggling = $state(false);
+
+	async function toggleFavourite() {
+		if (!$isAuthenticated) {
+			toast.error('You must be logged in to favourite a staff member.');
+			return;
+		}
+		if (isToggling || !staff) return;
+		
+		isToggling = true;
+		try {
+			const res = await invoke<any>('favourite_staff', { id: staff.id });
+			if (res.success) {
+				isFavourite = !isFavourite;
+				favouritesCount += isFavourite ? 1 : -1;
+				toast.success(isFavourite ? 'Added to favourites!' : 'Removed from favourites.');
+			} else {
+				throw new Error(res.error);
+			}
+		} catch (e: any) {
+			toast.error(e.message || 'Failed to toggle favourite.');
+		} finally {
+			isToggling = false;
+		}
+	}
 
 	function getTitle(name: any): string {
 		if (typeof name === 'string') return name;
@@ -54,97 +95,111 @@
 			</CardContent>
 		</Card>
 	{:else if staff}
-		<!-- Hero Section -->
-		<div class="relative mb-8">
-			<div class="flex flex-col gap-8 md:flex-row">
-				<!-- Image -->
-				<div class="shrink-0">
-					{#if staff.image?.large}
-						<CachedImage
-							src={staff.image.large}
-							alt={getTitle(staff.name)}
-							class="mx-auto h-80 w-56 rounded-xl object-cover shadow-2xl md:mx-0"
-						/>
-					{:else}
-						<div
-							class="mx-auto flex h-80 w-56 items-center justify-center rounded-xl bg-muted md:mx-0"
-						>
-							<Icon icon="solar:user-bold" class="h-20 w-20 text-muted-foreground" />
-						</div>
-					{/if}
-				</div>
-
-				<!-- Main Info -->
-				<div class="flex flex-1 flex-col justify-end space-y-4 pb-4">
-					<div>
-						<h1 class="mb-2 text-4xl font-bold md:text-5xl lg:text-6xl">
-							{getTitle(staff.name)}
-						</h1>
-						{#if staff.name?.native}
-							<h2 class="text-xl text-muted-foreground">{staff.name.native}</h2>
+		<!-- Main Layout -->
+		<div class="w-full">
+			<div class="relative mb-8">
+				<div class="flex flex-col gap-8 md:flex-row md:items-stretch">
+					<!-- Image -->
+					<div class="shrink-0">
+						{#if staff.image?.large}
+							<CachedImage
+								src={staff.image.large}
+								alt={getTitle(staff.name)}
+								class="mx-auto h-80 w-56 rounded-xl object-cover shadow-2xl md:mx-0"
+							/>
+						{:else}
+							<div
+								class="mx-auto flex h-80 w-56 items-center justify-center rounded-xl bg-muted md:mx-0 shadow-2xl"
+							>
+								<Icon icon="solar:user-bold" class="h-20 w-20 text-muted-foreground" />
+							</div>
 						{/if}
+					</div>
 
-						<!-- Quick Info -->
-						<div class="mt-6 flex flex-wrap items-center gap-3">
-							{#if staff.favourites}
-								<Badge variant="outline" class="gap-1">
-									<Icon icon="solar:heart-bold" class="h-3 w-3 text-red-500" />
-									{staff.favourites.toLocaleString()} Favorites
-								</Badge>
+					<!-- Main Info -->
+					<div class="flex flex-1 flex-col justify-end pb-0 space-y-4 md:space-y-0">
+						<div>
+							<h1 class="mb-2 text-4xl font-bold md:text-5xl lg:text-6xl text-pretty">
+								{getTitle(staff.name)}
+							</h1>
+							{#if staff.name?.native}
+								<h2 class="text-xl text-muted-foreground mb-5">{staff.name.native}</h2>
 							{/if}
-							{#if staff.gender}
-								<Badge variant="secondary">
-									{staff.gender}
-								</Badge>
-							{/if}
-							{#if staff.age}
-								<Badge variant="secondary">
-									Age: {staff.age}
-								</Badge>
-							{/if}
+
+					<!-- Quick Info -->
+							<div class="mt-6 mb-6 flex flex-wrap items-center gap-3">
+								<button
+									class="inline-flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 active:scale-95 disabled:pointer-events-none disabled:opacity-50 {isFavourite ? 'border border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/25 dark:border-[#E85D75]/30 dark:bg-[#E85D75]/15 dark:text-[#E85D75] dark:hover:bg-[#E85D75]/25' : 'border border-border/50 bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground'}"
+									onclick={toggleFavourite}
+									disabled={isToggling}
+									aria-label={isFavourite ? "Remove from favourites" : "Add to favourites"}
+								>
+									{#if isToggling}
+										<Icon icon="solar:spinner-bold" class="h-4 w-4 animate-spin" />
+									{:else}
+										<Icon icon={isFavourite ? "solar:heart-bold" : "solar:heart-linear"} class="h-4 w-4" />
+									{/if}
+									
+									{#if favouritesCount > 0}
+										{(favouritesCount >= 1000
+											? (favouritesCount / 1000).toFixed(1) + 'k'
+											: favouritesCount) + ' Favorites'}
+									{:else}
+										Favorites
+									{/if}
+								</button>
+								{#if staff.gender}
+									<div class="inline-flex items-center rounded-md bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground shadow-sm">
+										{staff.gender}
+									</div>
+								{/if}
+								{#if staff.age}
+									<div class="inline-flex items-center rounded-md bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground shadow-sm">
+										Age: {staff.age}
+									</div>
+								{/if}
+							</div>
+						</div>
+
+						<!-- Content Tabs -->
+						<div class="w-full border-b border-border/40">
+							<div class="inline-flex h-9 w-full sm:w-auto items-center justify-start text-muted-foreground">
+								<button
+									onclick={() => activeTab = 'overview'}
+									class={"flex-1 sm:flex-none border-b-2 px-6 h-full font-medium transition-colors hover:text-foreground text-sm flex items-center justify-center " +
+										(activeTab === 'overview' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground')}
+								>
+									Overview
+								</button>
+								<button
+									onclick={() => activeTab = 'media'}
+									class={"flex-1 sm:flex-none border-b-2 px-6 h-full font-medium transition-colors hover:text-foreground text-sm flex items-center justify-center " +
+										(activeTab === 'media' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground')}
+								>
+									Production Roles
+								</button>
+								<button
+									onclick={() => activeTab = 'characters'}
+									class={"flex-1 sm:flex-none border-b-2 px-6 h-full font-medium transition-colors hover:text-foreground text-sm flex items-center justify-center " +
+										(activeTab === 'characters' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground')}
+								>
+									Voice Roles
+								</button>
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>
 
-		<!-- Content Tabs -->
-		<div class="mt-8">
-			<Tabs value="overview" class="w-full">
-				<TabsList
-					class="w-full justify-start overflow-x-auto rounded-none border-b bg-transparent p-0"
-				>
-					<TabsTrigger
-						value="overview"
-						class="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-					>
-						Overview
-					</TabsTrigger>
-					<TabsTrigger
-						value="media"
-						class="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-					>
-						Production Roles
-					</TabsTrigger>
-					<TabsTrigger
-						value="characters"
-						class="rounded-none border-b-2 border-transparent px-6 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-					>
-						Voice Roles
-					</TabsTrigger>
-				</TabsList>
-
-				<TabsContent value="overview" class="mt-6">
+			<div class="mt-8 w-full">
+				{#if activeTab === 'overview'}
 					<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
 						<!-- Main Content -->
 						<div class="space-y-8 lg:col-span-2">
 							<!-- Description -->
 							{#if staff.description}
-								<div class="space-y-4">
-									<h3 class="text-lg font-semibold">Description</h3>
-									<div class="prose prose-sm max-w-none text-muted-foreground dark:prose-invert">
-										{@html staff.description}
-									</div>
+								<div class="custom-scrollbar text-sm leading-relaxed text-foreground/90 markdown-wrapper">
+									<MarkdownRenderer body={staff.description} />
 								</div>
 							{/if}
 						</div>
@@ -220,9 +275,9 @@
 							{/if}
 						</div>
 					</div>
-				</TabsContent>
+				{/if}
 
-				<TabsContent value="media" class="mt-6">
+				{#if activeTab === 'media'}
 					{#if staff.staffMedia?.edges && staff.staffMedia.edges.length > 0}
 						<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
 							{#each staff.staffMedia.edges as edge}
@@ -281,9 +336,9 @@
 							</p>
 						</div>
 					{/if}
-				</TabsContent>
+				{/if}
 
-				<TabsContent value="characters" class="mt-6">
+				{#if activeTab === 'characters'}
 					{#if staff.characters?.edges && staff.characters.edges.length > 0}
 						<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
 							{#each staff.characters.edges as edge}
@@ -337,8 +392,8 @@
 							</p>
 						</div>
 					{/if}
-				</TabsContent>
-			</Tabs>
+				{/if}
+			</div>
 		</div>
 	{:else}
 		<Card>
@@ -354,11 +409,4 @@
 </div>
 
 <style>
-	:global(.prose p) {
-		margin-bottom: 1rem;
-	}
-
-	:global(.prose br) {
-		margin-bottom: 0.5rem;
-	}
 </style>

@@ -91,98 +91,99 @@
 	</div>
 {:else if character}
 	<div class="mx-auto w-full max-w-[1400px] px-4 py-8 md:px-8 lg:px-10">
-		<div class="flex flex-col gap-6 md:flex-row md:items-start lg:gap-8">
-			<!-- Left Column: Character Image Tracker -->
-			<div class="mx-auto w-[215px] shrink-0 md:mx-0">
+		<div class="flex flex-col gap-8 md:flex-row md:items-stretch">
+			<!-- Left Column: Character Image -->
+			<div class="shrink-0">
 				{#if character.image?.large}
 					<CachedImage
 						src={character.image.large}
 						alt={getTitle(character.name)}
-						class="w-full rounded bg-muted object-cover shadow-sm"
+						class="mx-auto h-80 w-56 rounded-xl bg-muted object-cover shadow-2xl md:mx-0"
 					/>
 				{:else}
 					<div
-						class="flex aspect-[2/3] w-full items-center justify-center rounded bg-muted shadow-sm"
+						class="mx-auto flex h-80 w-56 items-center justify-center rounded-xl bg-muted shadow-2xl md:mx-0"
 					>
-						<Icon icon="solar:user-bold" class="h-16 w-16 text-muted-foreground" />
+						<Icon icon="solar:user-bold" class="h-20 w-20 text-muted-foreground" />
 					</div>
 				{/if}
 			</div>
 
-			<!-- Right Column: Content -->
-			<div class="flex min-w-0 flex-1 flex-col pt-1">
-				<!-- Header -->
-				<h1 class="mb-1 text-3xl font-bold leading-tight text-foreground md:text-4xl text-pretty">
-					{getTitle(character.name)}
-				</h1>
-				{#if character.name?.native}
-					<h2 class="mb-5 text-base text-muted-foreground">{character.name.native}</h2>
-				{/if}
-
-				<!-- Quick Stats -->
-				<div class="mb-6 flex flex-wrap items-center gap-2.5">
-					<button
-						class="flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-semibold transition-all hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed {isFavourite ? 'bg-destructive/15 text-destructive dark:bg-[#E85D75]/10 dark:text-[#E85D75]' : 'bg-muted/60 text-muted-foreground hover:bg-muted/80 hover:text-foreground'}"
-						onclick={toggleFavourite}
-						disabled={isToggling}
-						aria-label={isFavourite ? "Remove from favourites" : "Add to favourites"}
-					>
-						<!-- Loading spinner or heart icon based on interacting state -->
-						{#if isToggling}
-							<Icon icon="solar:spinner-bold" class="h-3.5 w-3.5 animate-spin" />
-						{:else}
-							<Icon icon={isFavourite ? "solar:heart-bold" : "solar:heart-linear"} class="h-3.5 w-3.5" />
-						{/if}
-						
-						{#if favouritesCount > 0}
-							{(favouritesCount >= 1000
-								? (favouritesCount / 1000).toFixed(1) + 'k'
-								: favouritesCount) + ' Favorites'}
-						{:else}
-							Favorites
-						{/if}
-					</button>
-					{#if character.gender}
-						<div class="rounded-sm bg-muted/60 px-2.5 py-1 text-xs font-medium text-foreground">
-							{character.gender}
-						</div>
+			<!-- Right Column: Info & Tabs -->
+			<div class="flex flex-1 flex-col justify-end pb-0">
+				<div>
+					<!-- Header -->
+					<h1 class="mb-2 text-4xl font-bold md:text-5xl lg:text-6xl text-pretty">
+						{getTitle(character.name)}
+					</h1>
+					{#if character.name?.native}
+						<h2 class="mb-5 text-xl text-muted-foreground">{character.name.native}</h2>
 					{/if}
-					{#if character.age}
-						<div class="rounded-sm bg-muted/60 px-2.5 py-1 text-xs font-medium text-foreground">
-							Age: {character.age}
-						</div>
-					{/if}
-				</div>
 
-				<!-- Tabs Navigation -->
-				<div class="mb-8 w-full border-b border-border/40">
-					<div class="inline-flex h-9 w-full sm:w-auto items-center justify-start text-muted-foreground">
-						<a
-							href={`/character/${characterId}`}
-							class={"flex-1 sm:flex-none border-b-2 px-6 h-full font-medium transition-colors hover:text-foreground text-sm flex items-center justify-center " +
-								(page.url.pathname === `/character/${characterId}` || page.url.pathname === `/character/${characterId}/`
-									? 'border-primary text-foreground'
-									: 'border-transparent text-muted-foreground')}
+					<!-- Quick Stats -->
+					<div class="mb-6 flex flex-wrap items-center gap-3">
+						<button
+							class="inline-flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 active:scale-95 disabled:pointer-events-none disabled:opacity-50 {isFavourite ? 'border border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/25 dark:border-[#E85D75]/30 dark:bg-[#E85D75]/15 dark:text-[#E85D75] dark:hover:bg-[#E85D75]/25' : 'border border-border/50 bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground'}"
+							onclick={toggleFavourite}
+							disabled={isToggling}
+							aria-label={isFavourite ? "Remove from favourites" : "Add to favourites"}
 						>
-							Overview
-						</a>
-						<a
-							href={`/character/${characterId}/media`}
-							class={"flex-1 sm:flex-none border-b-2 px-6 h-full font-medium transition-colors hover:text-foreground text-sm flex items-center justify-center " +
-								(page.url.pathname.endsWith('/media')
-									? 'border-primary text-foreground'
-									: 'border-transparent text-muted-foreground')}
-						>
-							Media
-						</a>
+							{#if isToggling}
+								<Icon icon="solar:spinner-bold" class="h-4 w-4 animate-spin" />
+							{:else}
+								<Icon icon={isFavourite ? "solar:heart-bold" : "solar:heart-linear"} class="h-4 w-4" />
+							{/if}
+							
+							{#if favouritesCount > 0}
+								{(favouritesCount >= 1000
+									? (favouritesCount / 1000).toFixed(1) + 'k'
+									: favouritesCount) + ' Favorites'}
+							{:else}
+								Favorites
+							{/if}
+						</button>
+						{#if character.gender}
+							<div class="inline-flex items-center rounded-md bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground shadow-sm">
+								{character.gender}
+							</div>
+						{/if}
+						{#if character.age}
+							<div class="inline-flex items-center rounded-md bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground shadow-sm">
+								Age: {character.age}
+							</div>
+						{/if}
+					</div>
+
+					<!-- Tabs Navigation -->
+					<div class="w-full border-b border-border/40">
+						<div class="inline-flex h-9 w-full sm:w-auto items-center justify-start text-muted-foreground">
+							<a
+								href={`/character/${characterId}`}
+								class={"flex-1 sm:flex-none border-b-2 px-6 h-full font-medium transition-colors hover:text-foreground text-sm flex items-center justify-center " +
+									(page.url.pathname === `/character/${characterId}` || page.url.pathname === `/character/${characterId}/`
+										? 'border-primary text-foreground'
+										: 'border-transparent text-muted-foreground')}
+							>
+								Overview
+							</a>
+							<a
+								href={`/character/${characterId}/media`}
+								class={"flex-1 sm:flex-none border-b-2 px-6 h-full font-medium transition-colors hover:text-foreground text-sm flex items-center justify-center " +
+									(page.url.pathname.endsWith('/media')
+										? 'border-primary text-foreground'
+										: 'border-transparent text-muted-foreground')}
+							>
+								Media
+							</a>
+						</div>
 					</div>
 				</div>
-
-				<!-- Nested Pages rendered here -->
-				<div class="w-full">
-					{@render children()}
-				</div>
 			</div>
+		</div>
+
+		<!-- Nested Pages rendered here, below the cover -->
+		<div class="mt-8 w-full">
+			{@render children()}
 		</div>
 	</div>
 {/if}

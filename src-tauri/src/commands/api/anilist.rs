@@ -742,6 +742,19 @@ pub async fn favourite_character(
 }
 
 #[tauri::command]
+pub async fn favourite_staff(
+    id: i32,
+    service: State<'_, AniListState>
+) -> Result<AniListResponse<Favourites>, String> {
+    log::info!("Executing command: favourite_staff id={}", id);
+    let client = service.client().await;
+    match client.common().favourite_staff(id).await {
+        Ok(favs) => Ok(AniListResponse::success(favs)),
+        Err(e) => Ok(AniListResponse::error(format!("{:?}", e)))
+    }
+}
+
+#[tauri::command]
 pub async fn search_all(
     query: String,
     per_page: Option<i32>,
