@@ -20,6 +20,28 @@ pub struct PlayerConfig {
     /// Whether to automatically select the next best stream when switching episodes.
     #[serde(default = "default_true")]
     pub auto_select_next_stream: bool,
+    /// Dynamic Shader configuration
+    #[serde(default)]
+    pub shaders: ShaderConfig,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ShaderConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default = "default_shaders")]
+    pub selected_shaders: Vec<String>,
+}
+
+fn default_shaders() -> Vec<String> {
+    vec![
+        "~~/shaders/Anime4K_Clamp_Highlights.glsl".to_string(),
+        "~~/shaders/Anime4K_Restore_CNN_M.glsl".to_string(),
+        "~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl".to_string(),
+        "~~/shaders/Anime4K_AutoDownscalePre_x2.glsl".to_string(),
+        "~~/shaders/Anime4K_AutoDownscalePre_x4.glsl".to_string(),
+        "~~/shaders/Anime4K_Upscale_CNN_x2_S.glsl".to_string(),
+    ]
 }
 
 fn default_true() -> bool {
@@ -92,6 +114,16 @@ impl Default for PlayerConfig {
         Self {
             external_player_path: None,
             auto_select_next_stream: true,
+            shaders: ShaderConfig::default(),
+        }
+    }
+}
+
+impl Default for ShaderConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            selected_shaders: default_shaders(),
         }
     }
 }

@@ -320,6 +320,17 @@ impl ConfigLoader {
         self.save()
     }
 
+    /// Update shader configuration
+    pub fn update_shader_config(&self, enabled: bool, selected_shaders: Vec<String>) -> Result<(), ConfigError> {
+        let mut config = self.config.write().map_err(|_| {
+            ConfigError::Deserialization("Failed to acquire write lock".to_string())
+        })?;
+        config.player.shaders.enabled = enabled;
+        config.player.shaders.selected_shaders = selected_shaders;
+        drop(config);
+        self.save()
+    }
+
     /// Get the config file path for debugging
     pub fn get_config_file_path(&self) -> PathBuf {
         self.config_path.clone()

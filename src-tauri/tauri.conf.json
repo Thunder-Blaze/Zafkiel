@@ -46,7 +46,8 @@
 		],
 		"resources": {
 			"../static/themes/": "themes/",
-			"lib/": "lib/"
+			"lib/": "lib/",
+			"shaders/": "shaders/"
 		}
 	}
 }

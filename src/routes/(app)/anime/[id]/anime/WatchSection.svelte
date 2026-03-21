@@ -3,7 +3,7 @@
 	import { invoke } from '@tauri-apps/api/core';
 	import Icon from '@iconify/svelte';
 	import { onDestroy, onMount } from 'svelte';
-	import { ScrollArea } from '$lib/components/ui/scroll-area';
+	// import { ScrollArea } from '$lib/components/ui/scroll-area';
 	import { Button } from '$lib/components/ui/button';
 	import { extensionStore } from '$lib/stores/extensionStore.svelte';
 	import { useConfigState } from '$lib/stores/config.svelte';
@@ -862,7 +862,11 @@
 				<span class="text-sm">Loading episodes…</span>
 			</div>
 		{:else}
-			<ScrollArea class="h-[32rem]">
+			<div 
+				class="h-[32rem] overflow-y-auto pr-2" 
+				data-lenis-prevent="true"
+				onwheel={(e) => e.stopPropagation()}
+			>
 				<!-- Grid View -->
 				{#if episodeView === 'grid'}
 					<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -975,7 +979,7 @@
 						</Button>
 					</div>
 				{/if}
-			</ScrollArea>
+			</div>
 		{/if}
 	{/if}
 </div>

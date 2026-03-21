@@ -32,6 +32,7 @@
 		type MpvObservableProperty,
 	} from 'tauri-plugin-libmpv-api';
 	import type { Episode, StreamSource } from '$lib/types/extensions';
+	import { useConfigState } from '$lib/stores/config.svelte';
 
 	let {
 		url,
@@ -58,6 +59,8 @@
 		onEpisodeSelect?: (ep: Episode) => void;
 		onSourceSelect?: (src: StreamSource) => void;
 	}>();
+
+	const config = useConfigState();
 
 	// ── State ────────────────────────────────────────────────────────────────
 	let isPlaying = $state(false);
@@ -305,6 +308,25 @@
 
 	$effect(() => {
 		if (isInitialized && url) loadUrl(url, headers);
+	});
+
+	$effect(() => {
+		if (!isInitialized || !config.shaderConfig) return;
+		const shaders = config.shaderConfig;
+		const updateShaders = async () => {
+			try {
+				if (shaders.enabled && shaders.selected_shaders.length > 0) {
+					// Use ; on Windows and : on Unix
+					const separator = navigator.userAgent.toLowerCase().includes('win') ? ';' : ':';
+					await setProperty('glsl-shaders', shaders.selected_shaders.join(separator), MPV_WINDOW_LABEL);
+				} else {
+					await setProperty('glsl-shaders', '', MPV_WINDOW_LABEL);
+				}
+			} catch (e) {
+				console.error('[mpv] failed to set glsl-shaders:', e);
+			}
+		};
+		updateShaders();
 	});
 
 	onDestroy(async () => {

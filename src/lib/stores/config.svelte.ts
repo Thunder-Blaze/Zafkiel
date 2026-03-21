@@ -182,6 +182,38 @@ export const useConfigState = () => {
 			}
 		},
 
+		get shaderConfig() {
+			return (
+				configState?.player?.shaders ||
+				({
+					enabled: false,
+					selected_shaders: []
+				} as import('$lib/types/config').ShaderConfig)
+			);
+		},
+		setShaderConfig: async (enabled: boolean, selectedShaders: string[]) => {
+			if (configState && configState.player) {
+				configState.player.shaders = { enabled, selected_shaders: selectedShaders };
+			}
+			try {
+				await invoke('update_shader_config', { enabled, selectedShaders });
+			} catch (error) {
+				console.error('[Config] ✗ Failed to update shader config:', error);
+			}
+		},
+		getAvailableShaders: async () => {
+			try {
+				const response = await invoke<import('$lib/services/config').ConfigResponse<string[]>>('get_available_shaders');
+				if (response.success && response.data) {
+					return response.data;
+				}
+				throw new Error(response.error || 'Failed to fetch shaders');
+			} catch (error) {
+				console.error('[Config] ✗ Failed to fetch available shaders:', error);
+				return [];
+			}
+		},
+
 		clearAnilistToken: async () => {
 			if (!browser) return;
 

@@ -36,6 +36,14 @@ export interface UiConfig {
 }
 
 /**
+ * Dynamic Shader configuration
+ */
+export interface ShaderConfig {
+	enabled: boolean;
+	selected_shaders: string[];
+}
+
+/**
  * Player/playback configuration
  */
 export interface PlayerConfig {
@@ -43,6 +51,8 @@ export interface PlayerConfig {
 	external_player_path: string | null;
 	/** Whether to automatically select the next best stream when switching episodes */
 	auto_select_next_stream: boolean;
+	/** Dynamic Shader configuration */
+	shaders: ShaderConfig;
 }
 
 /**

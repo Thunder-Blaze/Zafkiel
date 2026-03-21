@@ -504,6 +504,7 @@ pub async fn delete_torrent(app: AppHandle, session: State<'_, Arc<Session>>, id
 
 #[command]
 pub async fn open_in_external_player(
+    app: AppHandle,
     url: String,
     headers: Option<std::collections::HashMap<String, String>>,
     config: State<'_, ConfigState>,
@@ -532,6 +533,28 @@ pub async fn open_in_external_player(
             cmd.arg(format!("--http-header-fields={}", fields.join(",")));
         }
     }
+
+    // Apply Shaders to external player if enabled
+    if let Ok(player_config) = config.get_player_config() {
+        if player_config.shaders.enabled && !player_config.shaders.selected_shaders.is_empty() {
+            let mut resolved_shaders = Vec::new();
+            if let Ok(res_dir) = app.path().resource_dir() {
+                for shader in &player_config.shaders.selected_shaders {
+                    let file_name = shader.split('/').last().unwrap_or(shader);
+                    let absolute_path = res_dir.join("shaders").join(file_name);
+                    resolved_shaders.push(absolute_path.to_string_lossy().to_string());
+                }
+            }
+            if !resolved_shaders.is_empty() {
+                #[cfg(target_os = "windows")]
+                let separator = ";";
+                #[cfg(not(target_os = "windows"))]
+                let separator = ":";
+                cmd.arg(format!("--glsl-shaders={}", resolved_shaders.join(separator)));
+            }
+        }
+    }
+
     cmd.spawn().map_err(|e| format!("Failed to launch '{}': {}", player_exe, e))?;
     Ok(())
 }

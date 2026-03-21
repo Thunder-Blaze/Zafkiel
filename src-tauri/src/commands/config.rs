@@ -290,6 +290,47 @@ pub fn update_auto_select_next_stream(
     }
 }
 
+/// Update shader configuration
+#[tauri::command]
+pub fn update_shader_config(
+    enabled: bool,
+    selected_shaders: Vec<String>,
+    config: State<ConfigState>,
+) -> ConfigResponse<()> {
+    match config.update_shader_config(enabled, selected_shaders) {
+        Ok(_) => ConfigResponse::success(()),
+        Err(e) => ConfigResponse::error(e.to_string()),
+    }
+}
+
+/// Get available shaders from the bundled resources
+#[tauri::command]
+pub fn get_available_shaders(app: tauri::AppHandle) -> ConfigResponse<Vec<String>> {
+    let mut shaders = Vec::new();
+    if let Ok(res_dir) = app.path().resource_dir() {
+        let shaders_dir = res_dir.join("shaders");
+        if let Ok(entries) = std::fs::read_dir(shaders_dir) {
+            for entry in entries.flatten() {
+                if let Ok(file_type) = entry.file_type() {
+                    if file_type.is_file() {
+                        if let Some(ext) = entry.path().extension() {
+                            if ext == "glsl" {
+                                if let Some(name) = entry.file_name().to_str() {
+                                    // Map to the internal libmpv virtual path convention ~~/shaders/... 
+                                    // and the external mpv relative equivalent if we decide to maintain parity. 
+                                    // For now, retaining the user's requested format.
+                                    shaders.push(format!("~~/shaders/{}", name));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    ConfigResponse::success(shaders)
+}
+
 /// Converts a filesystem `Path` to a plain UTF-8 string that Tauri's
 /// `convertFileSrc` can consume on every OS.
 ///
