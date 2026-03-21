@@ -162,6 +162,9 @@ pub fn run() {
             app.manage(session.clone());
             log::info!("[Setup] Global torrent session initialized");
 
+            // Initialize Discord RPC State
+            app.manage(commands::discord::DiscordState::new());
+
             let app_handle = app.handle().clone();
             let session_clone = session.clone();
             tauri::async_runtime::spawn(async move {
@@ -374,6 +377,10 @@ pub fn run() {
 
             // ─── MPV window helpers ───────────────────────────────────────
             commands::mpv_window::lower_mpv_subwindow,
+
+            // ─── Discord RPC ──────────────────────────────────────────────
+            commands::discord::set_discord_activity,
+            commands::discord::clear_discord_activity,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

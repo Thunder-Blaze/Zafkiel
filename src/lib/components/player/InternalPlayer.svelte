@@ -16,6 +16,7 @@
 	import Icon from '@iconify/svelte';
 import type { Episode, StreamSource } from '$lib/types/extensions';
 	import Hls from 'hls.js';
+	import { discordStore } from '$lib/stores/discord.svelte';
 
 	let {
 		src,
@@ -30,6 +31,7 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 		tracks = [],
 		title,
 		subtitle,
+		image,
 		onBack,
 	} = $props<{
 		src?: string;
@@ -45,6 +47,7 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 		tracks?: { id: string; label: string; src: string; lang: string }[];
 		title?: string;
 		subtitle?: string;
+		image?: string;
 		onBack?: () => void;
 	}>();
 
@@ -332,6 +335,7 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 		if (isBuffering && isPlaying) {
 			isBuffering = false;
 		}
+		updateDiscordActivity();
 	}
 
 	function handleLoadedMetadata() {
@@ -509,9 +513,37 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 		window.addEventListener('keydown', handleKeyDown);
 	});
 
+	function updateDiscordActivity() {
+		let startTimestamp: number | undefined;
+		let endTimestamp: number | undefined;
+
+		if (isPlaying && duration > 0) {
+			startTimestamp = Math.floor(Date.now() / 1000) - Math.floor(currentTime);
+			endTimestamp = startTimestamp + Math.floor(duration);
+		}
+
+		discordStore.setActivity({
+			state: isPlaying ? 'Watching Episode' : 'Paused',
+			details: title || 'Local Video',
+			largeImage: image || 'logo',
+			largeText: title || 'Zafkiel',
+			smallImage: isPlaying ? 'play' : 'pause',
+			smallText: isPlaying ? 'Playing' : 'Paused',
+			startTimestamp,
+			endTimestamp,
+		});
+	}
+
+	$effect(() => {
+		if (src || mediaSources.length > 0) {
+			updateDiscordActivity();
+		}
+	});
+
 	onDestroy(() => {
 		clearTimeout(controlsTimeout);
 		window.removeEventListener('keydown', handleKeyDown);
+		discordStore.clearActivity();
 		destroyHls();
 	});
 </script>

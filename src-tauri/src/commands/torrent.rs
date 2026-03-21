@@ -300,7 +300,7 @@ async fn subtitle_handler(
 
     match stream_result {
         Ok(rqbit_stream) => {
-            let mut child = Command::new("ffmpeg")
+            let child = Command::new("ffmpeg")
                 .arg("-i")
                 .arg("pipe:0")
                 .arg("-map")
@@ -319,7 +319,6 @@ async fn subtitle_handler(
                     let stdout = child_process.stdout.take().unwrap();
 
                     tokio::spawn(async move {
-                        use tokio::io::AsyncWriteExt;
                         let mut reader = rqbit_stream;
                         if let Err(e) = tokio::io::copy(&mut reader, &mut stdin).await {
                              log::warn!("Error piping to ffmpeg subs: {}", e);

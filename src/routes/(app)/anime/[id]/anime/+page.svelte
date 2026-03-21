@@ -14,6 +14,12 @@
 {#if animeData}
 	<div class="mt-2">
 		<h2 class="mb-4 text-xl font-semibold">Watch</h2>
-		<WatchSection animeTitle={title} {animeId} />
+		<div class="col-span-1 flex flex-col gap-6 lg:col-span-3">
+		<WatchSection 
+			animeTitle={title} 
+			{animeId} 
+			animeCover={animeData.coverImage?.extraLarge || animeData.coverImage?.large || ''} 
+		/>
+		</div>
 	</div>
 {/if}

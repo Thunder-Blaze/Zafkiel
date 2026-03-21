@@ -25,7 +25,7 @@
 	import ProxiedImage from '$lib/components/ProxiedImage.svelte';
 	import { parseSourceLabel, findBestSource, type ParsedSourceMeta } from '$lib/utils/source-parser';
 
-	const { animeTitle, animeId }: { animeTitle: string; animeId: number } = $props();
+	const { animeTitle, animeId, animeCover = '' }: { animeTitle: string; animeId: number; animeCover?: string } = $props();
 
 	const CACHE_STALE_TIME = 5 * 60 * 1000; // 5 minutes
 	const queryClient = useQueryClient();
@@ -656,6 +656,7 @@
 					headers={resolvedStream.headers ?? {}}
 					title={selectedResult?.title}
 					subtitle={selectedEpisode?.title ?? `Episode ${selectedEpisode?.number}`}
+					image={animeCover || selectedResult?.coverUrl}
 					onBack={backToEpisodes}
 					{episodes}
 					currentEpisode={selectedEpisode}
@@ -670,6 +671,7 @@
 					headers={resolvedStream.headers ?? {}}
 					title={selectedResult?.title}
 					subtitle={selectedEpisode?.title ?? `Episode ${selectedEpisode?.number}`}
+					image={animeCover || selectedResult?.coverUrl}
 					onBack={backToEpisodes}
 					{episodes}
 					currentEpisode={selectedEpisode}

@@ -19,10 +19,12 @@
 	import { playerStore } from '$lib/stores/player.svelte';
 	import Loader from '$lib/components/Loader.svelte';
 	import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
+	import { page } from '$app/stores';
 
 	import { ExtensionManager } from '$lib/services/ExtensionManager';
 	import { SubsPleaseExtension } from '../extensions/torrent/subsplease';
 	import { extensionStore } from '$lib/stores/extensionStore.svelte';
+	import { discordStore } from '$lib/stores/discord.svelte';
 
 	let { children }: { children: any } = $props();
 
@@ -61,6 +63,27 @@
 		} else {
 			document.documentElement.style.background = '';
 			document.body.style.background = '';
+		}
+	});
+
+	// Hook for global Discord RPC browsing state
+	$effect(() => {
+		if (isReady && !playerStore.active) {
+			const path = $page.url.pathname;
+			let details = 'Exploring Catalog';
+			if (path === '/') details = 'Home Page';
+			else if (path.startsWith('/anime')) details = 'Viewing Anime';
+			else if (path.startsWith('/manga')) details = 'Viewing Manga';
+			else if (path.startsWith('/search')) details = 'Searching';
+			else if (path.startsWith('/profile')) details = 'Viewing Profile';
+			else if (path.startsWith('/settings')) details = 'Configuring Settings';
+
+			discordStore.setActivity({
+				state: 'Browsing Zafkiel',
+				details,
+				largeImage: 'logo',
+				largeText: 'Zafkiel',
+			});
 		}
 	});
 

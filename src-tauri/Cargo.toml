@@ -58,6 +58,7 @@ matroska = "0.30.0"
 zip = { version = "2.1", default-features = false, features = ["deflate"] }
 tauri-plugin-libmpv = "0.3.2"
 raw-window-handle = "0.6"
+discord-rich-presence = "1.1.0"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 webkit2gtk = "2.0"

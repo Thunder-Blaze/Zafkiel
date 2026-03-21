@@ -8,3 +8,4 @@ pub mod image_cache;
 pub mod extensions;
 pub mod downloads;
 pub mod mpv_window;
+pub mod discord;

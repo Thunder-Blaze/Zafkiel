@@ -33,12 +33,14 @@
 	} from 'tauri-plugin-libmpv-api';
 	import type { Episode, StreamSource } from '$lib/types/extensions';
 	import { useConfigState } from '$lib/stores/config.svelte';
+	import { discordStore } from '$lib/stores/discord.svelte';
 
 	let {
 		url,
 		headers = {},
 		title,
 		subtitle,
+		image,
 		onBack,
 		episodes = [],
 		currentEpisode = null,
@@ -51,6 +53,7 @@
 		headers?: Record<string, string>;
 		title?: string;
 		subtitle?: string;
+		image?: string;
 		onBack?: () => void;
 		episodes?: Episode[];
 		currentEpisode?: Episode | null;
@@ -237,6 +240,8 @@
 					'input-default-bindings': 'no',
 					'input-vo-keyboard': 'no',
 					volume: Math.round(volume * 100),
+					'hidpi-window-scale': 'yes',
+					'fbo-format': 'rgba16hf',
 				},
 				observedProperties: OBSERVED_PROPERTIES,
 			}, MPV_WINDOW_LABEL);
@@ -247,6 +252,7 @@
 					switch (name) {
 						case 'pause':
 							isPlaying = data === false;
+							updateDiscordActivity();
 							break;
 						case 'time-pos':
 							if (typeof data === 'number') currentTime = data;
@@ -312,13 +318,18 @@
 
 	$effect(() => {
 		if (!isInitialized || !config.shaderConfig) return;
-		const shaders = config.shaderConfig;
+		
+		// Explicitly access properties here so Svelte 5 tracks them as dependencies
+		const enabled = config.shaderConfig.enabled;
+		const selectedShaders = config.shaderConfig.selected_shaders;
+		
 		const updateShaders = async () => {
 			try {
-				if (shaders.enabled && shaders.selected_shaders.length > 0) {
+				if (enabled && selectedShaders.length > 0) {
 					// Use ; on Windows and : on Unix
 					const separator = navigator.userAgent.toLowerCase().includes('win') ? ';' : ':';
-					await setProperty('glsl-shaders', shaders.selected_shaders.join(separator), MPV_WINDOW_LABEL);
+					const shaderPaths = selectedShaders.join(separator);
+					await setProperty('glsl-shaders', shaderPaths, MPV_WINDOW_LABEL);
 				} else {
 					await setProperty('glsl-shaders', '', MPV_WINDOW_LABEL);
 				}
@@ -329,8 +340,39 @@
 		updateShaders();
 	});
 
+	function updateDiscordActivity() {
+		if (!isInitialized) return;
+        
+        let startTimestamp: number | undefined;
+        let endTimestamp: number | undefined;
+
+        if (isPlaying && duration > 0) {
+            startTimestamp = Math.floor(Date.now() / 1000) - Math.floor(currentTime);
+            endTimestamp = startTimestamp + Math.floor(duration);
+        }
+
+		discordStore.setActivity({
+			state: isPlaying ? 'Watching Episode' : 'Paused',
+			details: title || 'Local Video',
+			largeImage: image || 'logo',
+			largeText: title || 'Zafkiel',
+			smallImage: isPlaying ? 'play' : 'pause',
+			smallText: isPlaying ? 'Playing' : 'Paused',
+			startTimestamp,
+            endTimestamp,
+		});
+	}
+
+	$effect(() => {
+		// Update discord activity when title or isPlaying changes, if initialized
+		if (isInitialized) {
+            updateDiscordActivity();
+        }
+	});
+
 	onDestroy(async () => {
 		playerStore.hide();
+		discordStore.clearActivity();
 		clearTimeout(controlsTimeout);
 		unlistenProps?.();
 		unlistenEvents?.();

@@ -45,9 +45,12 @@ impl<T> ConfigResponse<T> {
 
 /// Get the full application config
 #[tauri::command]
-pub fn get_config(config: State<ConfigState>) -> ConfigResponse<AppConfig> {
+pub fn get_config(app: tauri::AppHandle, config: State<ConfigState>) -> ConfigResponse<AppConfig> {
     match config.get_config() {
-        Ok(cfg) => ConfigResponse::success(cfg),
+        Ok(mut cfg) => {
+            resolve_shader_paths(&app, &mut cfg.player.shaders.selected_shaders);
+            ConfigResponse::success(cfg)
+        },
         Err(e) => ConfigResponse::error(e.to_string()),
     }
 }
@@ -259,9 +262,12 @@ pub fn get_config_path(config: State<ConfigState>) -> ConfigResponse<String> {
 
 /// Get player configuration
 #[tauri::command]
-pub fn get_player_config(config: State<ConfigState>) -> ConfigResponse<PlayerConfig> {
+pub fn get_player_config(app: tauri::AppHandle, config: State<ConfigState>) -> ConfigResponse<PlayerConfig> {
     match config.get_player_config() {
-        Ok(player_config) => ConfigResponse::success(player_config),
+        Ok(mut player_config) => {
+            resolve_shader_paths(&app, &mut player_config.shaders.selected_shaders);
+            ConfigResponse::success(player_config)
+        },
         Err(e) => ConfigResponse::error(e.to_string()),
     }
 }
@@ -303,24 +309,40 @@ pub fn update_shader_config(
     }
 }
 
+/// Helper to resolve ~~/shaders prefix to absolute paths
+fn resolve_shader_paths(app: &tauri::AppHandle, shaders: &mut Vec<String>) {
+    if let Ok(res_dir) = app.path().resource_dir() {
+        let shaders_dir = res_dir.join("shaders");
+        for shader in shaders.iter_mut() {
+            if shader.starts_with("~~/shaders/") {
+                if let Some(name) = shader.strip_prefix("~~/shaders/") {
+                    let abs_path = shaders_dir.join(name);
+                    let normalized = normalize_path_for_asset(&abs_path);
+                    *shader = normalized.replace("\\", "/");
+                }
+            }
+        }
+    }
+}
+
 /// Get available shaders from the bundled resources
 #[tauri::command]
 pub fn get_available_shaders(app: tauri::AppHandle) -> ConfigResponse<Vec<String>> {
     let mut shaders = Vec::new();
     if let Ok(res_dir) = app.path().resource_dir() {
         let shaders_dir = res_dir.join("shaders");
-        if let Ok(entries) = std::fs::read_dir(shaders_dir) {
+        if let Ok(entries) = std::fs::read_dir(&shaders_dir) {
             for entry in entries.flatten() {
                 if let Ok(file_type) = entry.file_type() {
                     if file_type.is_file() {
                         if let Some(ext) = entry.path().extension() {
                             if ext == "glsl" {
-                                if let Some(name) = entry.file_name().to_str() {
-                                    // Map to the internal libmpv virtual path convention ~~/shaders/... 
-                                    // and the external mpv relative equivalent if we decide to maintain parity. 
-                                    // For now, retaining the user's requested format.
-                                    shaders.push(format!("~~/shaders/{}", name));
-                                }
+                                // Join the absolute dir path with the file name to get a full absolute path
+                                let abs_path = entry.path();
+                                // Clean up Windows UNC prefixes and normalize slashes for mpv
+                                let normalized = normalize_path_for_asset(&abs_path);
+                                let path_str = normalized.replace("\\", "/");
+                                shaders.push(path_str);
                             }
                         }
                     }
