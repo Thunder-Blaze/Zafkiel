@@ -38,3 +38,10 @@ export const formatTime = (time: number) => {
 	const minutes = Math.floor((time % (60 * 60)) / 60);
 	return `${days}d ${hours}h ${minutes}m`;
 };
+
+export const formatBytes = (bytes: number): string => {
+	if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toFixed(2)} GiB`;
+	if (bytes >= 1_048_576) return `${(bytes / 1_048_576).toFixed(2)} MiB`;
+	if (bytes >= 1_024) return `${(bytes / 1_024).toFixed(1)} KiB`;
+	return `${bytes} B`;
+};

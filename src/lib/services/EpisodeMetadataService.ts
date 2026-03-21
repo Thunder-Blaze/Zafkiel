@@ -91,11 +91,13 @@ export interface EpisodeTorrentEntry {
 	sizeBytes: number;
 	seeds: number;
 	peers: number;
+	downloads: number;
 	uploadedAt: string;
 	/** Parsed resolution from title (e.g. "1080p") */
 	resolution?: string;
 	/** Fansub group from title (e.g. "SubsPlease") */
 	fansub?: string;
+	languages?: string[];
 	/** AniDB series ID confirmed by Tosho */
 	anidbId?: number;
 	/** AniDB episode ID confirmed by Tosho */
@@ -184,7 +186,9 @@ export async function fetchToshoEpisode(
 	try {
 		const raw = await invoke<string>('fetch_url', { url, headers: null });
 		const data: ToshoRawEntry[] = JSON.parse(raw);
-		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho'));
+		return data
+			.map((e) => normalizeToshoEntry(e, 'Anime Tosho'))
+			.filter((e) => !!e.fansub);
 	} catch {
 		return [];
 	}
@@ -209,7 +213,7 @@ export async function fetchNyaaEpisode(
 
 	try {
 		const xml = await invoke<string>('fetch_url', { url, headers: null });
-		return parseNyaaRss(xml);
+		return parseNyaaRss(xml).filter((e) => !!e.fansub);
 	} catch {
 		return [];
 	}
@@ -223,7 +227,9 @@ export async function searchTosho(query: string, page = 1): Promise<EpisodeTorre
 	try {
 		const raw = await invoke<string>('fetch_url', { url, headers: null });
 		const data: ToshoRawEntry[] = JSON.parse(raw);
-		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho'));
+		return data
+			.map((e) => normalizeToshoEntry(e, 'Anime Tosho'))
+			.filter((e) => !!e.fansub);
 	} catch {
 		return [];
 	}
@@ -267,15 +273,17 @@ function normalizeToshoEntry(
 	provider: EpisodeTorrentEntry['provider']
 ): EpisodeTorrentEntry {
 	return {
-		title: e.title,
+		title: cleanTitle(e.title),
 		magnetUri: e.magnet_uri ?? '',
 		size: formatBytes(e.total_size ?? 0),
 		sizeBytes: e.total_size ?? 0,
-		seeds: e.num_seeders ?? 0,
-		peers: e.num_leechers ?? 0,
+		seeds: e.seeders ?? e.num_seeders ?? 0,
+		peers: e.leechers ?? e.num_leechers ?? 0,
+		downloads: e.torrent_downloaded_count ?? 0,
 		uploadedAt: e.timestamp ? new Date(e.timestamp * 1000).toLocaleDateString() : '',
 		resolution: extractResolution(e.title),
 		fansub: extractFansub(e.title),
+		languages: extractLanguages(e.title),
 		anidbId: e.anidb_aid,
 		anidbEpisodeId: e.anidb_eid,
 		provider,
@@ -303,15 +311,17 @@ function parseNyaaRss(xml: string): EpisodeTorrentEntry[] {
 			: link;
 
 		results.push({
-			title,
+			title: cleanTitle(title),
 			magnetUri: magnet,
 			size: sizeStr,
 			sizeBytes: 0, // not available in RSS
 			seeds,
 			peers,
+			downloads: 0,
 			uploadedAt: pubDate ? new Date(pubDate).toLocaleDateString() : '',
 			resolution: extractResolution(title),
 			fansub: extractFansub(title),
+			languages: extractLanguages(title),
 			provider: 'Nyaa.si',
 		});
 	});
@@ -335,6 +345,23 @@ function extractFansub(title: string): string | undefined {
 	return title.match(/^\[([^\]]+)\]/)?.[1];
 }
 
+function extractLanguages(title: string): string[] {
+	const langs: string[] = [];
+	if (title.match(/\b(Dual-?Audio|Dual Audio)\b/i)) langs.push('Dual Audio');
+	if (title.match(/\b(Multi-?Audio|Multi Audio)\b/i)) langs.push('Multi Audio');
+	if (title.match(/\b((English|Eng)\s*Dub|Dubbed|Dub)\b/i)) langs.push('Eng Dub');
+	if (title.match(/\b(Multi-?Sub|Multi-?Subs)\b/i)) langs.push('Multi-Sub');
+	return langs;
+}
+
+function cleanTitle(title: string): string {
+	let t = title.replace(/\[([^\]]+)\]/g, ''); // Remove [] blocks
+	t = t.replace(/\([^)]+\)/g, ''); // Remove () blocks
+	t = t.replace(/\.(mkv|mp4)$/i, ''); // Remove extension
+	t = t.replace(/[-_]+/g, ' '); // Replace hyphens and underscores with space
+	return t.replace(/\s{2,}/g, ' ').trim(); // Normalize spaces
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Internal Tosho raw API shape (from live API inspection + zenshin analysis)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -344,8 +371,11 @@ interface ToshoRawEntry {
 	title: string;
 	magnet_uri: string;
 	total_size: number;
-	num_seeders: number;
-	num_leechers: number;
+	seeders?: number;
+	leechers?: number;
+	torrent_downloaded_count?: number;
+	num_seeders?: number;
+	num_leechers?: number;
 	timestamp: number;
 	anidb_aid?: number;
 	anidb_eid?: number;
