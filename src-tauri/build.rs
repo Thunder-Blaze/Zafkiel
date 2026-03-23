@@ -16,8 +16,6 @@ fn main() {
         for dll in &[
             "libmpv-wrapper.dll",
             "libmpv-2.dll",
-            "libmpv-1.dll",
-            "libmpv.dll",
         ] {
             let src = lib_dir.join(dll);
             if src.exists() {

@@ -318,7 +318,9 @@ fn resolve_shader_paths(app: &tauri::AppHandle, shaders: &mut Vec<String>) {
                 if let Some(name) = shader.strip_prefix("~~/shaders/") {
                     let abs_path = shaders_dir.join(name);
                     let normalized = normalize_path_for_asset(&abs_path);
-                    *shader = normalized.replace("\\", "/");
+                    let path_str = normalized.replace("\\", "/");
+                    println!("[Config] Resolved {} -> {}", shader, path_str);
+                    *shader = path_str;
                 }
             }
         }

@@ -329,8 +329,10 @@
 					// Use ; on Windows and : on Unix
 					const separator = navigator.userAgent.toLowerCase().includes('win') ? ';' : ':';
 					const shaderPaths = selectedShaders.join(separator);
+					console.log('[mpv] applying glsl-shaders:', shaderPaths);
 					await setProperty('glsl-shaders', shaderPaths, MPV_WINDOW_LABEL);
 				} else {
+					console.log('[mpv] clearing glsl-shaders');
 					await setProperty('glsl-shaders', '', MPV_WINDOW_LABEL);
 				}
 			} catch (e) {
