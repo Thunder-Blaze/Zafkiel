@@ -51,6 +51,8 @@ export interface PlayerConfig {
 	external_player_path: string | null;
 	/** Whether to automatically select the next best stream when switching episodes */
 	auto_select_next_stream: boolean;
+	/** Playback speed */
+	playback_speed: number;
 	/** Dynamic Shader configuration */
 	shaders: ShaderConfig;
 }

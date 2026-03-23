@@ -163,6 +163,7 @@ export const useConfigState = () => {
 				({
 					external_player_path: null,
 					auto_select_next_stream: true,
+					playback_speed: 1.0,
 				} as PlayerConfig)
 			);
 		},
@@ -179,6 +180,18 @@ export const useConfigState = () => {
 				await invoke('update_auto_select_next_stream', { enabled });
 			} catch (error) {
 				console.error('[Config] ✗ Failed to update auto-select next stream:', error);
+			}
+		},
+
+		get playbackSpeed() {
+			return configState?.player.playback_speed ?? 1.0;
+		},
+		setPlaybackSpeed: async (speed: number) => {
+			if (configState) configState.player.playback_speed = speed;
+			try {
+				await invoke('update_playback_speed', { speed });
+			} catch (error) {
+				console.error('[Config] ✗ Failed to update playback speed:', error);
 			}
 		},
 

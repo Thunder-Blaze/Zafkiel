@@ -147,6 +147,16 @@
 		}
 	}
 
+	async function handleSpeedChange(speed: number) {
+		if (!isInitialized) return;
+		config.setPlaybackSpeed(speed);
+		try {
+			await setProperty('speed', speed, MPV_WINDOW_LABEL);
+		} catch (e) {
+			console.error('[mpv] speed error:', e);
+		}
+	}
+
 	function toggleFullscreen() {
 		if (!document.fullscreenElement) {
 			document.documentElement.requestFullscreen();
@@ -239,6 +249,7 @@
 					'osd-level': '0',
 					'input-default-bindings': 'no',
 					'input-vo-keyboard': 'no',
+					speed: config.playbackSpeed,
 					volume: Math.round(volume * 100),
 					'hidpi-window-scale': 'yes',
 					'fbo-format': 'rgba16hf',
@@ -354,7 +365,7 @@
         }
 
 		discordStore.setActivity({
-			state: isPlaying ? 'Watching Episode' : 'Paused',
+			state: isPlaying ? (currentEpisode ? `Watching Episode ${currentEpisode.number}` : 'Watching Video') : 'Paused',
 			details: title || 'Local Video',
 			largeImage: image || 'logo',
 			largeText: title || 'Zafkiel',
@@ -459,6 +470,8 @@
 				onSkipIntro={() => command('seek', ['85', 'relative'], MPV_WINDOW_LABEL)}
 				{isBuffering}
 				onTrackChange={() => {}}
+				playbackSpeed={config.playbackSpeed}
+				onSpeedChange={handleSpeedChange}
 				{episodes}
 				{currentEpisode}
 				{sources}

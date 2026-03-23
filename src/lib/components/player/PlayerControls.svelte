@@ -29,6 +29,8 @@
 		tracks = [],
 		currentTrackIndex = -1,
 		onTrackChange = () => {},
+		playbackSpeed = 1,
+		onSpeedChange = () => {},
 		episodes = [],
 		currentEpisode = null,
 		sources = [],
@@ -56,6 +58,8 @@
 		tracks?: { id: string; label: string; src: string; lang: string }[];
 		currentTrackIndex?: number;
 		onTrackChange?: (index: number) => void;
+		playbackSpeed?: number;
+		onSpeedChange?: (speed: number) => void;
 		episodes?: Episode[];
 		currentEpisode?: Episode | null;
 		sources?: StreamSource[];
@@ -71,9 +75,11 @@
 	let showPlaylist = $state(false);
 	let showQualityMenu = $state(false);
 	let showShaderMenu = $state(false);
+	let showSpeedMenu = $state(false);
+	let showRemainingTime = $state(false);
 
 	let availableShaders = $state<string[]>([]);
-	
+
 	$effect(() => {
 		config.getAvailableShaders().then((s) => {
 			availableShaders = s;
@@ -82,7 +88,8 @@
 
 	// Notify parent when any overlay is open so it can prevent controls timeout
 	$effect(() => {
-		const anyOpen = showPlaylist || showSubtitleMenu || showQualityMenu || showShaderMenu;
+		const anyOpen =
+			showPlaylist || showSubtitleMenu || showQualityMenu || showShaderMenu || showSpeedMenu;
 		onOverlayToggle?.(anyOpen);
 	});
 
@@ -109,15 +116,15 @@
 			label: source.label,
 			fansub: source.fansub,
 			resolution: source.resolution,
-			audio: source.audio
+			audio: source.audio,
 		});
-		
+
 		const parts: string[] = [];
 		if (meta.source) parts.push(`[${meta.source}]`);
 		if (meta.quality) parts.push(meta.quality);
 		if (meta.language === 'dub') parts.push('DUB');
 		else if (meta.language === 'sub') parts.push('SUB');
-		
+
 		return parts.join(' ') || source.label || source.id;
 	}
 
@@ -133,23 +140,31 @@
 <Tooltip.Provider>
 	<!-- Subtle gradients base (playing state) -->
 	<div
-		class="pointer-events-none absolute top-0 right-0 left-0 z-40 h-48 bg-gradient-to-b from-background/80 via-background/20 to-transparent"
+		class={cn(
+			'pointer-events-none absolute top-0 right-0 left-0 z-40 h-48 bg-gradient-to-b from-background/80 via-background/20 to-transparent',
+			isLocked && 'hidden'
+		)}
 	></div>
 	<div
-		class="pointer-events-none absolute right-0 bottom-0 left-0 z-40 h-80 bg-gradient-to-t from-background/90 via-background/40 to-transparent"
+		class={cn(
+			'pointer-events-none absolute right-0 bottom-0 left-0 z-40 h-80 bg-gradient-to-t from-background/90 via-background/40 to-transparent',
+			isLocked && 'hidden'
+		)}
 	></div>
 
 	<!-- Strong gradients overlay (paused state) -->
 	<div
 		class={cn(
 			'pointer-events-none absolute top-0 right-0 left-0 z-40 h-48 bg-gradient-to-b from-background via-background/60 to-transparent transition-opacity duration-300',
-			isPlaying ? 'opacity-0' : 'opacity-60'
+			isPlaying ? 'opacity-0' : 'opacity-60',
+			isLocked && 'hidden'
 		)}
 	></div>
 	<div
 		class={cn(
 			'pointer-events-none absolute right-0 bottom-0 left-0 z-40 h-80 bg-gradient-to-t from-background via-background/75 to-transparent transition-opacity duration-300',
-			isPlaying ? 'opacity-0' : 'opacity-60'
+			isPlaying ? 'opacity-0' : 'opacity-60',
+			isLocked && 'hidden'
 		)}
 	></div>
 
@@ -169,10 +184,13 @@
 						<Button
 							variant="ghost"
 							size="icon"
-							class="h-10 w-10 p-0 text-foreground hover:bg-foreground/20 md:h-12 md:w-12"
+							class="h-10 w-10 rounded-full p-0 text-foreground drop-shadow-[0_0_8px_hsl(var(--background))] backdrop-blur-sm hover:bg-foreground/20 md:h-12 md:w-12"
 							onclick={onLockToggle}
 						>
-							<Icon icon="mingcute:lock-fill" class="h-8 w-8 md:h-10 md:w-10" />
+							<Icon
+								icon="mingcute:lock-fill"
+								class="h-8 w-8 drop-shadow-[0_0_4px_hsl(var(--background))] md:h-10 md:w-10"
+							/>
 						</Button>
 					</Tooltip.Trigger>
 					<Tooltip.Content>
@@ -251,7 +269,7 @@
 						></div>
 						<!-- Visual Thumb (Dot) -->
 						<div
-							class="pointer-events-none absolute z-20 h-4 w-4 rounded-full bg-primary shadow-lg transition-all opacity-0 group-hover/seekbar:opacity-100 md:h-5 md:w-5"
+							class="pointer-events-none absolute z-20 h-4 w-4 rounded-full bg-primary opacity-0 shadow-lg transition-all group-hover/seekbar:opacity-100 md:h-5 md:w-5"
 							style="left: {(currentTime / (duration || 1)) * 100}%; transform: translateX(-50%);"
 						></div>
 						<!-- Slider -->
@@ -268,11 +286,23 @@
 
 					<!-- Time Display -->
 					<div
-						class="pointer-events-none flex shrink-0 justify-end text-xs font-semibold tracking-wide text-foreground/90 md:text-sm"
+						class="pointer-events-auto flex shrink-0 justify-end text-xs font-semibold tracking-wide text-foreground/90 md:text-sm"
 					>
-						<span>{formatTime(currentTime)}</span>
-						<span class="mx-1 text-foreground/50">/</span>
-						<span class="text-foreground/70">{formatTime(duration)}</span>
+						<button
+							class="flex cursor-pointer items-center justify-end whitespace-nowrap transition-colors hover:text-white"
+							onclick={(e) => {
+								e.stopPropagation();
+								showRemainingTime = !showRemainingTime;
+							}}
+						>
+							{#if showRemainingTime}
+								<span>-{formatTime(Math.max(0, duration - currentTime))}</span>
+							{:else}
+								<span>{formatTime(currentTime)}</span>
+								<span class="mx-1 text-foreground/50">/</span>
+								<span class="text-foreground/70">{formatTime(duration)}</span>
+							{/if}
+						</button>
 					</div>
 				</div>
 
@@ -401,6 +431,7 @@
 										showQualityMenu = false;
 										showSubtitleMenu = false;
 										showShaderMenu = false;
+										showSpeedMenu = false;
 									}}
 									disabled={episodes.length === 0}
 								>
@@ -428,6 +459,7 @@
 											showPlaylist = false;
 											showQualityMenu = false;
 											showShaderMenu = false;
+											showSpeedMenu = false;
 										}}
 									>
 										<!-- mingcute doesn't have a specific subtitle CC. Usually closed caption -->
@@ -520,6 +552,7 @@
 												showSubtitleMenu = false;
 												showPlaylist = false;
 												showShaderMenu = false;
+												showSpeedMenu = false;
 											}}
 										>
 											<Icon icon="mingcute:settings-1-fill" class="h-7 w-7 md:h-9 md:w-9" />
@@ -548,7 +581,7 @@
 											<!-- Auto-select Next Stream Toggle -->
 											<button
 												class={cn(
-													'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted mb-1',
+													'mb-1 flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted',
 													config.autoSelectNextStream && 'bg-primary/5 text-primary'
 												)}
 												onclick={(e) => {
@@ -556,21 +589,26 @@
 													config.setAutoSelectNextStream(!config.autoSelectNextStream);
 												}}
 											>
-												<Icon 
-													icon={config.autoSelectNextStream ? 'mingcute:check-circle-fill' : 'mingcute:circle-line'} 
-													class={cn("mr-2.5 h-4 w-4", config.autoSelectNextStream ? "text-primary" : "text-muted-foreground")} 
+												<Icon
+													icon={config.autoSelectNextStream
+														? 'mingcute:check-circle-fill'
+														: 'mingcute:circle-line'}
+													class={cn(
+														'mr-2.5 h-4 w-4',
+														config.autoSelectNextStream ? 'text-primary' : 'text-muted-foreground'
+													)}
 												/>
 												<span class="flex-1 font-medium">Auto-select Next</span>
 											</button>
-											
-											<div class="h-px bg-border/50 my-1 mx-2"></div>
+
+											<div class="mx-2 my-1 h-px bg-border/50"></div>
 
 											{#each sources as source}
 												{@const meta = parseSourceLabel({
 													label: source.label,
 													fansub: source.fansub,
 													resolution: source.resolution,
-													audio: source.audio
+													audio: source.audio,
 												})}
 												<button
 													class={cn(
@@ -589,23 +627,31 @@
 													{:else}
 														<div class="mr-2.5 h-4 w-4"></div>
 													{/if}
-													<div class="flex items-center gap-2 flex-1 min-w-0">
+													<div class="flex min-w-0 flex-1 items-center gap-2">
 														{#if meta.source}
-															<span class="rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold text-foreground uppercase truncate max-w-[80px]">
+															<span
+																class="max-w-[80px] truncate rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold text-foreground uppercase"
+															>
 																{meta.source}
 															</span>
 														{/if}
 														{#if meta.quality}
-															<span class="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+															<span
+																class="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary"
+															>
 																{meta.quality}
 															</span>
 														{/if}
 														{#if meta.language === 'dub'}
-															<span class="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-500">
+															<span
+																class="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-500"
+															>
 																DUB
 															</span>
 														{:else if meta.language === 'sub'}
-															<span class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-500">
+															<span
+																class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-500"
+															>
 																SUB
 															</span>
 														{/if}
@@ -637,6 +683,7 @@
 											showPlaylist = false;
 											showQualityMenu = false;
 											showSubtitleMenu = false;
+											showSpeedMenu = false;
 										}}
 									>
 										<Icon icon="mingcute:magic-2-fill" class="h-7 w-7 md:h-9 md:w-9" />
@@ -664,22 +711,30 @@
 									>
 										<button
 											class={cn(
-												'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted mb-1',
+												'mb-1 flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted',
 												config.shaderConfig.enabled && 'bg-primary/5 text-primary'
 											)}
 											onclick={(e) => {
 												e.stopPropagation();
-												config.setShaderConfig(!config.shaderConfig.enabled, config.shaderConfig.selected_shaders);
+												config.setShaderConfig(
+													!config.shaderConfig.enabled,
+													config.shaderConfig.selected_shaders
+												);
 											}}
 										>
-											<Icon 
-												icon={config.shaderConfig.enabled ? 'mingcute:toggle-right-fill' : 'mingcute:toggle-left-line'} 
-												class={cn("mr-2.5 h-5 w-5", config.shaderConfig.enabled ? "text-primary" : "text-muted-foreground")} 
+											<Icon
+												icon={config.shaderConfig.enabled
+													? 'mingcute:toggle-right-fill'
+													: 'mingcute:toggle-left-line'}
+												class={cn(
+													'mr-2.5 h-5 w-5',
+													config.shaderConfig.enabled ? 'text-primary' : 'text-muted-foreground'
+												)}
 											/>
 											<span class="flex-1 font-medium">Enable Shaders</span>
 										</button>
-										
-										<div class="h-px bg-border/50 my-1 mx-2"></div>
+
+										<div class="mx-2 my-1 h-px bg-border/50"></div>
 
 										{#each config.shaderConfig.selected_shaders as shader}
 											{@const shaderName = shader.split('/').pop()?.replace('.glsl', '') || shader}
@@ -695,14 +750,19 @@
 													config.setShaderConfig(config.shaderConfig.enabled, selected);
 												}}
 											>
-												<Icon icon="mingcute:check-fill" class="mr-2.5 h-4 w-4 text-primary shrink-0" />
+												<Icon
+													icon="mingcute:check-fill"
+													class="mr-2.5 h-4 w-4 shrink-0 text-primary"
+												/>
 												<span class="break-all">{shaderName}</span>
 											</button>
 										{/each}
 
-										<div class="my-1.5 px-3 text-[10px] font-bold text-muted-foreground uppercase">Available</div>
+										<div class="my-1.5 px-3 text-[10px] font-bold text-muted-foreground uppercase">
+											Available
+										</div>
 
-										{#each availableShaders.filter(s => !config.shaderConfig.selected_shaders.includes(s)) as shader}
+										{#each availableShaders.filter((s) => !config.shaderConfig.selected_shaders.includes(s)) as shader}
 											{@const shaderName = shader.split('/').pop()?.replace('.glsl', '') || shader}
 											<button
 												class="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
@@ -714,6 +774,76 @@
 											>
 												<div class="mr-2.5 h-4 w-4 shrink-0"></div>
 												<span class="break-all text-foreground/80">{shaderName}</span>
+											</button>
+										{/each}
+									</div>
+								</div>
+							{/if}
+						</div>
+
+						<div class="relative">
+							<Tooltip.Root>
+								<Tooltip.Trigger>
+									<Button
+										variant="ghost"
+										size="icon"
+										class={cn(
+											'h-8 w-8 min-w-[2.5rem] p-0 text-foreground transition-colors hover:bg-foreground/20 md:h-10 md:w-10',
+											showSpeedMenu && 'bg-foreground/20 text-primary'
+										)}
+										onclick={(e) => {
+											e.stopPropagation();
+											showSpeedMenu = !showSpeedMenu;
+											showPlaylist = false;
+											showQualityMenu = false;
+											showSubtitleMenu = false;
+											showShaderMenu = false;
+										}}
+									>
+										<div class="pl-0 text-xs font-bold md:text-sm">{playbackSpeed}x</div>
+									</Button>
+								</Tooltip.Trigger>
+								<Tooltip.Content>
+									<p>Playback Speed</p>
+								</Tooltip.Content>
+							</Tooltip.Root>
+
+							{#if showSpeedMenu}
+								<div
+									class="absolute right-0 bottom-full z-50 mb-4 flex w-32 origin-bottom-right flex-col rounded-xl border border-border bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl"
+									transition:scale={{ duration: 150, start: 0.95, opacity: 0 }}
+								>
+									<div
+										class="mb-1 shrink-0 border-b border-border px-3 py-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+									>
+										Speed
+									</div>
+									<div
+										class="max-h-[300px] w-full overflow-y-auto pr-1"
+										data-lenis-prevent="true"
+										onwheel={(e) => e.stopPropagation()}
+									>
+										{#each [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 3, 4] as speed}
+											<button
+												class={cn(
+													'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted',
+													playbackSpeed === speed && 'bg-primary/10 font-medium text-primary'
+												)}
+												onclick={(e) => {
+													e.stopPropagation();
+													onSpeedChange(speed);
+													showSpeedMenu = false;
+												}}
+											>
+												{#if playbackSpeed === speed}
+													<Icon
+														icon="mingcute:check-fill"
+														class="mr-2.5 h-4 w-4 shrink-0 text-primary"
+													/>
+												{:else}
+													<div class="mr-2.5 h-4 w-4 shrink-0"></div>
+												{/if}
+												<span class="truncate">{speed}x</span>
 											</button>
 										{/each}
 									</div>
@@ -795,7 +925,7 @@
 		<!-- Backdrop for closing when clicking outside -->
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div 
+		<div
 			class="absolute inset-0 z-[55] bg-black/20 backdrop-blur-sm"
 			transition:fade={{ duration: 200 }}
 			onclick={() => (showPlaylist = false)}

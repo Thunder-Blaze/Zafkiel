@@ -17,6 +17,7 @@
 import type { Episode, StreamSource } from '$lib/types/extensions';
 	import Hls from 'hls.js';
 	import { discordStore } from '$lib/stores/discord.svelte';
+	import { useConfigState } from '$lib/stores/config.svelte';
 
 	let {
 		src,
@@ -69,6 +70,20 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 	let overlayOpen = $state(false);
 
 	let hlsInstance: Hls | null = null;
+	const config = useConfigState();
+
+	$effect(() => {
+		if (videoElement) {
+			videoElement.playbackRate = config.playbackSpeed;
+		}
+	});
+
+	function handleSpeedChange(speed: number) {
+		config.setPlaybackSpeed(speed);
+		if (videoElement) {
+			videoElement.playbackRate = speed;
+		}
+	}
 
 	/**
 	 * Returns a custom hls.js loader class that routes every manifest and segment
@@ -523,7 +538,7 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 		}
 
 		discordStore.setActivity({
-			state: isPlaying ? 'Watching Episode' : 'Paused',
+			state: isPlaying ? (currentEpisode ? `Watching Episode ${currentEpisode.number}` : 'Watching Video') : 'Paused',
 			details: title || 'Local Video',
 			largeImage: image || 'logo',
 			largeText: title || 'Zafkiel',
@@ -655,6 +670,8 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 					onSkipIntro={handleSkipIntro}
 					{isBuffering}
 					onTrackChange={handleTrackChange}
+					playbackSpeed={config.playbackSpeed}
+					onSpeedChange={handleSpeedChange}
 				{episodes}
 				{currentEpisode}
 				sources={sources}
