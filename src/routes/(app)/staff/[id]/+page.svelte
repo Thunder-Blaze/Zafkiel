@@ -23,7 +23,7 @@
 
 	let isFavourite = $state(false);
 	let favouritesCount = $state(0);
-	
+
 	$effect(() => {
 		if (staff) {
 			isFavourite = staff?.isFavourite || false;
@@ -39,7 +39,7 @@
 			return;
 		}
 		if (isToggling || !staff) return;
-		
+
 		isToggling = true;
 		try {
 			const res = await invoke<any>('favourite_staff', { id: staff.id });
@@ -109,7 +109,7 @@
 							/>
 						{:else}
 							<div
-								class="mx-auto flex h-80 w-56 items-center justify-center rounded-xl bg-muted md:mx-0 shadow-2xl"
+								class="mx-auto flex h-80 w-56 items-center justify-center rounded-xl bg-muted shadow-2xl md:mx-0"
 							>
 								<Icon icon="solar:user-bold" class="h-20 w-20 text-muted-foreground" />
 							</div>
@@ -117,29 +117,34 @@
 					</div>
 
 					<!-- Main Info -->
-					<div class="flex flex-1 flex-col justify-end pb-0 space-y-4 md:space-y-0">
+					<div class="flex flex-1 flex-col justify-end space-y-4 pb-0 md:space-y-0">
 						<div>
-							<h1 class="mb-2 text-4xl font-bold md:text-5xl lg:text-6xl text-pretty">
+							<h1 class="mb-2 text-4xl font-bold text-pretty md:text-5xl lg:text-6xl">
 								{getTitle(staff.name)}
 							</h1>
 							{#if staff.name?.native}
-								<h2 class="text-xl text-muted-foreground mb-5">{staff.name.native}</h2>
+								<h2 class="mb-5 text-xl text-muted-foreground">{staff.name.native}</h2>
 							{/if}
 
-					<!-- Quick Info -->
+							<!-- Quick Info -->
 							<div class="mt-6 mb-6 flex flex-wrap items-center gap-3">
 								<button
-									class="inline-flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 active:scale-95 disabled:pointer-events-none disabled:opacity-50 {isFavourite ? 'border border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/25 dark:border-[#E85D75]/30 dark:bg-[#E85D75]/15 dark:text-[#E85D75] dark:hover:bg-[#E85D75]/25' : 'border border-border/50 bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground'}"
+									class="inline-flex cursor-pointer items-center gap-2 rounded-md px-3.5 py-1.5 text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 active:scale-95 disabled:pointer-events-none disabled:opacity-50 {isFavourite
+										? 'border border-destructive/30 bg-destructive/15 text-destructive hover:bg-destructive/25 dark:border-[#E85D75]/30 dark:bg-[#E85D75]/15 dark:text-[#E85D75] dark:hover:bg-[#E85D75]/25'
+										: 'border border-border/50 bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground'}"
 									onclick={toggleFavourite}
 									disabled={isToggling}
-									aria-label={isFavourite ? "Remove from favourites" : "Add to favourites"}
+									aria-label={isFavourite ? 'Remove from favourites' : 'Add to favourites'}
 								>
 									{#if isToggling}
 										<Icon icon="solar:spinner-bold" class="h-4 w-4 animate-spin" />
 									{:else}
-										<Icon icon={isFavourite ? "solar:heart-bold" : "solar:heart-linear"} class="h-4 w-4" />
+										<Icon
+											icon={isFavourite ? 'solar:heart-bold' : 'solar:heart-linear'}
+											class="h-4 w-4"
+										/>
 									{/if}
-									
+
 									{#if favouritesCount > 0}
 										{(favouritesCount >= 1000
 											? (favouritesCount / 1000).toFixed(1) + 'k'
@@ -149,12 +154,16 @@
 									{/if}
 								</button>
 								{#if staff.gender}
-									<div class="inline-flex items-center rounded-md bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground shadow-sm">
+									<div
+										class="inline-flex items-center rounded-md bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground shadow-sm"
+									>
 										{staff.gender}
 									</div>
 								{/if}
 								{#if staff.age}
-									<div class="inline-flex items-center rounded-md bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground shadow-sm">
+									<div
+										class="inline-flex items-center rounded-md bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground shadow-sm"
+									>
 										Age: {staff.age}
 									</div>
 								{/if}
@@ -163,25 +172,33 @@
 
 						<!-- Content Tabs -->
 						<div class="w-full border-b border-border/40">
-							<div class="inline-flex h-9 w-full sm:w-auto items-center justify-start text-muted-foreground">
+							<div
+								class="inline-flex h-9 w-full items-center justify-start text-muted-foreground sm:w-auto"
+							>
 								<button
-									onclick={() => activeTab = 'overview'}
-									class={"flex-1 sm:flex-none border-b-2 px-6 h-full font-medium transition-colors hover:text-foreground text-sm flex items-center justify-center " +
-										(activeTab === 'overview' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground')}
+									onclick={() => (activeTab = 'overview')}
+									class={'flex h-full flex-1 items-center justify-center border-b-2 px-6 text-sm font-medium transition-colors hover:text-foreground sm:flex-none ' +
+										(activeTab === 'overview'
+											? 'border-primary text-foreground'
+											: 'border-transparent text-muted-foreground')}
 								>
 									Overview
 								</button>
 								<button
-									onclick={() => activeTab = 'media'}
-									class={"flex-1 sm:flex-none border-b-2 px-6 h-full font-medium transition-colors hover:text-foreground text-sm flex items-center justify-center " +
-										(activeTab === 'media' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground')}
+									onclick={() => (activeTab = 'media')}
+									class={'flex h-full flex-1 items-center justify-center border-b-2 px-6 text-sm font-medium transition-colors hover:text-foreground sm:flex-none ' +
+										(activeTab === 'media'
+											? 'border-primary text-foreground'
+											: 'border-transparent text-muted-foreground')}
 								>
 									Production Roles
 								</button>
 								<button
-									onclick={() => activeTab = 'characters'}
-									class={"flex-1 sm:flex-none border-b-2 px-6 h-full font-medium transition-colors hover:text-foreground text-sm flex items-center justify-center " +
-										(activeTab === 'characters' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground')}
+									onclick={() => (activeTab = 'characters')}
+									class={'flex h-full flex-1 items-center justify-center border-b-2 px-6 text-sm font-medium transition-colors hover:text-foreground sm:flex-none ' +
+										(activeTab === 'characters'
+											? 'border-primary text-foreground'
+											: 'border-transparent text-muted-foreground')}
 								>
 									Voice Roles
 								</button>
@@ -198,7 +215,9 @@
 						<div class="space-y-8 lg:col-span-2">
 							<!-- Description -->
 							{#if staff.description}
-								<div class="custom-scrollbar text-sm leading-relaxed text-foreground/90 markdown-wrapper">
+								<div
+									class="custom-scrollbar markdown-wrapper text-sm leading-relaxed text-foreground/90"
+								>
 									<MarkdownRenderer body={staff.description} />
 								</div>
 							{/if}

@@ -177,7 +177,10 @@ export class ConfigService {
 	 * Update shader configuration
 	 */
 	static async updateShaderConfig(enabled: boolean, selectedShaders: string[]): Promise<void> {
-		const response = await invoke<ConfigResponse<void>>('update_shader_config', { enabled, selectedShaders });
+		const response = await invoke<ConfigResponse<void>>('update_shader_config', {
+			enabled,
+			selectedShaders,
+		});
 		if (!response.success) {
 			throw new Error(response.error || 'Failed to update shader config');
 		}

@@ -24,13 +24,13 @@
 										last: '',
 										full: 'Unknown',
 										native: '',
-										userPreferred: 'Unknown'
+										userPreferred: 'Unknown',
 									},
 									image: {
 										large: edge.node.image?.large || '/api/placeholder/230/345',
-										medium: edge.node.image?.medium || '/api/placeholder/115/172'
+										medium: edge.node.image?.medium || '/api/placeholder/115/172',
 									},
-									role: edge.role || 'Staff'
+									role: edge.role || 'Staff',
 								}
 							: null
 					)

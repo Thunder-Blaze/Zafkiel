@@ -107,9 +107,11 @@
 	     viewport hole — render it directly at the top level instead. -->
 	<VideoPlayer url={currentSrc} {title} onBack={() => (open = false)} />
 	<!-- Mode switcher floats above the VideoPlayer's z-[100] overlay -->
-	<div class="fixed top-3 left-1/2 z-[101] flex -translate-x-1/2 overflow-hidden rounded-full border border-white/20 bg-black/60 backdrop-blur-sm">
+	<div
+		class="fixed top-3 left-1/2 z-[101] flex -translate-x-1/2 overflow-hidden rounded-full border border-white/20 bg-black/60 backdrop-blur-sm"
+	>
 		<button
-			class="flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors text-white/50 hover:text-white"
+			class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-white/50 transition-colors hover:text-white"
 			onclick={() => (playerMode = 'internal')}
 			title="Browser (hls.js)"
 		>
@@ -118,7 +120,7 @@
 		</button>
 		<div class="w-px bg-white/20"></div>
 		<button
-			class="flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors bg-white/20 text-white"
+			class="flex items-center gap-1.5 bg-white/20 px-3 py-1.5 text-xs text-white transition-colors"
 			onclick={() => (playerMode = 'libmpv')}
 			title="Libmpv (hardware-accelerated)"
 		>
@@ -129,83 +131,87 @@
 {/if}
 
 {#if playerMode === 'internal'}
-<Dialog
-	bind:open={open}
-	onOpenChange={(v) => {
-		if (!v) open = false;
-	}}
->
-	<DialogContent
-		class="flex h-[90vh] w-[90vw] max-w-none sm:max-w-none flex-row rounded-xl gap-0 overflow-hidden border-none bg-black p-0 shadow-2xl [&>button]:hidden"
+	<Dialog
+		bind:open
+		onOpenChange={(v) => {
+			if (!v) open = false;
+		}}
 	>
-		{#if open && playerMode === 'internal'}
-			<div
-				class={clsx(
-					'relative flex-1 transition-all duration-300',
-					showPlaylist && files.length > 1 ? 'w-[75%]' : 'w-full'
-				)}
-			>
-				<InternalPlayer src={currentSrc} {title} onBack={() => (open = false)} />
+		<DialogContent
+			class="flex h-[90vh] w-[90vw] max-w-none flex-row gap-0 overflow-hidden rounded-xl border-none bg-black p-0 shadow-2xl sm:max-w-none [&>button]:hidden"
+		>
+			{#if open && playerMode === 'internal'}
+				<div
+					class={clsx(
+						'relative flex-1 transition-all duration-300',
+						showPlaylist && files.length > 1 ? 'w-[75%]' : 'w-full'
+					)}
+				>
+					<InternalPlayer src={currentSrc} {title} onBack={() => (open = false)} />
 
-				<!-- Player mode switcher overlay -->
-				<div class="absolute top-3 left-1/2 z-50 flex -translate-x-1/2 overflow-hidden rounded-full border border-white/20 bg-black/60 backdrop-blur-sm">
-					<button
-						class="flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors bg-white/20 text-white"
-						onclick={() => (playerMode = 'internal')}
-						title="Browser (hls.js)"
+					<!-- Player mode switcher overlay -->
+					<div
+						class="absolute top-3 left-1/2 z-50 flex -translate-x-1/2 overflow-hidden rounded-full border border-white/20 bg-black/60 backdrop-blur-sm"
 					>
-						<Icon icon="solar:monitor-smartphone-bold-duotone" class="size-3.5" />
-						Browser
-					</button>
-					<div class="w-px bg-white/20"></div>
-					<button
-						class="flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors text-white/50 hover:text-white"
-						onclick={() => (playerMode = 'libmpv')}
-						title="Libmpv (hardware-accelerated)"
-					>
-						<Icon icon="solar:play-circle-bold-duotone" class="size-3.5" />
-						Libmpv
-					</button>
-				</div>
-				{#if files.length > 1}
-					<Button
-						variant="ghost"
-						size="icon"
-						class="absolute top-4 right-4 z-50 bg-black/20 text-white/50 hover:bg-black/40 hover:text-white"
-						onclick={() => (showPlaylist = !showPlaylist)}
-					>
-						<Icon icon="lucide:list-video" class="h-6 w-6" />
-					</Button>
-				{/if}
-			</div>
-
-			{#if showPlaylist && files.length > 1}
-				<div class="flex h-full w-[20rem] shrink-0 flex-col border-l border-white/10 bg-[#1a1a1a]">
-					<div class="border-b border-white/10 p-4">
-						<h3 class="mb-1 font-bold text-white">Playlist</h3>
-						<p class="text-xs text-white/50">{files.length} Files</p>
+						<button
+							class="flex items-center gap-1.5 bg-white/20 px-3 py-1.5 text-xs text-white transition-colors"
+							onclick={() => (playerMode = 'internal')}
+							title="Browser (hls.js)"
+						>
+							<Icon icon="solar:monitor-smartphone-bold-duotone" class="size-3.5" />
+							Browser
+						</button>
+						<div class="w-px bg-white/20"></div>
+						<button
+							class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-white/50 transition-colors hover:text-white"
+							onclick={() => (playerMode = 'libmpv')}
+							title="Libmpv (hardware-accelerated)"
+						>
+							<Icon icon="solar:play-circle-bold-duotone" class="size-3.5" />
+							Libmpv
+						</button>
 					</div>
-					<ScrollArea class="flex-1">
-						<div class="flex flex-col gap-1 p-2">
-							{#each files as file}
-								<button
-									class={clsx(
-										'flex w-full flex-col items-start rounded p-3 text-left transition-colors',
-										currentFileId === file.id
-											? 'bg-white/10 text-white'
-											: 'text-white/60 hover:bg-white/5 hover:text-white'
-									)}
-									onclick={() => selectFile(file)}
-								>
-									<span class="line-clamp-2 w-full text-sm font-medium">{file.name}</span>
-									<span class="mt-1 text-xs opacity-50">{formatSize(file.size)}</span>
-								</button>
-							{/each}
-						</div>
-					</ScrollArea>
+					{#if files.length > 1}
+						<Button
+							variant="ghost"
+							size="icon"
+							class="absolute top-4 right-4 z-50 bg-black/20 text-white/50 hover:bg-black/40 hover:text-white"
+							onclick={() => (showPlaylist = !showPlaylist)}
+						>
+							<Icon icon="lucide:list-video" class="h-6 w-6" />
+						</Button>
+					{/if}
 				</div>
+
+				{#if showPlaylist && files.length > 1}
+					<div
+						class="flex h-full w-[20rem] shrink-0 flex-col border-l border-white/10 bg-[#1a1a1a]"
+					>
+						<div class="border-b border-white/10 p-4">
+							<h3 class="mb-1 font-bold text-white">Playlist</h3>
+							<p class="text-xs text-white/50">{files.length} Files</p>
+						</div>
+						<ScrollArea class="flex-1">
+							<div class="flex flex-col gap-1 p-2">
+								{#each files as file}
+									<button
+										class={clsx(
+											'flex w-full flex-col items-start rounded p-3 text-left transition-colors',
+											currentFileId === file.id
+												? 'bg-white/10 text-white'
+												: 'text-white/60 hover:bg-white/5 hover:text-white'
+										)}
+										onclick={() => selectFile(file)}
+									>
+										<span class="line-clamp-2 w-full text-sm font-medium">{file.name}</span>
+										<span class="mt-1 text-xs opacity-50">{formatSize(file.size)}</span>
+									</button>
+								{/each}
+							</div>
+						</ScrollArea>
+					</div>
+				{/if}
 			{/if}
-		{/if}
-	</DialogContent>
-</Dialog>
+		</DialogContent>
+	</Dialog>
 {/if}

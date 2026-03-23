@@ -18,7 +18,7 @@
 
 	// ── Search & Filter State ────────────────────────────────────────────────
 	const urlParams = $derived(page.url.searchParams);
-	
+
 	let searchQuery = $state('');
 	let selectedGenre = $state('Any');
 	let selectedYear = $state('Any');
@@ -43,12 +43,12 @@
 	// Check if active filters exist
 	const hasFilters = $derived(
 		searchQuery !== '' ||
-		selectedGenre !== 'Any' ||
-		selectedYear !== 'Any' ||
-		selectedSeason !== 'Any' ||
-		selectedFormat !== 'Any' ||
-		selectedStatus !== 'Any' ||
-		Object.values(advancedState).flat().length > 0
+			selectedGenre !== 'Any' ||
+			selectedYear !== 'Any' ||
+			selectedSeason !== 'Any' ||
+			selectedFormat !== 'Any' ||
+			selectedStatus !== 'Any' ||
+			Object.values(advancedState).flat().length > 0
 	);
 
 	// Update URL when filters change
@@ -71,24 +71,32 @@
 	const browseParams = $derived<BrowseParams>({
 		mediaType: 'ANIME',
 		search: searchQuery || undefined,
-		format: selectedFormat !== 'Any' ? selectedFormat.replace(/\s+/g, '_') as any : undefined,
-		status: selectedStatus !== 'Any' ? selectedStatus.replace(/\s+/g, '_') as any : undefined,
-		season: selectedSeason !== 'Any' ? selectedSeason.toUpperCase() as any : undefined,
+		format: selectedFormat !== 'Any' ? (selectedFormat.replace(/\s+/g, '_') as any) : undefined,
+		status: selectedStatus !== 'Any' ? (selectedStatus.replace(/\s+/g, '_') as any) : undefined,
+		season: selectedSeason !== 'Any' ? (selectedSeason.toUpperCase() as any) : undefined,
 		seasonYear: selectedYear !== 'Any' ? parseInt(selectedYear) : undefined,
 		genres: selectedGenre !== 'Any' ? [selectedGenre] : undefined,
 		page: currentPage,
 		perPage: 30,
-		sortBy: ['POPULARITY_DESC']
+		sortBy: ['POPULARITY_DESC'],
 	});
 
 	// ── Data Queries ───────────────────────────────────────────────────────────
 	const trendingQ = useTrendingAnime({ page: 1, perPage: 20 });
-	const trending = $derived<Media[]>(Array.isArray(trendingQ.data?.data) ? trendingQ.data.data as Media[] : []);
+	const trending = $derived<Media[]>(
+		Array.isArray(trendingQ.data?.data) ? (trendingQ.data.data as Media[]) : []
+	);
 	const heroes = $derived(trending.filter((m) => m.bannerImage).slice(0, 8));
 
 	// The filtered results (only enabled when filters are active or when navigating sections)
 	const filteredQuery = useBrowseMedia(() => browseParams);
-	const filteredMedia = $derived<Media[]>(Array.isArray(filteredQuery.data?.data?.data) ? filteredQuery.data.data.data as Media[] : Array.isArray(filteredQuery.data?.data) ? filteredQuery.data.data as Media[] : []);
+	const filteredMedia = $derived<Media[]>(
+		Array.isArray(filteredQuery.data?.data?.data)
+			? (filteredQuery.data.data.data as Media[])
+			: Array.isArray(filteredQuery.data?.data)
+				? (filteredQuery.data.data as Media[])
+				: []
+	);
 	const pageInfo = $derived(filteredQuery.data?.data?.pageInfo);
 
 	// Fallback section queries
@@ -96,13 +104,25 @@
 		() => ({ mediaType: 'ANIME', sortBy: ['POPULARITY_DESC'], page: 1, perPage: 20 }),
 		() => ({ enabled: !hasFilters })
 	);
-	const popular = $derived<Media[]>(Array.isArray(popularQ.data?.data?.data) ? popularQ.data.data.data as Media[] : Array.isArray(popularQ.data?.data) ? popularQ.data.data as Media[] : []);
+	const popular = $derived<Media[]>(
+		Array.isArray(popularQ.data?.data?.data)
+			? (popularQ.data.data.data as Media[])
+			: Array.isArray(popularQ.data?.data)
+				? (popularQ.data.data as Media[])
+				: []
+	);
 
 	const moviesQ = useBrowseMedia(
 		() => ({ mediaType: 'ANIME', format: 'MOVIE', sortBy: ['SCORE_DESC'], page: 1, perPage: 20 }),
 		() => ({ enabled: !hasFilters })
 	);
-	const movies = $derived<Media[]>(Array.isArray(moviesQ.data?.data?.data) ? moviesQ.data.data.data as Media[] : Array.isArray(moviesQ.data?.data) ? moviesQ.data.data as Media[] : []);
+	const movies = $derived<Media[]>(
+		Array.isArray(moviesQ.data?.data?.data)
+			? (moviesQ.data.data.data as Media[])
+			: Array.isArray(moviesQ.data?.data)
+				? (moviesQ.data.data as Media[])
+				: []
+	);
 
 	// ── Add to List ────────────────────────────────────────────────────────────
 	const addToListMutation = useAddAnimeToList();
@@ -153,8 +173,10 @@
 	{/if}
 
 	<!-- ── Search Filters ───────────────────────────────────────────────────── -->
-	<div class="sticky top-0 z-30 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-		<SearchFilters 
+	<div
+		class="sticky top-0 z-30 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+	>
+		<SearchFilters
 			type="ANIME"
 			bind:searchQuery
 			bind:selectedGenre
@@ -173,7 +195,7 @@
 				<h2 class="text-xl font-bold">Search Results</h2>
 				<span class="text-sm text-muted-foreground">{pageInfo?.total || 0} items</span>
 			</div>
-			
+
 			{#if filteredQuery.isLoading}
 				<div class="flex h-48 items-center justify-center">
 					<Icon icon="solar:spinner-bold" class="h-6 w-6 animate-spin text-muted-foreground" />
@@ -185,7 +207,10 @@
 					<p class="text-sm text-muted-foreground">Try adjusting your filters.</p>
 				</div>
 			{:else}
-				<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7" use:gsapReveal>
+				<div
+					class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7"
+					use:gsapReveal
+				>
 					{#each filteredMedia as media (media.id)}
 						<MediaCard {media} />
 					{/each}

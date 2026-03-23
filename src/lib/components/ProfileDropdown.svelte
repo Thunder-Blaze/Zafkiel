@@ -132,7 +132,15 @@
 					{ type: 'separator' as const },
 				]
 			: []),
-		{ icon: 'solar:logout-2-bold', label: 'Logout', action: async () => { await authStore.logout(); goto('/'); }, danger: true },
+		{
+			icon: 'solar:logout-2-bold',
+			label: 'Logout',
+			action: async () => {
+				await authStore.logout();
+				goto('/');
+			},
+			danger: true,
+		},
 	]);
 
 	// Menu items for guest users

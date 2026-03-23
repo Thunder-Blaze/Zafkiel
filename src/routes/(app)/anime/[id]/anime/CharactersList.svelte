@@ -4,12 +4,12 @@
 	import CharacterCard, { type Character } from './CharacterCard.svelte';
 	import { createVirtualizer } from '@tanstack/svelte-virtual';
 
-	let { 
-		characters = [], 
+	let {
+		characters = [],
 		isLoading = false,
 		isFetchingNextPage = false,
 		hasNextPage = false,
-		onFetchNextPage = () => {}
+		onFetchNextPage = () => {},
 	} = $props<{
 		characters: Character[];
 		isLoading: boolean;
@@ -50,12 +50,7 @@
 		const virtualItems = $virtualizer.getVirtualItems();
 		if (virtualItems.length > 0) {
 			const lastItem = virtualItems[virtualItems.length - 1];
-			if (
-				lastItem.index >= rows.length - 1 &&
-				hasNextPage &&
-				!isFetchingNextPage &&
-				!isLoading
-			) {
+			if (lastItem.index >= rows.length - 1 && hasNextPage && !isFetchingNextPage && !isLoading) {
 				onFetchNextPage();
 			}
 		}
@@ -66,7 +61,7 @@
 		return {
 			destroy() {
 				$virtualizer.measureElement(node);
-			}
+			},
 		};
 	}
 </script>
@@ -76,9 +71,9 @@
 		<Icon icon="solar:refresh-circle-line-duotone" class="h-8 w-8 animate-spin text-primary" />
 	</div>
 {:else if characters.length > 0}
-	<div 
+	<div
 		bind:this={scrollContainer}
-		class="h-[70vh] w-full overflow-y-auto pr-2 custom-scrollbar"
+		class="custom-scrollbar h-[70vh] w-full overflow-y-auto pr-2"
 		data-lenis-prevent="true"
 	>
 		<div style="height: {$virtualizer.getTotalSize()}px; width: 100%; position: relative;">
@@ -127,4 +122,3 @@
 		background: var(--primary);
 	}
 </style>
-

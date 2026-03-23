@@ -3,8 +3,17 @@
  * Updated to use only fetch commands from anilist_moe crate
  */
 
-import { createQuery, createMutation, createInfiniteQuery, useQueryClient } from '@tanstack/svelte-query';
-import type { CreateQueryOptions, CreateInfiniteQueryOptions, InfiniteData } from '@tanstack/svelte-query';
+import {
+	createQuery,
+	createMutation,
+	createInfiniteQuery,
+	useQueryClient,
+} from '@tanstack/svelte-query';
+import type {
+	CreateQueryOptions,
+	CreateInfiniteQueryOptions,
+	InfiniteData,
+} from '@tanstack/svelte-query';
 import {
 	animeApi,
 	mangaApi,
@@ -202,9 +211,23 @@ export function useInfiniteAnimeCharactersById(
 	id: number,
 	perPage: number = 25,
 	language?: string,
-	options?: Partial<CreateInfiniteQueryOptions<AniListResponse<Media>, Error, InfiniteData<AniListResponse<Media>, number>, any, number>>
+	options?: Partial<
+		CreateInfiniteQueryOptions<
+			AniListResponse<Media>,
+			Error,
+			InfiniteData<AniListResponse<Media>, number>,
+			any,
+			number
+		>
+	>
 ) {
-	return createInfiniteQuery<AniListResponse<Media>, Error, InfiniteData<AniListResponse<Media>, number>, any, number>(() => ({
+	return createInfiniteQuery<
+		AniListResponse<Media>,
+		Error,
+		InfiniteData<AniListResponse<Media>, number>,
+		any,
+		number
+	>(() => ({
 		queryKey: [...anilistKeys.anime.detail(id), 'characters', 'infinite', perPage, language],
 		queryFn: ({ pageParam }) =>
 			animeApi.getCharactersById(id, pageParam as number, perPage, language),
@@ -215,7 +238,9 @@ export function useInfiniteAnimeCharactersById(
 		},
 		getPreviousPageParam: (firstPage) => {
 			const pageInfo = (firstPage.data as AnimeLarge | undefined)?.characters?.pageInfo;
-			return pageInfo?.currentPage && pageInfo.currentPage > 1 ? pageInfo.currentPage - 1 : undefined;
+			return pageInfo?.currentPage && pageInfo.currentPage > 1
+				? pageInfo.currentPage - 1
+				: undefined;
 		},
 		staleTime: defaultStaleTime.detail,
 		enabled: id > 0,
@@ -229,12 +254,25 @@ export function useInfiniteAnimeCharactersById(
 export function useInfiniteAnimeStaffById(
 	id: number,
 	perPage: number = 25,
-	options?: Partial<CreateInfiniteQueryOptions<AniListResponse<Media>, Error, InfiniteData<AniListResponse<Media>, number>, any, number>>
+	options?: Partial<
+		CreateInfiniteQueryOptions<
+			AniListResponse<Media>,
+			Error,
+			InfiniteData<AniListResponse<Media>, number>,
+			any,
+			number
+		>
+	>
 ) {
-	return createInfiniteQuery<AniListResponse<Media>, Error, InfiniteData<AniListResponse<Media>, number>, any, number>(() => ({
+	return createInfiniteQuery<
+		AniListResponse<Media>,
+		Error,
+		InfiniteData<AniListResponse<Media>, number>,
+		any,
+		number
+	>(() => ({
 		queryKey: [...anilistKeys.anime.detail(id), 'staff', 'infinite', perPage],
-		queryFn: ({ pageParam }) =>
-			animeApi.getStaffById(id, pageParam as number, perPage),
+		queryFn: ({ pageParam }) => animeApi.getStaffById(id, pageParam as number, perPage),
 		initialPageParam: 1,
 		getNextPageParam: (lastPage) => {
 			const pageInfo = (lastPage.data as AnimeLarge | undefined)?.staff?.pageInfo;
@@ -242,14 +280,15 @@ export function useInfiniteAnimeStaffById(
 		},
 		getPreviousPageParam: (firstPage) => {
 			const pageInfo = (firstPage.data as AnimeLarge | undefined)?.staff?.pageInfo;
-			return pageInfo?.currentPage && pageInfo.currentPage > 1 ? pageInfo.currentPage - 1 : undefined;
+			return pageInfo?.currentPage && pageInfo.currentPage > 1
+				? pageInfo.currentPage - 1
+				: undefined;
 		},
 		staleTime: defaultStaleTime.detail,
 		enabled: id > 0,
 		...options,
 	}));
 }
-
 
 /**
  * Get trending anime with caching

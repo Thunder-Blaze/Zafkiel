@@ -200,7 +200,7 @@ export const useConfigState = () => {
 				configState?.player?.shaders ||
 				({
 					enabled: false,
-					selected_shaders: []
+					selected_shaders: [],
 				} as import('$lib/types/config').ShaderConfig)
 			);
 		},
@@ -216,7 +216,10 @@ export const useConfigState = () => {
 		},
 		getAvailableShaders: async () => {
 			try {
-				const response = await invoke<import('$lib/services/config').ConfigResponse<string[]>>('get_available_shaders');
+				const response =
+					await invoke<import('$lib/services/config').ConfigResponse<string[]>>(
+						'get_available_shaders'
+					);
 				if (response.success && response.data) {
 					return response.data;
 				}

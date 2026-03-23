@@ -22,9 +22,7 @@ const SUB_RE = /\b(sub|jpn|japanese)\b/i;
  * a `StreamSource` (fansub, resolution, audio).
  */
 export function parseSourceLabel(
-	labelOrFields:
-		| string
-		| { label?: string; fansub?: string; resolution?: string; audio?: string }
+	labelOrFields: string | { label?: string; fansub?: string; resolution?: string; audio?: string }
 ): ParsedSourceMeta {
 	if (typeof labelOrFields === 'string') {
 		return parseRawLabel(labelOrFields);
@@ -43,7 +41,11 @@ export function parseSourceLabel(
 		quality: resolution ? `${resolution}p` : null,
 		qualityNumeric,
 		language,
-		raw: label || [fansub ? `[${fansub}]` : '', resolution ? `${resolution}p` : '', audio || ''].filter(Boolean).join(' '),
+		raw:
+			label ||
+			[fansub ? `[${fansub}]` : '', resolution ? `${resolution}p` : '', audio || '']
+				.filter(Boolean)
+				.join(' '),
 	};
 }
 

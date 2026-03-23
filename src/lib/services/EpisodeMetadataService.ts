@@ -186,9 +186,7 @@ export async function fetchToshoEpisode(
 	try {
 		const raw = await invoke<string>('fetch_url', { url, headers: null });
 		const data: ToshoRawEntry[] = JSON.parse(raw);
-		return data
-			.map((e) => normalizeToshoEntry(e, 'Anime Tosho'))
-			.filter((e) => !!e.fansub);
+		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho')).filter((e) => !!e.fansub);
 	} catch {
 		return [];
 	}
@@ -227,9 +225,7 @@ export async function searchTosho(query: string, page = 1): Promise<EpisodeTorre
 	try {
 		const raw = await invoke<string>('fetch_url', { url, headers: null });
 		const data: ToshoRawEntry[] = JSON.parse(raw);
-		return data
-			.map((e) => normalizeToshoEntry(e, 'Anime Tosho'))
-			.filter((e) => !!e.fansub);
+		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho')).filter((e) => !!e.fansub);
 	} catch {
 		return [];
 	}

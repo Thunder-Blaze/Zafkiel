@@ -31,11 +31,11 @@
 										last: '',
 										full: 'Unknown',
 										native: '',
-										userPreferred: 'Unknown'
+										userPreferred: 'Unknown',
 									},
 									image: {
 										large: edge.node.image?.large || '/api/placeholder/230/345',
-										medium: edge.node.image?.medium || '/api/placeholder/115/172'
+										medium: edge.node.image?.medium || '/api/placeholder/115/172',
 									},
 									description: edge.node.description,
 									role: edge.role || 'Unknown',
@@ -46,15 +46,17 @@
 												first: '',
 												last: '',
 												full: '',
-												native: ''
+												native: '',
 											},
 											image: {
 												large: role.voiceActor?.image?.large || '/api/placeholder/230/345',
-												medium: role.voiceActor?.image?.medium || '/api/placeholder/115/172'
+												medium: role.voiceActor?.image?.medium || '/api/placeholder/115/172',
 											},
 											languageV2:
-												role.voiceActor?.languageV2 || role.voiceActor?.language || selectedLanguage
-										})) || []
+												role.voiceActor?.languageV2 ||
+												role.voiceActor?.language ||
+												selectedLanguage,
+										})) || [],
 								}
 							: null
 					)
@@ -75,7 +77,7 @@
 		'French',
 		'Portuguese',
 		'German',
-		'Italian'
+		'Italian',
 	];
 </script>
 

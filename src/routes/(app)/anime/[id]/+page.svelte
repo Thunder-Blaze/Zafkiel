@@ -65,7 +65,9 @@
 			</div>
 
 			<div class="flex gap-3">
-				<Button class="cursor-pointer rounded-md bg-accent text-accent-foreground hover:bg-accent/90">
+				<Button
+					class="cursor-pointer rounded-md bg-accent text-accent-foreground hover:bg-accent/90"
+				>
 					<Icon icon="lucide:plus" class="-mx-1 size-6" />
 					Add to List
 				</Button>
@@ -297,9 +299,7 @@
 						<div class="flex items-center justify-between border-b border-border/50 py-2">
 							<span class="font-medium text-muted-foreground">Status</span>
 							<span class="font-semibold capitalize">
-								{animeData.status
-									? animeData.status.toLowerCase().replace('_', ' ')
-									: 'Unknown'}
+								{animeData.status ? animeData.status.toLowerCase().replace('_', ' ') : 'Unknown'}
 							</span>
 						</div>
 					</div>

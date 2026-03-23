@@ -14,7 +14,7 @@
 	import PlayerControls from './PlayerControls.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '@iconify/svelte';
-import type { Episode, StreamSource } from '$lib/types/extensions';
+	import type { Episode, StreamSource } from '$lib/types/extensions';
 	import Hls from 'hls.js';
 	import { discordStore } from '$lib/stores/discord.svelte';
 	import { useConfigState } from '$lib/stores/config.svelte';
@@ -23,12 +23,12 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 		src,
 		headers = {},
 		mediaSources = [],
-	episodes = [],
-	currentEpisode = null,
-	sources = [],
-	currentSource = null,
-	onEpisodeSelect,
-	onSourceSelect,
+		episodes = [],
+		currentEpisode = null,
+		sources = [],
+		currentSource = null,
+		onEpisodeSelect,
+		onSourceSelect,
 		tracks = [],
 		title,
 		subtitle,
@@ -39,12 +39,12 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 		/** HTTP request headers required by the stream (e.g. Referer, Cookie). */
 		headers?: Record<string, string>;
 		mediaSources?: { src: string; type: string }[];
-	episodes?: Episode[];
-	currentEpisode?: Episode | null;
-	sources?: StreamSource[];
-	currentSource?: StreamSource | null;
-	onEpisodeSelect?: (ep: Episode) => void;
-	onSourceSelect?: (src: StreamSource) => void;
+		episodes?: Episode[];
+		currentEpisode?: Episode | null;
+		sources?: StreamSource[];
+		currentSource?: StreamSource | null;
+		onEpisodeSelect?: (ep: Episode) => void;
+		onSourceSelect?: (src: StreamSource) => void;
 		tracks?: { id: string; label: string; src: string; lang: string }[];
 		title?: string;
 		subtitle?: string;
@@ -133,22 +133,12 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 							this.stats.total = bytes.byteLength;
 							this.stats.loading.first = now;
 							this.stats.loading.end = now;
-							callbacks.onSuccess(
-								{ url, data: bytes.buffer },
-								this.stats,
-								context,
-								null,
-							);
+							callbacks.onSuccess({ url, data: bytes.buffer }, this.stats, context, null);
 						})
 						.catch((err) => {
 							if (this.aborted) return;
 							this.stats.loading.end = performance.now();
-							callbacks.onError(
-								{ code: 0, text: String(err) },
-								context,
-								null,
-								this.stats,
-							);
+							callbacks.onError({ code: 0, text: String(err) }, context, null, this.stats);
 						});
 				} else {
 					// text or json (manifest, subtitle tracks, etc.)
@@ -160,22 +150,12 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 							this.stats.total = text.length;
 							this.stats.loading.first = now;
 							this.stats.loading.end = now;
-							callbacks.onSuccess(
-								{ url, data: text },
-								this.stats,
-								context,
-								null,
-							);
+							callbacks.onSuccess({ url, data: text }, this.stats, context, null);
 						})
 						.catch((err) => {
 							if (this.aborted) return;
 							this.stats.loading.end = performance.now();
-							callbacks.onError(
-								{ code: 0, text: String(err) },
-								context,
-								null,
-								this.stats,
-							);
+							callbacks.onError({ code: 0, text: String(err) }, context, null, this.stats);
 						});
 				}
 			}
@@ -209,7 +189,8 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 			// inject the Tauri loader so all requests go through the Rust HTTP client
 			// instead of the WebView's fetch, bypassing CORS and forbidden-header rules.
 			const useTauriLoader =
-				Object.keys(headers).length > 0 || (!url.startsWith('http://127.') && !url.startsWith('http://localhost'));
+				Object.keys(headers).length > 0 ||
+				(!url.startsWith('http://127.') && !url.startsWith('http://localhost'));
 			const hls = new Hls({
 				enableWorker: false,
 				lowLatencyMode: false,
@@ -538,7 +519,11 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 		}
 
 		discordStore.setActivity({
-			state: isPlaying ? (currentEpisode ? `Watching Episode ${currentEpisode.number}` : 'Watching Video') : 'Paused',
+			state: isPlaying
+				? currentEpisode
+					? `Watching Episode ${currentEpisode.number}`
+					: 'Watching Video'
+				: 'Paused',
 			details: title || 'Local Video',
 			largeImage: image || 'logo',
 			largeText: title || 'Zafkiel',
@@ -606,8 +591,8 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 			<p class="font-medium text-white">Playback Error</p>
 			<p class="text-sm text-white/70">{errorMessage}</p>
 			<p class="max-w-md px-4 text-center text-xs text-white/50">
-				The browser player cannot play this stream. Try switching to the Libmpv player or opening
-				in an external player.
+				The browser player cannot play this stream. Try switching to the Libmpv player or opening in
+				an external player.
 			</p>
 			<div class="mt-4 flex gap-2">
 				<Button
@@ -646,10 +631,7 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 
 	{#if !hasError}
 		{#if showControls || !isPlaying || isLocked}
-			<div
-				class="absolute inset-0 z-10"
-				transition:fade={{ duration: 200 }}
-			>
+			<div class="absolute inset-0 z-10" transition:fade={{ duration: 200 }}>
 				<PlayerControls
 					{isPlaying}
 					{currentTime}
@@ -672,22 +654,22 @@ import type { Episode, StreamSource } from '$lib/types/extensions';
 					onTrackChange={handleTrackChange}
 					playbackSpeed={config.playbackSpeed}
 					onSpeedChange={handleSpeedChange}
-				{episodes}
-				{currentEpisode}
-				sources={sources}
-				{currentSource}
-				{onEpisodeSelect}
-				{onSourceSelect}
-				onOverlayToggle={(open) => {
-					overlayOpen = open;
-					if (open) {
-						clearTimeout(controlsTimeout);
-						showControls = true;
-					} else {
-						resetControlsTimeout();
-					}
-				}}
-			/>
+					{episodes}
+					{currentEpisode}
+					{sources}
+					{currentSource}
+					{onEpisodeSelect}
+					{onSourceSelect}
+					onOverlayToggle={(open) => {
+						overlayOpen = open;
+						if (open) {
+							clearTimeout(controlsTimeout);
+							showControls = true;
+						} else {
+							resetControlsTimeout();
+						}
+					}}
+				/>
 			</div>
 		{/if}
 	{/if}

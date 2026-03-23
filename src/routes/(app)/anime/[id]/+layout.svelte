@@ -166,20 +166,20 @@
 		</div>
 
 		<!-- ── Main content: vertical tabs + page slot ───────────────── -->
-		<div class="mt-4 flex w-full gap-6 px-4 md:px-8 lg:px-10 pb-12" in:fade={{ duration: 300 }}>
+		<div class="mt-4 flex w-full gap-6 px-4 pb-12 md:px-8 lg:px-10" in:fade={{ duration: 300 }}>
 			<!-- Vertical tab sidebar -->
 			<nav class="hidden w-72 shrink-0 md:block">
 				<div class="sticky top-16 space-y-1">
 					<!-- Spacer to clear the absolutely positioned poster -->
-					<div class="h-80 w-full mb-4"></div>
+					<div class="mb-4 h-80 w-full"></div>
 					{#each tabs as tab}
 						{@const active = isTabActive(tab.slug)}
 						<a
 							href={tabHref(tab.slug)}
 							class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150
 								{active
-									? 'bg-primary/10 text-primary shadow-sm'
-									: 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}"
+								? 'bg-primary/10 text-primary shadow-sm'
+								: 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}"
 						>
 							<Icon icon={tab.icon} class="size-4 shrink-0" />
 							{tab.label}
@@ -196,16 +196,16 @@
 			<!-- Tab content area -->
 			<div class="min-w-0 flex-1">
 				<!-- Mobile horizontal scrollable tabs -->
-				<div class="mb-6 -mx-4 px-4 md:hidden overflow-x-auto">
-					<div class="flex gap-1 rounded-lg bg-muted p-1 w-max">
+				<div class="-mx-4 mb-6 overflow-x-auto px-4 md:hidden">
+					<div class="flex w-max gap-1 rounded-lg bg-muted p-1">
 						{#each tabs as tab}
 							{@const active = isTabActive(tab.slug)}
 							<a
 								href={tabHref(tab.slug)}
 								class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all
 									{active
-										? 'bg-background text-foreground shadow-sm'
-										: 'text-muted-foreground hover:text-foreground'}"
+									? 'bg-background text-foreground shadow-sm'
+									: 'text-muted-foreground hover:text-foreground'}"
 							>
 								<Icon icon={tab.icon} class="size-3.5" />
 								{tab.label}

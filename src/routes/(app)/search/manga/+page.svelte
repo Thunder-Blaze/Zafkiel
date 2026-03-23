@@ -18,7 +18,7 @@
 
 	// ── Search & Filter State ────────────────────────────────────────────────
 	const urlParams = $derived(page.url.searchParams);
-	
+
 	let searchQuery = $state('');
 	let selectedGenre = $state('Any');
 	let selectedYear = $state('Any');
@@ -43,12 +43,12 @@
 	// Check if active filters exist
 	const hasFilters = $derived(
 		searchQuery !== '' ||
-		selectedGenre !== 'Any' ||
-		selectedYear !== 'Any' ||
-		selectedFormat !== 'Any' ||
-		selectedStatus !== 'Any' ||
-		selectedCountry !== 'Any' ||
-		Object.values(advancedState).flat().length > 0
+			selectedGenre !== 'Any' ||
+			selectedYear !== 'Any' ||
+			selectedFormat !== 'Any' ||
+			selectedStatus !== 'Any' ||
+			selectedCountry !== 'Any' ||
+			Object.values(advancedState).flat().length > 0
 	);
 
 	// Update URL when filters change
@@ -70,29 +70,49 @@
 	const browseParams = $derived<BrowseParams>({
 		mediaType: 'MANGA',
 		search: searchQuery || undefined,
-		format: selectedFormat !== 'Any' ? selectedFormat.replace(/\s+/g, '_').toUpperCase() as any : undefined,
-		status: selectedStatus !== 'Any' ? selectedStatus.replace(/\s+/g, '_').toUpperCase() as any : undefined,
+		format:
+			selectedFormat !== 'Any'
+				? (selectedFormat.replace(/\s+/g, '_').toUpperCase() as any)
+				: undefined,
+		status:
+			selectedStatus !== 'Any'
+				? (selectedStatus.replace(/\s+/g, '_').toUpperCase() as any)
+				: undefined,
 		seasonYear: selectedYear !== 'Any' ? parseInt(selectedYear) : undefined,
 		genres: selectedGenre !== 'Any' ? [selectedGenre] : undefined,
-		countryOfOrigin: selectedCountry !== 'Any' ? 
-			(selectedCountry === 'Japan' ? 'JP' : 
-			 selectedCountry === 'South Korea' ? 'KR' : 
-			 selectedCountry === 'China' ? 'CN' : 
-			 selectedCountry === 'Taiwan' ? 'TW' : undefined) 
-			: undefined,
+		countryOfOrigin:
+			selectedCountry !== 'Any'
+				? selectedCountry === 'Japan'
+					? 'JP'
+					: selectedCountry === 'South Korea'
+						? 'KR'
+						: selectedCountry === 'China'
+							? 'CN'
+							: selectedCountry === 'Taiwan'
+								? 'TW'
+								: undefined
+				: undefined,
 		page: currentPage,
 		perPage: 30,
-		sortBy: ['POPULARITY_DESC']
+		sortBy: ['POPULARITY_DESC'],
 	});
 
 	// ── Data Queries ───────────────────────────────────────────────────────────
 	const trendingQ = useTrendingManga({ page: 1, perPage: 20 });
-	const trending = $derived<Media[]>(Array.isArray(trendingQ.data?.data) ? trendingQ.data.data as Media[] : []);
+	const trending = $derived<Media[]>(
+		Array.isArray(trendingQ.data?.data) ? (trendingQ.data.data as Media[]) : []
+	);
 	const heroes = $derived(trending.filter((m) => m.bannerImage).slice(0, 8));
 
 	// The filtered results (only enabled when filters are active)
 	const filteredQuery = useBrowseMedia(() => browseParams);
-	const filteredMedia = $derived<Media[]>(Array.isArray(filteredQuery.data?.data?.data) ? filteredQuery.data.data.data as Media[] : Array.isArray(filteredQuery.data?.data) ? filteredQuery.data.data as Media[] : []);
+	const filteredMedia = $derived<Media[]>(
+		Array.isArray(filteredQuery.data?.data?.data)
+			? (filteredQuery.data.data.data as Media[])
+			: Array.isArray(filteredQuery.data?.data)
+				? (filteredQuery.data.data as Media[])
+				: []
+	);
 	const pageInfo = $derived(filteredQuery.data?.data?.pageInfo);
 
 	// Fallback section queries
@@ -100,19 +120,43 @@
 		() => ({ mediaType: 'MANGA', sortBy: ['POPULARITY_DESC'], page: 1, perPage: 20 }),
 		() => ({ enabled: !hasFilters })
 	);
-	const popular = $derived<Media[]>(Array.isArray(popularQ.data?.data?.data) ? popularQ.data.data.data as Media[] : Array.isArray(popularQ.data?.data) ? popularQ.data.data as Media[] : []);
+	const popular = $derived<Media[]>(
+		Array.isArray(popularQ.data?.data?.data)
+			? (popularQ.data.data.data as Media[])
+			: Array.isArray(popularQ.data?.data)
+				? (popularQ.data.data as Media[])
+				: []
+	);
 
 	const manhwaQ = useBrowseMedia(
-		() => ({ mediaType: 'MANGA', sortBy: ['POPULARITY_DESC'], countryOfOrigin: 'KR', page: 1, perPage: 20 }),
+		() => ({
+			mediaType: 'MANGA',
+			sortBy: ['POPULARITY_DESC'],
+			countryOfOrigin: 'KR',
+			page: 1,
+			perPage: 20,
+		}),
 		() => ({ enabled: !hasFilters })
 	);
-	const manhwa = $derived<Media[]>(Array.isArray(manhwaQ.data?.data?.data) ? manhwaQ.data.data.data as Media[] : Array.isArray(manhwaQ.data?.data) ? manhwaQ.data.data as Media[] : []);
+	const manhwa = $derived<Media[]>(
+		Array.isArray(manhwaQ.data?.data?.data)
+			? (manhwaQ.data.data.data as Media[])
+			: Array.isArray(manhwaQ.data?.data)
+				? (manhwaQ.data.data as Media[])
+				: []
+	);
 
 	const novelQ = useBrowseMedia(
 		() => ({ mediaType: 'MANGA', format: 'NOVEL', sortBy: ['SCORE_DESC'], page: 1, perPage: 20 }),
 		() => ({ enabled: !hasFilters })
 	);
-	const novels = $derived<Media[]>(Array.isArray(novelQ.data?.data?.data) ? novelQ.data.data.data as Media[] : Array.isArray(novelQ.data?.data) ? novelQ.data.data as Media[] : []);
+	const novels = $derived<Media[]>(
+		Array.isArray(novelQ.data?.data?.data)
+			? (novelQ.data.data.data as Media[])
+			: Array.isArray(novelQ.data?.data)
+				? (novelQ.data.data as Media[])
+				: []
+	);
 
 	// ── Add to List ────────────────────────────────────────────────────────────
 	const addToListMutation = useAddMangaToList();
@@ -163,8 +207,10 @@
 	{/if}
 
 	<!-- ── Search Filters ───────────────────────────────────────────────────── -->
-	<div class="sticky top-0 z-30 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-		<SearchFilters 
+	<div
+		class="sticky top-0 z-30 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+	>
+		<SearchFilters
 			type="MANGA"
 			bind:searchQuery
 			bind:selectedGenre
@@ -183,7 +229,7 @@
 				<h2 class="text-xl font-bold">Search Results</h2>
 				<span class="text-sm text-muted-foreground">{pageInfo?.total || 0} items</span>
 			</div>
-			
+
 			{#if filteredQuery.isLoading}
 				<div class="flex h-48 items-center justify-center">
 					<Icon icon="solar:spinner-bold" class="h-6 w-6 animate-spin text-muted-foreground" />
@@ -195,7 +241,10 @@
 					<p class="text-sm text-muted-foreground">Try adjusting your filters.</p>
 				</div>
 			{:else}
-				<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7" use:gsapReveal>
+				<div
+					class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7"
+					use:gsapReveal
+				>
 					{#each filteredMedia as media (media.id)}
 						<MediaCard {media} />
 					{/each}

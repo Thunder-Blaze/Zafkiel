@@ -23,9 +23,17 @@
 	import VideoPlayer from '$lib/components/player/VideoPlayer.svelte';
 	import InternalPlayer from '$lib/components/player/InternalPlayer.svelte';
 	import ProxiedImage from '$lib/components/ProxiedImage.svelte';
-	import { parseSourceLabel, findBestSource, type ParsedSourceMeta } from '$lib/utils/source-parser';
+	import {
+		parseSourceLabel,
+		findBestSource,
+		type ParsedSourceMeta,
+	} from '$lib/utils/source-parser';
 
-	const { animeTitle, animeId, animeCover = '' }: { animeTitle: string; animeId: number; animeCover?: string } = $props();
+	const {
+		animeTitle,
+		animeId,
+		animeCover = '',
+	}: { animeTitle: string; animeId: number; animeCover?: string } = $props();
 
 	const CACHE_STALE_TIME = 5 * 60 * 1000; // 5 minutes
 	const queryClient = useQueryClient();
@@ -85,7 +93,11 @@
 	let loadingStream = $state(false);
 
 	// ── Last-used source preferences (for auto-select next stream) ───────────
-	let preferredMeta = $state<{ language?: 'sub' | 'dub' | null; quality?: string | null; source?: string | null }>({});
+	let preferredMeta = $state<{
+		language?: 'sub' | 'dub' | null;
+		quality?: string | null;
+		source?: string | null;
+	}>({});
 
 	// ── Download state ────────────────────────────────────────────────────────
 	let downloadMap = $state<Map<string, ExtensionDownload>>(new Map());
@@ -105,7 +117,14 @@
 
 	// ── Parsed source metadata for display ────────────────────────────────────
 	const parsedSources = $derived<ParsedSourceMeta[]>(
-		sources.map((s) => parseSourceLabel({ label: s.label, fansub: s.fansub, resolution: s.resolution, audio: s.audio }))
+		sources.map((s) =>
+			parseSourceLabel({
+				label: s.label,
+				fansub: s.fansub,
+				resolution: s.resolution,
+				audio: s.audio,
+			})
+		)
 	);
 
 	// ── Source tag filters ─────────────────────────────────────────────────────
@@ -116,21 +135,30 @@
 			const m = parsedSources[i];
 			if (activeFilters.language && m.language !== activeFilters.language) return false;
 			if (activeFilters.quality && m.quality !== activeFilters.quality) return false;
-			if (activeFilters.source && m.source?.toLowerCase() !== activeFilters.source.toLowerCase()) return false;
+			if (activeFilters.source && m.source?.toLowerCase() !== activeFilters.source.toLowerCase())
+				return false;
 			return true;
 		})
 	);
 
 	// Extract available filter options from current sources
-	const availableQualities = $derived([...new Set(parsedSources.map((m) => m.quality).filter(Boolean))] as string[]);
-	const availableLanguages = $derived([...new Set(parsedSources.map((m) => m.language).filter(Boolean))] as ('sub' | 'dub')[]);
-	const availableSources = $derived([...new Set(parsedSources.map((m) => m.source).filter(Boolean))] as string[]);
+	const availableQualities = $derived([
+		...new Set(parsedSources.map((m) => m.quality).filter(Boolean)),
+	] as string[]);
+	const availableLanguages = $derived([
+		...new Set(parsedSources.map((m) => m.language).filter(Boolean)),
+	] as ('sub' | 'dub')[]);
+	const availableSources = $derived([
+		...new Set(parsedSources.map((m) => m.source).filter(Boolean)),
+	] as string[]);
 
 	const config = useConfigState();
 
 	// ── On mount — pick the first installed source extension ──────────────────
 	onMount(async () => {
-		try { /* no-op: HLS proxy not used */ } catch (e) {
+		try {
+			/* no-op: HLS proxy not used */
+		} catch (e) {
 			console.warn('[watch] note: HLS proxy is not used for InternalPlayer', e);
 		}
 
@@ -264,9 +292,7 @@
 			// Auto-select match
 			if (searchResults.length > 0) {
 				const qClean = q.toLowerCase().trim();
-				const exactMatch = searchResults.find(
-					(r) => r.title.toLowerCase().trim() === qClean
-				);
+				const exactMatch = searchResults.find((r) => r.title.toLowerCase().trim() === qClean);
 				await selectResult(exactMatch || searchResults[0]);
 				return;
 			}
@@ -349,7 +375,12 @@
 			}
 
 			// Save preferred metadata for auto-select
-			const meta = parseSourceLabel({ label: source.label, fansub: source.fansub, resolution: source.resolution, audio: source.audio });
+			const meta = parseSourceLabel({
+				label: source.label,
+				fansub: source.fansub,
+				resolution: source.resolution,
+				audio: source.audio,
+			});
 			preferredMeta = { language: meta.language, quality: meta.quality, source: meta.source };
 
 			resolvedStream = resolved;
@@ -374,7 +405,12 @@
 			// Auto-select best source based on preferences if enabled globally
 			if (sources.length > 0 && preferredMeta.language && config.autoSelectNextStream) {
 				const parsed = sources.map((s) =>
-					parseSourceLabel({ label: s.label, fansub: s.fansub, resolution: s.resolution, audio: s.audio })
+					parseSourceLabel({
+						label: s.label,
+						fansub: s.fansub,
+						resolution: s.resolution,
+						audio: s.audio,
+					})
 				);
 				const bestIdx = findBestSource(parsed, preferredMeta);
 				if (bestIdx >= 0) {
@@ -460,16 +496,26 @@
 			const v = value as 'sub' | 'dub';
 			activeFilters = { ...activeFilters, language: activeFilters.language === v ? undefined : v };
 		} else if (type === 'quality') {
-			activeFilters = { ...activeFilters, quality: activeFilters.quality === value ? undefined : value };
+			activeFilters = {
+				...activeFilters,
+				quality: activeFilters.quality === value ? undefined : value,
+			};
 		} else {
-			activeFilters = { ...activeFilters, source: activeFilters.source === value ? undefined : value };
+			activeFilters = {
+				...activeFilters,
+				source: activeFilters.source === value ? undefined : value,
+			};
 		}
 	}
 
 	function formatEpDate(dateStr: string | undefined): string {
 		if (!dateStr) return '';
 		try {
-			return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+			return new Date(dateStr).toLocaleDateString('en-US', {
+				month: 'short',
+				day: 'numeric',
+				year: 'numeric',
+			});
 		} catch {
 			return dateStr;
 		}
@@ -542,7 +588,13 @@
 					<Icon icon="solar:magnifer-bold" class="size-4" />
 				</Button>
 				{#if showSearchOverride}
-					<Button variant="ghost" size="sm" onclick={() => { showSearchOverride = false; }}>
+					<Button
+						variant="ghost"
+						size="sm"
+						onclick={() => {
+							showSearchOverride = false;
+						}}
+					>
 						<Icon icon="solar:close-circle-bold" class="size-4" />
 					</Button>
 				{/if}
@@ -560,7 +612,7 @@
 						{@const isSelected = selectedResult?.id === result.id}
 						<button
 							class="group flex flex-col rounded-lg border bg-card p-2 transition-all duration-200 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5
-								{isSelected ? 'ring-2 ring-primary/50 border-primary/40' : ''}"
+								{isSelected ? 'border-primary/40 ring-2 ring-primary/50' : ''}"
 							onclick={() => selectResult(result)}
 						>
 							<div class="relative overflow-hidden rounded-md">
@@ -573,16 +625,25 @@
 										referer="https://animepahe.si/"
 									/>
 								{:else}
-									<div class="flex aspect-[2/3] w-full items-center justify-center rounded-md bg-muted">
+									<div
+										class="flex aspect-[2/3] w-full items-center justify-center rounded-md bg-muted"
+									>
 										<Icon icon="solar:tv-bold" class="size-10 text-muted-foreground" />
 									</div>
 								{/if}
 								<!-- Hover overlay -->
-								<div class="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-200 group-hover:bg-black/40">
-									<Icon icon="solar:play-bold" class="size-8 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+								<div
+									class="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-200 group-hover:bg-black/40"
+								>
+									<Icon
+										icon="solar:play-bold"
+										class="size-8 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+									/>
 								</div>
 								{#if result.type}
-									<span class="absolute top-1.5 right-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-semibold text-white/80">
+									<span
+										class="absolute top-1.5 right-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-semibold text-white/80"
+									>
 										{result.type}
 									</span>
 								{/if}
@@ -597,7 +658,8 @@
 								{#if result.year || result.status}
 									<p class="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground">
 										{#if result.year}<span>{result.year}</span>{/if}
-										{#if result.year && result.status}<span class="text-muted-foreground/40">·</span>{/if}
+										{#if result.year && result.status}<span class="text-muted-foreground/40">·</span
+											>{/if}
 										{#if result.status}<span>{result.status}</span>{/if}
 									</p>
 								{/if}
@@ -613,27 +675,37 @@
 	{#if step === 'episodes' || step === 'loading-sources' || step === 'sources' || step === 'playing'}
 		<div class="space-y-3">
 			<!-- Header bar -->
-			<div class="flex items-center gap-2 flex-wrap">
+			<div class="flex flex-wrap items-center gap-2">
 				{#if selectedResult}
-					<span class="text-sm font-medium flex-1 min-w-0 truncate">{selectedResult.title}</span>
+					<span class="min-w-0 flex-1 truncate text-sm font-medium">{selectedResult.title}</span>
 				{/if}
 				<button
-					class="text-xs text-primary hover:underline cursor-pointer shrink-0"
-					onclick={() => { showSearchOverride = !showSearchOverride; }}
+					class="shrink-0 cursor-pointer text-xs text-primary hover:underline"
+					onclick={() => {
+						showSearchOverride = !showSearchOverride;
+					}}
 				>
 					{showSearchOverride ? 'Hide search' : 'Wrong anime?'}
 				</button>
-				<div class="flex items-center gap-1 ml-auto">
+				<div class="ml-auto flex items-center gap-1">
 					<button
-						class="rounded p-1.5 transition-colors {episodeView === 'grid' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'}"
-						onclick={() => { episodeView = 'grid'; }}
+						class="rounded p-1.5 transition-colors {episodeView === 'grid'
+							? 'bg-primary/10 text-primary'
+							: 'text-muted-foreground hover:text-foreground'}"
+						onclick={() => {
+							episodeView = 'grid';
+						}}
 						title="Grid view"
 					>
 						<Icon icon="solar:widget-4-bold" class="size-4" />
 					</button>
 					<button
-						class="rounded p-1.5 transition-colors {episodeView === 'list' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'}"
-						onclick={() => { episodeView = 'list'; }}
+						class="rounded p-1.5 transition-colors {episodeView === 'list'
+							? 'bg-primary/10 text-primary'
+							: 'text-muted-foreground hover:text-foreground'}"
+						onclick={() => {
+							episodeView = 'list';
+						}}
 						title="List view"
 					>
 						<Icon icon="solar:list-bold" class="size-4" />
@@ -708,8 +780,10 @@
 				<div class="flex flex-wrap gap-1.5">
 					{#each availableLanguages as lang}
 						<button
-							class="rounded-full border px-2.5 py-0.5 text-[10px] font-medium uppercase transition-colors cursor-pointer
-								{activeFilters.language === lang ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'}"
+							class="cursor-pointer rounded-full border px-2.5 py-0.5 text-[10px] font-medium uppercase transition-colors
+								{activeFilters.language === lang
+								? 'border-primary bg-primary text-primary-foreground'
+								: 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'}"
 							onclick={() => toggleFilter('language', lang)}
 						>
 							{lang}
@@ -717,8 +791,10 @@
 					{/each}
 					{#each availableQualities as q}
 						<button
-							class="rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-colors cursor-pointer
-								{activeFilters.quality === q ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'}"
+							class="cursor-pointer rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-colors
+								{activeFilters.quality === q
+								? 'border-primary bg-primary text-primary-foreground'
+								: 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'}"
 							onclick={() => toggleFilter('quality', q)}
 						>
 							{q}
@@ -726,8 +802,10 @@
 					{/each}
 					{#each availableSources as src}
 						<button
-							class="rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-colors cursor-pointer
-								{activeFilters.source === src ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'}"
+							class="cursor-pointer rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-colors
+								{activeFilters.source === src
+								? 'border-primary bg-primary text-primary-foreground'
+								: 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'}"
 							onclick={() => toggleFilter('source', src)}
 						>
 							{src}
@@ -739,26 +817,41 @@
 			<div class="space-y-2">
 				{#each filteredSources as source, i}
 					{@const dl = downloadMap.get(source.id)}
-					{@const meta = parseSourceLabel({ label: source.label, fansub: source.fansub, resolution: source.resolution, audio: source.audio })}
-					<div class="flex items-center gap-2 rounded-lg border bg-card px-3 py-2.5 transition-colors hover:border-border">
+					{@const meta = parseSourceLabel({
+						label: source.label,
+						fansub: source.fansub,
+						resolution: source.resolution,
+						audio: source.audio,
+					})}
+					<div
+						class="flex items-center gap-2 rounded-lg border bg-card px-3 py-2.5 transition-colors hover:border-border"
+					>
 						<!-- Source metadata tags -->
-						<div class="flex-1 flex items-center gap-2 flex-wrap min-w-0">
+						<div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
 							{#if meta.source}
-								<span class="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-foreground">
+								<span
+									class="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-foreground"
+								>
 									{meta.source}
 								</span>
 							{/if}
 							{#if meta.quality}
-								<span class="rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-blue-500">
+								<span
+									class="rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-blue-500"
+								>
 									{meta.quality}
 								</span>
 							{/if}
 							{#if meta.language === 'dub'}
-								<span class="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-500">
+								<span
+									class="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-500"
+								>
 									DUB
 								</span>
 							{:else if meta.language === 'sub'}
-								<span class="rounded bg-green-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-green-500">
+								<span
+									class="rounded bg-green-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-green-500"
+								>
 									SUB
 								</span>
 							{/if}
@@ -864,8 +957,8 @@
 				<span class="text-sm">Loading episodes…</span>
 			</div>
 		{:else}
-			<div 
-				class="h-[32rem] overflow-y-auto pr-2" 
+			<div
+				class="h-[32rem] overflow-y-auto pr-2"
 				data-lenis-prevent="true"
 				onwheel={(e) => e.stopPropagation()}
 			>
@@ -888,25 +981,36 @@
 											referer="https://animepahe.si/"
 										/>
 									{:else}
-										<div class="flex aspect-video w-full items-center justify-center rounded-md bg-muted">
+										<div
+											class="flex aspect-video w-full items-center justify-center rounded-md bg-muted"
+										>
 											<Icon icon="solar:play-bold" class="size-6 text-muted-foreground/40" />
 										</div>
 									{/if}
 									<!-- Episode number badge -->
-									<span class="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white">
+									<span
+										class="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white"
+									>
 										EP {ep.number}
 									</span>
 									{#if selectedEpisode?.id === ep.id}
-										<div class="absolute inset-0 flex items-center justify-center rounded-md bg-black/40">
+										<div
+											class="absolute inset-0 flex items-center justify-center rounded-md bg-black/40"
+										>
 											<Icon icon="solar:play-bold" class="size-6 text-primary" />
 										</div>
 									{/if}
 									<!-- Hover overlay -->
-									<div class="absolute inset-0 flex items-center justify-center rounded-md bg-black/0 transition-all duration-200 group-hover:bg-black/30">
-										<Icon icon="solar:play-bold" class="size-6 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+									<div
+										class="absolute inset-0 flex items-center justify-center rounded-md bg-black/0 transition-all duration-200 group-hover:bg-black/30"
+									>
+										<Icon
+											icon="solar:play-bold"
+											class="size-6 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+										/>
 									</div>
 								</div>
-								<div class="pt-1.5 space-y-0.5">
+								<div class="space-y-0.5 pt-1.5">
 									{#if ep.title}
 										<p class="line-clamp-1 text-[11px] font-medium">{ep.title}</p>
 									{/if}
@@ -949,7 +1053,7 @@
 								</div>
 
 								<!-- Info -->
-								<div class="flex-1 min-w-0">
+								<div class="min-w-0 flex-1">
 									<p class="text-sm font-medium">
 										<span class="text-muted-foreground">EP {ep.number}</span>
 										{#if ep.title}
@@ -963,7 +1067,10 @@
 								</div>
 
 								<!-- Play icon -->
-								<Icon icon="solar:play-bold" class="size-4 text-muted-foreground/30 group-hover:text-primary transition-colors shrink-0" />
+								<Icon
+									icon="solar:play-bold"
+									class="size-4 shrink-0 text-muted-foreground/30 transition-colors group-hover:text-primary"
+								/>
 							</button>
 						{/each}
 					</div>

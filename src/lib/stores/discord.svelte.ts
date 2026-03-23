@@ -22,36 +22,39 @@ class DiscordStore {
 	 */
 	private lastUpdate = 0;
 	private updateTimeout: ReturnType<typeof setTimeout> | null = null;
-    private pendingActivity: DiscordActivity | null = null;
+	private pendingActivity: DiscordActivity | null = null;
 
 	async setActivity(activity: DiscordActivity) {
 		if (!this.enabled) return;
-        
-        const now = Date.now();
-        // Discord rate limit is roughly 1 update per 15 seconds.
-        // We'll allow updates every 5 seconds to be safe but responsive to seekers.
-        const THROTTLE_MS = 5000; 
 
-        if (now - this.lastUpdate < THROTTLE_MS) {
-            this.pendingActivity = activity;
-            if (!this.updateTimeout) {
-                this.updateTimeout = setTimeout(() => {
-                    this.updateTimeout = null;
-                    if (this.pendingActivity) {
-                        this.setActivity(this.pendingActivity);
-                        this.pendingActivity = null;
-                    }
-                }, THROTTLE_MS - (now - this.lastUpdate));
-            }
-            return;
-        }
+		const now = Date.now();
+		// Discord rate limit is roughly 1 update per 15 seconds.
+		// We'll allow updates every 5 seconds to be safe but responsive to seekers.
+		const THROTTLE_MS = 5000;
+
+		if (now - this.lastUpdate < THROTTLE_MS) {
+			this.pendingActivity = activity;
+			if (!this.updateTimeout) {
+				this.updateTimeout = setTimeout(
+					() => {
+						this.updateTimeout = null;
+						if (this.pendingActivity) {
+							this.setActivity(this.pendingActivity);
+							this.pendingActivity = null;
+						}
+					},
+					THROTTLE_MS - (now - this.lastUpdate)
+				);
+			}
+			return;
+		}
 
 		this.currentActivity = activity;
-        this.lastUpdate = now;
-        if (this.updateTimeout) {
-            clearTimeout(this.updateTimeout);
-            this.updateTimeout = null;
-        }
+		this.lastUpdate = now;
+		if (this.updateTimeout) {
+			clearTimeout(this.updateTimeout);
+			this.updateTimeout = null;
+		}
 
 		try {
 			await invoke('set_discord_activity', { payload: activity });

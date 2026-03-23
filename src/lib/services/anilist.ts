@@ -120,7 +120,11 @@ export const animeApi = {
 	/**
 	 * Get anime staff by ID with pagination
 	 */
-	getStaffById: async (id: number, page?: number, perPage?: number): Promise<AniListResponse<Media>> => {
+	getStaffById: async (
+		id: number,
+		page?: number,
+		perPage?: number
+	): Promise<AniListResponse<Media>> => {
 		return invokeWithToast('get_anime_staff_by_id', {
 			id,
 			page,

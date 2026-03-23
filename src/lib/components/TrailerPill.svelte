@@ -25,7 +25,9 @@
 			alt="Trailer Banner"
 			class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
 		/>
-		<div class="absolute inset-0 bg-black/40 transition-colors duration-300 group-hover:bg-black/30"></div>
+		<div
+			class="absolute inset-0 bg-black/40 transition-colors duration-300 group-hover:bg-black/30"
+		></div>
 
 		<!-- Centered Play Icon -->
 		<Icon

@@ -2,7 +2,10 @@
 	import { page } from '$app/state';
 	import { useAnimeById } from '$lib/hooks/useAnilist.svelte';
 	import { useAniZipEpisodes } from '$lib/hooks/useEpisodeMetadata.svelte';
-	import { episodeTorrentStore, type EpisodeDownloadStatus } from '$lib/stores/episodeTorrentStore.svelte';
+	import {
+		episodeTorrentStore,
+		type EpisodeDownloadStatus,
+	} from '$lib/stores/episodeTorrentStore.svelte';
 	import { TorrentService } from '$lib/services/TorrentService';
 	import type { AnimeLarge } from '$lib/types/anime';
 	import EpisodeRow from '$lib/components/anime/EpisodeRow.svelte';
@@ -34,14 +37,14 @@
 
 	const updateStatuses = async () => {
 		if (animeLinks.size === 0) return;
-		
+
 		const torrents = await TorrentService.getTorrents();
 		const newStatuses = new Map();
-		
+
 		for (const t of torrents) {
 			newStatuses.set(t.id, t);
 		}
-		
+
 		torrentStatuses = newStatuses;
 	};
 
@@ -59,11 +62,11 @@
 			// Stream torrent implicitly adds it
 			await TorrentService.streamTorrent(magnetUri);
 			toast.success(`Started downloading Episode ${episodeNumber}`);
-			
+
 			// Shortly after adding, we fetch all torrent files to auto-link them.
 			setTimeout(async () => {
 				const torrents = await TorrentService.getTorrents();
-				// Find the new torrent by matching the decoded magnet/name? 
+				// Find the new torrent by matching the decoded magnet/name?
 				// Actually, autoLinkFromFiles can just scan all active torrents
 				for (const t of torrents) {
 					const files = await TorrentService.getTorrentFilesById(t.id);
@@ -103,7 +106,7 @@
 			progress,
 			downloadSpeed: t.speed,
 			state: t.state.toLowerCase() as any,
-			canStream
+			canStream,
 		};
 	}
 </script>
@@ -111,27 +114,35 @@
 {#if animeData}
 	<div class="mt-4">
 		<Tabs value="episodes" class="w-full">
-			<div class="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+			<div class="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 				<h2 class="text-2xl font-bold tracking-tight">Downloads</h2>
-				<TabsList class="grid w-full sm:w-64 grid-cols-2">
+				<TabsList class="grid w-full grid-cols-2 sm:w-64">
 					<TabsTrigger value="episodes">Episodes</TabsTrigger>
 					<TabsTrigger value="all">All Releases</TabsTrigger>
 				</TabsList>
 			</div>
 
-			<TabsContent value="episodes" class="m-0 focus-visible:outline-none focus-visible:ring-0">
+			<TabsContent value="episodes" class="m-0 focus-visible:ring-0 focus-visible:outline-none">
 				{#if isLoadingEpisodes}
 					<div class="flex flex-col items-center justify-center py-20">
-						<Icon icon="solar:spinner-bold" class="size-10 animate-spin text-muted-foreground/50 mb-4" />
+						<Icon
+							icon="solar:spinner-bold"
+							class="mb-4 size-10 animate-spin text-muted-foreground/50"
+						/>
 						<h3 class="font-medium text-muted-foreground">Loading episodes...</h3>
 					</div>
 				{:else if episodes.length === 0}
-					<div class="flex flex-col items-center justify-center p-12 text-center rounded-lg border border-dashed border-border/60 bg-muted/20">
-						<Icon icon="solar:folder-error-bold-duotone" class="size-12 text-muted-foreground/50 mb-4" />
+					<div
+						class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border/60 bg-muted/20 p-12 text-center"
+					>
+						<Icon
+							icon="solar:folder-error-bold-duotone"
+							class="mb-4 size-12 text-muted-foreground/50"
+						/>
 						<h3 class="text-lg font-semibold text-foreground">No Episodes Found</h3>
-						<p class="text-sm text-muted-foreground mt-1 max-w-sm">
-							We couldn't find episode metadata for this anime on AniDB. 
-							Try the "All Releases" tab for manual torrent browsing.
+						<p class="mt-1 max-w-sm text-sm text-muted-foreground">
+							We couldn't find episode metadata for this anime on AniDB. Try the "All Releases" tab
+							for manual torrent browsing.
 						</p>
 					</div>
 				{:else}
@@ -151,7 +162,7 @@
 			</TabsContent>
 
 			<!-- Fallback manual list -->
-			<TabsContent value="all" class="m-0 focus-visible:outline-none focus-visible:ring-0">
+			<TabsContent value="all" class="m-0 focus-visible:ring-0 focus-visible:outline-none">
 				<TorrentsList anime={animeData} />
 			</TabsContent>
 		</Tabs>

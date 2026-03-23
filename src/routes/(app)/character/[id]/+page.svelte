@@ -14,7 +14,7 @@
 		<!-- Left: Description (takes 3/4) -->
 		<div class="xl:col-span-3">
 			{#if character.description}
-				<div class="custom-scrollbar text-sm leading-relaxed text-foreground/90 markdown-wrapper">
+				<div class="custom-scrollbar markdown-wrapper text-sm leading-relaxed text-foreground/90">
 					<MarkdownRenderer body={character.description} />
 				</div>
 			{/if}
@@ -23,29 +23,30 @@
 		<!-- Right: Additional Information Grid (takes 1/4) -->
 		<div class="space-y-6 xl:col-span-1">
 			<div class="rounded-lg border bg-card p-5">
-				<h3 class="font-semibold text-sm mb-4">Information</h3>
+				<h3 class="mb-4 text-sm font-semibold">Information</h3>
 				<div class="space-y-3 text-sm">
 					{#if character.dateOfBirth?.year || character.dateOfBirth?.month || character.dateOfBirth?.day}
 						<div>
-							<span class="text-muted-foreground block text-xs mb-0.5">Birthday</span>
+							<span class="mb-0.5 block text-xs text-muted-foreground">Birthday</span>
 							<span class="font-medium">
-								{character.dateOfBirth.day || '?'}/{character.dateOfBirth.month || '?'}{#if character.dateOfBirth.year}/{character.dateOfBirth.year}{/if}
+								{character.dateOfBirth.day || '?'}/{character.dateOfBirth.month ||
+									'?'}{#if character.dateOfBirth.year}/{character.dateOfBirth.year}{/if}
 							</span>
 						</div>
 					{/if}
 					{#if character.bloodType}
 						<div>
-							<span class="text-muted-foreground block text-xs mb-0.5">Blood Type</span>
+							<span class="mb-0.5 block text-xs text-muted-foreground">Blood Type</span>
 							<span class="font-medium">{character.bloodType}</span>
 						</div>
 					{/if}
 					<div>
-						<span class="text-muted-foreground block text-xs mb-0.5">AniList Profile</span>
+						<span class="mb-0.5 block text-xs text-muted-foreground">AniList Profile</span>
 						<a
 							href={`https://anilist.co/character/${character.id}`}
 							target="_blank"
 							rel="noopener noreferrer"
-							class="font-medium text-emerald-500 hover:text-emerald-400 hover:underline transition-colors flex items-center gap-1"
+							class="flex items-center gap-1 font-medium text-emerald-500 transition-colors hover:text-emerald-400 hover:underline"
 						>
 							View on AniList
 							<Icon icon="lucide:external-link" class="size-3" />
@@ -57,10 +58,14 @@
 			<!-- Alternative Names -->
 			{#if character.name?.alternative && character.name.alternative.length > 0}
 				<div class="rounded-lg border bg-card p-5">
-					<h3 class="font-semibold text-sm mb-4">Alternative Names</h3>
+					<h3 class="mb-4 text-sm font-semibold">Alternative Names</h3>
 					<div class="flex flex-col gap-2">
 						{#each character.name.alternative.filter(Boolean) as name}
-							<div class="text-sm font-medium border-b border-border/50 pb-2 last:border-0 last:pb-0">{name}</div>
+							<div
+								class="border-b border-border/50 pb-2 text-sm font-medium last:border-0 last:pb-0"
+							>
+								{name}
+							</div>
 						{/each}
 					</div>
 				</div>

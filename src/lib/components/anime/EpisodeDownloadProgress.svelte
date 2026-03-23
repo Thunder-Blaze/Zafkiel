@@ -12,7 +12,9 @@
 	const isComplete = $derived(state === 'seeding' || state === 'done' || progress >= 1);
 </script>
 
-<div class="flex w-full min-w-48 max-w-sm flex-col gap-1.5 rounded-md bg-muted/40 p-2 border border-border/50">
+<div
+	class="flex w-full max-w-sm min-w-48 flex-col gap-1.5 rounded-md border border-border/50 bg-muted/40 p-2"
+>
 	<div class="flex items-center justify-between text-xs font-medium">
 		<span class="flex items-center gap-1.5 text-muted-foreground">
 			{#if state === 'paused'}

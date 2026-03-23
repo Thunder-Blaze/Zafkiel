@@ -238,24 +238,27 @@
 		if (savedVol) volume = parseFloat(savedVol);
 
 		try {
-			await init({
-				initialOptions: {
-					// gpu-next (libplacebo) is the recommended renderer.
-					// 'auto' selects the best hardware decoder per platform:
-					// vaapi/nvdec on Linux, d3d11va/nvdec on Windows, VideoToolbox on macOS.
-					vo: 'gpu-next',
-					hwdec: 'auto',
-					'keep-open': 'yes',
-					'osd-level': '0',
-					'input-default-bindings': 'no',
-					'input-vo-keyboard': 'no',
-					speed: config.playbackSpeed,
-					volume: Math.round(volume * 100),
-					'hidpi-window-scale': 'yes',
-					'fbo-format': 'rgba16hf',
+			await init(
+				{
+					initialOptions: {
+						// gpu-next (libplacebo) is the recommended renderer.
+						// 'auto' selects the best hardware decoder per platform:
+						// vaapi/nvdec on Linux, d3d11va/nvdec on Windows, VideoToolbox on macOS.
+						vo: 'gpu-next',
+						hwdec: 'auto',
+						'keep-open': 'yes',
+						'osd-level': '0',
+						'input-default-bindings': 'no',
+						'input-vo-keyboard': 'no',
+						speed: config.playbackSpeed,
+						volume: Math.round(volume * 100),
+						'hidpi-window-scale': 'yes',
+						'fbo-format': 'rgba16hf',
+					},
+					observedProperties: OBSERVED_PROPERTIES,
 				},
-				observedProperties: OBSERVED_PROPERTIES,
-			}, MPV_WINDOW_LABEL);
+				MPV_WINDOW_LABEL
+			);
 
 			unlistenProps = await observeProperties(
 				OBSERVED_PROPERTIES,
@@ -329,11 +332,11 @@
 
 	$effect(() => {
 		if (!isInitialized || !config.shaderConfig) return;
-		
+
 		// Explicitly access properties here so Svelte 5 tracks them as dependencies
 		const enabled = config.shaderConfig.enabled;
 		const selectedShaders = config.shaderConfig.selected_shaders;
-		
+
 		const updateShaders = async () => {
 			try {
 				if (enabled && selectedShaders.length > 0) {
@@ -355,32 +358,36 @@
 
 	function updateDiscordActivity() {
 		if (!isInitialized) return;
-        
-        let startTimestamp: number | undefined;
-        let endTimestamp: number | undefined;
 
-        if (isPlaying && duration > 0) {
-            startTimestamp = Math.floor(Date.now() / 1000) - Math.floor(currentTime);
-            endTimestamp = startTimestamp + Math.floor(duration);
-        }
+		let startTimestamp: number | undefined;
+		let endTimestamp: number | undefined;
+
+		if (isPlaying && duration > 0) {
+			startTimestamp = Math.floor(Date.now() / 1000) - Math.floor(currentTime);
+			endTimestamp = startTimestamp + Math.floor(duration);
+		}
 
 		discordStore.setActivity({
-			state: isPlaying ? (currentEpisode ? `Watching Episode ${currentEpisode.number}` : 'Watching Video') : 'Paused',
+			state: isPlaying
+				? currentEpisode
+					? `Watching Episode ${currentEpisode.number}`
+					: 'Watching Video'
+				: 'Paused',
 			details: title || 'Local Video',
 			largeImage: image || 'logo',
 			largeText: title || 'Zafkiel',
 			smallImage: isPlaying ? 'play' : 'pause',
 			smallText: isPlaying ? 'Playing' : 'Paused',
 			startTimestamp,
-            endTimestamp,
+			endTimestamp,
 		});
 	}
 
 	$effect(() => {
 		// Update discord activity when title or isPlaying changes, if initialized
 		if (isInitialized) {
-            updateDiscordActivity();
-        }
+			updateDiscordActivity();
+		}
 	});
 
 	onDestroy(async () => {
@@ -478,16 +485,16 @@
 				{currentSource}
 				{onEpisodeSelect}
 				{onSourceSelect}
-			onOverlayToggle={(open) => {
-				overlayOpen = open;
-				if (open) {
-					clearTimeout(controlsTimeout);
-					showControls = true;
-				} else {
-					resetControlsTimeout();
-				}
-			}}
-		/>
+				onOverlayToggle={(open) => {
+					overlayOpen = open;
+					if (open) {
+						clearTimeout(controlsTimeout);
+						showControls = true;
+					} else {
+						resetControlsTimeout();
+					}
+				}}
+			/>
 		</div>
 	{/if}
 </div>
