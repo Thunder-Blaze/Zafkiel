@@ -320,6 +320,16 @@ impl ConfigLoader {
         self.save()
     }
 
+    /// Update playback speed setting
+    pub fn update_playback_speed(&self, speed: f32) -> Result<(), ConfigError> {
+        let mut config = self.config.write().map_err(|_| {
+            ConfigError::Deserialization("Failed to acquire write lock".to_string())
+        })?;
+        config.player.playback_speed = speed;
+        drop(config);
+        self.save()
+    }
+
     /// Update shader configuration
     pub fn update_shader_config(&self, enabled: bool, selected_shaders: Vec<String>) -> Result<(), ConfigError> {
         let mut config = self.config.write().map_err(|_| {

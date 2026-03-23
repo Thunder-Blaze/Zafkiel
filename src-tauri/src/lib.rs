@@ -198,6 +198,7 @@ pub fn run() {
             commands::config::get_player_config,
             commands::config::update_external_player_path,
             commands::config::update_auto_select_next_stream,
+            commands::config::update_playback_speed,
             commands::config::update_shader_config,
             commands::config::get_available_shaders,
 

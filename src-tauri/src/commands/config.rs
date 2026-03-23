@@ -296,6 +296,18 @@ pub fn update_auto_select_next_stream(
     }
 }
 
+/// Update playback speed setting
+#[tauri::command]
+pub fn update_playback_speed(
+    speed: f32,
+    config: State<ConfigState>,
+) -> ConfigResponse<()> {
+    match config.update_playback_speed(speed) {
+        Ok(_) => ConfigResponse::success(()),
+        Err(e) => ConfigResponse::error(e.to_string()),
+    }
+}
+
 /// Update shader configuration
 #[tauri::command]
 pub fn update_shader_config(

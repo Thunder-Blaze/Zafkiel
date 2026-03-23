@@ -20,6 +20,9 @@ pub struct PlayerConfig {
     /// Whether to automatically select the next best stream when switching episodes.
     #[serde(default = "default_true")]
     pub auto_select_next_stream: bool,
+    /// Playback speed
+    #[serde(default = "default_playback_speed")]
+    pub playback_speed: f32,
     /// Dynamic Shader configuration
     #[serde(default)]
     pub shaders: ShaderConfig,
@@ -46,6 +49,10 @@ fn default_shaders() -> Vec<String> {
 
 fn default_true() -> bool {
     true
+}
+
+fn default_playback_speed() -> f32 {
+    1.0
 }
 
 /// AniList API configuration
@@ -114,6 +121,7 @@ impl Default for PlayerConfig {
         Self {
             external_player_path: None,
             auto_select_next_stream: true,
+            playback_speed: 1.0,
             shaders: ShaderConfig::default(),
         }
     }
