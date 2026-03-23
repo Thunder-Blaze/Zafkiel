@@ -1,34 +1,37 @@
-use tauri::{command, AppHandle, State, Manager};
-use librqbit::{Session, AddTorrent, AddTorrentOptions, AddTorrentResponse, ManagedTorrent, api::TorrentIdOrHash};
 use crate::commands::config::ConfigState;
 use axum::{
-    body::Body,
-    http::{header, StatusCode, Request},
-    response::{IntoResponse},
-    routing::get,
     Router,
+    body::Body,
+    http::{Request, StatusCode, header},
+    response::IntoResponse,
+    routing::get,
 };
-use std::sync::Arc;
-use tokio::net::TcpListener;
-use tokio_util::io::ReaderStream;
-use tokio::process::Command;
+use librqbit::{
+    AddTorrent, AddTorrentOptions, AddTorrentResponse, ManagedTorrent, Session,
+    api::TorrentIdOrHash,
+};
 use std::process::Stdio;
+use std::sync::Arc;
+use tauri::{AppHandle, Manager, State, command};
+use tokio::net::TcpListener;
+use tokio::process::Command;
+use tokio_util::io::ReaderStream;
 
+use axum::extract::{Path, State as AxumState};
+use lazy_static::lazy_static;
 use serde::Serialize;
-use tower_http::cors::{CorsLayer, Any};
 use std::collections::HashMap;
+use std::net::SocketAddr;
 use std::sync::Mutex;
 use std::time::Instant;
-use std::net::SocketAddr;
-use lazy_static::lazy_static;
-use axum::extract::{Path, State as AxumState};
+use tower_http::cors::{Any, CorsLayer};
 
 #[derive(Serialize, Debug)]
 pub struct TorrentState {
     pub id: usize,
     pub name: Option<String>,
     pub progress: f64,
-    pub speed: f64, // bytes per second
+    pub speed: f64,        // bytes per second
     pub upload_speed: f64, // bytes per second
     pub peers: usize,
     pub seeds: usize,
@@ -50,7 +53,8 @@ struct GlobalServer {
 }
 
 lazy_static! {
-    static ref SPEED_TRACKER: Mutex<HashMap<usize, (u64, u64, Instant)>> = Mutex::new(HashMap::new());
+    static ref SPEED_TRACKER: Mutex<HashMap<usize, (u64, u64, Instant)>> =
+        Mutex::new(HashMap::new());
     static ref GLOBAL_SERVER: Mutex<Option<GlobalServer>> = Mutex::new(None);
 }
 
@@ -75,10 +79,12 @@ async fn ensure_global_server(session: State<'_, Arc<Session>>) -> Result<String
         Ok(l) => {
             log::info!("Bound to fixed port 3030");
             l
-        },
+        }
         Err(e) => {
             log::warn!("Port 3030 busy ({}), falling back to random port", e);
-            TcpListener::bind("127.0.0.1:0").await.map_err(|e| e.to_string())?
+            TcpListener::bind("127.0.0.1:0")
+                .await
+                .map_err(|e| e.to_string())?
         }
     };
 
@@ -92,8 +98,11 @@ async fn ensure_global_server(session: State<'_, Arc<Session>>) -> Result<String
 
     let app = Router::new()
         .route("/torrents/:id/stream/:file_id", get(global_stream_handler))
-        .route("/torrents/:id/subtitles/:file_id/:track_index", get(subtitle_handler))
-				.route("/files/:filename", get(static_file_handler))
+        .route(
+            "/torrents/:id/subtitles/:file_id/:track_index",
+            get(subtitle_handler),
+        )
+        .route("/files/:filename", get(static_file_handler))
         .layer(cors)
         .with_state(session_arc);
 
@@ -112,7 +121,7 @@ async fn ensure_global_server(session: State<'_, Arc<Session>>) -> Result<String
 #[command]
 pub async fn get_torrent_files(
     session: State<'_, Arc<Session>>,
-    magnet: String
+    magnet: String,
 ) -> Result<Vec<TorrentFile>, String> {
     let handle = add_torrent_internal(&session, &magnet, false).await?;
 
@@ -125,13 +134,18 @@ pub async fn get_torrent_files(
     }
 
     let metadata = handle.metadata.load();
-    let info = &metadata.as_ref().ok_or("Timeout waiting for metadata")?.info;
+    let info = &metadata
+        .as_ref()
+        .ok_or("Timeout waiting for metadata")?
+        .info;
 
     let mut files = Vec::new();
 
     if let Some(info_files) = &info.files {
         for (idx, f) in info_files.iter().enumerate() {
-             let name = f.path.iter()
+            let name = f
+                .path
+                .iter()
                 .map(|p| String::from_utf8_lossy(p).to_string())
                 .collect::<Vec<_>>()
                 .join("/");
@@ -161,9 +175,10 @@ pub async fn get_torrent_files(
 #[command]
 pub async fn get_torrent_files_by_id(
     session: State<'_, Arc<Session>>,
-    id: usize
+    id: usize,
 ) -> Result<Vec<TorrentFile>, String> {
-    let handle = session.get(TorrentIdOrHash::Id(id))
+    let handle = session
+        .get(TorrentIdOrHash::Id(id))
         .ok_or("Torrent not found".to_string())?;
 
     for _ in 0..100 {
@@ -174,13 +189,18 @@ pub async fn get_torrent_files_by_id(
     }
 
     let metadata = handle.metadata.load();
-    let info = &metadata.as_ref().ok_or("Timeout waiting for metadata")?.info;
+    let info = &metadata
+        .as_ref()
+        .ok_or("Timeout waiting for metadata")?
+        .info;
 
     let mut files = Vec::new();
 
     if let Some(info_files) = &info.files {
         for (idx, f) in info_files.iter().enumerate() {
-             let name = f.path.iter()
+            let name = f
+                .path
+                .iter()
                 .map(|p| String::from_utf8_lossy(p).to_string())
                 .collect::<Vec<_>>()
                 .join("/");
@@ -207,15 +227,22 @@ pub async fn get_torrent_files_by_id(
     Ok(files)
 }
 
-async fn add_torrent_internal(session: &Arc<Session>, magnet: &str, paused: bool) -> Result<Arc<ManagedTorrent>, String> {
-    let response = session.add_torrent(
-        AddTorrent::from_url(magnet),
-        Some(AddTorrentOptions {
-            overwrite: true,
-            paused,
-            ..Default::default()
-        })
-    ).await.map_err(|e| e.to_string())?;
+async fn add_torrent_internal(
+    session: &Arc<Session>,
+    magnet: &str,
+    paused: bool,
+) -> Result<Arc<ManagedTorrent>, String> {
+    let response = session
+        .add_torrent(
+            AddTorrent::from_url(magnet),
+            Some(AddTorrentOptions {
+                overwrite: true,
+                paused,
+                ..Default::default()
+            }),
+        )
+        .await
+        .map_err(|e| e.to_string())?;
 
     match response {
         AddTorrentResponse::Added(_, h) => Ok(h),
@@ -229,11 +256,16 @@ pub async fn stream_torrent(
     _app: AppHandle,
     session: State<'_, Arc<Session>>,
     magnet: String,
-    file_id: Option<usize>
+    file_id: Option<usize>,
 ) -> Result<String, String> {
     let handle = add_torrent_internal(&session, &magnet, false).await?;
 
-    let info_hash = handle.info_hash().0.iter().map(|b| format!("{:02x}", b)).collect::<String>();
+    let info_hash = handle
+        .info_hash()
+        .0
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<String>();
     add_to_persistence(&_app, &magnet, &info_hash);
 
     let base_url = ensure_global_server(session).await?;
@@ -244,7 +276,12 @@ pub async fn stream_torrent(
         find_largest_file(&handle).await?.0
     };
 
-    Ok(format!("{}/torrents/{}/stream/{}", base_url, handle.id(), target_file_id))
+    Ok(format!(
+        "{}/torrents/{}/stream/{}",
+        base_url,
+        handle.id(),
+        target_file_id
+    ))
 }
 
 #[command]
@@ -252,9 +289,10 @@ pub async fn stream_torrent_by_id(
     _app: AppHandle,
     session: State<'_, Arc<Session>>,
     id: usize,
-    file_id: Option<usize>
+    file_id: Option<usize>,
 ) -> Result<String, String> {
-    let handle = session.get(TorrentIdOrHash::Id(id))
+    let handle = session
+        .get(TorrentIdOrHash::Id(id))
         .ok_or("Torrent not found".to_string())?;
 
     let base_url = ensure_global_server(session).await?;
@@ -265,7 +303,10 @@ pub async fn stream_torrent_by_id(
         find_largest_file(&handle).await?.0
     };
 
-    Ok(format!("{}/torrents/{}/stream/{}", base_url, id, target_file_id))
+    Ok(format!(
+        "{}/torrents/{}/stream/{}",
+        base_url, id, target_file_id
+    ))
 }
 
 async fn global_stream_handler(
@@ -284,7 +325,9 @@ async fn global_stream_handler(
     };
 
     // ALWAYS use raw stream handler. No transcoding.
-    stream_handler(req, handle, file_id, file_len, file_name).await.into_response()
+    stream_handler(req, handle, file_id, file_len, file_name)
+        .await
+        .into_response()
 }
 
 async fn subtitle_handler(
@@ -321,7 +364,7 @@ async fn subtitle_handler(
                     tokio::spawn(async move {
                         let mut reader = rqbit_stream;
                         if let Err(e) = tokio::io::copy(&mut reader, &mut stdin).await {
-                             log::warn!("Error piping to ffmpeg subs: {}", e);
+                            log::warn!("Error piping to ffmpeg subs: {}", e);
                         }
                     });
 
@@ -332,11 +375,11 @@ async fn subtitle_handler(
                     headers.insert(header::CONTENT_TYPE, "text/vtt".parse().unwrap());
 
                     (StatusCode::OK, headers, body).into_response()
-                },
-                Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "FFmpeg failed").into_response()
+                }
+                Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "FFmpeg failed").into_response(),
             }
-        },
-        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Stream failed").into_response()
+        }
+        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Stream failed").into_response(),
     }
 }
 
@@ -354,11 +397,15 @@ async fn find_largest_file(handle: &Arc<ManagedTorrent>) -> Result<(usize, u64, 
 
     if let Some(files) = &info.files {
         let flat_files: Vec<_> = files.iter().collect();
-        let (id, f) = flat_files.iter().enumerate()
+        let (id, f) = flat_files
+            .iter()
+            .enumerate()
             .max_by_key(|(_, f)| f.length)
             .ok_or("No files in torrent")?;
 
-        let name = f.path.iter()
+        let name = f
+            .path
+            .iter()
             .map(|p| String::from_utf8_lossy(p).to_string())
             .collect::<Vec<_>>()
             .join("/");
@@ -377,21 +424,28 @@ fn get_file_info(handle: &Arc<ManagedTorrent>, file_id: usize) -> Result<(u64, S
 
     if let Some(files) = &info.files {
         let f = files.iter().nth(file_id).ok_or(())?;
-        let name = f.path.iter()
+        let name = f
+            .path
+            .iter()
             .map(|p| String::from_utf8_lossy(p).to_string())
             .collect::<Vec<_>>()
             .join("/");
         Ok((f.length, name))
     } else {
-         if file_id != 0 { return Err(()); }
-         let len = info.length.ok_or(())?;
-         let name_bytes = info.name.clone().ok_or(())?;
-         Ok((len, String::from_utf8_lossy(&name_bytes).to_string()))
+        if file_id != 0 {
+            return Err(());
+        }
+        let len = info.length.ok_or(())?;
+        let name_bytes = info.name.clone().ok_or(())?;
+        Ok((len, String::from_utf8_lossy(&name_bytes).to_string()))
     }
 }
 
 #[command]
-pub async fn get_torrents(app: AppHandle, session: State<'_, Arc<Session>>) -> Result<Vec<TorrentState>, String> {
+pub async fn get_torrents(
+    app: AppHandle,
+    session: State<'_, Arc<Session>>,
+) -> Result<Vec<TorrentState>, String> {
     let persistent_torrents = load_persistence(&app);
 
     let result = session.with_torrents(|torrents| {
@@ -400,13 +454,26 @@ pub async fn get_torrents(app: AppHandle, session: State<'_, Arc<Session>>) -> R
 
         for (id, handle) in torrents {
             let stats = handle.stats();
-            let info_hash = handle.info_hash().0.iter().map(|b| format!("{:02x}", b)).collect::<String>();
+            let info_hash = handle
+                .info_hash()
+                .0
+                .iter()
+                .map(|b| format!("{:02x}", b))
+                .collect::<String>();
 
             let info = handle.metadata.load();
-            let mut name = info.as_ref().and_then(|m| m.info.name.as_ref().map(|n| String::from_utf8_lossy(n).to_string()));
+            let mut name = info.as_ref().and_then(|m| {
+                m.info
+                    .name
+                    .as_ref()
+                    .map(|n| String::from_utf8_lossy(n).to_string())
+            });
 
             if name.is_none() {
-                if let Some(p) = persistent_torrents.iter().find(|t| t.info_hash == info_hash) {
+                if let Some(p) = persistent_torrents
+                    .iter()
+                    .find(|t| t.info_hash == info_hash)
+                {
                     name = p.name.clone();
                 }
             }
@@ -422,19 +489,23 @@ pub async fn get_torrents(app: AppHandle, session: State<'_, Arc<Session>>) -> R
             let current_upload = stats.uploaded_bytes;
             let now = Instant::now();
 
-            let (speed, upload_speed) = if let Some((prev_bytes, prev_upload, prev_time)) = tracker.get(&id) {
-                let bytes_diff = current_bytes.saturating_sub(*prev_bytes);
-                let upload_diff = current_upload.saturating_sub(*prev_upload);
-                let time_diff = now.duration_since(*prev_time).as_secs_f64();
+            let (speed, upload_speed) =
+                if let Some((prev_bytes, prev_upload, prev_time)) = tracker.get(&id) {
+                    let bytes_diff = current_bytes.saturating_sub(*prev_bytes);
+                    let upload_diff = current_upload.saturating_sub(*prev_upload);
+                    let time_diff = now.duration_since(*prev_time).as_secs_f64();
 
-                if time_diff > 0.0 {
-                    (bytes_diff as f64 / time_diff, upload_diff as f64 / time_diff)
+                    if time_diff > 0.0 {
+                        (
+                            bytes_diff as f64 / time_diff,
+                            upload_diff as f64 / time_diff,
+                        )
+                    } else {
+                        (0.0, 0.0)
+                    }
                 } else {
                     (0.0, 0.0)
-                }
-            } else {
-                (0.0, 0.0)
-            };
+                };
             tracker.insert(id, (current_bytes, current_upload, now));
 
             let state = if handle.is_paused() {
@@ -466,10 +537,19 @@ pub async fn get_torrents(app: AppHandle, session: State<'_, Arc<Session>>) -> R
 }
 
 #[command]
-pub async fn pause_torrent(app: AppHandle, session: State<'_, Arc<Session>>, id: usize) -> Result<(), String> {
+pub async fn pause_torrent(
+    app: AppHandle,
+    session: State<'_, Arc<Session>>,
+    id: usize,
+) -> Result<(), String> {
     if let Some(handle) = session.get(TorrentIdOrHash::Id(id)) {
         session.pause(&handle).await.map_err(|e| e.to_string())?;
-        let info_hash = handle.info_hash().0.iter().map(|b| format!("{:02x}", b)).collect::<String>();
+        let info_hash = handle
+            .info_hash()
+            .0
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<String>();
         update_persistence_state(&app, &info_hash, true);
         Ok(())
     } else {
@@ -478,10 +558,19 @@ pub async fn pause_torrent(app: AppHandle, session: State<'_, Arc<Session>>, id:
 }
 
 #[command]
-pub async fn resume_torrent(app: AppHandle, session: State<'_, Arc<Session>>, id: usize) -> Result<(), String> {
+pub async fn resume_torrent(
+    app: AppHandle,
+    session: State<'_, Arc<Session>>,
+    id: usize,
+) -> Result<(), String> {
     if let Some(handle) = session.get(TorrentIdOrHash::Id(id)) {
         session.unpause(&handle).await.map_err(|e| e.to_string())?;
-        let info_hash = handle.info_hash().0.iter().map(|b| format!("{:02x}", b)).collect::<String>();
+        let info_hash = handle
+            .info_hash()
+            .0
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<String>();
         update_persistence_state(&app, &info_hash, false);
         Ok(())
     } else {
@@ -490,10 +579,23 @@ pub async fn resume_torrent(app: AppHandle, session: State<'_, Arc<Session>>, id
 }
 
 #[command]
-pub async fn delete_torrent(app: AppHandle, session: State<'_, Arc<Session>>, id: usize, delete_files: bool) -> Result<(), String> {
+pub async fn delete_torrent(
+    app: AppHandle,
+    session: State<'_, Arc<Session>>,
+    id: usize,
+    delete_files: bool,
+) -> Result<(), String> {
     if let Some(handle) = session.get(TorrentIdOrHash::Id(id)) {
-        let info_hash = handle.info_hash().0.iter().map(|b| format!("{:02x}", b)).collect::<String>();
-        session.delete(TorrentIdOrHash::Id(id), delete_files).await.map_err(|e| e.to_string())?;
+        let info_hash = handle
+            .info_hash()
+            .0
+            .iter()
+            .map(|b| format!("{:02x}", b))
+            .collect::<String>();
+        session
+            .delete(TorrentIdOrHash::Id(id), delete_files)
+            .await
+            .map_err(|e| e.to_string())?;
         remove_from_persistence(&app, &info_hash);
         Ok(())
     } else {
@@ -525,10 +627,7 @@ pub async fn open_in_external_player(
     // fetch HLS segments without a proxy relay.
     if let Some(hdrs) = headers {
         if !hdrs.is_empty() {
-            let fields: Vec<String> = hdrs
-                .iter()
-                .map(|(k, v)| format!("{}: {}", k, v))
-                .collect();
+            let fields: Vec<String> = hdrs.iter().map(|(k, v)| format!("{}: {}", k, v)).collect();
             cmd.arg(format!("--http-header-fields={}", fields.join(",")));
         }
     }
@@ -549,12 +648,16 @@ pub async fn open_in_external_player(
                 let separator = ";";
                 #[cfg(not(target_os = "windows"))]
                 let separator = ":";
-                cmd.arg(format!("--glsl-shaders={}", resolved_shaders.join(separator)));
+                cmd.arg(format!(
+                    "--glsl-shaders={}",
+                    resolved_shaders.join(separator)
+                ));
             }
         }
     }
 
-    cmd.spawn().map_err(|e| format!("Failed to launch '{}': {}", player_exe, e))?;
+    cmd.spawn()
+        .map_err(|e| format!("Failed to launch '{}': {}", player_exe, e))?;
     Ok(())
 }
 
@@ -567,7 +670,9 @@ async fn stream_handler(
 ) -> impl IntoResponse {
     log::info!("Stream request for file: {}", file_name);
 
-    let range_header = req.headers().get(header::RANGE)
+    let range_header = req
+        .headers()
+        .get(header::RANGE)
         .and_then(|h| h.to_str().ok())
         .map(|s| s.to_string());
 
@@ -575,13 +680,20 @@ async fn stream_handler(
         Ok(range) => range,
         Err(_) => {
             let mut res = (StatusCode::RANGE_NOT_SATISFIABLE, "Invalid Range").into_response();
-            res.headers_mut().insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*".parse().unwrap());
+            res.headers_mut()
+                .insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*".parse().unwrap());
             return res;
         }
     };
 
     let len = end - start + 1;
-    log::info!("Streaming range: {}-{}/{} (len: {})", start, end, file_len, len);
+    log::info!(
+        "Streaming range: {}-{}/{} (len: {})",
+        start,
+        end,
+        file_len,
+        len
+    );
 
     let content_type = if file_name.ends_with(".mp4") {
         "video/mp4"
@@ -605,21 +717,24 @@ async fn stream_handler(
                 return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to seek").into_response();
             }
 
-             let limited_stream = tokio::io::AsyncReadExt::take(s, len);
-             let reader_stream = ReaderStream::new(limited_stream);
-             let body = Body::from_stream(reader_stream);
+            let limited_stream = tokio::io::AsyncReadExt::take(s, len);
+            let reader_stream = ReaderStream::new(limited_stream);
+            let body = Body::from_stream(reader_stream);
 
-             let mut headers = header::HeaderMap::new();
-             headers.insert(header::CONTENT_TYPE, content_type.parse().unwrap());
-             headers.insert(header::CONTENT_LENGTH, len.to_string().parse().unwrap());
-             headers.insert(header::CONTENT_RANGE, format!("bytes {}-{}/{}", start, end, file_len).parse().unwrap());
-             headers.insert(header::ACCEPT_RANGES, "bytes".parse().unwrap());
+            let mut headers = header::HeaderMap::new();
+            headers.insert(header::CONTENT_TYPE, content_type.parse().unwrap());
+            headers.insert(header::CONTENT_LENGTH, len.to_string().parse().unwrap());
+            headers.insert(
+                header::CONTENT_RANGE,
+                format!("bytes {}-{}/{}", start, end, file_len)
+                    .parse()
+                    .unwrap(),
+            );
+            headers.insert(header::ACCEPT_RANGES, "bytes".parse().unwrap());
 
-             (StatusCode::PARTIAL_CONTENT, headers, body).into_response()
-        },
-        Err(_) => {
-            (StatusCode::INTERNAL_SERVER_ERROR, "Failed to open stream").into_response()
+            (StatusCode::PARTIAL_CONTENT, headers, body).into_response()
         }
+        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Failed to open stream").into_response(),
     }
 }
 
@@ -675,12 +790,11 @@ fn save_persistence(app: &AppHandle, torrents: &Vec<PersistentTorrent>) {
 fn add_to_persistence(app: &AppHandle, magnet: &str, info_hash: &str) {
     let mut torrents = load_persistence(app);
     if !torrents.iter().any(|t| t.info_hash == info_hash) {
-        let name = url::Url::parse(magnet).ok()
-            .and_then(|url| {
-                url.query_pairs()
-                    .find(|(k, _)| k == "dn")
-                    .map(|(_, v)| v.to_string())
-            });
+        let name = url::Url::parse(magnet).ok().and_then(|url| {
+            url.query_pairs()
+                .find(|(k, _)| k == "dn")
+                .map(|(_, v)| v.to_string())
+        });
 
         torrents.push(PersistentTorrent {
             magnet: magnet.to_string(),
@@ -714,32 +828,18 @@ pub async fn restore_torrents(app: &AppHandle, session: &Arc<Session>) {
     let torrents = load_persistence(app);
     log::info!("Restoring {} torrents from persistence...", torrents.len());
     for torrent in torrents {
-        let _ = session.add_torrent(
-            AddTorrent::from_url(&torrent.magnet),
-            Some(AddTorrentOptions {
-                overwrite: true,
-                paused: torrent.paused,
-                ..Default::default()
-            })
-        ).await;
+        let _ = session
+            .add_torrent(
+                AddTorrent::from_url(&torrent.magnet),
+                Some(AddTorrentOptions {
+                    overwrite: true,
+                    paused: torrent.paused,
+                    ..Default::default()
+                }),
+            )
+            .await;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 async fn static_file_handler(
     Path(filename): Path<String>,
@@ -764,13 +864,21 @@ async fn static_file_handler(
     // Get file metadata
     let metadata = match tokio::fs::metadata(&file_path).await {
         Ok(m) => m,
-        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to read file metadata").into_response(),
+        Err(_) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to read file metadata",
+            )
+                .into_response();
+        }
     };
 
     let file_len = metadata.len();
 
     // Parse range header (same as torrent handler)
-    let range_header = req.headers().get(header::RANGE)
+    let range_header = req
+        .headers()
+        .get(header::RANGE)
         .and_then(|h| h.to_str().ok())
         .map(|s| s.to_string());
 
@@ -778,7 +886,8 @@ async fn static_file_handler(
         Ok(range) => range,
         Err(_) => {
             let mut res = (StatusCode::RANGE_NOT_SATISFIABLE, "Invalid Range").into_response();
-            res.headers_mut().insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*".parse().unwrap());
+            res.headers_mut()
+                .insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*".parse().unwrap());
             return res;
         }
     };
@@ -788,11 +897,14 @@ async fn static_file_handler(
     // Open file and seek to range
     let file = match tokio::fs::File::open(&file_path).await {
         Ok(f) => f,
-        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to open file").into_response(),
+        Err(_) => {
+            return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to open file").into_response();
+        }
     };
 
     let mut file = tokio::io::BufReader::new(file);
-    if let Err(_) = tokio::io::AsyncSeekExt::seek(&mut file, std::io::SeekFrom::Start(start)).await {
+    if let Err(_) = tokio::io::AsyncSeekExt::seek(&mut file, std::io::SeekFrom::Start(start)).await
+    {
         return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to seek file").into_response();
     }
 
@@ -805,7 +917,12 @@ async fn static_file_handler(
     let mut headers = header::HeaderMap::new();
     headers.insert(header::CONTENT_TYPE, "video/mp4".parse().unwrap());
     headers.insert(header::CONTENT_LENGTH, len.to_string().parse().unwrap());
-    headers.insert(header::CONTENT_RANGE, format!("bytes {}-{}/{}", start, end, file_len).parse().unwrap());
+    headers.insert(
+        header::CONTENT_RANGE,
+        format!("bytes {}-{}/{}", start, end, file_len)
+            .parse()
+            .unwrap(),
+    );
     headers.insert(header::ACCEPT_RANGES, "bytes".parse().unwrap());
     headers.insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*".parse().unwrap());
 

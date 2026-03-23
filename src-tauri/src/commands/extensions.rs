@@ -13,7 +13,6 @@
 /// ```
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
-use tauri::{Emitter, Manager};
 use std::{
     collections::HashMap,
     fs,
@@ -22,6 +21,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 use tauri::command;
+use tauri::{Emitter, Manager};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared types
@@ -105,8 +105,8 @@ fn read_index() -> Vec<ExtensionIndexEntry> {
 
 fn write_index(entries: &[ExtensionIndexEntry]) -> Result<(), String> {
     let path = index_path()?;
-    let content =
-        serde_json::to_string_pretty(entries).map_err(|e| format!("Failed to serialize index: {e}"))?;
+    let content = serde_json::to_string_pretty(entries)
+        .map_err(|e| format!("Failed to serialize index: {e}"))?;
     fs::write(&path, content).map_err(|e| format!("Failed to write index.json: {e}"))?;
     Ok(())
 }
@@ -123,9 +123,7 @@ fn unzip_bundle(bytes: &[u8], target_dir: &Path) -> Result<(), io::Error> {
         let mut file = archive.by_index(i)?;
         // Sanitise path: strip leading "/" or ".." components to prevent path traversal.
         let raw_name = file.name().to_owned();
-        let stripped = raw_name
-            .trim_start_matches('/')
-            .trim_start_matches("../");
+        let stripped = raw_name.trim_start_matches('/').trim_start_matches("../");
         let outpath = target_dir.join(stripped);
 
         if file.name().ends_with('/') {
@@ -144,13 +142,10 @@ fn unzip_bundle(bytes: &[u8], target_dir: &Path) -> Result<(), io::Error> {
 fn read_manifest_from_dir(dir: &Path) -> Result<ExtensionManifest, String> {
     let manifest_path = dir.join("manifest.json");
     if !manifest_path.exists() {
-        return Err(format!(
-            "manifest.json not found in {}",
-            dir.display()
-        ));
+        return Err(format!("manifest.json not found in {}", dir.display()));
     }
-    let content =
-        fs::read_to_string(&manifest_path).map_err(|e| format!("Failed to read manifest.json: {e}"))?;
+    let content = fs::read_to_string(&manifest_path)
+        .map_err(|e| format!("Failed to read manifest.json: {e}"))?;
     serde_json::from_str(&content).map_err(|e| format!("Invalid manifest.json — {e}"))
 }
 
@@ -172,7 +167,10 @@ pub fn get_installed_extensions() -> Vec<ExtensionIndexEntry> {
 /// The original bundle is preserved as `.bundle.zext` so the extension can
 /// be reinstalled locally without a network call.
 #[command]
-pub async fn install_extension(id: String, download_url: String) -> Result<ExtensionIndexEntry, String> {
+pub async fn install_extension(
+    id: String,
+    download_url: String,
+) -> Result<ExtensionIndexEntry, String> {
     // 1. Download
     let client = reqwest::Client::new();
     let bytes = client
@@ -197,8 +195,10 @@ pub async fn install_extension(id: String, download_url: String) -> Result<Exten
         } else {
             None
         };
-        fs::remove_dir_all(&ext_dir).map_err(|e| format!("Failed to clean old extension dir: {e}"))?;
-        fs::create_dir_all(&ext_dir).map_err(|e| format!("Failed to recreate extension dir: {e}"))?;
+        fs::remove_dir_all(&ext_dir)
+            .map_err(|e| format!("Failed to clean old extension dir: {e}"))?;
+        fs::create_dir_all(&ext_dir)
+            .map_err(|e| format!("Failed to recreate extension dir: {e}"))?;
         // Restore storage
         if let Some(storage) = storage_backup {
             let _ = fs::write(ext_dir.join("storage.json"), storage);
@@ -247,7 +247,11 @@ pub async fn install_extension(id: String, download_url: String) -> Result<Exten
     entries.push(entry.clone());
     write_index(&entries)?;
 
-    log::info!("[Extensions] Installed: {} v{}", manifest.name, manifest.version);
+    log::info!(
+        "[Extensions] Installed: {} v{}",
+        manifest.name,
+        manifest.version
+    );
     Ok(entry)
 }
 
@@ -290,8 +294,7 @@ pub fn reinstall_extension(id: String) -> Result<ExtensionIndexEntry, String> {
         }
     }
 
-    unzip_bundle(&bytes, &ext_dir)
-        .map_err(|e| format!("Failed to re-extract bundle: {e}"))?;
+    unzip_bundle(&bytes, &ext_dir).map_err(|e| format!("Failed to re-extract bundle: {e}"))?;
 
     // Restore storage
     if let Some(storage) = storage_backup {
@@ -340,7 +343,10 @@ pub fn uninstall_extension(id: String) -> Result<(), String> {
     let before = entries.len();
     entries.retain(|e| e.id != id);
     if entries.len() == before {
-        log::warn!("[Extensions] uninstall_extension: '{}' was not in index", id);
+        log::warn!(
+            "[Extensions] uninstall_extension: '{}' was not in index",
+            id
+        );
     }
     write_index(&entries)?;
     log::info!("[Extensions] Uninstalled: {}", id);
@@ -384,8 +390,7 @@ pub fn ext_storage_get(ext_id: String, key: String) -> Result<Option<String>, St
 #[command]
 pub fn ext_storage_set(ext_id: String, key: String, value: String) -> Result<(), String> {
     let ext_dir = get_extensions_dir()?.join(&ext_id);
-    fs::create_dir_all(&ext_dir)
-        .map_err(|e| format!("Failed to create extension dir: {e}"))?;
+    fs::create_dir_all(&ext_dir).map_err(|e| format!("Failed to create extension dir: {e}"))?;
 
     let storage_path = ext_dir.join("storage.json");
     let mut map: HashMap<String, String> = if storage_path.exists() {
@@ -429,11 +434,19 @@ pub fn ext_storage_delete(ext_id: String, key: String) -> Result<(), String> {
 /// Identical to `install_extension` except it reads from disk instead of
 /// downloading.  Use this during development to test local extension builds.
 #[command]
-pub fn install_extension_from_local(id: String, bundle_path: String) -> Result<ExtensionIndexEntry, String> {
+pub fn install_extension_from_local(
+    id: String,
+    bundle_path: String,
+) -> Result<ExtensionIndexEntry, String> {
     let bytes = fs::read(&bundle_path)
         .map_err(|e| format!("Failed to read local bundle '{}': {e}", bundle_path))?;
 
-    log::info!("[Extensions] Local install of '{}' from '{}' ({} bytes)", id, bundle_path, bytes.len());
+    log::info!(
+        "[Extensions] Local install of '{}' from '{}' ({} bytes)",
+        id,
+        bundle_path,
+        bytes.len()
+    );
 
     let ext_dir = get_extensions_dir()?.join(&id);
 
@@ -454,8 +467,7 @@ pub fn install_extension_from_local(id: String, bundle_path: String) -> Result<E
     // Record the original source path for debugging
     let _ = fs::write(ext_dir.join(".source_path"), &bundle_path);
 
-    unzip_bundle(&bytes, &ext_dir)
-        .map_err(|e| format!("Failed to extract bundle: {e}"))?;
+    unzip_bundle(&bytes, &ext_dir).map_err(|e| format!("Failed to extract bundle: {e}"))?;
 
     if let Some(storage) = storage_backup {
         let _ = fs::write(ext_dir.join("storage.json"), storage);
@@ -465,7 +477,10 @@ pub fn install_extension_from_local(id: String, bundle_path: String) -> Result<E
 
     let entry_path = ext_dir.join(&manifest.entry);
     if !entry_path.exists() {
-        return Err(format!("Entry file '{}' not found after extraction", manifest.entry));
+        return Err(format!(
+            "Entry file '{}' not found after extraction",
+            manifest.entry
+        ));
     }
 
     let entry = ExtensionIndexEntry {
@@ -486,7 +501,11 @@ pub fn install_extension_from_local(id: String, bundle_path: String) -> Result<E
     entries.push(entry.clone());
     write_index(&entries)?;
 
-    log::info!("[Extensions] Local install done: {} v{}", manifest.name, manifest.version);
+    log::info!(
+        "[Extensions] Local install done: {} v{}",
+        manifest.name,
+        manifest.version
+    );
     Ok(entry)
 }
 
@@ -771,11 +790,10 @@ fn platform_collect_cookies(wv: tauri::webview::PlatformWebview, _url: String, t
 #[cfg(target_os = "windows")]
 fn platform_collect_cookies(wv: tauri::webview::PlatformWebview, url: String, tx: CookieTx) {
     use webview2_com::Microsoft::Web::WebView2::Win32::{
-        ICoreWebView2Cookie, ICoreWebView2CookieList, ICoreWebView2CookieManager,
-        ICoreWebView2GetCookiesCompletedHandler,
-        ICoreWebView2GetCookiesCompletedHandler_Impl, ICoreWebView2_2,
+        ICoreWebView2_2, ICoreWebView2Cookie, ICoreWebView2CookieList, ICoreWebView2CookieManager,
+        ICoreWebView2GetCookiesCompletedHandler, ICoreWebView2GetCookiesCompletedHandler_Impl,
     };
-    use windows::core::{implement, Interface, HSTRING, PWSTR};
+    use windows::core::{HSTRING, Interface, PWSTR, implement};
 
     #[implement(ICoreWebView2GetCookiesCompletedHandler)]
     struct Handler {
@@ -789,23 +807,26 @@ fn platform_collect_cookies(wv: tauri::webview::PlatformWebview, url: String, tx
             cookie_list: windows_core::Ref<'_, ICoreWebView2CookieList>,
         ) -> Result<(), windows_core::Error> {
             let cookies = if error_code.is_ok() {
-                cookie_list.as_ref().map(|list| unsafe {
-                    let mut count = 0u32;
-                    let _ = list.Count(&mut count);
-                    (0..count)
-                        .filter_map(|i| {
-                            let cookie: ICoreWebView2Cookie = list.GetValueAtIndex(i).ok()?;
-                            let mut name = PWSTR::null();
-                            let mut value = PWSTR::null();
-                            let _ = cookie.Name(&mut name);
-                            let _ = cookie.Value(&mut value);
-                            let n = name.to_string().ok().filter(|s| !s.is_empty())?;
-                            let v = value.to_string().unwrap_or_default();
-                            Some(format!("{n}={v}"))
-                        })
-                        .collect::<Vec<_>>()
-                        .join("; ")
-                }).unwrap_or_default()
+                cookie_list
+                    .as_ref()
+                    .map(|list| unsafe {
+                        let mut count = 0u32;
+                        let _ = list.Count(&mut count);
+                        (0..count)
+                            .filter_map(|i| {
+                                let cookie: ICoreWebView2Cookie = list.GetValueAtIndex(i).ok()?;
+                                let mut name = PWSTR::null();
+                                let mut value = PWSTR::null();
+                                let _ = cookie.Name(&mut name);
+                                let _ = cookie.Value(&mut value);
+                                let n = name.to_string().ok().filter(|s| !s.is_empty())?;
+                                let v = value.to_string().unwrap_or_default();
+                                Some(format!("{n}={v}"))
+                            })
+                            .collect::<Vec<_>>()
+                            .join("; ")
+                    })
+                    .unwrap_or_default()
             } else {
                 log::warn!("[Extensions] WebView2 GetCookies error: {error_code:?}");
                 String::new()

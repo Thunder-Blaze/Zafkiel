@@ -2,7 +2,7 @@ use crate::api::anilist::{AniListResponse, AniListService};
 use anilist_moe::{
     endpoints::activity::{
         DeleteActivityOptions, DeleteActivityReplyOptions, FetchActivityOptions,
-        SaveMessageActivityOptions, SaveTextActivityOptions, SaveActivityReplyOptions,
+        SaveActivityReplyOptions, SaveMessageActivityOptions, SaveTextActivityOptions,
         SubscribeActivityOptions,
     },
     objects::{activity::ActivityReply, responses::Page},
@@ -50,7 +50,7 @@ pub async fn get_recent_activity(
 ) -> Result<AniListResponse<Page<Vec<ActivityUnion>>>, String> {
     log::info!("get_recent_activity");
     let client = service.client().await;
-    
+
     // Instead of get_recent, we use fetch to pass specific filters
     let result = client
         .activity()
@@ -74,10 +74,7 @@ pub async fn get_following_activity(
 ) -> Result<AniListResponse<Page<Vec<ActivityUnion>>>, String> {
     log::info!("get_following_activity");
     let client = service.client().await;
-    let result = client
-        .activity()
-        .get_following(page, per_page)
-        .await;
+    let result = client.activity().get_following(page, per_page).await;
     Ok(result.into())
 }
 
@@ -181,7 +178,11 @@ pub async fn toggle_activity_subscription(
     subscribe: bool,
     service: State<'_, AniListState>,
 ) -> Result<AniListResponse<ActivityUnion>, String> {
-    log::info!("toggle_activity_subscription: id={} subscribe={}", id, subscribe);
+    log::info!(
+        "toggle_activity_subscription: id={} subscribe={}",
+        id,
+        subscribe
+    );
     let client = service.client().await;
     let result = client
         .activity()

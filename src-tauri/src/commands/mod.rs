@@ -1,11 +1,11 @@
 pub mod api;
 pub mod auth;
 pub mod config;
-pub mod utils;
-pub mod torrent;
 pub mod db;
-pub mod image_cache;
-pub mod extensions;
-pub mod downloads;
-pub mod mpv_window;
 pub mod discord;
+pub mod downloads;
+pub mod extensions;
+pub mod image_cache;
+pub mod mpv_window;
+pub mod torrent;
+pub mod utils;

@@ -85,7 +85,13 @@ fn sanitize_filename(s: &str) -> String {
         .to_owned()
 }
 
-fn build_output_path(app: &AppHandle, anime_name: &str, season: i32, episode: f64, source_label: &str) -> PathBuf {
+fn build_output_path(
+    app: &AppHandle,
+    anime_name: &str,
+    season: i32,
+    episode: f64,
+    source_label: &str,
+) -> PathBuf {
     let base = app
         .path()
         .download_dir()
@@ -110,7 +116,11 @@ fn build_output_path(app: &AppHandle, anime_name: &str, season: i32, episode: f6
     dir.join(filename)
 }
 
-fn insert_download_record(db: &Database, p: &StartDownloadParams, file_path: &str) -> Result<i64, String> {
+fn insert_download_record(
+    db: &Database,
+    p: &StartDownloadParams,
+    file_path: &str,
+) -> Result<i64, String> {
     let conn = db.get();
     let now = now_secs();
     conn.execute(
@@ -166,7 +176,11 @@ fn parse_ffmpeg_time(line: &str) -> Option<f64> {
 
 fn parse_hhmmss(s: &str) -> Option<f64> {
     // Stop at the first comma, space, or newline so we don't grab trailing chars
-    let s = s.split(|c| c == ',' || c == ' ' || c == '\n').next().unwrap_or("").trim();
+    let s = s
+        .split(|c| c == ',' || c == ' ' || c == '\n')
+        .next()
+        .unwrap_or("")
+        .trim();
     let parts: Vec<&str> = s.splitn(3, ':').collect();
     if parts.len() < 3 {
         return None;
@@ -191,16 +205,26 @@ pub async fn start_extension_download(
     db: State<'_, Database>,
     params: StartDownloadParams,
 ) -> Result<i64, String> {
-    let out_path = build_output_path(&app, &params.anime_name, params.season, params.episode_number, &params.source_label);
+    let out_path = build_output_path(
+        &app,
+        &params.anime_name,
+        params.season,
+        params.episode_number,
+        &params.source_label,
+    );
     let out_path_str = out_path.to_string_lossy().to_string();
 
     let id = insert_download_record(&db, &params, &out_path_str)?;
 
     // Extract auth headers to pass to ffmpeg.
-    let referer = params.headers.get("Referer")
+    let referer = params
+        .headers
+        .get("Referer")
         .or_else(|| params.headers.get("referer"))
         .map(|s| s.as_str());
-    let cookie = params.headers.get("Cookie")
+    let cookie = params
+        .headers
+        .get("Cookie")
         .or_else(|| params.headers.get("cookie"))
         .map(|s| s.as_str());
 
@@ -240,8 +264,10 @@ pub async fn start_extension_download(
         // Note: aac_adtstoasc is intentionally omitted — fMP4 HLS segments already
         // use AAC-LC in ASC format; applying the filter on such streams aborts ffmpeg.
         ffmpeg_args.extend([
-            "-i".to_string(), url.clone(),
-            "-c".to_string(), "copy".to_string(),
+            "-i".to_string(),
+            url.clone(),
+            "-c".to_string(),
+            "copy".to_string(),
             out_path_str.clone(),
         ]);
 
@@ -271,7 +297,9 @@ pub async fn start_extension_download(
                     while let Ok(Some(line)) = lines.next_line().await {
                         log::debug!("[ffmpeg] {line}");
                         // Keep last 8 lines for error reporting
-                        if last_stderr_lines.len() >= 8 { last_stderr_lines.remove(0); }
+                        if last_stderr_lines.len() >= 8 {
+                            last_stderr_lines.remove(0);
+                        }
                         last_stderr_lines.push(line.clone());
 
                         if duration_secs == 0.0 {
@@ -371,10 +399,7 @@ pub fn cancel_extension_download(db: State<'_, Database>, id: i64) -> Result<(),
 #[command]
 pub fn remove_extension_download(db: State<'_, Database>, id: i64) -> Result<(), String> {
     let conn = db.get();
-    conn.execute(
-        "DELETE FROM extension_downloads WHERE id=?1",
-        params![id],
-    )
-    .map_err(|e| format!("DB delete failed: {e}"))?;
+    conn.execute("DELETE FROM extension_downloads WHERE id=?1", params![id])
+        .map_err(|e| format!("DB delete failed: {e}"))?;
     Ok(())
 }

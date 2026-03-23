@@ -174,8 +174,7 @@ pub async fn cache_media(db: State<'_, Database>, params: CacheMediaParams) -> R
         }
     });
 
-    let full_json =
-        serde_json::to_string(m).map_err(|e| format!("Serialization error: {}", e))?;
+    let full_json = serde_json::to_string(m).map_err(|e| format!("Serialization error: {}", e))?;
     let now = now_secs();
 
     let conn = db.get();
@@ -265,8 +264,7 @@ pub async fn cache_user(db: State<'_, Database>, params: CacheUserParams) -> Res
     let banner = json_str(u, "bannerImage");
     let about = json_str(u, "about");
     let site_url = json_str(u, "siteUrl");
-    let full_json =
-        serde_json::to_string(u).map_err(|e| format!("Serialization error: {}", e))?;
+    let full_json = serde_json::to_string(u).map_err(|e| format!("Serialization error: {}", e))?;
     let now = now_secs();
 
     let conn = db.get();
@@ -283,7 +281,9 @@ pub async fn cache_user(db: State<'_, Database>, params: CacheUserParams) -> Res
             site_url      = excluded.site_url,
             last_accessed = excluded.last_accessed,
             full_json     = excluded.full_json",
-        params![anilist_id, name, avatar, banner, about, site_url, now, full_json],
+        params![
+            anilist_id, name, avatar, banner, about, site_url, now, full_json
+        ],
     )
     .map_err(|e| format!("Database error: {}", e))?;
     Ok(())

@@ -1,7 +1,6 @@
 use crate::api::anilist::{AniListResponse, AniListService};
 use anilist_moe::{
-    endpoints::notification::{NotificationSearchOptions},
-    objects::responses::Page,
+    endpoints::notification::NotificationSearchOptions, objects::responses::Page,
     unions::notification::NotificationUnion,
 };
 use std::sync::Arc;
@@ -43,6 +42,9 @@ pub async fn get_and_mark_notifications_read(
 ) -> Result<AniListResponse<Page<Vec<NotificationUnion>>>, String> {
     log::info!("get_and_mark_notifications_read");
     let client = service.client().await;
-    let result = client.notification().get_and_mark_read(page, per_page).await;
+    let result = client
+        .notification()
+        .get_and_mark_read(page, per_page)
+        .await;
     Ok(result.into())
 }

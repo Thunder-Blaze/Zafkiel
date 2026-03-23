@@ -1,8 +1,6 @@
 use crate::api::anilist::{AniListResponse, AniListService};
 use anilist_moe::{
-    endpoints::recommendation::{
-        FetchRecommendationOptions, SaveRecommendationOptions,
-    },
+    endpoints::recommendation::{FetchRecommendationOptions, SaveRecommendationOptions},
     objects::{recommendation::Recommendation, responses::Page},
 };
 use std::sync::Arc;

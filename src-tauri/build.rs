@@ -12,11 +12,7 @@ fn main() {
 
         let lib_dir = std::path::Path::new("lib");
 
-
-        for dll in &[
-            "libmpv-wrapper.dll",
-            "libmpv-2.dll",
-        ] {
+        for dll in &["libmpv-wrapper.dll", "libmpv-2.dll"] {
             let src = lib_dir.join(dll);
             if src.exists() {
                 let dst = target_dir.join(dll);

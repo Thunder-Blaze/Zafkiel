@@ -2,9 +2,7 @@
  * Tauri Commands for OAuth Authentication
  */
 use crate::api::anilist::AniListService;
-use crate::auth::anilist::{
-    AuthState, get_authorization_url, start_callback_server,
-};
+use crate::auth::anilist::{AuthState, get_authorization_url, start_callback_server};
 use crate::config;
 use crate::constants::{ANILIST_CLIENT_ID, ANILIST_REDIRECT_PORT};
 use std::sync::Arc;

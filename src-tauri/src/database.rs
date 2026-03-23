@@ -1,6 +1,6 @@
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite_migration::{Migrations, M};
+use rusqlite_migration::{M, Migrations};
 use std::path::PathBuf;
 
 /// Database connection pool wrapper with versioned migrations.

@@ -252,7 +252,11 @@ pub async fn update_media_progress(
     progress: i32,
     service: State<'_, AniListState>,
 ) -> Result<AniListResponse<MediaList>, String> {
-    log::info!("update_media_progress: entry_id={} progress={}", entry_id, progress);
+    log::info!(
+        "update_media_progress: entry_id={} progress={}",
+        entry_id,
+        progress
+    );
     let client = service.client().await;
     let result = client.medialist().update_progress(entry_id, progress).await;
     Ok(result.into())
@@ -278,12 +282,20 @@ pub async fn update_media_status(
     status: String,
     service: State<'_, AniListState>,
 ) -> Result<AniListResponse<MediaList>, String> {
-    log::info!("update_media_status: entry_id={} status={}", entry_id, status);
+    log::info!(
+        "update_media_status: entry_id={} status={}",
+        entry_id,
+        status
+    );
 
-    let status_enum = parse_status(Some(status))?.ok_or_else(|| "Status is required".to_string())?;
+    let status_enum =
+        parse_status(Some(status))?.ok_or_else(|| "Status is required".to_string())?;
 
     let client = service.client().await;
-    let result = client.medialist().update_status(entry_id, status_enum).await;
+    let result = client
+        .medialist()
+        .update_status(entry_id, status_enum)
+        .await;
     Ok(result.into())
 }
 

@@ -1,8 +1,8 @@
-use tauri::command;
+use base64::Engine as _;
 use reqwest::Client;
 use std::collections::HashMap;
 use std::error::Error;
-use base64::Engine as _;
+use tauri::command;
 
 /// Proxy-fetch a URL through the Rust backend, bypassing browser CORS restrictions.
 ///
@@ -15,13 +15,11 @@ pub async fn fetch_url(
 ) -> Result<String, String> {
     log::info!("Fetching URL: {}", url);
     let client = Client::new();
-    let mut req = client
-        .get(&url)
-        .header(
-            "User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
+    let mut req = client.get(&url).header(
+        "User-Agent",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
              (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        );
+    );
 
     if let Some(hdrs) = headers {
         for (key, value) in &hdrs {
@@ -95,7 +93,11 @@ pub async fn upload_to_catbox(
     filename: String,
     mime_type: String,
 ) -> Result<String, String> {
-    log::info!("Uploading {} ({} bytes) to catbox.moe", filename, bytes.len());
+    log::info!(
+        "Uploading {} ({} bytes) to catbox.moe",
+        filename,
+        bytes.len()
+    );
 
     let client = reqwest::Client::builder()
         .http1_only()
@@ -118,7 +120,13 @@ pub async fn upload_to_catbox(
         .send()
         .await
         .map_err(|e| {
-            let msg = format!("Upload request failed: {} (is_connect={} is_timeout={} source={:?})", e, e.is_connect(), e.is_timeout(), e.source());
+            let msg = format!(
+                "Upload request failed: {} (is_connect={} is_timeout={} source={:?})",
+                e,
+                e.is_connect(),
+                e.is_timeout(),
+                e.source()
+            );
             log::error!("{}", msg);
             msg
         })?;
@@ -154,13 +162,11 @@ pub async fn fetch_bytes_base64(
 ) -> Result<String, String> {
     log::info!("Proxying binary as base64: {}", url);
     let client = Client::new();
-    let mut req = client
-        .get(&url)
-        .header(
-            "User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
+    let mut req = client.get(&url).header(
+        "User-Agent",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
              (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-        );
+    );
 
     if let Some(hdrs) = headers {
         for (key, value) in &hdrs {
@@ -201,13 +207,11 @@ pub async fn fetch_image_base64(
 ) -> Result<String, String> {
     log::info!("Proxying image as base64: {}", url);
     let client = Client::new();
-    let mut req = client
-        .get(&url)
-        .header(
-            "User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
+    let mut req = client.get(&url).header(
+        "User-Agent",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 \
              (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
-        );
+    );
 
     if let Some(cookie) = cookie {
         req = req.header("Cookie", cookie);

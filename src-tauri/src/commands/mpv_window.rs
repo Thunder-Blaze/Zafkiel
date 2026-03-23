@@ -68,9 +68,7 @@ pub fn lower_mpv_subwindow(app: tauri::AppHandle) -> Result<(), String> {
         unsafe {
             let display = XOpenDisplay(std::ptr::null());
             if display.is_null() {
-                return Err(
-                    "[mpv_window] XOpenDisplay failed — is $DISPLAY set?".to_string(),
-                );
+                return Err("[mpv_window] XOpenDisplay failed — is $DISPLAY set?".to_string());
             }
 
             let mut root: XWindow = 0;

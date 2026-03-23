@@ -1,8 +1,8 @@
 use crate::config::{AppConfig, ConfigLoader, PlayerConfig, UiConfig};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fs, path::PathBuf, sync::Arc};
 use std::sync::Mutex;
+use std::{collections::HashMap, fs, path::PathBuf, sync::Arc};
 use tauri::{Manager, State};
 
 /// Shared state for config loader
@@ -50,7 +50,7 @@ pub fn get_config(app: tauri::AppHandle, config: State<ConfigState>) -> ConfigRe
         Ok(mut cfg) => {
             resolve_shader_paths(&app, &mut cfg.player.shaders.selected_shaders);
             ConfigResponse::success(cfg)
-        },
+        }
         Err(e) => ConfigResponse::error(e.to_string()),
     }
 }
@@ -262,12 +262,15 @@ pub fn get_config_path(config: State<ConfigState>) -> ConfigResponse<String> {
 
 /// Get player configuration
 #[tauri::command]
-pub fn get_player_config(app: tauri::AppHandle, config: State<ConfigState>) -> ConfigResponse<PlayerConfig> {
+pub fn get_player_config(
+    app: tauri::AppHandle,
+    config: State<ConfigState>,
+) -> ConfigResponse<PlayerConfig> {
     match config.get_player_config() {
         Ok(mut player_config) => {
             resolve_shader_paths(&app, &mut player_config.shaders.selected_shaders);
             ConfigResponse::success(player_config)
-        },
+        }
         Err(e) => ConfigResponse::error(e.to_string()),
     }
 }
@@ -298,10 +301,7 @@ pub fn update_auto_select_next_stream(
 
 /// Update playback speed setting
 #[tauri::command]
-pub fn update_playback_speed(
-    speed: f32,
-    config: State<ConfigState>,
-) -> ConfigResponse<()> {
+pub fn update_playback_speed(speed: f32, config: State<ConfigState>) -> ConfigResponse<()> {
     match config.update_playback_speed(speed) {
         Ok(_) => ConfigResponse::success(()),
         Err(e) => ConfigResponse::error(e.to_string()),
@@ -390,8 +390,7 @@ fn normalize_path_for_asset(path: &std::path::Path) -> String {
 /// This file is only written by the theme-install system; default themes are
 /// listed in `static/themes/themes.index.json` which ships with the app.
 fn user_themes_index_path() -> Option<PathBuf> {
-    ProjectDirs::from("", "", "zafkiel")
-        .map(|d| d.config_dir().join("themes.index.json"))
+    ProjectDirs::from("", "", "zafkiel").map(|d| d.config_dir().join("themes.index.json"))
 }
 
 /// Read the user-installed themes index from `~/.config/zafkiel/themes.index.json`.
@@ -420,7 +419,9 @@ fn read_user_themes_index() -> HashMap<String, String> {
 /// Called by the theme-install/uninstall commands – not by the reader path.
 #[allow(dead_code)]
 pub fn write_user_themes_index(themes: &HashMap<String, String>) {
-    let Some(path) = user_themes_index_path() else { return };
+    let Some(path) = user_themes_index_path() else {
+        return;
+    };
     if let Some(parent) = path.parent() {
         let _ = fs::create_dir_all(parent);
     }
@@ -429,7 +430,10 @@ pub fn write_user_themes_index(themes: &HashMap<String, String>) {
             if let Err(e) = fs::write(&path, content) {
                 log::warn!("[Themes] Failed to write user themes index: {e}");
             } else {
-                log::info!("[Themes] User themes index updated ({} entries)", themes.len());
+                log::info!(
+                    "[Themes] User themes index updated ({} entries)",
+                    themes.len()
+                );
             }
         }
         Err(e) => log::warn!("[Themes] Failed to serialize user themes index: {e}"),
@@ -479,7 +483,10 @@ fn build_theme_map(app: &tauri::AppHandle) -> HashMap<String, String> {
     map.extend(user_themes);
 
     if user_count > 0 {
-        log::info!("[Themes] Merged {user_count} user theme(s) (total: {})", map.len());
+        log::info!(
+            "[Themes] Merged {user_count} user theme(s) (total: {})",
+            map.len()
+        );
     }
 
     map

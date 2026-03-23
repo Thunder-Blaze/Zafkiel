@@ -51,10 +51,7 @@ pub async fn get_recent_forum_threads(
 ) -> Result<AniListResponse<Page<Vec<Thread>>>, String> {
     log::info!("get_recent_forum_threads");
     let client = service.client().await;
-    let result = client
-        .forum()
-        .get_recent(page, per_page)
-        .await;
+    let result = client.forum().get_recent(page, per_page).await;
     Ok(result.into())
 }
 
@@ -67,10 +64,7 @@ pub async fn get_popular_forum_threads(
 ) -> Result<AniListResponse<Page<Vec<Thread>>>, String> {
     log::info!("get_popular_forum_threads");
     let client = service.client().await;
-    let result = client
-        .forum()
-        .get_popular(page, per_page)
-        .await;
+    let result = client.forum().get_popular(page, per_page).await;
     Ok(result.into())
 }
 
@@ -101,10 +95,7 @@ pub async fn get_forum_threads_by_user(
 ) -> Result<AniListResponse<Page<Vec<Thread>>>, String> {
     log::info!("get_forum_threads_by_user: {}", user_id);
     let client = service.client().await;
-    let result = client
-        .forum()
-        .get_by_user(user_id, page, per_page)
-        .await;
+    let result = client.forum().get_by_user(user_id, page, per_page).await;
     Ok(result.into())
 }
 
@@ -117,10 +108,7 @@ pub async fn get_subscribed_forum_threads(
 ) -> Result<AniListResponse<Page<Vec<Thread>>>, String> {
     log::info!("get_subscribed_forum_threads");
     let client = service.client().await;
-    let result = client
-        .forum()
-        .get_subscribed(page, per_page)
-        .await;
+    let result = client.forum().get_subscribed(page, per_page).await;
     Ok(result.into())
 }
 
@@ -248,7 +236,8 @@ pub async fn reply_to_thread_comment(
 ) -> Result<AniListResponse<ThreadComment>, String> {
     log::info!(
         "reply_to_thread_comment: thread_id={}, parent={}",
-        thread_id, parent_comment_id
+        thread_id,
+        parent_comment_id
     );
     let client = service.client().await;
     let result = client

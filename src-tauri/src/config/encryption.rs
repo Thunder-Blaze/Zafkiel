@@ -1,8 +1,9 @@
 use aes_gcm::{
-    aead::{Aead, KeyInit}, Aes256Gcm, Nonce
+    Aes256Gcm, Nonce,
+    aead::{Aead, KeyInit},
 };
 use base64::{Engine, engine::general_purpose::STANDARD as BASE64};
-use rand::{rngs::OsRng, RngCore};
+use rand::{RngCore, rngs::OsRng};
 use thiserror::Error;
 
 /// Encryption-related errors
@@ -42,7 +43,7 @@ pub fn encrypt(data: &str, key_base64: &str) -> Result<String, EncryptionError> 
         )));
     }
 
-		let cipher = Aes256Gcm::new_from_slice(&key_bytes).unwrap();
+    let cipher = Aes256Gcm::new_from_slice(&key_bytes).unwrap();
 
     // Generate a random nonce (12 bytes for GCM)
     let mut nonce_bytes = [0u8; 12];

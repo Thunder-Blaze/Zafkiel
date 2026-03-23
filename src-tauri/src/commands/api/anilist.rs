@@ -1,13 +1,16 @@
 use crate::api::anilist::{AniListResponse, AniListService};
 use anilist_moe::{
-    endpoints::media::{FetchMediaOneOptions, FetchMediaOptions},
     endpoints::character::FetchCharacterOptions,
+    endpoints::media::{FetchMediaOneOptions, FetchMediaOptions},
     endpoints::staff::FetchStaffOptions,
     endpoints::user::FetchUserOptions,
-    objects::{media::Media, responses::Page, user::User, studio::Studio, character::Character, staff::Staff, favourites::Favourites},
-    enums::media::{MediaType, MediaFormat, MediaStatus, MediaSeason, MediaSort, MediaSource},
     enums::character::CharacterSort,
+    enums::media::{MediaFormat, MediaSeason, MediaSort, MediaSource, MediaStatus, MediaType},
     enums::staff::StaffSort,
+    objects::{
+        character::Character, favourites::Favourites, media::Media, responses::Page, staff::Staff,
+        studio::Studio, user::User,
+    },
 };
 use std::sync::Arc;
 use tauri::State;
@@ -103,7 +106,7 @@ pub async fn browse_media(
     country_of_origin: Option<String>,
     page: Option<i32>,
     per_page: Option<i32>,
-    service: State<'_, AniListState>
+    service: State<'_, AniListState>,
 ) -> Result<AniListResponse<Page<Vec<Media>>>, String> {
     log::info!("Executing command: browse_media with filters");
 
@@ -165,29 +168,32 @@ pub async fn browse_media(
     });
 
     let sort_enums = sort_by.as_ref().map(|sorts| {
-        sorts.iter().filter_map(|s| match s.as_str() {
-            "POPULARITY_DESC" => Some(MediaSort::PopularityDesc),
-            "POPULARITY" => Some(MediaSort::Popularity),
-            "TRENDING_DESC" => Some(MediaSort::TrendingDesc),
-            "TRENDING" => Some(MediaSort::Trending),
-            "SCORE_DESC" => Some(MediaSort::ScoreDesc),
-            "SCORE" => Some(MediaSort::Score),
-            "TITLE_ROMAJI" => Some(MediaSort::TitleRomaji),
-            "TITLE_ROMAJI_DESC" => Some(MediaSort::TitleRomajiDesc),
-            "TITLE_ENGLISH" => Some(MediaSort::TitleEnglish),
-            "TITLE_ENGLISH_DESC" => Some(MediaSort::TitleEnglishDesc),
-            "TITLE_NATIVE" => Some(MediaSort::TitleNative),
-            "TITLE_NATIVE_DESC" => Some(MediaSort::TitleNativeDesc),
-            "START_DATE" => Some(MediaSort::StartDate),
-            "START_DATE_DESC" => Some(MediaSort::StartDateDesc),
-            "END_DATE" => Some(MediaSort::EndDate),
-            "END_DATE_DESC" => Some(MediaSort::EndDateDesc),
-            "FAVOURITES_DESC" => Some(MediaSort::FavouritesDesc),
-            "FAVOURITES" => Some(MediaSort::Favourites),
-            "ID" => Some(MediaSort::Id),
-            "ID_DESC" => Some(MediaSort::IdDesc),
-            _ => None,
-        }).collect::<Vec<_>>()
+        sorts
+            .iter()
+            .filter_map(|s| match s.as_str() {
+                "POPULARITY_DESC" => Some(MediaSort::PopularityDesc),
+                "POPULARITY" => Some(MediaSort::Popularity),
+                "TRENDING_DESC" => Some(MediaSort::TrendingDesc),
+                "TRENDING" => Some(MediaSort::Trending),
+                "SCORE_DESC" => Some(MediaSort::ScoreDesc),
+                "SCORE" => Some(MediaSort::Score),
+                "TITLE_ROMAJI" => Some(MediaSort::TitleRomaji),
+                "TITLE_ROMAJI_DESC" => Some(MediaSort::TitleRomajiDesc),
+                "TITLE_ENGLISH" => Some(MediaSort::TitleEnglish),
+                "TITLE_ENGLISH_DESC" => Some(MediaSort::TitleEnglishDesc),
+                "TITLE_NATIVE" => Some(MediaSort::TitleNative),
+                "TITLE_NATIVE_DESC" => Some(MediaSort::TitleNativeDesc),
+                "START_DATE" => Some(MediaSort::StartDate),
+                "START_DATE_DESC" => Some(MediaSort::StartDateDesc),
+                "END_DATE" => Some(MediaSort::EndDate),
+                "END_DATE_DESC" => Some(MediaSort::EndDateDesc),
+                "FAVOURITES_DESC" => Some(MediaSort::FavouritesDesc),
+                "FAVOURITES" => Some(MediaSort::Favourites),
+                "ID" => Some(MediaSort::Id),
+                "ID_DESC" => Some(MediaSort::IdDesc),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
     });
 
     let options = FetchMediaOptions {
@@ -222,25 +228,32 @@ pub async fn browse_media(
 #[tauri::command]
 pub async fn get_anime_by_id(
     id: i32,
-    service: State<'_, AniListState>
+    service: State<'_, AniListState>,
 ) -> Result<AniListResponse<Media>, String> {
     log::info!("Executing command: get_anime_by_id");
     let client = service.client().await;
-    let result = client.media().fetch_one(&FetchMediaOneOptions {
-        id: Some(id),
-        fetch_characters: None,
-        fetch_staff: None,
-        fetch_recommendations: None,
-        fetch_reviews: None,
-        ..Default::default()
-    }).await;
+    let result = client
+        .media()
+        .fetch_one(&FetchMediaOneOptions {
+            id: Some(id),
+            fetch_characters: None,
+            fetch_staff: None,
+            fetch_recommendations: None,
+            fetch_reviews: None,
+            ..Default::default()
+        })
+        .await;
 
     match result {
         Ok(media) => {
-            log::info!("Fetched media: ID={:?}, Type={:?}", media.id, media.media_type);
+            log::info!(
+                "Fetched media: ID={:?}, Type={:?}",
+                media.id,
+                media.media_type
+            );
             Ok(AniListResponse::success(media))
-        },
-        Err(e) => Ok(AniListResponse::error(format!("{:?}", e)))
+        }
+        Err(e) => Ok(AniListResponse::error(format!("{:?}", e))),
     }
 }
 
@@ -250,14 +263,17 @@ pub async fn get_anime_characters_by_id(
     page: Option<i32>,
     per_page: Option<i32>,
     language: Option<String>,
-    service: State<'_, AniListState>
+    service: State<'_, AniListState>,
 ) -> Result<AniListResponse<Media>, String> {
     log::info!("Executing command: get_anime_characters_by_id");
     let client = service.client().await;
-    
+
     let voice_actor_language_str = language.unwrap_or_else(|| "JAPANESE".to_string());
-    let voice_actor_language = serde_json::from_value(serde_json::Value::String(voice_actor_language_str.to_uppercase())).ok();
-    
+    let voice_actor_language = serde_json::from_value(serde_json::Value::String(
+        voice_actor_language_str.to_uppercase(),
+    ))
+    .ok();
+
     let options = FetchMediaOptions {
         id: Some(id),
         include_characters: Some(true),
@@ -266,7 +282,7 @@ pub async fn get_anime_characters_by_id(
         voice_actor_language,
         ..Default::default()
     };
-    
+
     match client.media().fetch(&options).await {
         Ok(mut res) => {
             if let Some(media) = res.data.pop() {
@@ -274,8 +290,8 @@ pub async fn get_anime_characters_by_id(
             } else {
                 Ok(AniListResponse::error("Anime not found".to_string()))
             }
-        },
-        Err(e) => Ok(AniListResponse::error(format!("{:?}", e)))
+        }
+        Err(e) => Ok(AniListResponse::error(format!("{:?}", e))),
     }
 }
 
@@ -284,11 +300,11 @@ pub async fn get_anime_staff_by_id(
     id: i32,
     page: Option<i32>,
     per_page: Option<i32>,
-    service: State<'_, AniListState>
+    service: State<'_, AniListState>,
 ) -> Result<AniListResponse<Media>, String> {
     log::info!("Executing command: get_anime_staff_by_id");
     let client = service.client().await;
-    
+
     let options = FetchMediaOptions {
         id: Some(id),
         include_staff: Some(true),
@@ -296,7 +312,7 @@ pub async fn get_anime_staff_by_id(
         staff_per_page: per_page,
         ..Default::default()
     };
-    
+
     match client.media().fetch(&options).await {
         Ok(mut res) => {
             if let Some(media) = res.data.pop() {
@@ -304,43 +320,46 @@ pub async fn get_anime_staff_by_id(
             } else {
                 Ok(AniListResponse::error("Anime not found".to_string()))
             }
-        },
-        Err(e) => Ok(AniListResponse::error(format!("{:?}", e)))
+        }
+        Err(e) => Ok(AniListResponse::error(format!("{:?}", e))),
     }
 }
-
 
 #[tauri::command]
 pub async fn get_manga_by_id(
     id: i32,
-    service: State<'_, AniListState>
+    service: State<'_, AniListState>,
 ) -> Result<AniListResponse<Media>, String> {
     log::info!("Executing command: get_manga_by_id");
     let client = service.client().await;
-    let result = client.media().fetch_one(&FetchMediaOneOptions {
-        id: Some(id),
-        fetch_characters: Some(true),
-        fetch_staff: Some(true),
-        fetch_recommendations: Some(true),
-        fetch_reviews: Some(true),
-        ..Default::default()
-    }).await;
+    let result = client
+        .media()
+        .fetch_one(&FetchMediaOneOptions {
+            id: Some(id),
+            fetch_characters: Some(true),
+            fetch_staff: Some(true),
+            fetch_recommendations: Some(true),
+            fetch_reviews: Some(true),
+            ..Default::default()
+        })
+        .await;
 
     match result {
-        Ok(media) => {
-            match media.media_type {
-                Some(anilist_moe::enums::media::MediaType::Manga) => Ok(AniListResponse::success(media)),
-                _ => Ok(AniListResponse::error("Manga not found (wrong type)".to_string()))
+        Ok(media) => match media.media_type {
+            Some(anilist_moe::enums::media::MediaType::Manga) => {
+                Ok(AniListResponse::success(media))
             }
+            _ => Ok(AniListResponse::error(
+                "Manga not found (wrong type)".to_string(),
+            )),
         },
-        Err(e) => Ok(AniListResponse::error(format!("{:?}", e)))
+        Err(e) => Ok(AniListResponse::error(format!("{:?}", e))),
     }
 }
 
 // ============================================================================
 // Anime Commands
 // ============================================================================
-
 
 create_anilist_command!(get_trending_anime, media, get_trending_anime, Page<Vec<Media>>, (
     page: Option<i32> => ref,
@@ -386,7 +405,7 @@ create_anilist_command!(fetch_basic, user, fetch_basic, User);
 #[tauri::command]
 pub async fn get_user_by_id(
     id: i32,
-    service: State<'_, AniListState>
+    service: State<'_, AniListState>,
 ) -> Result<AniListResponse<User>, String> {
     log::info!("Executing command: get_user_by_id for id: {}", id);
     let client = service.client().await;
@@ -414,12 +433,15 @@ pub async fn get_user_by_name(
     let client = service.client().await;
 
     // Step 1: resolve the user ID with the SearchUsers query (supports $name: String)
-    let search_result = client.user().fetch(FetchUserOptions {
-        name: Some(name.to_string()),
-        per_page: Some(1),
-        include_statistics: Some(true),
-        ..Default::default()
-    }).await;
+    let search_result = client
+        .user()
+        .fetch(FetchUserOptions {
+            name: Some(name.to_string()),
+            per_page: Some(1),
+            include_statistics: Some(true),
+            ..Default::default()
+        })
+        .await;
 
     match search_result {
         Ok(page) => {
@@ -430,7 +452,12 @@ pub async fn get_user_by_name(
                 match full_result {
                     Ok(full_user) => Ok(AniListResponse::success(full_user)),
                     Err(e) => {
-                        log::error!("Error fetching full user by id {} (name '{}'): {:?}", user_id, name, e);
+                        log::error!(
+                            "Error fetching full user by id {} (name '{}'): {:?}",
+                            user_id,
+                            name,
+                            e
+                        );
                         Ok(AniListResponse::error(format!("{:?}", e)))
                     }
                 }
@@ -485,16 +512,22 @@ pub async fn search_characters(
     is_birthday: Option<bool>,
     service: State<'_, AniListState>,
 ) -> Result<AniListResponse<Page<Vec<Character>>>, String> {
-    log::info!("Executing command: search_characters is_birthday={:?}", is_birthday);
+    log::info!(
+        "Executing command: search_characters is_birthday={:?}",
+        is_birthday
+    );
     let client = service.client().await;
-    let result = client.character().fetch(&FetchCharacterOptions {
-        search: Some(query.to_string()),
-        page,
-        per_page,
-        is_birthday,
-        sort: Some(vec![CharacterSort::SearchMatch]),
-        ..Default::default()
-    }).await;
+    let result = client
+        .character()
+        .fetch(&FetchCharacterOptions {
+            search: Some(query.to_string()),
+            page,
+            per_page,
+            is_birthday,
+            sort: Some(vec![CharacterSort::SearchMatch]),
+            ..Default::default()
+        })
+        .await;
     Ok(result.into())
 }
 
@@ -524,16 +557,22 @@ pub async fn search_staff(
     is_birthday: Option<bool>,
     service: State<'_, AniListState>,
 ) -> Result<AniListResponse<Page<Vec<Staff>>>, String> {
-    log::info!("Executing command: search_staff is_birthday={:?}", is_birthday);
+    log::info!(
+        "Executing command: search_staff is_birthday={:?}",
+        is_birthday
+    );
     let client = service.client().await;
-    let result = client.staff().fetch(&FetchStaffOptions {
-        search: Some(query.to_string()),
-        sort: Some(vec![StaffSort::SearchMatch]),
-        page,
-        per_page,
-        is_birthday,
-        ..Default::default()
-    }).await;
+    let result = client
+        .staff()
+        .fetch(&FetchStaffOptions {
+            search: Some(query.to_string()),
+            sort: Some(vec![StaffSort::SearchMatch]),
+            page,
+            per_page,
+            is_birthday,
+            ..Default::default()
+        })
+        .await;
     Ok(result.into())
 }
 
@@ -550,14 +589,18 @@ pub async fn get_seasonal_anime(
     service: State<'_, AniListState>,
 ) -> Result<AniListResponse<Page<Vec<Media>>>, String> {
     use anilist_moe::enums::media::MediaType;
-    log::info!("Executing command: get_seasonal_anime season={} year={}", season, year);
+    log::info!(
+        "Executing command: get_seasonal_anime season={} year={}",
+        season,
+        year
+    );
 
     let season_enum = match season.as_str() {
         "WINTER" => MediaSeason::Winter,
         "SPRING" => MediaSeason::Spring,
         "SUMMER" => MediaSeason::Summer,
-        "FALL"   => MediaSeason::Fall,
-        _        => MediaSeason::Spring,
+        "FALL" => MediaSeason::Fall,
+        _ => MediaSeason::Spring,
     };
 
     use anilist_moe::endpoints::media::FetchMediaOptions;
@@ -720,37 +763,37 @@ pub struct SearchUserResult {
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct SearchAllResults {
-    pub anime:      Page<Vec<SearchMediaResult>>,
-    pub manga:      Page<Vec<SearchMediaResult>>,
+    pub anime: Page<Vec<SearchMediaResult>>,
+    pub manga: Page<Vec<SearchMediaResult>>,
     pub characters: Page<Vec<SearchCharacterResult>>,
-    pub staff:      Page<Vec<SearchStaffResult>>,
-    pub studios:    Page<Vec<SearchStudioResult>>,
-    pub users:      Page<Vec<SearchUserResult>>,
+    pub staff: Page<Vec<SearchStaffResult>>,
+    pub studios: Page<Vec<SearchStudioResult>>,
+    pub users: Page<Vec<SearchUserResult>>,
 }
 
 #[tauri::command]
 pub async fn favourite_character(
     id: i32,
-    service: State<'_, AniListState>
+    service: State<'_, AniListState>,
 ) -> Result<AniListResponse<Favourites>, String> {
     log::info!("Executing command: favourite_character id={}", id);
     let client = service.client().await;
     match client.common().favourite_character(id).await {
         Ok(favs) => Ok(AniListResponse::success(favs)),
-        Err(e) => Ok(AniListResponse::error(format!("{:?}", e)))
+        Err(e) => Ok(AniListResponse::error(format!("{:?}", e))),
     }
 }
 
 #[tauri::command]
 pub async fn favourite_staff(
     id: i32,
-    service: State<'_, AniListState>
+    service: State<'_, AniListState>,
 ) -> Result<AniListResponse<Favourites>, String> {
     log::info!("Executing command: favourite_staff id={}", id);
     let client = service.client().await;
     match client.common().favourite_staff(id).await {
         Ok(favs) => Ok(AniListResponse::success(favs)),
-        Err(e) => Ok(AniListResponse::error(format!("{:?}", e)))
+        Err(e) => Ok(AniListResponse::error(format!("{:?}", e))),
     }
 }
 
@@ -800,12 +843,12 @@ pub(crate) fn build_search_results(d: &serde_json::Value) -> Result<SearchAllRes
     }
 
     Ok(SearchAllResults {
-        anime:      deser(d, "anime")?,
-        manga:      deser(d, "manga")?,
+        anime: deser(d, "anime")?,
+        manga: deser(d, "manga")?,
         characters: deser(d, "characters")?,
-        staff:      deser(d, "staff")?,
-        studios:    deser(d, "studios")?,
-        users:      deser(d, "users")?,
+        staff: deser(d, "staff")?,
+        studios: deser(d, "studios")?,
+        users: deser(d, "users")?,
     })
 }
 
@@ -835,7 +878,7 @@ mod tests {
 
         assert!(resp.success, "Response not successful: {:?}", resp.error);
 
-				println!("Raw response data: {:?}", resp.data);
+        println!("Raw response data: {:?}", resp.data);
 
         let results = resp.data.expect("data is None on a successful response");
 
@@ -855,7 +898,10 @@ mod tests {
         assert!(!title.is_empty(), "First anime result title is empty");
 
         // Pagination metadata should be present (we request it in the GQL query)
-        let page_info = results.anime.page_info.as_ref()
+        let page_info = results
+            .anime
+            .page_info
+            .as_ref()
             .expect("pageInfo should be returned — it is requested in SEARCH_ALL_GQL");
         assert!(
             page_info.total.unwrap_or(0) > 0,

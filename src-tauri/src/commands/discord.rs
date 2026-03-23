@@ -1,4 +1,4 @@
-use discord_rich_presence::{activity, DiscordIpc, DiscordIpcClient};
+use discord_rich_presence::{DiscordIpc, DiscordIpcClient, activity};
 use std::sync::Mutex;
 use tauri::State;
 
@@ -107,14 +107,14 @@ pub fn set_discord_activity(
 #[tauri::command]
 pub fn clear_discord_activity(discord_state: State<'_, DiscordState>) -> Result<(), String> {
     let mut client_lock = discord_state.client.lock().map_err(|e| e.to_string())?;
-    
+
     if let Some(client) = client_lock.as_mut() {
         if let Err(e) = client.clear_activity() {
             log::warn!("[Discord RPC] Failed to clear activity: {}", e);
         }
         let _ = client.close();
     }
-    
+
     *client_lock = None;
     Ok(())
 }

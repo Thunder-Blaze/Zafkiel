@@ -11,7 +11,7 @@ use constants::DATABASE_URL;
 use database::Database;
 use std::sync::Arc;
 use tauri::Manager;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, Layer};
+use tracing_subscriber::{Layer, layer::SubscriberExt, util::SubscriberInitExt};
 
 fn setup_libs_early() {
     if let Ok(exe) = std::env::current_exe() {
@@ -20,19 +20,22 @@ fn setup_libs_early() {
 
             // DLL aliasing was removed as actual binaries should be present via Git LFS.
 
-
             #[cfg(target_os = "windows")]
             {
                 let mut path = std::env::var("PATH").unwrap_or_default();
                 path = format!("{};{}", lib_dir.display(), path);
-                unsafe { std::env::set_var("PATH", path); }
+                unsafe {
+                    std::env::set_var("PATH", path);
+                }
             }
 
             #[cfg(target_os = "linux")]
             {
                 let mut path = std::env::var("LD_LIBRARY_PATH").unwrap_or_default();
                 path = format!("{}:{}", lib_dir.display(), path);
-                unsafe { std::env::set_var("LD_LIBRARY_PATH", path); }
+                unsafe {
+                    std::env::set_var("LD_LIBRARY_PATH", path);
+                }
             }
         }
     }
@@ -80,7 +83,7 @@ pub fn run() {
                 .with_filter(app_filter),
         )
         .init();
-    
+
     setup_libs_early();
 
     tauri::Builder::default()
