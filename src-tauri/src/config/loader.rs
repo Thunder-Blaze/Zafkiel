@@ -327,16 +327,43 @@ impl ConfigLoader {
     }
 
     /// Update shader configuration
-    pub fn update_shader_config(
-        &self,
-        enabled: bool,
-        selected_shaders: Vec<String>,
-    ) -> Result<(), ConfigError> {
+    pub fn update_shader_config(&self, enabled: bool, selected_shaders: Vec<String>) -> Result<(), ConfigError> {
         let mut config = self.config.write().map_err(|_| {
             ConfigError::Deserialization("Failed to acquire write lock".to_string())
         })?;
+
         config.player.shaders.enabled = enabled;
         config.player.shaders.selected_shaders = selected_shaders;
+        drop(config);
+        self.save()
+    }
+
+    /// Update auto-update progress setting
+    pub fn update_auto_update_progress(&self, enabled: bool) -> Result<(), ConfigError> {
+        let mut config = self.config.write().map_err(|_| {
+            ConfigError::Deserialization("Failed to acquire write lock".to_string())
+        })?;
+        config.player.auto_update_progress = enabled;
+        drop(config);
+        self.save()
+    }
+
+    /// Update auto-update threshold setting
+    pub fn update_auto_update_threshold(&self, threshold: f32) -> Result<(), ConfigError> {
+        let mut config = self.config.write().map_err(|_| {
+            ConfigError::Deserialization("Failed to acquire write lock".to_string())
+        })?;
+        config.player.auto_update_threshold = threshold.max(0.0).min(1.0);
+        drop(config);
+        self.save()
+    }
+
+    /// Update default update mode setting
+    pub fn update_default_update_mode(&self, mode: String) -> Result<(), ConfigError> {
+        let mut config = self.config.write().map_err(|_| {
+            ConfigError::Deserialization("Failed to acquire write lock".to_string())
+        })?;
+        config.player.default_update_mode = mode;
         drop(config);
         self.save()
     }

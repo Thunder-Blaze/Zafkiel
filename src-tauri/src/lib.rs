@@ -203,6 +203,9 @@ pub fn run() {
             commands::config::update_auto_select_next_stream,
             commands::config::update_playback_speed,
             commands::config::update_shader_config,
+            commands::config::update_auto_update_progress,
+            commands::config::update_auto_update_threshold,
+            commands::config::update_default_update_mode,
             commands::config::get_available_shaders,
 
             // ─── Extensions ──────────────────────────────────────────────
@@ -350,6 +353,7 @@ pub fn run() {
 
             // ─── Database ────────────────────────────────────────────────
             commands::db::update_local_progress,
+            commands::db::get_local_update_mode,
             commands::db::cache_media,
             commands::db::cache_user,
             commands::db::add_to_recently_viewed,
@@ -372,6 +376,8 @@ pub fn run() {
             commands::torrent::resume_torrent,
             commands::torrent::delete_torrent,
             commands::torrent::get_stream_base_url,
+            commands::torrent::save_torrent_metadata,
+            commands::torrent::get_saved_torrents_for_episode,
 
             // ─── Extension downloads ──────────────────────────────────────
             commands::downloads::start_extension_download,

@@ -10,6 +10,14 @@
 	import { toast } from 'svelte-sonner';
 	import TrailerPill from '$lib/components/TrailerPill.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+	import { 
+		useAddAnimeToList, 
+		useUpdateListStatus, 
+		useUpdateListProgress, 
+		useDeleteListEntry 
+	} from '$lib/hooks/useAnilist.svelte';
+	import type { MediaListStatus } from '$lib/types/anilist';
 
 	const animeId = $derived(page.params.id ? parseInt(page.params.id) : 0);
 	const animeQuery = $derived(useAnimeById(animeId));
@@ -50,6 +58,24 @@
 			copyLink();
 		}
 	};
+
+	const addMutation = useAddAnimeToList();
+	const updateStatusMutation = useUpdateListStatus();
+	const updateProgressMutation = useUpdateListProgress();
+	const deleteMutation = useDeleteListEntry();
+
+	const statusOptions: MediaListStatus[] = [
+		'CURRENT',
+		'PLANNING',
+		'COMPLETED',
+		'DROPPED',
+		'PAUSED',
+		'REPEATING',
+	];
+
+	const getStatusLabel = (s: string) => {
+		return s.charAt(0) + s.slice(1).toLowerCase().replace('_', ' ');
+	};
 </script>
 
 {#if animeData}
@@ -65,12 +91,80 @@
 			</div>
 
 			<div class="flex gap-3">
-				<Button
-					class="cursor-pointer rounded-md bg-accent text-accent-foreground hover:bg-accent/90"
-				>
-					<Icon icon="lucide:plus" class="-mx-1 size-6" />
-					Add to List
-				</Button>
+				{#if !animeData.mediaListEntry}
+					<Button
+						class="cursor-pointer rounded-md bg-accent text-accent-foreground hover:bg-accent/90"
+						onclick={() => addMutation.mutate({ mediaId: animeId, status: 'PLANNING' })}
+						disabled={addMutation.isPending}
+					>
+						<Icon icon="lucide:plus" class="-mx-1 size-6" />
+						Add to List
+					</Button>
+				{:else}
+					<div class="flex items-center gap-2">
+						<DropdownMenu.Root>
+							<DropdownMenu.Trigger>
+								<Button 
+									variant="outline" 
+									class="flex gap-2 rounded-md bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+								>
+									<Icon icon="lucide:list" class="size-4" />
+									<span class="text-xs font-bold uppercase tracking-wider">
+										{getStatusLabel(animeData.mediaListEntry.status || '')}
+									</span>
+									{#if animeData.mediaListEntry.progress}
+										<span class="mx-1 h-3 w-[1px] bg-primary/20"></span>
+										<span class="text-sm font-black italic">EP {animeData.mediaListEntry.progress}</span>
+									{/if}
+								</Button>
+							</DropdownMenu.Trigger>
+							<DropdownMenu.Content align="start" class="z-[100] bg-background/95 backdrop-blur-md">
+								{#each statusOptions as status}
+									<DropdownMenu.Item 
+										onclick={() => updateStatusMutation.mutate({ 
+											entryId: animeData.mediaListEntry!.id, 
+											status 
+										})}
+										class="flex items-center justify-between gap-4 cursor-pointer"
+									>
+										<span class="text-xs font-semibold">{getStatusLabel(status)}</span>
+										{#if animeData.mediaListEntry.status === status}
+											<Icon icon="lucide:check" class="size-3 text-primary" />
+										{/if}
+									</DropdownMenu.Item>
+								{/each}
+							</DropdownMenu.Content>
+						</DropdownMenu.Root>
+
+						<Button
+							class="cursor-pointer rounded-md bg-accent text-accent-foreground hover:bg-accent/90"
+							onclick={() => {
+								const newProgress = (animeData.mediaListEntry!.progress || 0) + 1;
+								updateProgressMutation.mutate({ 
+									entryId: animeData.mediaListEntry!.id, 
+									progress: newProgress 
+								});
+							}}
+							disabled={updateProgressMutation.isPending}
+						>
+							<Icon icon="lucide:chevron-up" class="-ml-1 size-4" />
+							Update
+						</Button>
+						
+						<Button
+							class="cursor-pointer rounded-md border-destructive/50 text-destructive hover:bg-destructive/10"
+							variant="outline"
+							onclick={() => {
+								if (confirm('Are you sure you want to remove this from your list?')) {
+									deleteMutation.mutate(animeData.mediaListEntry!.id);
+								}
+							}}
+							disabled={deleteMutation.isPending}
+						>
+							<Icon icon="lucide:trash-2" class="size-4" />
+						</Button>
+					</div>
+				{/if}
 				<Button
 					class="cursor-pointer rounded-md hover:bg-accent/10 hover:text-accent"
 					variant="outline"

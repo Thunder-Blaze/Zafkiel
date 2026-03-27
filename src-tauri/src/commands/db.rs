@@ -8,6 +8,7 @@ use tauri::{AppHandle, Manager, State, command};
 // ============================================================================
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateProgressParams {
     pub media_id: i32,
     pub entry_id: Option<i32>,
@@ -22,6 +23,7 @@ pub struct UpdateProgressParams {
     pub started_at: Option<String>,
     pub finished_at: Option<String>,
     pub timestamp: Option<i64>,
+    pub update_mode: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -95,8 +97,8 @@ pub async fn update_local_progress(
         "INSERT INTO local_progress (
             media_id, entry_id, media_type, status, progress, progress_volumes,
             score, notes, private, repeat, started_at, finished_at,
-            updated_at, created_at, synced_at
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?13, NULL)
+            updated_at, created_at, synced_at, update_mode
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?13, NULL, ?14)
          ON CONFLICT(media_id) DO UPDATE SET
             entry_id         = excluded.entry_id,
             media_type       = excluded.media_type,
@@ -110,6 +112,7 @@ pub async fn update_local_progress(
             started_at       = excluded.started_at,
             finished_at      = excluded.finished_at,
             updated_at       = excluded.updated_at,
+            update_mode      = COALESCE(excluded.update_mode, local_progress.update_mode),
             synced_at        = NULL",
         params![
             params.media_id,
@@ -125,10 +128,30 @@ pub async fn update_local_progress(
             params.started_at,
             params.finished_at,
             now,
+            params.update_mode,
         ],
     )
     .map_err(|e| format!("Database error: {}", e))?;
     Ok(())
+}
+
+#[command]
+pub async fn get_local_update_mode(
+    db: State<'_, Database>,
+    media_id: i32,
+) -> Result<Option<String>, String> {
+    let conn = db.get();
+    let result = conn.query_row(
+        "SELECT update_mode FROM local_progress WHERE media_id = ?1",
+        params![media_id],
+        |row| row.get::<_, Option<String>>(0),
+    );
+
+    match result {
+        Ok(mode) => Ok(mode),
+        Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+        Err(e) => Err(format!("Database error: {}", e)),
+    }
 }
 
 // ============================================================================

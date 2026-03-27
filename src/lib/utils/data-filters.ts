@@ -22,6 +22,21 @@ export const filterTitle = (title: TitleType) => {
 	return title.userPreferred || title.english || title.romaji || title.native || '';
 };
 
+/**
+ * Strips Japanese brackets, season tags, and other metadata decorations for cleaner Nyaa searching.
+ * e.g. "【OSHI NO KO】 Season 3" → "OSHI NO KO"
+ * e.g. "My Hero Academia Season 7" → "My Hero Academia"
+ */
+export const cleanSearchTitle = (title: string) => {
+	return title
+		.replace(/【|】|［|］|\[|\]/g, ' ')           // Japanese/ASCII brackets
+		.replace(/\s*[-:,]?\s*[Ss]eason\s*\d+/g, '')   // Strip "Season 3", "Season3"
+		.replace(/\s*\bS\d+\b/g, '')                    // Strip bare "S3"/"S1"
+		.replace(/\(.*?\)/g, ' ')                       // Remove parenthetical
+		.replace(/\s+/g, ' ')
+		.trim();
+};
+
 export const filterCoverImage = (coverImage: CoverImageType | undefined) => {
 	if (!coverImage) return '';
 	return coverImage.extraLarge || coverImage.large || coverImage.medium;

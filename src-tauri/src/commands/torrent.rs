@@ -23,8 +23,10 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Mutex;
-use std::time::Instant;
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use tower_http::cors::{Any, CorsLayer};
+use crate::database::Database;
+use rusqlite::params;
 
 #[derive(Serialize, Debug)]
 pub struct TorrentState {
@@ -38,6 +40,18 @@ pub struct TorrentState {
     pub state: String, // "downloading", "paused", "seeding", "error"
     pub total_size: u64,
     pub downloaded: u64,
+    pub info_hash: String,
+    pub anime_id: Option<i32>,
+    pub episode_number: Option<f32>,
+    pub anime_title: Option<String>,
+    pub anime_cover: Option<String>,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct StreamResponse {
+    pub url: String,
+    pub info_hash: String,
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -257,7 +271,7 @@ pub async fn stream_torrent(
     session: State<'_, Arc<Session>>,
     magnet: String,
     file_id: Option<usize>,
-) -> Result<String, String> {
+) -> Result<StreamResponse, String> {
     let handle = add_torrent_internal(&session, &magnet, false).await?;
 
     let info_hash = handle
@@ -276,12 +290,15 @@ pub async fn stream_torrent(
         find_largest_file(&handle).await?.0
     };
 
-    Ok(format!(
-        "{}/torrents/{}/stream/{}",
-        base_url,
-        handle.id(),
-        target_file_id
-    ))
+    Ok(StreamResponse {
+        url: format!(
+            "{}/torrents/{}/stream/{}",
+            base_url,
+            handle.id(),
+            target_file_id
+        ),
+        info_hash,
+    })
 }
 
 #[command]
@@ -290,7 +307,7 @@ pub async fn stream_torrent_by_id(
     session: State<'_, Arc<Session>>,
     id: usize,
     file_id: Option<usize>,
-) -> Result<String, String> {
+) -> Result<StreamResponse, String> {
     let handle = session
         .get(TorrentIdOrHash::Id(id))
         .ok_or("Torrent not found".to_string())?;
@@ -303,10 +320,17 @@ pub async fn stream_torrent_by_id(
         find_largest_file(&handle).await?.0
     };
 
-    Ok(format!(
-        "{}/torrents/{}/stream/{}",
-        base_url, id, target_file_id
-    ))
+    let info_hash = handle
+        .info_hash()
+        .0
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<String>();
+
+    Ok(StreamResponse {
+        url: format!("{}/torrents/{}/stream/{}", base_url, id, target_file_id),
+        info_hash,
+    })
 }
 
 async fn global_stream_handler(
@@ -446,7 +470,8 @@ pub async fn get_torrents(
     app: AppHandle,
     session: State<'_, Arc<Session>>,
 ) -> Result<Vec<TorrentState>, String> {
-    let persistent_torrents = load_persistence(&app);
+    let db = app.state::<Database>();
+    let conn = db.get();
 
     let result = session.with_torrents(|torrents| {
         let mut result = Vec::new();
@@ -461,6 +486,18 @@ pub async fn get_torrents(
                 .map(|b| format!("{:02x}", b))
                 .collect::<String>();
 
+            // Fetch metadata from DB (all fields nullable except anime_id- default 0)
+            let metadata: Option<(i32, f32, Option<String>, Option<String>)> = conn.query_row(
+                "SELECT anime_id, episode_number, anime_title, anime_cover FROM torrents WHERE LOWER(info_hash) = LOWER(?1)",
+                params![info_hash],
+                |row| Ok((row.get(0)?, row.get(1)?, row.get(2).ok(), row.get(3).ok()))
+            ).ok();
+
+            let (db_anime_id, db_episode_number, db_anime_title, db_anime_cover) = match metadata {
+                Some(m) if m.0 > 0 => (Some(m.0), Some(m.1), m.2, m.3),
+                _ => (None, None, None, None),
+            };
+
             let info = handle.metadata.load();
             let mut name = info.as_ref().and_then(|m| {
                 m.info
@@ -470,12 +507,7 @@ pub async fn get_torrents(
             });
 
             if name.is_none() {
-                if let Some(p) = persistent_torrents
-                    .iter()
-                    .find(|t| t.info_hash == info_hash)
-                {
-                    name = p.name.clone();
-                }
+                name = db_anime_title.clone();
             }
 
             let total_bytes = stats.total_bytes;
@@ -529,6 +561,11 @@ pub async fn get_torrents(
                 state,
                 total_size: total_bytes,
                 downloaded: stats.progress_bytes,
+                info_hash: info_hash,
+                anime_id: db_anime_id,
+                episode_number: db_episode_number,
+                anime_title: db_anime_title,
+                anime_cover: db_anime_cover,
             });
         }
         result
@@ -757,88 +794,204 @@ fn parse_range(range_header: &Option<String>, file_len: u64) -> Result<(u64, u64
 }
 
 #[derive(Serialize, serde::Deserialize, Debug, Clone)]
-pub struct PersistentTorrent {
+pub struct TorrentMetadata {
+    pub anime_id: i32,
+    pub episode_number: f32,
+    pub anime_title: Option<String>,
+    pub anime_cover: Option<String>,
+}
+
+#[derive(Serialize, serde::Deserialize, Debug, Clone)]
+pub struct PersistTorrent {
     pub magnet: String,
     pub info_hash: String,
     pub name: Option<String>,
     pub paused: bool,
-}
-
-fn get_persistence_path(app: &AppHandle) -> std::path::PathBuf {
-    app.path().app_data_dir().unwrap().join("torrents.json")
-}
-
-fn load_persistence(app: &AppHandle) -> Vec<PersistentTorrent> {
-    let path = get_persistence_path(app);
-    if path.exists() {
-        if let Ok(file) = std::fs::File::open(path) {
-            if let Ok(torrents) = serde_json::from_reader(file) {
-                return torrents;
-            }
-        }
-    }
-    Vec::new()
-}
-
-fn save_persistence(app: &AppHandle, torrents: &Vec<PersistentTorrent>) {
-    let path = get_persistence_path(app);
-    if let Ok(file) = std::fs::File::create(path) {
-        let _ = serde_json::to_writer(file, torrents);
-    }
+    pub anime_id: Option<i32>,
+    pub episode_number: Option<f32>,
+    pub anime_title: Option<String>,
+    pub anime_cover: Option<String>,
 }
 
 fn add_to_persistence(app: &AppHandle, magnet: &str, info_hash: &str) {
-    let mut torrents = load_persistence(app);
-    if !torrents.iter().any(|t| t.info_hash == info_hash) {
-        let name = url::Url::parse(magnet).ok().and_then(|url| {
-            url.query_pairs()
-                .find(|(k, _)| k == "dn")
-                .map(|(_, v)| v.to_string())
-        });
+    let db = app.state::<Database>();
+    let conn = db.get();
+    
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64;
 
-        torrents.push(PersistentTorrent {
-            magnet: magnet.to_string(),
-            info_hash: info_hash.to_string(),
-            name,
-            paused: false,
-        });
-        save_persistence(app, &torrents);
-    }
+    let anime_name = url::Url::parse(magnet).ok().and_then(|url| {
+        url.query_pairs()
+            .find(|(k, _)| k == "dn")
+            .map(|(_, v)| v.to_string())
+    });
+
+    let _ = conn.execute(
+        "INSERT OR IGNORE INTO torrents (
+            info_hash, anime_id, episode_number, anime_title, anime_cover, 
+            magnet_uri, status, progress, created_at, updated_at
+        ) VALUES (?1, 0, 0.0, ?2, '', ?3, ?4, ?5, ?6, ?7)",
+        params![
+            info_hash,
+            anime_name,   // raw dn= from magnet, used as torrent name fallback only
+            magnet,
+            "downloading",
+            0.0,
+            now,
+            now
+        ],
+    );
 }
 
 fn update_persistence_state(app: &AppHandle, info_hash: &str, paused: bool) {
-    let mut torrents = load_persistence(app);
-    if let Some(t) = torrents.iter_mut().find(|t| t.info_hash == info_hash) {
-        if t.paused != paused {
-            t.paused = paused;
-            save_persistence(app, &torrents);
-        }
-    }
+    let db = app.state::<Database>();
+    let conn = db.get();
+    let status = if paused { "paused" } else { "downloading" };
+    
+    let _ = conn.execute(
+        "UPDATE torrents SET status = ?1, updated_at = ?2 WHERE info_hash = ?3",
+        params![
+            status,
+            SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64,
+            info_hash
+        ],
+    );
 }
 
 fn remove_from_persistence(app: &AppHandle, info_hash: &str) {
-    let mut torrents = load_persistence(app);
-    if let Some(pos) = torrents.iter().position(|t| t.info_hash == info_hash) {
-        torrents.remove(pos);
-        save_persistence(app, &torrents);
-    }
+    let db = app.state::<Database>();
+    let conn = db.get();
+    let _ = conn.execute("DELETE FROM torrents WHERE info_hash = ?1", params![info_hash]);
 }
 
 pub async fn restore_torrents(app: &AppHandle, session: &Arc<Session>) {
-    let torrents = load_persistence(app);
-    log::info!("Restoring {} torrents from persistence...", torrents.len());
-    for torrent in torrents {
+    let db = app.state::<Database>();
+    let conn = db.get();
+    
+    let torrents_to_restore = {
+        let mut stmt = conn.prepare("SELECT magnet_uri, status FROM torrents").unwrap();
+        let rows = stmt.query_map([], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+        }).unwrap();
+
+        let mut list = Vec::new();
+        for row in rows {
+            if let Ok(data) = row {
+                list.push(data);
+            }
+        }
+        list
+    };
+
+    log::info!("Restoring {} torrents from persistence...", torrents_to_restore.len());
+    for (magnet, status) in torrents_to_restore {
         let _ = session
             .add_torrent(
-                AddTorrent::from_url(&torrent.magnet),
+                AddTorrent::from_url(&magnet),
                 Some(AddTorrentOptions {
                     overwrite: true,
-                    paused: torrent.paused,
+                    paused: status == "paused",
                     ..Default::default()
                 }),
             )
             .await;
     }
+}
+
+#[command]
+pub async fn save_torrent_metadata(
+    app: AppHandle,
+    info_hash: String,
+    metadata: TorrentMetadata,
+) -> Result<(), String> {
+    let db = app.state::<Database>();
+    let conn = db.get();
+    
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64;
+
+    // Use UPDATE with WHERE to preserve magnet/status if row exists, or do INSERT if not
+    let updated = conn.execute(
+        "UPDATE torrents SET 
+            anime_id = ?1, 
+            episode_number = ?2, 
+            anime_title = ?3, 
+            anime_cover = ?4,
+            updated_at = ?5
+         WHERE LOWER(info_hash) = LOWER(?6)",
+        params![
+            metadata.anime_id,
+            metadata.episode_number,
+            metadata.anime_title,
+            metadata.anime_cover,
+            now,
+            info_hash
+        ],
+    ).map_err(|e| e.to_string())?;
+
+    log::info!("[Metadata] Updated {} rows for hash {}", updated, info_hash);
+
+    // If no row was updated (race: metadata saved before stream_torrent INSERT),
+    // insert a minimal row with just the metadata
+    if updated == 0 {
+        log::info!("[Metadata] No existing row for hash {}, inserting new row", info_hash);
+        conn.execute(
+            "INSERT OR IGNORE INTO torrents (info_hash, anime_id, episode_number, anime_title, anime_cover, magnet_uri, status, progress, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, '', 'downloading', 0.0, ?6, ?6)",
+            params![
+                info_hash,
+                metadata.anime_id,
+                metadata.episode_number,
+                metadata.anime_title,
+                metadata.anime_cover,
+                now
+            ],
+        ).map_err(|e| e.to_string())?;
+    }
+
+    Ok(())
+}
+
+#[command]
+pub async fn get_saved_torrents_for_episode(
+    app: AppHandle,
+    anime_id: i32,
+    episode_number: f32,
+) -> Result<Vec<PersistTorrent>, String> {
+    let db = app.state::<Database>();
+    let conn = db.get();
+    
+    let mut stmt = conn.prepare(
+        "SELECT magnet_uri, info_hash, anime_title, status, anime_id, episode_number, anime_cover 
+         FROM torrents 
+         WHERE anime_id = ?1 AND episode_number = ?2"
+    ).map_err(|e| e.to_string())?;
+
+    let rows = stmt.query_map(params![anime_id, episode_number], |row| {
+        Ok(PersistTorrent {
+            magnet: row.get(0)?,
+            info_hash: row.get(1)?,
+            name: row.get(2).ok(),
+            paused: row.get::<_, String>(3)? == "paused",
+            anime_id: Some(row.get(4)?),
+            episode_number: Some(row.get(5)?),
+            anime_title: row.get(2).ok(),
+            anime_cover: row.get(6).ok(),
+        })
+    }).map_err(|e| e.to_string())?;
+
+    let mut results = Vec::new();
+    for row in rows {
+        if let Ok(t) = row {
+            results.push(t);
+        }
+    }
+    
+    Ok(results)
 }
 
 async fn static_file_handler(

@@ -14,6 +14,7 @@
 	import { toast } from 'svelte-sonner';
 	import { onMount, onDestroy } from 'svelte';
 	import Icon from '@iconify/svelte';
+	import MediaPlayerModal from '$lib/components/player/MediaPlayerModal.svelte';
 
 	const animeId = $derived(page.params.id ? parseInt(page.params.id) : 0);
 	const animeQuery = $derived(useAnimeById(animeId));
@@ -57,31 +58,66 @@
 		clearInterval(pollInterval);
 	});
 
-	async function handleDownload(magnetUri: string, episodeNumber: number) {
+	async function handleDownload(magnetUri: string, episodeNumber: number, title?: string) {
 		try {
 			// Stream torrent implicitly adds it
-			await TorrentService.streamTorrent(magnetUri);
+			const url = await TorrentService.streamTorrent(magnetUri);
+			
+			// Open player immediately
+			streamUrl = url;
+			selectedTorrentId = undefined;
+			selectedMagnet = magnetUri;
+			selectedEpisodeNumber = episodeNumber;
+			playerTitle = title || (animeData?.title?.english || animeData?.title?.romaji) || `Episode ${episodeNumber}`;
+			isPlayerOpen = true;
+
 			toast.success(`Started downloading Episode ${episodeNumber}`);
 
-			// Shortly after adding, we fetch all torrent files to auto-link them.
+			// Save metadata to DB
 			setTimeout(async () => {
-				const torrents = await TorrentService.getTorrents();
-				// Find the new torrent by matching the decoded magnet/name?
-				// Actually, autoLinkFromFiles can just scan all active torrents
-				for (const t of torrents) {
+				const activeTorrents = await TorrentService.getTorrents();
+				// Find by magnet URI (simplified matching)
+				const target = activeTorrents.find(t => 
+					t.info_hash && magnetUri.toLowerCase().includes(t.info_hash.toLowerCase())
+				);
+				
+				if (target && animeData) {
+					await TorrentService.saveTorrentMetadata(target.info_hash, {
+						anime_id: animeId,
+						episode_number: episodeNumber,
+						anime_title: animeData.title?.english || animeData.title?.romaji,
+						anime_cover: animeData.coverImage?.extraLarge || animeData.coverImage?.large
+					});
+				}
+				
+				// Re-fetch to update linking
+				for (const t of activeTorrents) {
 					const files = await TorrentService.getTorrentFilesById(t.id);
 					episodeTorrentStore.autoLinkFromFiles(animeId, t.id, magnetUri, files);
 				}
 				updateStatuses();
-			}, 1500);
+			}, 2000);
 		} catch (e: any) {
 			toast.error(`Failed to download: ${e.message || e}`);
 		}
 	}
 
-	async function handleWatch(torrentId: number, fileId?: number) {
+	let isPlayerOpen = $state(false);
+	let streamUrl = $state('');
+	let selectedTorrentId = $state<number | undefined>(undefined);
+	let selectedMagnet = $state<string | undefined>(undefined);
+	let playerTitle = $state('');
+	let selectedEpisodeNumber = $state<number | undefined>(undefined);
+
+	async function handleWatch(torrentId: number, fileId?: number, episodeNumber?: number) {
 		try {
-			await TorrentService.streamTorrentById(torrentId, fileId);
+			const url = await TorrentService.streamTorrentById(torrentId, fileId);
+			streamUrl = url;
+			selectedTorrentId = torrentId;
+			selectedMagnet = undefined;
+			selectedEpisodeNumber = episodeNumber;
+			playerTitle = (animeData?.title?.english || animeData?.title?.romaji) ?? 'Watching Episode';
+			isPlayerOpen = true;
 			toast.success('Opening video player...');
 		} catch (e: any) {
 			toast.error(`Failed to play: ${e.message || e}`);
@@ -95,9 +131,8 @@
 		const t = torrentStatuses.get(link.torrentId);
 		if (!t) return undefined;
 
-		// Calculate progress (either overall or specific to the file if we wanted, but overall is easier)
-		let progress = t.progress;
-		let canStream = progress >= 0.05; // allow streaming early
+		let progress = t.progress; // 0.0 – 100.0
+		let canStream = progress >= 5; // allow streaming at 5%
 
 		return {
 			episodeNumber,
@@ -109,16 +144,18 @@
 			canStream,
 		};
 	}
+	let activeTab = $state('episodes');
+	const animeTitle = $derived(animeData?.title?.english || animeData?.title?.romaji || '');
 </script>
 
 {#if animeData}
 	<div class="mt-4">
-		<Tabs value="episodes" class="w-full">
+		<Tabs bind:value={activeTab} class="w-full">
 			<div class="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 				<h2 class="text-2xl font-bold tracking-tight">Downloads</h2>
 				<TabsList class="grid w-full grid-cols-2 sm:w-64">
 					<TabsTrigger value="episodes">Episodes</TabsTrigger>
-					<TabsTrigger value="all">All Releases</TabsTrigger>
+					<TabsTrigger value="batches">Batches</TabsTrigger>
 				</TabsList>
 			</div>
 
@@ -141,7 +178,7 @@
 						/>
 						<h3 class="text-lg font-semibold text-foreground">No Episodes Found</h3>
 						<p class="mt-1 max-w-sm text-sm text-muted-foreground">
-							We couldn't find episode metadata for this anime on AniDB. Try the "All Releases" tab
+							We couldn't find episode metadata for this anime on AniDB. Try the "Batches" tab
 							for manual torrent browsing.
 						</p>
 					</div>
@@ -150,6 +187,7 @@
 						{#each episodes as episode (episode.number)}
 							<EpisodeRow
 								{episode}
+								{animeTitle}
 								downloadStatus={getStatusForEpisode(episode.number)}
 								isExpanded={expandedEpisodeId === episode.number}
 								onToggleExpand={handleToggleExpand}
@@ -161,10 +199,21 @@
 				{/if}
 			</TabsContent>
 
-			<!-- Fallback manual list -->
-			<TabsContent value="all" class="m-0 focus-visible:ring-0 focus-visible:outline-none">
-				<TorrentsList anime={animeData} />
+			<!-- Batches manual list -->
+			<TabsContent value="batches" class="m-0 focus-visible:ring-0 focus-visible:outline-none">
+				<TorrentsList anime={animeData} mode="batches" enabled={activeTab === 'batches'} />
 			</TabsContent>
 		</Tabs>
 	</div>
+
+	<MediaPlayerModal
+		bind:open={isPlayerOpen}
+		src={streamUrl}
+		torrentId={selectedTorrentId}
+		magnet={selectedMagnet}
+		title={playerTitle}
+		poster={animeData?.coverImage?.extraLarge || animeData?.coverImage?.large}
+		episodeNumber={selectedEpisodeNumber}
+		{animeId}
+	/>
 {/if}

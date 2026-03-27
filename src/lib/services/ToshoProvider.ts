@@ -15,6 +15,7 @@ import {
 	searchTosho,
 	fetchToshoEpisode,
 	fetchNyaaEpisode,
+	fetchToshoBatches,
 	type EpisodeTorrentEntry,
 	type TorrentQuality,
 } from './EpisodeMetadataService';
@@ -77,6 +78,13 @@ export class ToshoProvider implements TorrentProvider {
 		}
 
 		return results.map(toTorrentInfo);
+	}
+
+	async searchBatches(anime: AnimeLarge): Promise<TorrentInfo[]> {
+		const title = filterTitle(anime.title ?? {});
+		if (!title) return [];
+		const entries = await fetchToshoBatches(title);
+		return entries.map(toTorrentInfo);
 	}
 
 	// ── Extended episode-precise search ───────────────────────────────────

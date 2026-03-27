@@ -9,7 +9,7 @@
 		state: string;
 	}>();
 
-	const isComplete = $derived(state === 'seeding' || state === 'done' || progress >= 1);
+	const isComplete = $derived(state === 'seeding' || state === 'done' || progress >= 100);
 </script>
 
 <div
@@ -32,8 +32,8 @@
 			{#if !isComplete && state !== 'paused'}
 				<span class="text-muted-foreground">{formatBytes(downloadSpeed)}/s</span>
 			{/if}
-			<span class="font-bold text-foreground">{(progress * 100).toFixed(1)}%</span>
+			<span class="font-bold text-foreground">{progress.toFixed(1)}%</span>
 		</div>
 	</div>
-	<Progress value={progress * 100} class="h-1.5" />
+	<Progress value={progress} class="h-1.5" />
 </div>

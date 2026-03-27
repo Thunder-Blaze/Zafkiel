@@ -23,6 +23,15 @@ pub struct PlayerConfig {
     /// Playback speed
     #[serde(default = "default_playback_speed")]
     pub playback_speed: f32,
+    /// Whether to automatically update AniList progress
+    #[serde(default = "default_true")]
+    pub auto_update_progress: bool,
+    /// Progress threshold for auto update (0.0 to 1.0)
+    #[serde(default = "default_threshold")]
+    pub auto_update_threshold: f32,
+    /// Default update mode for new anime (yes, no, ask)
+    #[serde(default = "default_update_mode")]
+    pub default_update_mode: String,
     /// Dynamic Shader configuration
     #[serde(default)]
     pub shaders: ShaderConfig,
@@ -53,6 +62,14 @@ fn default_true() -> bool {
 
 fn default_playback_speed() -> f32 {
     1.0
+}
+
+fn default_threshold() -> f32 {
+    0.8
+}
+
+fn default_update_mode() -> String {
+    "ask".to_string()
 }
 
 /// AniList API configuration
@@ -122,6 +139,9 @@ impl Default for PlayerConfig {
             external_player_path: None,
             auto_select_next_stream: true,
             playback_speed: 1.0,
+            auto_update_progress: true,
+            auto_update_threshold: 0.8,
+            default_update_mode: "ask".to_string(),
             shaders: ShaderConfig::default(),
         }
     }

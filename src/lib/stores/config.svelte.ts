@@ -164,6 +164,9 @@ export const useConfigState = () => {
 					external_player_path: null,
 					auto_select_next_stream: true,
 					playback_speed: 1.0,
+					auto_update_progress: true,
+					auto_update_threshold: 0.8,
+					default_update_mode: 'ask'
 				} as PlayerConfig)
 			);
 		},
@@ -192,6 +195,41 @@ export const useConfigState = () => {
 				await invoke('update_playback_speed', { speed });
 			} catch (error) {
 				console.error('[Config] ✗ Failed to update playback speed:', error);
+			}
+		},
+		get autoUpdateProgress() {
+			return configState?.player.auto_update_progress ?? true;
+		},
+		setAutoUpdateProgress: async (enabled: boolean) => {
+			if (configState) configState.player.auto_update_progress = enabled;
+			try {
+				await invoke('update_auto_update_progress', { enabled });
+			} catch (error) {
+				console.error('[Config] ✗ Failed to update auto-update progress:', error);
+			}
+		},
+
+		get autoUpdateThreshold() {
+			return configState?.player.auto_update_threshold ?? 0.8;
+		},
+		setAutoUpdateThreshold: async (threshold: number) => {
+			if (configState) configState.player.auto_update_threshold = threshold;
+			try {
+				await invoke('update_auto_update_threshold', { threshold });
+			} catch (error) {
+				console.error('[Config] ✗ Failed to update auto-update threshold:', error);
+			}
+		},
+
+		get defaultUpdateMode() {
+			return configState?.player.default_update_mode ?? 'ask';
+		},
+		setDefaultUpdateMode: async (mode: string) => {
+			if (configState) configState.player.default_update_mode = mode;
+			try {
+				await invoke('update_default_update_mode', { mode });
+			} catch (error) {
+				console.error('[Config] ✗ Failed to update default update mode:', error);
 			}
 		},
 

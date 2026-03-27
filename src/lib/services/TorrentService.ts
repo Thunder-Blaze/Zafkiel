@@ -11,6 +11,29 @@ export interface Torrent {
 	state: string;
 	total_size: number;
 	downloaded: number;
+	info_hash: string;
+	anime_id?: number;
+	episode_number?: number;
+	anime_title?: string;
+	anime_cover?: string;
+}
+
+export interface PersistTorrent {
+	magnet: string;
+	info_hash: string;
+	name?: string;
+	paused: boolean;
+	anime_id?: number;
+	episode_number?: number;
+	anime_title?: string;
+	anime_cover?: string;
+}
+
+export interface TorrentMetadata {
+	anime_id: number;
+	episode_number: number;
+	anime_title?: string;
+	anime_cover?: string;
 }
 
 export interface TorrentFile {
@@ -96,6 +119,29 @@ export class TorrentService {
 		} catch (e) {
 			console.error('Failed to get stream base URL:', e);
 			return '';
+		}
+	}
+
+	static async saveTorrentMetadata(infoHash: string, metadata: TorrentMetadata): Promise<void> {
+		try {
+			await invoke('save_torrent_metadata', { infoHash, metadata });
+		} catch (e) {
+			console.error('Failed to save torrent metadata:', e);
+		}
+	}
+
+	static async getSavedTorrentsForEpisode(
+		animeId: number,
+		episodeNumber: number
+	): Promise<PersistTorrent[]> {
+		try {
+			return await invoke<PersistTorrent[]>('get_saved_torrents_for_episode', {
+				animeId,
+				episodeNumber
+			});
+		} catch (e) {
+			console.error('Failed to get saved torrents for episode:', e);
+			return [];
 		}
 	}
 }

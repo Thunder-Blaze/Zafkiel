@@ -18,8 +18,10 @@
 	 */
 	import { onMount, onDestroy } from 'svelte';
 	import { invoke } from '@tauri-apps/api/core';
+	import { fade } from 'svelte/transition';
 	import { playerStore } from '$lib/stores/player.svelte';
 	import PlayerControls from './PlayerControls.svelte';
+	import SyncPreferenceModal from './SyncPreferenceModal.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '@iconify/svelte';
 	import {
@@ -48,6 +50,7 @@
 		currentSource = null,
 		onEpisodeSelect,
 		onSourceSelect,
+		animeId,
 	} = $props<{
 		url: string;
 		headers?: Record<string, string>;
@@ -61,6 +64,7 @@
 		currentSource?: StreamSource | null;
 		onEpisodeSelect?: (ep: Episode) => void;
 		onSourceSelect?: (src: StreamSource) => void;
+		animeId?: number;
 	}>();
 
 	const config = useConfigState();
@@ -82,6 +86,94 @@
 	let unlistenEvents: (() => void) | null = null;
 	let lastMouseMove = 0;
 	let overlayOpen = $state(false);
+
+	let updateMode = $state<'yes' | 'no' | 'ask' | null>(null);
+	let showSyncPreferenceModal = $state(false);
+	let hasUpdatedProgress = $state(false);
+	let showAskPrompt = $state(false);
+
+	$effect(() => {
+		if (animeId) {
+			invoke<{ data: string | null }>('get_local_update_mode', { animeId }).then((res) => {
+				updateMode = (res.data as 'yes' | 'no' | 'ask' | null) || null;
+			});
+		}
+	});
+
+	async function checkProgress() {
+		if (!animeId || !currentEpisode || hasUpdatedProgress || !duration || duration <= 0) return;
+
+		const threshold = config.autoUpdateThreshold;
+		if (currentTime / duration >= threshold) {
+			if (updateMode === 'yes') {
+				await performUpdate();
+			} else if (updateMode === 'ask') {
+				showAskPrompt = true;
+			} else if (updateMode === null && config.autoUpdateProgress) {
+				// Pause and ask
+				isPlaying = false;
+				await command('set_property', ['pause', 'yes'], MPV_WINDOW_LABEL);
+				showSyncPreferenceModal = true;
+			}
+		}
+	}
+
+	async function performUpdate() {
+		if (!animeId || !currentEpisode || hasUpdatedProgress) return;
+		hasUpdatedProgress = true;
+
+		try {
+			// Find 1-based index in the episode list
+			const currentIndex = episodes.findIndex((e: Episode) => e.id === currentEpisode.id);
+			const oneBasedIndex = currentIndex !== -1 ? currentIndex + 1 : currentEpisode.number;
+
+			// Update AniList
+			await invoke('update_media_progress', {
+				mediaId: animeId,
+				progress: oneBasedIndex,
+			});
+
+			// Update local DB
+			await invoke('update_local_progress', {
+				params: {
+					anime_id: animeId,
+					episode_number: currentEpisode.number,
+					last_position: Math.floor(currentTime),
+					total_duration: Math.floor(duration),
+					update_mode: updateMode || 'yes',
+				},
+			});
+
+			console.log(`[Player] Progress updated to episode ${oneBasedIndex} (local: ${currentEpisode.number})`);
+		} catch (e) {
+			console.error('[Player] Failed to update progress:', e);
+			hasUpdatedProgress = false;
+		}
+	}
+
+	async function handlePreferenceSelect(mode: 'yes' | 'no' | 'ask') {
+		updateMode = mode;
+		// Save to DB immediately
+		if (animeId && currentEpisode) {
+			await invoke('update_local_progress', {
+				params: {
+					anime_id: animeId,
+					episode_number: currentEpisode.number,
+					last_position: Math.floor(currentTime),
+					total_duration: Math.floor(duration),
+					update_mode: mode,
+				},
+			});
+		}
+		
+		if (mode === 'yes') {
+			await performUpdate();
+		}
+		
+		// Resume playback
+		isPlaying = true;
+		await command('set_property', ['pause', 'no'], MPV_WINDOW_LABEL);
+	}
 
 	// ── mpv observed properties ───────────────────────────────────────────────
 	const OBSERVED_PROPERTIES = [
@@ -152,7 +244,7 @@
 		config.setPlaybackSpeed(speed);
 		try {
 			await setProperty('speed', speed, MPV_WINDOW_LABEL);
-		} catch (e) {
+		} catch (e: any) {
 			console.error('[mpv] speed error:', e);
 		}
 	}
@@ -269,7 +361,10 @@
 							updateDiscordActivity();
 							break;
 						case 'time-pos':
-							if (typeof data === 'number') currentTime = data;
+							if (typeof data === 'number') {
+								currentTime = data;
+								checkProgress();
+							}
 							break;
 						case 'duration':
 							if (typeof data === 'number') duration = data;
@@ -495,6 +590,53 @@
 					}
 				}}
 			/>
+		</div>
+	{/if}
+
+	<SyncPreferenceModal
+		bind:open={showSyncPreferenceModal}
+		animeTitle={title || 'this anime'}
+		onSelect={handlePreferenceSelect}
+	/>
+
+	{#if showAskPrompt}
+		<div
+			class="absolute top-4 right-4 z-[110] flex flex-col gap-2 rounded-xl border border-white/20 bg-black/60 p-4 backdrop-blur-md transition-all duration-300"
+			transition:fade
+		>
+			<div class="flex items-center gap-3">
+				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary">
+					<Icon icon="solar:check-read-linear" class="h-6 w-6" />
+				</div>
+				<div>
+					<div class="text-sm font-bold text-white uppercase tracking-tight">Sync Progress?</div>
+					<div class="text-xs text-white/70">Update AniList to episode {currentEpisode?.number}</div>
+				</div>
+			</div>
+			<div class="flex gap-2 pt-1">
+				<Button
+					size="sm"
+					variant="default"
+					class="flex-1 rounded-lg h-8 text-xs font-bold uppercase tracking-wider"
+					onclick={async () => {
+						await performUpdate();
+						showAskPrompt = false;
+					}}
+				>
+					Sync
+				</Button>
+				<Button
+					size="sm"
+					variant="ghost"
+					class="flex-1 rounded-lg h-8 text-xs font-bold uppercase tracking-wider text-white/50 hover:text-white"
+					onclick={() => {
+						showAskPrompt = false;
+						hasUpdatedProgress = true; // Don't ask again for this ep
+					}}
+				>
+					Ignore
+				</Button>
+			</div>
 		</div>
 	{/if}
 </div>

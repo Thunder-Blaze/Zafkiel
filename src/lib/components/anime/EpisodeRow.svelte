@@ -9,6 +9,7 @@
 
 	let {
 		episode,
+		animeTitle,
 		downloadStatus,
 		isExpanded = false,
 		onToggleExpand,
@@ -16,11 +17,12 @@
 		onWatch,
 	} = $props<{
 		episode: EpisodeMeta;
+		animeTitle: string;
 		downloadStatus: EpisodeDownloadStatus | undefined;
 		isExpanded?: boolean;
 		onToggleExpand?: (id: number) => void;
-		onDownload: (magnetUri: string, episodeNumber: number) => void;
-		onWatch: (torrentId: number, fileId?: number) => void;
+		onDownload: (magnetUri: string, episodeNumber: number, title?: string) => void;
+		onWatch: (torrentId: number, fileId?: number, episodeNumber?: number) => void;
 	}>();
 
 	const isFutureEpisode = $derived(
@@ -109,7 +111,7 @@
 				{#if downloadStatus.canStream}
 					<button
 						class="flex h-full items-center gap-1.5 rounded-md bg-primary px-4 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:-translate-y-0.5 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
-						onclick={() => onWatch(downloadStatus.torrentId, downloadStatus.fileId)}
+						onclick={() => onWatch(downloadStatus.torrentId, downloadStatus.fileId, episode.number)}
 					>
 						<Icon icon="solar:play-bold" class="size-4" />
 						Watch
@@ -135,7 +137,7 @@
 			class="mt-3 w-full border-t border-border/30 pt-4 pl-2"
 			transition:slide={{ duration: 250 }}
 		>
-			<EpisodeTorrentsList {episode} onDownload={(magnet) => onDownload(magnet, episode.number)} />
+			<EpisodeTorrentsList {episode} {animeTitle} onDownload={(magnet, title) => onDownload(magnet, episode.number, title)} />
 		</div>
 	{/if}
 </div>

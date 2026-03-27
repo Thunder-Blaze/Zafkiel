@@ -37,6 +37,7 @@ export interface TorrentProvider {
 	manifest: ExtensionManifest;
 	search(query: string): Promise<TorrentInfo[]>;
 	searchAnime(anime: AnimeLarge): Promise<TorrentInfo[]>;
+	searchBatches?(anime: AnimeLarge): Promise<TorrentInfo[]>;
 }
 
 class ExtensionManagerService {
@@ -83,6 +84,27 @@ class ExtensionManagerService {
 				return [];
 			})
 		);
+
+		const results = await Promise.all(promises);
+		return results.flat().sort((a, b) => b.seeds - a.seeds);
+	}
+
+	async searchBatchesAll(anime: AnimeLarge): Promise<TorrentInfo[]> {
+		const promises = Array.from(this.providers.values()).map((p) => {
+			if (p.searchBatches) {
+				return p.searchBatches(anime).catch((e) => {
+					console.error(`Error searching batches for provider ${p.manifest.name}:`, e);
+					return [];
+				});
+			} else {
+				// Fallback to anime search with "Batch" keyword if searchBatches not implemented
+				const query = (anime.title?.english || anime.title?.romaji || '') + ' Batch';
+				return p.search(query).catch((e) => {
+					console.error(`Error searching fallback batches for provider ${p.manifest.name}:`, e);
+					return [];
+				});
+			}
+		});
 
 		const results = await Promise.all(promises);
 		return results.flat().sort((a, b) => b.seeds - a.seeds);

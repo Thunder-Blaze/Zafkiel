@@ -135,6 +135,21 @@
 		}
 		return str.slice(0, num) + '...';
 	}
+
+	const currentIndex = $derived(episodes.findIndex((e: Episode) => e.id === currentEpisode?.id));
+	const hasNext = $derived(currentIndex !== -1 && currentIndex < episodes.length - 1);
+	const hasPrev = $derived(currentIndex > 0);
+
+	function handleNext() {
+		if (hasNext) onEpisodeSelect?.(episodes[currentIndex + 1]);
+	}
+
+	function handlePrev() {
+		if (hasPrev) onEpisodeSelect?.(episodes[currentIndex - 1]);
+	}
+
+	const oneBasedIndex = $derived(currentIndex !== -1 ? currentIndex + 1 : currentEpisode?.number);
+	const showOneBased = $derived(oneBasedIndex !== undefined && oneBasedIndex !== currentEpisode?.number);
 </script>
 
 <Tooltip.Provider>
@@ -248,6 +263,9 @@
 					{#if subtitle}
 						<p class="mt-1 truncate text-base font-medium text-foreground/80 md:mt-2 md:text-xl">
 							{subtitle}
+							{#if showOneBased}
+								<span class="ml-2 text-primary opacity-80">(EP {oneBasedIndex})</span>
+							{/if}
 						</p>
 					{/if}
 				</div>
@@ -366,6 +384,42 @@
 							</Tooltip.Trigger>
 							<Tooltip.Content>
 								<p>Forward 10s</p>
+							</Tooltip.Content>
+						</Tooltip.Root>
+
+						<div class="mx-1 h-5 w-px bg-white/10 md:mx-1.5"></div>
+
+						<Tooltip.Root>
+							<Tooltip.Trigger>
+								<Button
+									variant="ghost"
+									size="icon"
+									class="h-9 w-9 p-0 text-foreground transition-transform hover:bg-foreground/20 active:scale-90 disabled:opacity-30 md:h-11 md:w-11"
+									onclick={handlePrev}
+									disabled={!hasPrev}
+								>
+									<Icon icon="mingcute:skip-previous-fill" class="h-8 w-8 md:h-10 md:w-10" />
+								</Button>
+							</Tooltip.Trigger>
+							<Tooltip.Content>
+								<p>Previous Episode</p>
+							</Tooltip.Content>
+						</Tooltip.Root>
+
+						<Tooltip.Root>
+							<Tooltip.Trigger>
+								<Button
+									variant="ghost"
+									size="icon"
+									class="h-9 w-9 p-0 text-foreground transition-transform hover:bg-foreground/20 active:scale-90 disabled:opacity-30 md:h-11 md:w-11"
+									onclick={handleNext}
+									disabled={!hasNext}
+								>
+									<Icon icon="mingcute:skip-next-fill" class="h-8 w-8 md:h-10 md:w-10" />
+								</Button>
+							</Tooltip.Trigger>
+							<Tooltip.Content>
+								<p>Next Episode</p>
 							</Tooltip.Content>
 						</Tooltip.Root>
 

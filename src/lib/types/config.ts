@@ -53,6 +53,12 @@ export interface PlayerConfig {
 	auto_select_next_stream: boolean;
 	/** Playback speed */
 	playback_speed: number;
+	/** Whether to automatically update AniList progress */
+	auto_update_progress: boolean;
+	/** Progress threshold for auto update (0.0 to 1.0) */
+	auto_update_threshold: number;
+	/** Default update mode for new anime (yes, no, ask) */
+	default_update_mode: string;
 	/** Dynamic Shader configuration */
 	shaders: ShaderConfig;
 }

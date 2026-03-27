@@ -192,6 +192,28 @@ fn migrations() -> Migrations<'static> {
             CREATE INDEX IF NOT EXISTS idx_ext_downloads_anime
                 ON extension_downloads(anime_name);",
         ),
+        // 010 — Torrent metadata persistence
+        M::up(
+            "CREATE TABLE IF NOT EXISTS torrents (
+                id               INTEGER PRIMARY KEY AUTOINCREMENT,
+                info_hash        TEXT    NOT NULL UNIQUE,
+                anime_id         INTEGER NOT NULL,
+                episode_number   REAL    NOT NULL,
+                anime_title      TEXT,
+                anime_cover      TEXT,
+                magnet_uri       TEXT    NOT NULL,
+                status           TEXT    NOT NULL,
+                progress         REAL    NOT NULL DEFAULT 0.0,
+                total_size       INTEGER DEFAULT 0,
+                downloaded_bytes INTEGER DEFAULT 0,
+                created_at       INTEGER NOT NULL,
+                updated_at       INTEGER NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_torrents_anime_id
+                ON torrents(anime_id);",
+        ),
+        // 011 — Anime-specific update preferences (YES, NO, ASK)
+        M::up("ALTER TABLE local_progress ADD COLUMN update_mode TEXT DEFAULT NULL;"),
     ])
 }
 

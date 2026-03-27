@@ -31,8 +31,9 @@ export const episodeKeys = {
 	episodeTorrents: (
 		anidbId: number | null,
 		anidbEpisodeId: number | null,
-		quality: TorrentQuality
-	) => [...episodeKeys.all, 'torrents', anidbId, anidbEpisodeId, quality] as const,
+		quality: TorrentQuality,
+		animeTitle: string | null
+	) => [...episodeKeys.all, 'torrents', anidbId, anidbEpisodeId, quality, animeTitle] as const,
 
 	/** All-episode torrent listing keyed by AniDB series ID */
 	animeTorrents: (anidbId: number | null) =>
@@ -83,12 +84,17 @@ export function useAniZipEpisodes(anilistId: number | null) {
  * @param episode   EpisodeMeta from useAniZipEpisodes (pass null to disable)
  * @param quality   Quality filter: "720p", "1080p", or "all" (default "1080p")
  */
-export function useEpisodeTorrents(episode: EpisodeMeta | null, quality: TorrentQuality = '1080p') {
+export function useEpisodeTorrents(
+	animeTitle: string | null,
+	episode: EpisodeMeta | null,
+	quality: TorrentQuality = '1080p'
+) {
 	return createQuery(() => ({
 		queryKey: episodeKeys.episodeTorrents(
 			episode?.anidbId ?? null,
 			episode?.anidbEpisodeId ?? null,
-			quality
+			quality,
+			animeTitle
 		),
 		queryFn: async (): Promise<EpisodeTorrentEntry[]> => {
 			if (!episode) return [];
@@ -98,13 +104,16 @@ export function useEpisodeTorrents(episode: EpisodeMeta | null, quality: Torrent
 
 			// Fallback: Nyaa SubsPlease search
 			if (results.length === 0) {
-				results = await fetchNyaaEpisode(episode.title, episode.number, quality);
+				const searchTitle = animeTitle || episode.title;
+				if (searchTitle) {
+					results = await fetchNyaaEpisode(searchTitle, episode.number, quality);
+				}
 			}
 
 			return [...results].sort((a, b) => b.seeds - a.seeds);
 		},
 		enabled: !!episode,
-		staleTime: 1000 * 60 * 10, // 10 minutes – new releases appear frequently
+		staleTime: 1000 * 60 * 10,
 		gcTime: 1000 * 60 * 30,
 		retry: 1,
 	}));

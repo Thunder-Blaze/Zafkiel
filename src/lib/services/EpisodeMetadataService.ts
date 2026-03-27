@@ -9,6 +9,7 @@
  */
 
 import { invoke } from '@tauri-apps/api/core';
+import { filterTitle, formatBytes, cleanSearchTitle } from '$lib/utils/data-filters';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // API constants
@@ -183,11 +184,14 @@ export async function fetchToshoEpisode(
 		url = `${TOSHO_BASE}/json?qx=1${qParam}&aids=${anidbId}&eids=${anidbEpisodeId}`;
 	}
 
+	console.log(`Searching Tosho: ${url}`);
+
 	try {
 		const raw = await invoke<string>('fetch_url', { url, headers: null });
 		const data: ToshoRawEntry[] = JSON.parse(raw);
-		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho')).filter((e) => !!e.fansub);
-	} catch {
+		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho'));
+	} catch (err) {
+		console.error(`Tosho search error: ${err}`);
 		return [];
 	}
 }
@@ -206,13 +210,16 @@ export async function fetchNyaaEpisode(
 ): Promise<EpisodeTorrentEntry[]> {
 	const epStr = episodeNumber < 10 ? `0${episodeNumber}` : `${episodeNumber}`;
 	const qualityStr = quality !== 'all' ? ` ${quality}` : '';
-	const query = `[SubsPlease] ${animeTitle} - ${epStr}${qualityStr}`;
+	const cleanTitle = cleanSearchTitle(animeTitle);
+	const query = `[SubsPlease] ${cleanTitle} - ${epStr}${qualityStr}`;
 	const url = `${NYAA_RSS_BASE}/?page=rss&q=${encodeURIComponent(query)}&c=0_0&f=0`;
+	console.log(`Searching Nyaa Fallback: ${query}`);
 
 	try {
 		const xml = await invoke<string>('fetch_url', { url, headers: null });
-		return parseNyaaRss(xml).filter((e) => !!e.fansub);
-	} catch {
+		return parseNyaaRss(xml);
+	} catch (err) {
+		console.error(`Nyaa fallback search error: ${err}`);
 		return [];
 	}
 }
@@ -225,7 +232,22 @@ export async function searchTosho(query: string, page = 1): Promise<EpisodeTorre
 	try {
 		const raw = await invoke<string>('fetch_url', { url, headers: null });
 		const data: ToshoRawEntry[] = JSON.parse(raw);
-		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho')).filter((e) => !!e.fansub);
+		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho'));
+	} catch {
+		return [];
+	}
+}
+
+/**
+ * Search for batch releases for a specific anime title via Anime Tosho.
+ */
+export async function fetchToshoBatches(animeTitle: string): Promise<EpisodeTorrentEntry[]> {
+	const query = `${animeTitle} Batch`;
+	const url = `${TOSHO_BASE}/json?qx=1&q=${encodeURIComponent(query)}`;
+	try {
+		const raw = await invoke<string>('fetch_url', { url, headers: null });
+		const data: ToshoRawEntry[] = JSON.parse(raw);
+		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho'));
 	} catch {
 		return [];
 	}
@@ -323,13 +345,6 @@ function parseNyaaRss(xml: string): EpisodeTorrentEntry[] {
 	});
 
 	return results;
-}
-
-function formatBytes(bytes: number): string {
-	if (bytes >= 1_073_741_824) return `${(bytes / 1_073_741_824).toFixed(2)} GiB`;
-	if (bytes >= 1_048_576) return `${(bytes / 1_048_576).toFixed(2)} MiB`;
-	if (bytes >= 1_024) return `${(bytes / 1_024).toFixed(1)} KiB`;
-	return `${bytes} B`;
 }
 
 function extractResolution(title: string): string | undefined {

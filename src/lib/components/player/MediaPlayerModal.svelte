@@ -17,6 +17,8 @@
 		torrentId,
 		poster,
 		mode,
+		episodeNumber,
+		animeId,
 	} = $props<{
 		open: boolean;
 		src: string;
@@ -25,7 +27,11 @@
 		torrentId?: number;
 		poster?: string;
 		mode?: 'internal' | 'libmpv';
+		episodeNumber?: number;
+		animeId?: number;
 	}>();
+
+	const mockEpisode = $derived(episodeNumber !== undefined ? { number: episodeNumber, id: 'torrent-ep' } : null);
 
 	let files: TorrentFile[] = $state([]);
 	let currentFileId: number | undefined = $state(undefined);
@@ -105,7 +111,14 @@
 	<!-- libmpv uses a fixed full-screen transparent overlay over the native
 	     video layer. Wrapping it in a Dialog breaks that by constraining the
 	     viewport hole — render it directly at the top level instead. -->
-	<VideoPlayer url={currentSrc} {title} onBack={() => (open = false)} />
+	<VideoPlayer 
+		url={currentSrc} 
+		{title} 
+		image={poster}
+		currentEpisode={mockEpisode}
+		{animeId}
+		onBack={() => (open = false)} 
+	/>
 	<!-- Mode switcher floats above the VideoPlayer's z-[100] overlay -->
 	<div
 		class="fixed top-3 left-1/2 z-[101] flex -translate-x-1/2 overflow-hidden rounded-full border border-white/20 bg-black/60 backdrop-blur-sm"
@@ -147,7 +160,14 @@
 						showPlaylist && files.length > 1 ? 'w-[75%]' : 'w-full'
 					)}
 				>
-					<InternalPlayer src={currentSrc} {title} onBack={() => (open = false)} />
+					<InternalPlayer 
+						src={currentSrc} 
+						{title} 
+						image={poster}
+						currentEpisode={mockEpisode}
+						{animeId}
+						onBack={() => (open = false)} 
+					/>
 
 					<!-- Player mode switcher overlay -->
 					<div

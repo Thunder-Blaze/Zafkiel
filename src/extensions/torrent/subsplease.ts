@@ -4,7 +4,7 @@ import type {
 	TorrentInfo,
 } from '$lib/services/ExtensionManager';
 import type { AnimeLarge } from '$lib/types/anime';
-import { filterTitle } from '$lib/utils/data-filters';
+import { filterTitle, cleanSearchTitle } from '$lib/utils/data-filters';
 import { invoke } from '@tauri-apps/api/core';
 
 export const SubsPleaseExtension: TorrentProvider = {
@@ -69,8 +69,10 @@ export const SubsPleaseExtension: TorrentProvider = {
 	},
 
 	async searchAnime(anime: AnimeLarge): Promise<TorrentInfo[]> {
-		const title = filterTitle(anime.title || {});
-		// Try searching with English title first, then Romaji
+		const title = cleanSearchTitle(filterTitle(anime.title || {}));
+		if (!title) return [];
+
+		// Try primary title
 		let results = await this.search(title);
 
 		// If no results, try Romaji

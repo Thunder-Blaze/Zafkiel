@@ -206,6 +206,72 @@
 				</div>
 				<Switch bind:checked={preferDub} />
 			</div>
+
+			<div class="h-px bg-border/50"></div>
+
+			<div class="space-y-1">
+				<h3 class="text-sm font-semibold uppercase tracking-wider text-foreground/50">
+					AniList Progress Sync
+				</h3>
+			</div>
+
+			<!-- Auto-update Progress -->
+			<div
+				class="flex items-center justify-between rounded-lg border border-border/50 bg-foreground/5 p-4"
+			>
+				<div class="space-y-0.5">
+					<Label class="text-base font-medium">Auto-update AniList Progress</Label>
+					<p class="text-sm text-foreground/70">
+						Automatically increment episode count on AniList
+					</p>
+				</div>
+				<Switch
+					checked={config.autoUpdateProgress}
+					onCheckedChange={(checked) => config.setAutoUpdateProgress(checked)}
+				/>
+			</div>
+
+			{#if config.autoUpdateProgress}
+				<div class="grid gap-4 sm:grid-cols-2" transition:slide>
+					<!-- Auto-update Threshold -->
+					<div class="space-y-3 rounded-lg border border-border/50 bg-foreground/5 p-4">
+						<div class="space-y-0.5">
+							<Label class="text-base font-medium">Update Threshold</Label>
+							<p class="text-sm text-foreground/70">Update when episode reaches %</p>
+						</div>
+						<div class="flex gap-2">
+							<select
+								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+								value={config.autoUpdateThreshold}
+								onchange={(e) => config.setAutoUpdateThreshold(parseFloat(e.currentTarget.value))}
+							>
+								{#each [0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95] as threshold}
+									<option value={threshold}>{Math.round(threshold * 100)}%</option>
+								{/each}
+							</select>
+						</div>
+					</div>
+
+					<!-- Default Update Mode -->
+					<div class="space-y-3 rounded-lg border border-border/50 bg-foreground/5 p-4">
+						<div class="space-y-0.5">
+							<Label class="text-base font-medium">Default Sync Mode</Label>
+							<p class="text-sm text-foreground/70">Default behavior for new anime</p>
+						</div>
+						<div class="flex gap-2">
+							<select
+								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+								value={config.defaultUpdateMode}
+								onchange={(e) => config.setDefaultUpdateMode(e.currentTarget.value)}
+							>
+								<option value="yes">Always Sync (Yes)</option>
+								<option value="no">Never Sync (No)</option>
+								<option value="ask">Ask per Anime</option>
+							</select>
+						</div>
+					</div>
+				</div>
+			{/if}
 		</CardContent>
 	</Card>
 </div>

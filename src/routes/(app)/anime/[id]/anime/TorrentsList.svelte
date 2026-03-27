@@ -14,20 +14,23 @@
 	import { TorrentService } from '$lib/services/TorrentService';
 	import { invoke } from '@tauri-apps/api/core';
 
-	let { anime }: { anime: AnimeLarge } = $props();
+	let { anime, mode = 'all', enabled = true }: { anime: AnimeLarge; mode?: 'all' | 'batches'; enabled?: boolean } = $props();
 	let selectedTorrent = $state<TorrentInfo | null>(null);
 	let isPlayerOpen = $state(false);
 	let playerModalMode = $state<'internal' | 'libmpv'>('libmpv');
 	let streamUrl = $state('');
 
 	const torrentsQuery = createQuery(() => ({
-		queryKey: ['torrents', anime.id],
+		queryKey: ['torrents', anime?.id, mode, enabled],
 		queryFn: async () => {
-			if (!anime) return [];
+			if (!anime || !enabled) return [];
+			if (mode === 'batches') {
+				return await ExtensionManager.searchBatchesAll(anime);
+			}
 			return await ExtensionManager.searchAnimeAll(anime);
 		},
-		enabled: !!anime,
-		staleTime: 1000 * 60 * 5, // 5 minutes
+		enabled: !!anime && enabled,
+		staleTime: 1000 * 60 * 5,
 	}));
 
 	const torrents = $derived(torrentsQuery.data || []);
@@ -86,7 +89,7 @@
 
 <div class="space-y-4">
 	<div class="flex items-center justify-between">
-		<h3 class="text-lg font-semibold">Available Torrents</h3>
+		<h3 class="text-lg font-semibold">{mode === 'batches' ? 'Batch Releases' : 'Available Torrents'}</h3>
 		<Button
 			variant="outline"
 			size="sm"
