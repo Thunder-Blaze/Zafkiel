@@ -38,6 +38,7 @@
 		onEpisodeSelect,
 		onSourceSelect,
 		onOverlayToggle,
+		canUseShaders = true,
 	} = $props<{
 		isPlaying: boolean;
 		currentTime: number;
@@ -67,6 +68,7 @@
 		onEpisodeSelect?: (ep: Episode) => void;
 		onSourceSelect?: (src: StreamSource) => void;
 		onOverlayToggle?: (open: boolean) => void;
+		canUseShaders?: boolean;
 	}>();
 
 	const config = useConfigState();
@@ -415,7 +417,7 @@
 									onclick={handleNext}
 									disabled={!hasNext}
 								>
-									<Icon icon="mingcute:skip-next-fill" class="h-8 w-8 md:h-10 md:w-10" />
+									<Icon icon="mingcute:skip-forward-fill" class="h-8 w-8 md:h-10 md:w-10" />
 								</Button>
 							</Tooltip.Trigger>
 							<Tooltip.Content>
@@ -721,119 +723,121 @@
 							</div>
 						{/if}
 
-						<div class="relative">
-							<Tooltip.Root>
-								<Tooltip.Trigger>
-									<Button
-										variant="ghost"
-										size="icon"
-										class={cn(
-											'h-8 w-8 p-0 text-foreground transition-colors hover:bg-foreground/20 md:h-10 md:w-10',
-											showShaderMenu && 'bg-foreground/20 text-primary'
-										)}
-										onclick={(e) => {
-											e.stopPropagation();
-											showShaderMenu = !showShaderMenu;
-											showPlaylist = false;
-											showQualityMenu = false;
-											showSubtitleMenu = false;
-											showSpeedMenu = false;
-										}}
-									>
-										<Icon icon="mingcute:magic-2-fill" class="h-7 w-7 md:h-9 md:w-9" />
-									</Button>
-								</Tooltip.Trigger>
-								<Tooltip.Content>
-									<p>Video Shaders</p>
-								</Tooltip.Content>
-							</Tooltip.Root>
-
-							{#if showShaderMenu}
-								<div
-									class="absolute right-0 bottom-full z-50 mb-4 flex w-80 origin-bottom-right flex-col rounded-xl border border-border bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl"
-									transition:scale={{ duration: 150, start: 0.95, opacity: 0 }}
-								>
-									<div
-										class="mb-1 shrink-0 border-b border-border px-3 py-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
-									>
-										Shaders
-									</div>
-									<div
-										class="max-h-[300px] w-full overflow-y-auto pr-1"
-										data-lenis-prevent="true"
-										onwheel={(e) => e.stopPropagation()}
-									>
-										<button
+						{#if canUseShaders}
+							<div class="relative">
+								<Tooltip.Root>
+									<Tooltip.Trigger>
+										<Button
+											variant="ghost"
+											size="icon"
 											class={cn(
-												'mb-1 flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted',
-												config.shaderConfig.enabled && 'bg-primary/5 text-primary'
+												'h-8 w-8 p-0 text-foreground transition-colors hover:bg-foreground/20 md:h-10 md:w-10',
+												showShaderMenu && 'bg-foreground/20 text-primary'
 											)}
 											onclick={(e) => {
 												e.stopPropagation();
-												config.setShaderConfig(
-													!config.shaderConfig.enabled,
-													config.shaderConfig.selected_shaders
-												);
+												showShaderMenu = !showShaderMenu;
+												showPlaylist = false;
+												showQualityMenu = false;
+												showSubtitleMenu = false;
+												showSpeedMenu = false;
 											}}
 										>
-											<Icon
-												icon={config.shaderConfig.enabled
-													? 'mingcute:toggle-right-fill'
-													: 'mingcute:toggle-left-line'}
-												class={cn(
-													'mr-2.5 h-5 w-5',
-													config.shaderConfig.enabled ? 'text-primary' : 'text-muted-foreground'
-												)}
-											/>
-											<span class="flex-1 font-medium">Enable Shaders</span>
-										</button>
+											<Icon icon="mingcute:magic-2-fill" class="h-7 w-7 md:h-9 md:w-9" />
+										</Button>
+									</Tooltip.Trigger>
+									<Tooltip.Content>
+										<p>Video Shaders</p>
+									</Tooltip.Content>
+								</Tooltip.Root>
 
-										<div class="mx-2 my-1 h-px bg-border/50"></div>
-
-										{#each config.shaderConfig.selected_shaders as shader}
-											{@const shaderName = shader.split('/').pop()?.replace('.glsl', '') || shader}
+								{#if showShaderMenu}
+									<div
+										class="absolute right-0 bottom-full z-50 mb-4 flex w-80 origin-bottom-right flex-col rounded-xl border border-border bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl"
+										transition:scale={{ duration: 150, start: 0.95, opacity: 0 }}
+									>
+										<div
+											class="mb-1 shrink-0 border-b border-border px-3 py-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+										>
+											Shaders
+										</div>
+										<div
+											class="max-h-[300px] w-full overflow-y-auto pr-1"
+											data-lenis-prevent="true"
+											onwheel={(e) => e.stopPropagation()}
+										>
 											<button
 												class={cn(
-													'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted',
-													'bg-primary/10 font-medium text-primary'
+													'mb-1 flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted',
+													config.shaderConfig.enabled && 'bg-primary/5 text-primary'
 												)}
 												onclick={(e) => {
 													e.stopPropagation();
-													let selected = [...config.shaderConfig.selected_shaders];
-													selected = selected.filter((s) => s !== shader);
-													config.setShaderConfig(config.shaderConfig.enabled, selected);
+													config.setShaderConfig(
+														!config.shaderConfig.enabled,
+														config.shaderConfig.selected_shaders
+													);
 												}}
 											>
 												<Icon
-													icon="mingcute:check-fill"
-													class="mr-2.5 h-4 w-4 shrink-0 text-primary"
+													icon={config.shaderConfig.enabled
+														? 'mingcute:toggle-right-fill'
+														: 'mingcute:toggle-left-line'}
+													class={cn(
+														'mr-2.5 h-5 w-5',
+														config.shaderConfig.enabled ? 'text-primary' : 'text-muted-foreground'
+													)}
 												/>
-												<span class="break-all">{shaderName}</span>
+												<span class="flex-1 font-medium">Enable Shaders</span>
 											</button>
-										{/each}
 
-										<div class="my-1.5 px-3 text-[10px] font-bold text-muted-foreground uppercase">
-											Available
+											<div class="mx-2 my-1 h-px bg-border/50"></div>
+
+											{#each config.shaderConfig.selected_shaders as shader}
+												{@const shaderName = shader.split('/').pop()?.replace('.glsl', '') || shader}
+												<button
+													class={cn(
+														'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted',
+														'bg-primary/10 font-medium text-primary'
+													)}
+													onclick={(e) => {
+														e.stopPropagation();
+														let selected = [...config.shaderConfig.selected_shaders];
+														selected = selected.filter((s) => s !== shader);
+														config.setShaderConfig(config.shaderConfig.enabled, selected);
+													}}
+												>
+													<Icon
+														icon="mingcute:check-fill"
+														class="mr-2.5 h-4 w-4 shrink-0 text-primary"
+													/>
+													<span class="break-all">{shaderName}</span>
+												</button>
+											{/each}
+
+											<div class="my-1.5 px-3 text-[10px] font-bold text-muted-foreground uppercase">
+												Available
+											</div>
+
+											{#each availableShaders.filter((s) => !config.shaderConfig.selected_shaders.includes(s)) as shader}
+												{@const shaderName = shader.split('/').pop()?.replace('.glsl', '') || shader}
+												<button
+													class="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
+													onclick={(e) => {
+														e.stopPropagation();
+														let selected = [...config.shaderConfig.selected_shaders, shader];
+														config.setShaderConfig(config.shaderConfig.enabled, selected);
+													}}
+												>
+													<div class="mr-2.5 h-4 w-4 shrink-0"></div>
+													<span class="break-all text-foreground/80">{shaderName}</span>
+												</button>
+											{/each}
 										</div>
-
-										{#each availableShaders.filter((s) => !config.shaderConfig.selected_shaders.includes(s)) as shader}
-											{@const shaderName = shader.split('/').pop()?.replace('.glsl', '') || shader}
-											<button
-												class="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
-												onclick={(e) => {
-													e.stopPropagation();
-													let selected = [...config.shaderConfig.selected_shaders, shader];
-													config.setShaderConfig(config.shaderConfig.enabled, selected);
-												}}
-											>
-												<div class="mr-2.5 h-4 w-4 shrink-0"></div>
-												<span class="break-all text-foreground/80">{shaderName}</span>
-											</button>
-										{/each}
 									</div>
-								</div>
-							{/if}
-						</div>
+								{/if}
+							</div>
+						{/if}
 
 						<div class="relative">
 							<Tooltip.Root>

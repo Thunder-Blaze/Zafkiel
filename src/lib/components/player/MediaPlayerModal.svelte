@@ -37,7 +37,7 @@
 	let currentFileId: number | undefined = $state(undefined);
 	let showPlaylist = $state(true);
 	let loadingFiles = $state(false);
-	let currentSrc = $derived(src);
+	let currentSrc = $state(src);
 	let currentSubtitleTracks: { id: string; label: string; src: string; lang: string }[] = $state(
 		[]
 	);
@@ -78,9 +78,11 @@
 
 		// Get new stream URL
 		if (magnet) {
-			currentSrc = await TorrentService.streamTorrent(magnet, file.id);
+			const { url } = await TorrentService.streamTorrent(magnet, file.id);
+			currentSrc = url;
 		} else if (torrentId !== undefined) {
-			currentSrc = await TorrentService.streamTorrentById(torrentId, file.id);
+			const { url } = await TorrentService.streamTorrentById(torrentId, file.id);
+			currentSrc = url;
 		}
 
 		// Reset subtitles for new file

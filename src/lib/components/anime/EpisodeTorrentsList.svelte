@@ -8,9 +8,10 @@
 	import { toast } from 'svelte-sonner';
 	import { onMount } from 'svelte';
 
-	let { episode, animeTitle, onDownload } = $props<{
+	let { episode, animeTitle, animeId, onDownload } = $props<{
 		episode: EpisodeMeta;
 		animeTitle: string;
+		animeId: number;
 		onDownload: (magnetUri: string, title?: string) => void;
 	}>();
 
@@ -23,7 +24,9 @@
 
 	const fetchSaved = async () => {
 		isLoadingSaved = true;
-		savedTorrents = await TorrentService.getSavedTorrentsForEpisode(episode.anidbId, episode.number);
+		console.log(`[EpisodeTorrentsList] Fetching saved for animeId=${animeId}, ep=${episode.number}`);
+		savedTorrents = await TorrentService.getSavedTorrentsForEpisode(animeId, episode.number);
+		console.log(`[EpisodeTorrentsList] Found ${savedTorrents.length} saved torrents:`, savedTorrents);
 		isLoadingSaved = false;
 	};
 

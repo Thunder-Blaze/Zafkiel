@@ -21,6 +21,12 @@ export interface CacheUserParams {
 	user_data: User;
 }
 
+export interface RecentlyViewedParams {
+	media_id: number;
+	title?: string;
+	cover_url?: string;
+}
+
 export interface CachedImageInfo {
 	id: number;
 	original_url: string;
@@ -74,8 +80,10 @@ export class ClientDatabaseService {
 	/**
 	 * Add media to recently viewed via Tauri command
 	 */
-	static async addToRecentlyViewed(mediaId: number): Promise<void> {
-		await invoke('add_to_recently_viewed', { mediaId });
+	static async addToRecentlyViewed(media_id: number): Promise<void> {
+		await invoke('add_to_recently_viewed', { 
+			params: { media_id } satisfies RecentlyViewedParams 
+		});
 	}
 
 	/**

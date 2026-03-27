@@ -43,6 +43,11 @@ export interface TorrentFile {
 	progress: number;
 }
 
+export interface StreamResponse {
+	url: string;
+	infoHash: string;
+}
+
 export class TorrentService {
 	static async getTorrents(): Promise<Torrent[]> {
 		try {
@@ -77,20 +82,18 @@ export class TorrentService {
 		console.log('addTorrent called, but currently handled by streamTorrent implicitly.');
 	}
 
-	static async streamTorrent(magnet: string, fileId?: number): Promise<string> {
+	static async streamTorrent(magnet: string, fileId?: number): Promise<StreamResponse> {
 		try {
-			const url = await invoke<string>('stream_torrent', { magnet, fileId });
-			return url;
+			return await invoke<StreamResponse>('stream_torrent', { magnet, fileId });
 		} catch (e) {
 			console.error('Failed to start stream via Rust backend:', e);
 			throw e;
 		}
 	}
 
-	static async streamTorrentById(id: number, fileId?: number): Promise<string> {
+	static async streamTorrentById(id: number, fileId?: number): Promise<StreamResponse> {
 		try {
-			const url = await invoke<string>('stream_torrent_by_id', { id, fileId });
-			return url;
+			return await invoke<StreamResponse>('stream_torrent_by_id', { id, fileId });
 		} catch (e) {
 			console.error('Failed to start stream by ID:', e);
 			throw e;

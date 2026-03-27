@@ -61,7 +61,7 @@
 	async function handleDownload(magnetUri: string, episodeNumber: number, title?: string) {
 		try {
 			// Stream torrent implicitly adds it
-			const url = await TorrentService.streamTorrent(magnetUri);
+			const { url, infoHash } = await TorrentService.streamTorrent(magnetUri);
 			
 			// Open player immediately
 			streamUrl = url;
@@ -73,27 +73,26 @@
 
 			toast.success(`Started downloading Episode ${episodeNumber}`);
 
-			// Save metadata to DB
+			if (animeData) {
+				const metadata = {
+					anime_id: animeId,
+					episode_number: episodeNumber,
+					anime_title: animeData.title?.english || animeData.title?.romaji,
+					anime_cover: animeData.coverImage?.extraLarge || animeData.coverImage?.large
+				};
+				console.log('Saving torrent metadata:', metadata);
+				await TorrentService.saveTorrentMetadata(infoHash, metadata);
+				console.log('Metadata saved successfully');
+			}
+			
+			// Re-fetch to update linking after a short delay for rqbit to process
 			setTimeout(async () => {
 				const activeTorrents = await TorrentService.getTorrents();
-				// Find by magnet URI (simplified matching)
-				const target = activeTorrents.find(t => 
-					t.info_hash && magnetUri.toLowerCase().includes(t.info_hash.toLowerCase())
-				);
-				
-				if (target && animeData) {
-					await TorrentService.saveTorrentMetadata(target.info_hash, {
-						anime_id: animeId,
-						episode_number: episodeNumber,
-						anime_title: animeData.title?.english || animeData.title?.romaji,
-						anime_cover: animeData.coverImage?.extraLarge || animeData.coverImage?.large
-					});
-				}
-				
-				// Re-fetch to update linking
 				for (const t of activeTorrents) {
-					const files = await TorrentService.getTorrentFilesById(t.id);
-					episodeTorrentStore.autoLinkFromFiles(animeId, t.id, magnetUri, files);
+					if (t.info_hash === infoHash) {
+						const files = await TorrentService.getTorrentFilesById(t.id);
+						episodeTorrentStore.autoLinkFromFiles(animeId, t.id, magnetUri, files);
+					}
 				}
 				updateStatuses();
 			}, 2000);
@@ -111,7 +110,7 @@
 
 	async function handleWatch(torrentId: number, fileId?: number, episodeNumber?: number) {
 		try {
-			const url = await TorrentService.streamTorrentById(torrentId, fileId);
+			const { url } = await TorrentService.streamTorrentById(torrentId, fileId);
 			streamUrl = url;
 			selectedTorrentId = torrentId;
 			selectedMagnet = undefined;
@@ -188,6 +187,7 @@
 							<EpisodeRow
 								{episode}
 								{animeTitle}
+								{animeId}
 								downloadStatus={getStatusForEpisode(episode.number)}
 								isExpanded={expandedEpisodeId === episode.number}
 								onToggleExpand={handleToggleExpand}

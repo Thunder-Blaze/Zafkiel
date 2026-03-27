@@ -751,6 +751,7 @@
 					{currentSource}
 					{onEpisodeSelect}
 					{onSourceSelect}
+					canUseShaders={false}
 					onOverlayToggle={(open) => {
 						overlayOpen = open;
 						if (open) {

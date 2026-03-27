@@ -91,11 +91,14 @@
 	let showSyncPreferenceModal = $state(false);
 	let hasUpdatedProgress = $state(false);
 	let showAskPrompt = $state(false);
+	
+	let mpvTracks = $state<any[]>([]);
+	let currentSid = $state<number | string>('no');
 
 	$effect(() => {
 		if (animeId) {
-			invoke<{ data: string | null }>('get_local_update_mode', { animeId }).then((res) => {
-				updateMode = (res.data as 'yes' | 'no' | 'ask' | null) || null;
+			invoke<string | null>('get_local_update_mode', { mediaId: animeId }).then((res) => {
+				updateMode = (res as 'yes' | 'no' | 'ask' | null) || null;
 			});
 		}
 	});
@@ -128,19 +131,22 @@
 			const oneBasedIndex = currentIndex !== -1 ? currentIndex + 1 : currentEpisode.number;
 
 			// Update AniList
-			await invoke('update_media_progress', {
-				mediaId: animeId,
-				progress: oneBasedIndex,
+			await invoke('save_media_list_entry', {
+				options: {
+					mediaId: animeId,
+					progress: oneBasedIndex,
+					status: 'CURRENT'
+				}
 			});
 
 			// Update local DB
 			await invoke('update_local_progress', {
 				params: {
-					anime_id: animeId,
-					episode_number: currentEpisode.number,
-					last_position: Math.floor(currentTime),
-					total_duration: Math.floor(duration),
-					update_mode: updateMode || 'yes',
+					mediaId: animeId,
+					progress: oneBasedIndex,
+					mediaType: 'ANIME',
+					status: 'WATCHING',
+					updateMode: updateMode || 'yes',
 				},
 			});
 
@@ -157,11 +163,11 @@
 		if (animeId && currentEpisode) {
 			await invoke('update_local_progress', {
 				params: {
-					anime_id: animeId,
-					episode_number: currentEpisode.number,
-					last_position: Math.floor(currentTime),
-					total_duration: Math.floor(duration),
-					update_mode: mode,
+					mediaId: animeId,
+					progress: currentEpisode.number,
+					mediaType: 'ANIME',
+					status: 'WATCHING',
+					updateMode: mode,
 				},
 			});
 		}
@@ -181,6 +187,8 @@
 		['time-pos', 'double', 'none'],
 		['duration', 'double', 'none'],
 		['cache-buffering-state', 'int64'],
+		['track-list', 'node'],
+		['sid', 'node', 'none'],
 	] as const satisfies MpvObservableProperty[];
 	const MPV_WINDOW_LABEL = 'main';
 
@@ -373,6 +381,14 @@
 							// 100 means fully buffered / not actively buffering
 							isBuffering = typeof data === 'number' ? data < 100 : false;
 							break;
+						case 'track-list':
+							if (Array.isArray(data)) {
+								mpvTracks = data.filter((t) => t.type === 'sub');
+							}
+							break;
+						case 'sid':
+							currentSid = (data as number | string) ?? 'no';
+							break;
 					}
 				},
 				MPV_WINDOW_LABEL
@@ -478,6 +494,29 @@
 		});
 	}
 
+	const mappedTracks = $derived(
+		mpvTracks.map((t) => ({
+			id: String(t.id),
+			label: t.title || t.lang || `Track ${t.id}`,
+			src: '',
+			lang: t.lang || '',
+		}))
+	);
+
+	const currentTrackIndex = $derived(
+		mappedTracks.findIndex((t) => t.id === String(currentSid))
+	);
+
+	async function handleTrackChange(index: number) {
+		if (!isInitialized) return;
+		const trackId = index === -1 ? 'no' : mappedTracks[index].id;
+		try {
+			await setProperty('sid', trackId, MPV_WINDOW_LABEL);
+		} catch (e) {
+			console.error('[mpv] failed to set sid:', e);
+		}
+	}
+
 	$effect(() => {
 		// Update discord activity when title or isPlaying changes, if initialized
 		if (isInitialized) {
@@ -561,8 +600,6 @@
 				{subtitle}
 				{isLocked}
 				{showSkipIntro}
-				tracks={[]}
-				currentTrackIndex={-1}
 				onPlayPause={togglePlay}
 				onSeek={handleSeek}
 				onVolumeChange={handleVolumeChange}
@@ -571,7 +608,9 @@
 				{onBack}
 				onSkipIntro={() => command('seek', ['85', 'relative'], MPV_WINDOW_LABEL)}
 				{isBuffering}
-				onTrackChange={() => {}}
+				tracks={mappedTracks}
+				{currentTrackIndex}
+				onTrackChange={handleTrackChange}
 				playbackSpeed={config.playbackSpeed}
 				onSpeedChange={handleSpeedChange}
 				{episodes}

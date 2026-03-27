@@ -52,7 +52,7 @@
 			playerModalMode = mode;
 			toast.info('Starting stream...');
 			// Start streaming via Rust backend
-			const url = await TorrentService.streamTorrent(torrent.magnet);
+			const { url } = await TorrentService.streamTorrent(torrent.magnet);
 			console.log('Stream URL:', url);
 
 			// Set the stream URL for the player
@@ -68,7 +68,7 @@
 	async function onPlayExternal(torrent: TorrentInfo) {
 		try {
 			toast.info('Starting stream...');
-			const url = await TorrentService.streamTorrent(torrent.magnet);
+			const { url } = await TorrentService.streamTorrent(torrent.magnet);
 			await TorrentService.openInExternalPlayer(url);
 			toast.success('Opened in external player');
 		} catch (error) {
@@ -84,6 +84,8 @@
 	magnet={selectedTorrent?.magnet}
 	title={selectedTorrent?.title}
 	poster={anime.coverImage?.extraLarge || anime.coverImage?.large}
+	animeId={anime.id}
+	episodeNumber={selectedTorrent?.episode}
 	mode={playerModalMode}
 />
 
