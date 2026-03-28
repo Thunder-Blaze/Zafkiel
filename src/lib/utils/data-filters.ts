@@ -30,9 +30,6 @@ export const filterTitle = (title: TitleType) => {
 export const cleanSearchTitle = (title: string) => {
 	return title
 		.replace(/【|】|［|］|\[|\]/g, ' ')           // Japanese/ASCII brackets
-		.replace(/\s*[-:,]?\s*[Ss]eason\s*\d+/g, '')   // Strip "Season 3", "Season3"
-		.replace(/\s*\bS\d+\b/g, '')                    // Strip bare "S3"/"S1"
-		.replace(/\(.*?\)/g, ' ')                       // Remove parenthetical
 		.replace(/\s+/g, ' ')
 		.trim();
 };

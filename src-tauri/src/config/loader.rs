@@ -368,6 +368,16 @@ impl ConfigLoader {
         self.save()
     }
 
+    /// Update network configuration (proxy, etc.)
+    pub fn update_network_config(&self, proxy_url: Option<String>) -> Result<(), ConfigError> {
+        let mut config = self.config.write().map_err(|_| {
+            ConfigError::Deserialization("Failed to acquire write lock".to_string())
+        })?;
+        config.network.proxy_url = proxy_url;
+        drop(config);
+        self.save()
+    }
+
     /// Get the config file path for debugging
     pub fn get_config_file_path(&self) -> PathBuf {
         self.config_path.clone()

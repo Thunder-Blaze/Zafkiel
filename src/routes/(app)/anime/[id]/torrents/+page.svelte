@@ -59,6 +59,7 @@
 	});
 
 	async function handleDownload(magnetUri: string, episodeNumber: number, title?: string) {
+		console.log('[+page.svelte] handleDownload triggered:', { magnetUri: `${magnetUri.slice(0, 50)}...`, episodeNumber, title });
 		try {
 			// Stream torrent implicitly adds it
 			const { url, infoHash } = await TorrentService.streamTorrent(magnetUri);

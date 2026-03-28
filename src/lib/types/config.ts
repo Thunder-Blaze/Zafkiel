@@ -64,9 +64,18 @@ export interface PlayerConfig {
 }
 
 /**
+ * Network configuration (proxy, etc.)
+ */
+export interface NetworkConfig {
+	/** Optional proxy URL (e.g., "http://127.0.0.1:8080") */
+	proxy_url: string | null;
+}
+
+/**
  * Application configuration structure
  */
 export interface AppConfig {
 	ui: UiConfig;
 	player: PlayerConfig;
+	network: NetworkConfig;
 }

@@ -8,6 +8,8 @@ pub struct AppConfig {
     pub ui: UiConfig,
     #[serde(default)]
     pub player: PlayerConfig,
+    #[serde(default)]
+    pub network: NetworkConfig,
 }
 
 /// Player/playback configuration
@@ -70,6 +72,13 @@ fn default_threshold() -> f32 {
 
 fn default_update_mode() -> String {
     "ask".to_string()
+}
+
+/// Network configuration (proxy, etc.)
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct NetworkConfig {
+    #[serde(default)]
+    pub proxy_url: Option<String>,
 }
 
 /// AniList API configuration
@@ -163,6 +172,7 @@ impl Default for AppConfig {
             security: SecurityConfig::default(),
             ui: UiConfig::default(),
             player: PlayerConfig::default(),
+            network: NetworkConfig::default(),
         }
     }
 }

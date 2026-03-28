@@ -11,11 +11,12 @@ import {
 	fetchAniZipMappings,
 	buildEpisodeMetas,
 	fetchToshoEpisode,
-	fetchNyaaEpisode,
+	searchEpisodeCascaded,
 	type EpisodeMeta,
 	type EpisodeTorrentEntry,
 	type TorrentQuality,
 } from '$lib/services/EpisodeMetadataService';
+import { TorrentService, type PersistTorrent } from '$lib/services/TorrentService';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Query key factories
@@ -38,6 +39,10 @@ export const episodeKeys = {
 	/** All-episode torrent listing keyed by AniDB series ID */
 	animeTorrents: (anidbId: number | null) =>
 		[...episodeKeys.all, 'anime-torrents', anidbId] as const,
+
+	/** Saved torrents from local DB keyed by AniList ID + episode */
+	savedTorrents: (animeId: number | null, episodeNumber: number | null) =>
+		[...episodeKeys.all, 'saved', animeId, episodeNumber] as const,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -99,18 +104,17 @@ export function useEpisodeTorrents(
 		queryFn: async (): Promise<EpisodeTorrentEntry[]> => {
 			if (!episode) return [];
 
-			// Primary: Tosho lookup with AniDB IDs
-			let results = await fetchToshoEpisode(episode.anidbId, episode.anidbEpisodeId, quality);
+			// Use the new modular cascading search (Tosho -> Nyaa -> SubsPlease)
+			const results = await searchEpisodeCascaded(
+				{ title: { english: animeTitle ?? '', romaji: animeTitle ?? '' } } as any,
+				episode.number,
+				episode.anidbId,
+				episode.anidbEpisodeId,
+				quality,
+				episode.absoluteNumber
+			);
 
-			// Fallback: Nyaa SubsPlease search
-			if (results.length === 0) {
-				const searchTitle = animeTitle || episode.title;
-				if (searchTitle) {
-					results = await fetchNyaaEpisode(searchTitle, episode.number, quality);
-				}
-			}
-
-			return [...results].sort((a, b) => b.seeds - a.seeds);
+			return results.sort((a, b) => b.seeds - a.seeds);
 		},
 		enabled: !!episode,
 		staleTime: 1000 * 60 * 10,
@@ -143,5 +147,22 @@ export function useAnimeTorrents(anidbId: number | null) {
 		staleTime: 1000 * 60 * 15,
 		gcTime: 1000 * 60 * 60,
 		retry: 1,
+	}));
+}
+/**
+ * Fetches already-downloaded torrents for a specific episode from the local database.
+ * 
+ * @param animeId      AniList media ID
+ * @param episodeNumber Episode number
+ */
+export function useSavedEpisodeTorrents(animeId: number | null, episodeNumber: number | null) {
+	return createQuery(() => ({
+		queryKey: episodeKeys.savedTorrents(animeId, episodeNumber),
+		queryFn: async (): Promise<PersistTorrent[]> => {
+			if (animeId === null || episodeNumber === null) return [];
+			return await TorrentService.getSavedTorrentsForEpisode(animeId, episodeNumber);
+		},
+		enabled: animeId !== null && episodeNumber !== null,
+		staleTime: 1000 * 60 * 5, // 5 minutes cache for local DB state
 	}));
 }

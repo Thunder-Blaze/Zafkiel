@@ -107,7 +107,7 @@
 				// New navigation - remove any forward history and add new path
 				navigationHistory = [...navigationHistory.slice(0, currentHistoryIndex + 1), newPath];
 				currentHistoryIndex = navigationHistory.length - 1;
-				console.log('[TitleBar] New navigation to:', newPath, 'history:', navigationHistory);
+				$inspect('[TitleBar] New navigation to:', newPath, 'history:', navigationHistory);
 			}
 		}
 	});

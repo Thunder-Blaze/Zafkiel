@@ -965,6 +965,7 @@ pub async fn get_saved_torrents_for_episode(
     let db = app.state::<Database>();
     let conn = db.get();
     
+    log::info!("[SavedTorrents] Querying: anime_id={}, episode_number={}", anime_id, episode_number);
     let mut stmt = conn.prepare(
         "SELECT magnet_uri, info_hash, anime_title, status, anime_id, episode_number, anime_cover 
          FROM torrents 

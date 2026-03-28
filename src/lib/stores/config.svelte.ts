@@ -166,12 +166,40 @@ export const useConfigState = () => {
 					playback_speed: 1.0,
 					auto_update_progress: true,
 					auto_update_threshold: 0.8,
-					default_update_mode: 'ask'
+					default_update_mode: 'ask',
+					shaders: { enabled: false, selected_shaders: [] }
 				} as PlayerConfig)
 			);
 		},
 		setPlayerConfig: (playerConfig: PlayerConfig) => {
 			if (configState) configState.player = playerConfig;
+		},
+
+		get networkConfig() {
+			return (
+				configState?.network ||
+				({
+					proxy_url: null
+				} as import('$lib/types/config').NetworkConfig)
+			);
+		},
+		setNetworkConfig: (networkConfig: import('$lib/types/config').NetworkConfig) => {
+			if (configState) configState.network = networkConfig;
+		},
+
+		get proxyUrl() {
+			return configState?.network?.proxy_url ?? null;
+		},
+		setProxyUrl: async (proxyUrl: string | null) => {
+			if (configState) {
+				if (!configState.network) configState.network = { proxy_url: null };
+				configState.network.proxy_url = proxyUrl;
+			}
+			try {
+				await invoke('update_network_config', { proxyUrl });
+			} catch (error) {
+				console.error('[Config] ✗ Failed to update network proxy:', error);
+			}
 		},
 
 		get autoSelectNextStream() {

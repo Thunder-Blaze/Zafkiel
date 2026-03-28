@@ -207,6 +207,7 @@ pub fn run() {
             commands::config::update_auto_update_threshold,
             commands::config::update_default_update_mode,
             commands::config::get_available_shaders,
+            commands::config::update_network_config,
 
             // ─── Extensions ──────────────────────────────────────────────
             commands::extensions::get_installed_extensions,

@@ -37,28 +37,41 @@ export interface TorrentProvider {
 	manifest: ExtensionManifest;
 	search(query: string): Promise<TorrentInfo[]>;
 	searchAnime(anime: AnimeLarge): Promise<TorrentInfo[]>;
+	searchEpisode(
+		anime: AnimeLarge,
+		episodeNumber: number,
+		anidbId?: number,
+		anidbEpisodeId?: number,
+		quality?: string,
+		absoluteEpisodeNumber?: number
+	): Promise<TorrentInfo[]>;
 	searchBatches?(anime: AnimeLarge): Promise<TorrentInfo[]>;
 }
 
 class ExtensionManagerService {
 	private providers: Map<string, TorrentProvider> = new Map();
+	private prioritizedIds: string[] = ['animetosho', 'nyaa-si'];
 
 	constructor() {
-		// Built-in providers – ordered by priority (Tosho first for precision)
 		this.registerProvider(new ToshoProvider());
 		this.registerProvider(new NyaaProvider());
 	}
 
 	registerProvider(provider: TorrentProvider) {
-		if (this.providers.has(provider.manifest.id)) {
-			console.warn(`Provider ${provider.manifest.id} already registered, overwriting.`);
-		}
 		this.providers.set(provider.manifest.id, provider);
-		console.log(`Registered provider: ${provider.manifest.name}`);
+		console.log(`[Extensions] Registered: ${provider.manifest.name}`);
 	}
 
 	getProviders(): TorrentProvider[] {
-		return Array.from(this.providers.values());
+		// Return providers in the preferred order, then any others
+		const ordered = this.prioritizedIds
+			.map((id) => this.providers.get(id))
+			.filter((p): p is TorrentProvider => !!p);
+		
+		const others = Array.from(this.providers.values())
+			.filter((p) => !this.prioritizedIds.includes(p.manifest.id));
+
+		return [...ordered, ...others];
 	}
 
 	getProvider(id: string): TorrentProvider | undefined {
@@ -66,9 +79,10 @@ class ExtensionManagerService {
 	}
 
 	async searchAll(query: string): Promise<TorrentInfo[]> {
-		const promises = Array.from(this.providers.values()).map((p) =>
+		const providers = this.getProviders();
+		const promises = providers.map((p) =>
 			p.search(query).catch((e) => {
-				console.error(`Error searching provider ${p.manifest.name}:`, e);
+				console.error(`[Search] ${p.manifest.name} error:`, e);
 				return [];
 			})
 		);
@@ -78,9 +92,10 @@ class ExtensionManagerService {
 	}
 
 	async searchAnimeAll(anime: AnimeLarge): Promise<TorrentInfo[]> {
-		const promises = Array.from(this.providers.values()).map((p) =>
+		const providers = this.getProviders();
+		const promises = providers.map((p) =>
 			p.searchAnime(anime).catch((e) => {
-				console.error(`Error searching provider ${p.manifest.name}:`, e);
+				console.error(`[SearchAnime] ${p.manifest.name} error:`, e);
 				return [];
 			})
 		);
@@ -90,20 +105,16 @@ class ExtensionManagerService {
 	}
 
 	async searchBatchesAll(anime: AnimeLarge): Promise<TorrentInfo[]> {
-		const promises = Array.from(this.providers.values()).map((p) => {
+		const providers = this.getProviders();
+		const promises = providers.map((p) => {
 			if (p.searchBatches) {
 				return p.searchBatches(anime).catch((e) => {
-					console.error(`Error searching batches for provider ${p.manifest.name}:`, e);
-					return [];
-				});
-			} else {
-				// Fallback to anime search with "Batch" keyword if searchBatches not implemented
-				const query = (anime.title?.english || anime.title?.romaji || '') + ' Batch';
-				return p.search(query).catch((e) => {
-					console.error(`Error searching fallback batches for provider ${p.manifest.name}:`, e);
+					console.error(`[Batches] ${p.manifest.name} error:`, e);
 					return [];
 				});
 			}
+			const query = (anime.title?.english || anime.title?.romaji || '') + ' Batch';
+			return p.search(query).catch(() => []);
 		});
 
 		const results = await Promise.all(promises);

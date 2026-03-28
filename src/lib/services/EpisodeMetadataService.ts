@@ -10,6 +10,8 @@
 
 import { invoke } from '@tauri-apps/api/core';
 import { filterTitle, formatBytes, cleanSearchTitle } from '$lib/utils/data-filters';
+import { ExtensionManager, type TorrentInfo as ExtTorrentInfo } from './ExtensionManager';
+import type { AnimeLarge } from '$lib/types/anime';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // API constants
@@ -40,6 +42,8 @@ export interface AniZipEpisode {
 	overview?: string;
 	duration?: number;
 	length?: number;
+	/** Map containing absolute numbering across all seasons */
+	absoluteNumber?: number;
 }
 
 export interface AniZipMappings {
@@ -77,6 +81,8 @@ export interface EpisodeMeta {
 	anidbId: number;
 	/** AniDB Episode ID – needed for precise Tosho lookup */
 	anidbEpisodeId: number;
+	/** Total episode count across seasons (if available) */
+	absoluteNumber?: number;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -153,6 +159,7 @@ export function buildEpisodeMetas(mappings: AniZipMappings): EpisodeMeta[] {
 				overview: ep.overview ?? undefined,
 				anidbId,
 				anidbEpisodeId: ep.anidbEid,
+				absoluteNumber: ep.absoluteNumber,
 			};
 		})
 		.filter((ep): ep is EpisodeMeta => ep !== null)
@@ -187,7 +194,13 @@ export async function fetchToshoEpisode(
 	console.log(`Searching Tosho: ${url}`);
 
 	try {
-		const raw = await invoke<string>('fetch_url', { url, headers: null });
+		const raw = await invoke<string>('fetch_url', { 
+			url, 
+			headers: { 
+				'Referer': 'https://animetosho.org/',
+				'Accept': 'application/json'
+			} 
+		});
 		const data: ToshoRawEntry[] = JSON.parse(raw);
 		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho'));
 	} catch (err) {
@@ -196,32 +209,54 @@ export async function fetchToshoEpisode(
 	}
 }
 
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Nyaa RSS fallback
+// Cascaded Provider Search
 // ─────────────────────────────────────────────────────────────────────────────
+
 
 /**
- * Fallback free-text Nyaa search for SubsPlease releases when Tosho has no results.
+ * Perform a cascaded search across all registered providers in priority order.
+ * Order: AnimeTosho -> Nyaa -> SubsPlease
  */
-export async function fetchNyaaEpisode(
-	animeTitle: string,
+export async function searchEpisodeCascaded(
+	anime: AnimeLarge,
 	episodeNumber: number,
-	quality: TorrentQuality = '1080p'
+	anidbId?: number,
+	anidbEpisodeId?: number,
+	quality: TorrentQuality = '1080p',
+	absoluteEpisodeNumber?: number
 ): Promise<EpisodeTorrentEntry[]> {
-	const epStr = episodeNumber < 10 ? `0${episodeNumber}` : `${episodeNumber}`;
-	const qualityStr = quality !== 'all' ? ` ${quality}` : '';
-	const cleanTitle = cleanSearchTitle(animeTitle);
-	const query = `[SubsPlease] ${cleanTitle} - ${epStr}${qualityStr}`;
-	const url = `${NYAA_RSS_BASE}/?page=rss&q=${encodeURIComponent(query)}&c=0_0&f=0`;
-	console.log(`Searching Nyaa Fallback: ${query}`);
-
-	try {
-		const xml = await invoke<string>('fetch_url', { url, headers: null });
-		return parseNyaaRss(xml);
-	} catch (err) {
-		console.error(`Nyaa fallback search error: ${err}`);
-		return [];
+	const providers = ExtensionManager.getProviders();
+	
+	for (const p of providers) {
+		console.log(`[Cascade] Trying provider: ${p.manifest.name}`);
+		try {
+			const results = await p.searchEpisode(anime, episodeNumber, anidbId, anidbEpisodeId, quality, absoluteEpisodeNumber);
+			if (results.length > 0) {
+				console.log(`[Cascade] Found ${results.length} results from ${p.manifest.name}`);
+				return results.map(r => ({
+					title: r.title,
+					magnetUri: r.magnet,
+					size: r.size,
+					sizeBytes: 0, // placeholder
+					seeds: r.seeds,
+					peers: r.peers,
+					downloads: 0,
+					uploadedAt: r.uploadedAt || '',
+					resolution: r.resolution,
+					fansub: r.fansub,
+					anidbId: r.anidbId,
+					anidbEpisodeId: r.anidbEpisodeId,
+					provider: r.provider as any
+				}));
+			}
+		} catch (e) {
+			console.error(`[Cascade] Provider ${p.manifest.name} failed:`, e);
+		}
 	}
+
+	return [];
 }
 
 /**
@@ -230,7 +265,13 @@ export async function fetchNyaaEpisode(
 export async function searchTosho(query: string, page = 1): Promise<EpisodeTorrentEntry[]> {
 	const url = `${TOSHO_BASE}/json?qx=1&q=${encodeURIComponent(query)}&page=${page}`;
 	try {
-		const raw = await invoke<string>('fetch_url', { url, headers: null });
+		const raw = await invoke<string>('fetch_url', { 
+			url, 
+			headers: { 
+				'Referer': 'https://animetosho.org/',
+				'Accept': 'application/json'
+			} 
+		});
 		const data: ToshoRawEntry[] = JSON.parse(raw);
 		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho'));
 	} catch {
@@ -245,7 +286,13 @@ export async function fetchToshoBatches(animeTitle: string): Promise<EpisodeTorr
 	const query = `${animeTitle} Batch`;
 	const url = `${TOSHO_BASE}/json?qx=1&q=${encodeURIComponent(query)}`;
 	try {
-		const raw = await invoke<string>('fetch_url', { url, headers: null });
+		const raw = await invoke<string>('fetch_url', { 
+			url, 
+			headers: { 
+				'Referer': 'https://animetosho.org/',
+				'Accept': 'application/json'
+			} 
+		});
 		const data: ToshoRawEntry[] = JSON.parse(raw);
 		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho'));
 	} catch {
@@ -267,17 +314,22 @@ export async function fetchToshoBatches(animeTitle: string): Promise<EpisodeTorr
  *   Show Episode 03.mkv                        → 3
  */
 export function parseEpisodeNumber(filename: string): number | null {
-	// " - 04 " or " - 04v2 "
-	const dashEp = filename.match(/\s-\s(\d{1,4})(?:v\d)?\s/);
+	// 1. " - 04 " or " - 04v2 " (Absolute or season-based)
+	const dashEp = filename.match(/\s-\s(\d{1,4})(?:v\d)?(?:\s|\[|\(|$)/);
 	if (dashEp) return parseInt(dashEp[1], 10);
 
-	// S01E07 or S1E7
-	const sXeX = filename.match(/[Ss]\d{1,2}[Ee](\d{1,4})/);
+	// 2. S01E07 or S1E7
+	const sXeX = filename.match(/[Ss]\d{1,2}[Ee](\d{1,4})(?:v\d)?(?:\s|\[|\(|$)/);
 	if (sXeX) return parseInt(sXeX[1], 10);
 
-	// "Episode 03"
+	// 3. "Episode 03"
 	const epWord = filename.match(/[Ee]pisode\s+(\d{1,4})/i);
 	if (epWord) return parseInt(epWord[1], 10);
+
+	// 4. Fallback for things like [SubsPlease] Show - 38 (1080p)
+	// Match anything after a dash that looks like a number
+	const generalDash = filename.match(/[-\s](\d{1,4})(?:v\d)?(?:\s*[\(\[])/);
+	if (generalDash) return parseInt(generalDash[1], 10);
 
 	return null;
 }
@@ -332,7 +384,7 @@ function parseNyaaRss(xml: string): EpisodeTorrentEntry[] {
 			title: cleanTitle(title),
 			magnetUri: magnet,
 			size: sizeStr,
-			sizeBytes: 0, // not available in RSS
+			sizeBytes: parseSizeToBytes(sizeStr),
 			seeds,
 			peers,
 			downloads: 0,
@@ -345,6 +397,24 @@ function parseNyaaRss(xml: string): EpisodeTorrentEntry[] {
 	});
 
 	return results;
+}
+
+function parseSizeToBytes(sizeStr: string): number {
+	const match = sizeStr.match(/^(\d+(?:\.\d+)?)\s*([KMGT]i?B)$/i);
+	if (!match) return 0;
+	
+	const value = parseFloat(match[1]);
+	const unit = match[2].toUpperCase();
+	
+	const multipliers: Record<string, number> = {
+		'B': 1,
+		'KB': 1024, 'KIB': 1024,
+		'MB': 1024**2, 'MIB': 1024**2,
+		'GB': 1024**3, 'GIB': 1024**3,
+		'TB': 1024**4, 'TIB': 1024**4
+	};
+	
+	return value * (multipliers[unit] || 0);
 }
 
 function extractResolution(title: string): string | undefined {

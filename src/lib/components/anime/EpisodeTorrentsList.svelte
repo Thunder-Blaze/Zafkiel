@@ -1,12 +1,10 @@
 <script lang="ts">
-	import { useEpisodeTorrents } from '$lib/hooks/useEpisodeMetadata.svelte';
+	import { useEpisodeTorrents, useSavedEpisodeTorrents } from '$lib/hooks/useEpisodeMetadata.svelte';
 	import type { EpisodeMeta } from '$lib/services/EpisodeMetadataService';
-	import { TorrentService, type PersistTorrent } from '$lib/services/TorrentService';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import Icon from '@iconify/svelte';
 	import { toast } from 'svelte-sonner';
-	import { onMount } from 'svelte';
 
 	let { episode, animeTitle, animeId, onDownload } = $props<{
 		episode: EpisodeMeta;
@@ -17,27 +15,17 @@
 
 	const torrentsQuery = $derived(useEpisodeTorrents(animeTitle, episode, 'all'));
 	const availableTorrents = $derived(torrentsQuery.data ?? []);
-	const isLoading = $derived(torrentsQuery.isLoading);
-
-	let savedTorrents = $state<PersistTorrent[]>([]);
-	let isLoadingSaved = $state(true);
-
-	const fetchSaved = async () => {
-		isLoadingSaved = true;
-		console.log(`[EpisodeTorrentsList] Fetching saved for animeId=${animeId}, ep=${episode.number}`);
-		savedTorrents = await TorrentService.getSavedTorrentsForEpisode(animeId, episode.number);
-		console.log(`[EpisodeTorrentsList] Found ${savedTorrents.length} saved torrents:`, savedTorrents);
-		isLoadingSaved = false;
-	};
-
-	onMount(() => {
-		fetchSaved();
-	});
+	
+	const savedQuery = $derived(useSavedEpisodeTorrents(animeId, episode.number));
+	const savedTorrents = $derived(savedQuery.data ?? []);
+	const isLoading = $derived(torrentsQuery.isLoading || savedQuery.isLoading);
 
 	// Filter available torrents to exclude saved ones (by info hash if possible, or title)
 	const filteredAvailable = $derived(
 		availableTorrents.filter(
-			(avail) => !savedTorrents.some((saved) => avail.magnetUri.includes(saved.info_hash))
+			(avail) => !savedTorrents.some((saved) => 
+				avail.magnetUri && saved.info_hash && avail.magnetUri.toLowerCase().includes(saved.info_hash.toLowerCase())
+			)
 		)
 	);
 </script>
@@ -203,6 +191,10 @@
 									class="w-full text-xs font-bold shadow-sm transition-transform active:scale-95 sm:w-auto"
 									onclick={(e) => {
 										e.stopPropagation();
+										console.log('[EpisodeTorrentsList] Download clicked:', { 
+											title: torrent.title, 
+											magnet: torrent.magnetUri ? `${torrent.magnetUri.slice(0, 50)}...` : 'MISSING' 
+										});
 										onDownload(torrent.magnetUri, torrent.title);
 									}}
 								>

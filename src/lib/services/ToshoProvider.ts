@@ -14,29 +14,12 @@ import type { AnimeLarge } from '$lib/types/anime';
 import {
 	searchTosho,
 	fetchToshoEpisode,
-	fetchNyaaEpisode,
 	fetchToshoBatches,
 	type EpisodeTorrentEntry,
-	type TorrentQuality,
 } from './EpisodeMetadataService';
 import { filterTitle } from '$lib/utils/data-filters';
 
-// ── Extended query interface for episode-precise searches ─────────────────
-
-export interface EpisodeTorrentQuery {
-	/** AniList ID of the parent anime */
-	anilistId: number;
-	/** AniDB Series ID (from AniZip) */
-	anidbId?: number;
-	/** AniDB Episode ID (from AniZip) */
-	anidbEpisodeId?: number;
-	/** Human-readable episode number (used for Nyaa fallback) */
-	episodeNumber: number;
-	/** Preferred anime title (used for Nyaa fallback query) */
-	animeTitle: string;
-	/** Quality filter; defaults to "all" at this level */
-	quality?: TorrentQuality;
-}
+export type TorrentQuality = '720p' | '1080p' | 'all';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -94,26 +77,22 @@ export class ToshoProvider implements TorrentProvider {
 	 *
 	 * When `anidbId` and `anidbEpisodeId` are provided (from AniZip) the
 	 * lookup is precise and fast.
-	 *
-	 * When only `animeTitle` / `episodeNumber` are provided the method falls
-	 * back to a Nyaa SubsPlease free-text query.
 	 */
-	async searchEpisode(query: EpisodeTorrentQuery): Promise<TorrentInfo[]> {
-		const quality = query.quality ?? 'all';
-
-		if (query.anidbId) {
-			const entries = await fetchToshoEpisode(query.anidbId, query.anidbEpisodeId ?? null, quality);
+	async searchEpisode(
+		anime: AnimeLarge,
+		episodeNumber: number,
+		anidbId?: number,
+		anidbEpisodeId?: number,
+		quality: TorrentQuality = 'all',
+		absoluteEpisodeNumber?: number
+	): Promise<TorrentInfo[]> {
+		if (anidbId) {
+			const entries = await fetchToshoEpisode(anidbId, anidbEpisodeId ?? null, quality);
 			if (entries.length > 0) return entries.map(toTorrentInfo);
 		}
 
-		// Fallback: Nyaa SubsPlease
-		const nyaaEntries = await fetchNyaaEpisode(
-			query.animeTitle,
-			query.episodeNumber,
-			quality === 'all' ? '1080p' : quality
-		);
-
-		return nyaaEntries.map(toTorrentInfo);
+		// No fallback here; fallback is handled by ExtensionManager trying the next provider
+		return [];
 	}
 }
 

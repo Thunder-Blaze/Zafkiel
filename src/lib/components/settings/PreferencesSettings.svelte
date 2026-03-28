@@ -10,6 +10,10 @@
 	import { Switch } from '$lib/components/ui/switch';
 	import Icon from '@iconify/svelte';
 	import { slide } from 'svelte/transition';
+	import { Input } from '$lib/components/ui/input';
+	import { useConfigState } from '$lib/stores/config.svelte';
+
+	const config = useConfigState();
 
 	interface Props {
 		show18Plus?: boolean;
@@ -120,6 +124,39 @@
 						{genre}
 					</button>
 				{/each}
+			</div>
+		</CardContent>
+	</Card>
+</div>
+
+<!-- Network Settings -->
+<div transition:slide={{ duration: 300, delay: 100 }}>
+	<Card>
+		<CardHeader>
+			<div class="flex items-center gap-3">
+				<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+					<Icon icon="solar:global-bold" class="h-5 w-5 text-primary" />
+				</div>
+				<div>
+					<CardTitle>Network Settings</CardTitle>
+					<CardDescription>Configure proxy and connection options</CardDescription>
+				</div>
+			</div>
+		</CardHeader>
+		<CardContent class="space-y-4">
+			<div class="space-y-2">
+				<Label for="proxy-url" class="text-sm font-medium">HTTP/HTTPS Proxy URL</Label>
+				<Input
+					id="proxy-url"
+					type="text"
+					placeholder="e.g. http://127.0.0.1:8080"
+					value={config.proxyUrl || ''}
+					oninput={(e) => config.setProxyUrl(e.currentTarget.value || null)}
+					class="bg-foreground/5"
+				/>
+				<p class="text-xs text-foreground/50">
+					Used for Anime Tosho and other search providers if they are blocked in your region.
+				</p>
 			</div>
 		</CardContent>
 	</Card>

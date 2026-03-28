@@ -82,7 +82,7 @@
 
 	$effect(() => {
 		if (animeId) {
-			invoke<{ data: string | null }>('get_local_update_mode', { animeId }).then((res: any) => {
+			invoke<{ data: string | null }>('get_local_update_mode', { mediaId: animeId }).then((res: any) => {
 				updateMode = (res.data as 'yes' | 'no' | 'ask' | null) || null;
 			});
 		}

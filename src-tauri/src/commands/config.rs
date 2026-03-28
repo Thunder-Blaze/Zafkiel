@@ -357,6 +357,18 @@ pub fn update_default_update_mode(
     }
 }
 
+/// Update network configuration (proxy, etc.)
+#[tauri::command]
+pub fn update_network_config(
+    proxy_url: Option<String>,
+    config: State<ConfigState>,
+) -> ConfigResponse<()> {
+    match config.update_network_config(proxy_url) {
+        Ok(_) => ConfigResponse::success(()),
+        Err(e) => ConfigResponse::error(e.to_string()),
+    }
+}
+
 /// Helper to resolve ~~/shaders prefix to absolute paths
 fn resolve_shader_paths(app: &tauri::AppHandle, shaders: &mut Vec<String>) {
     if let Ok(res_dir) = app.path().resource_dir() {
