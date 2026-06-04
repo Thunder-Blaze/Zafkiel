@@ -18,8 +18,8 @@
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'svelte-sonner';
 import { ExtensionLoader, type ExtensionLoadError } from '$lib/services/ExtensionLoader';
-import { EXTENSION_CATALOG } from '$lib/services/extensionCatalog';
-import type { ExtensionIndexEntry, ExtensionStatus } from '$lib/types/extensions';
+import type { CatalogExtension, ExtensionIndexEntry, ExtensionStatus } from '$lib/types/extensions';
+import { ConfigService } from '$lib/services/config';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -51,6 +51,8 @@ function toastSuccess(message: string) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class ExtensionStore {
+	/** Dynamically fetched catalog from configured repositories. */
+	catalog = $state<CatalogExtension[]>([]);
 	/** Status keyed by extension id. */
 	statuses = $state<Map<string, ExtensionStatus>>(new Map());
 
@@ -68,12 +70,43 @@ class ExtensionStore {
 	 */
 	async init(): Promise<void> {
 		if (this.initialized) return;
-
-		// Pre-populate catalog extensions as 'uninstalled'
-		for (const ext of EXTENSION_CATALOG) {
-			if (!this.statuses.has(ext.id)) {
-				this.statuses.set(ext.id, { kind: 'uninstalled' });
+		try {
+			const config = await ConfigService.getConfig();
+			const repos = config.extensions?.repositories || [];
+			const fetchedCatalog: CatalogExtension[] = [];
+			for (const repoUrl of repos) {
+				try {
+					const res = await fetch(repoUrl);
+					if (res.ok) {
+						const data = await res.json() as CatalogExtension[];
+						// Handle merging/deduplication if needed, for now just append
+						// the repoUrl might be relative paths for downloadUrl, let's resolve them
+						const baseUrl = new URL(repoUrl);
+						for (let ext of data) {
+							if (ext.downloadUrl && ext.downloadUrl.startsWith('/')) {
+								ext = { ...ext, downloadUrl: new URL(ext.downloadUrl, baseUrl).toString() };
+							}
+							const existingIdx = fetchedCatalog.findIndex(e => e.id === ext.id);
+							if (existingIdx !== -1) {
+								// Only replace if version is higher (simple check, or just overwrite for now)
+								fetchedCatalog[existingIdx] = ext;
+							} else {
+								fetchedCatalog.push(ext);
+							}
+						}
+					}
+				} catch (err) {
+					console.error(`[ExtensionStore] Failed to fetch catalog from ${repoUrl}:`, err);
+				}
 			}
+			this.catalog = fetchedCatalog;
+			for (const ext of fetchedCatalog) {
+				if (!this.statuses.has(ext.id)) {
+					this.statuses.set(ext.id, { kind: 'uninstalled' });
+				}
+			}
+		} catch (err) {
+			console.error('[ExtensionStore] Failed to load extension config:', err);
 		}
 
 		// Read installed extensions from Rust index
@@ -113,7 +146,7 @@ class ExtensionStore {
 	// ── Install ───────────────────────────────────────────────────────────────
 
 	async install(id: string, downloadUrl: string): Promise<boolean> {
-		const catalog = EXTENSION_CATALOG.find((e) => e.id === id);
+		const catalog = this.catalog.find((e) => e.id === id);
 		const label = catalog?.name ?? id;
 
 		if (this.busy.has(id)) return false;
@@ -158,7 +191,7 @@ class ExtensionStore {
 	// ── Uninstall ─────────────────────────────────────────────────────────────
 
 	async uninstall(id: string): Promise<boolean> {
-		const catalog = EXTENSION_CATALOG.find((e) => e.id === id);
+		const catalog = this.catalog.find((e) => e.id === id);
 		const label = catalog?.name ?? id;
 
 		if (this.busy.has(id)) return false;
@@ -182,7 +215,7 @@ class ExtensionStore {
 	// ── Reinstall ─────────────────────────────────────────────────────────────
 
 	async reinstall(id: string): Promise<boolean> {
-		const catalog = EXTENSION_CATALOG.find((e) => e.id === id);
+		const catalog = this.catalog.find((e) => e.id === id);
 		const label = catalog?.name ?? id;
 
 		if (this.busy.has(id)) return false;
@@ -238,7 +271,7 @@ class ExtensionStore {
 			const loadErr = err as ExtensionLoadError;
 			const message = loadErr.message ?? String(err);
 			const canReinstall = loadErr.canReinstall ?? true;
-			const catalog = EXTENSION_CATALOG.find((e) => e.id === id);
+			const catalog = this.catalog.find((e) => e.id === id);
 			const downloadUrl = catalog?.downloadUrl;
 
 			this.statuses.set(id, { kind: 'error', entry, message, canReinstall });

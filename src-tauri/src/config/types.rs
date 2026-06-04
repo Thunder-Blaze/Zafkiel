@@ -10,6 +10,8 @@ pub struct AppConfig {
     pub player: PlayerConfig,
     #[serde(default)]
     pub network: NetworkConfig,
+    #[serde(default)]
+    pub extensions: ExtensionConfig,
 }
 
 /// Player/playback configuration
@@ -75,6 +77,22 @@ fn default_update_mode() -> String {
 }
 
 /// Network configuration (proxy, etc.)
+/// Extension configuration
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ExtensionConfig {
+    #[serde(default = "default_repositories")]
+    pub repositories: Vec<String>,
+}
+impl Default for ExtensionConfig {
+    fn default() -> Self {
+        Self {
+            repositories: default_repositories(),
+        }
+    }
+}
+fn default_repositories() -> Vec<String> {
+    Vec::new()
+}
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct NetworkConfig {
     #[serde(default)]
@@ -173,6 +191,7 @@ impl Default for AppConfig {
             ui: UiConfig::default(),
             player: PlayerConfig::default(),
             network: NetworkConfig::default(),
+            extensions: ExtensionConfig::default(),
         }
     }
 }

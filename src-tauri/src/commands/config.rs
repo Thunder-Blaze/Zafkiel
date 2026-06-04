@@ -91,6 +91,17 @@ pub fn get_ui_config(config: State<ConfigState>) -> ConfigResponse<UiConfig> {
     }
 }
 
+/// Update extension configuration
+#[tauri::command]
+pub fn update_extension_config(
+    extension_config: crate::config::types::ExtensionConfig,
+    config: State<ConfigState>,
+) -> ConfigResponse<()> {
+    match config.update_extension_config(extension_config) {
+        Ok(_) => ConfigResponse::success(()),
+        Err(e) => ConfigResponse::error(e.to_string()),
+    }
+}
 /// Update UI configuration
 #[tauri::command]
 pub fn update_ui_config(ui_config: UiConfig, config: State<ConfigState>) -> ConfigResponse<()> {

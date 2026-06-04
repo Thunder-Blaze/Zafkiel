@@ -8,7 +8,6 @@
 	import { extensionStore } from '$lib/stores/extensionStore.svelte';
 	import { useConfigState } from '$lib/stores/config.svelte';
 	import { ExtensionLoader } from '$lib/services/ExtensionLoader';
-	import { EXTENSION_CATALOG } from '$lib/services/extensionCatalog';
 	import { useQueryClient } from '@tanstack/svelte-query';
 	import type {
 		SourceExtension,
@@ -112,7 +111,7 @@
 
 	// ── Derived ───────────────────────────────────────────────────────────────
 	const sourceExtensions = $derived(
-		EXTENSION_CATALOG.filter((c) => c.type === 'source' && extensionStore.isInstalled(c.id))
+		extensionStore.catalog.filter((c) => c.type === 'source' && extensionStore.isInstalled(c.id))
 	);
 
 	// ── Parsed source metadata for display ────────────────────────────────────

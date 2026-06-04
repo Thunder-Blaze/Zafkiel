@@ -184,6 +184,7 @@ pub fn run() {
             commands::config::clear_anilist_token,
             commands::config::get_ui_config,
             commands::config::update_ui_config,
+            commands::config::update_extension_config,
             commands::config::update_theme,
             commands::config::update_glow_effects,
             commands::config::update_blur_effects,

@@ -67,19 +67,27 @@ export const SubsPleaseExtension: TorrentProvider = {
 			return [];
 		}
 	},
-
 	async searchAnime(anime: AnimeLarge): Promise<TorrentInfo[]> {
 		const title = cleanSearchTitle(filterTitle(anime.title || {}));
 		if (!title) return [];
-
-		// Try primary title
 		let results = await this.search(title);
-
-		// If no results, try Romaji
 		if (results.length === 0 && anime.title?.romaji && anime.title.romaji !== title) {
 			results = await this.search(anime.title.romaji);
 		}
-
 		return results;
 	},
+	async searchEpisode(
+		anime: AnimeLarge,
+		episodeNumber: number,
+		anidbId?: number,
+		anidbEpisodeId?: number,
+		quality?: string,
+		absoluteEpisodeNumber?: number
+	): Promise<TorrentInfo[]> {
+		const title = cleanSearchTitle(filterTitle(anime.title || {}));
+		if (!title) return [];
+		const epStr = episodeNumber.toString().padStart(2, '0');
+		const query = `${title} - ${epStr}`;
+		return this.search(query);
+	}
 };

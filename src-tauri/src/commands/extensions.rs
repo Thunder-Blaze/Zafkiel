@@ -51,6 +51,16 @@ pub struct ExtensionIndexEntry {
 /// `manifest.json` schema inside a `.zext` bundle.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ExtensionSetting {
+    pub id: String,
+    pub label: String,
+    pub r#type: String,
+    pub default: serde_json::Value,
+    pub options: Option<Vec<serde_json::Value>>,
+    pub description: Option<String>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ExtensionManifest {
     pub id: String,
     pub name: String,
@@ -61,6 +71,8 @@ pub struct ExtensionManifest {
     /// Entry-point file: "extension.js" or "extension.wasm"
     pub entry: String,
     pub min_app_version: Option<String>,
+    #[serde(default)]
+    pub settings: Option<Vec<ExtensionSetting>>,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

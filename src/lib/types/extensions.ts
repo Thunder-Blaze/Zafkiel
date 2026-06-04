@@ -24,8 +24,18 @@ export interface ExtensionManifest {
 	/** Filename of the entry-point: "extension.js" or "extension.wasm" */
 	readonly entry: string;
 	readonly minAppVersion?: string;
+	/** Settings schema for the extension */
+	readonly settings?: ExtensionSetting[];
 }
+export interface ExtensionSetting {
+	id: string;
+	label: string;
+	type: 'string' | 'number' | 'boolean' | 'select';
+	default: any;
+	options?: { label: string; value: any }[];
+	description?: string;
 
+}
 /** Mirrors `ExtensionIndexEntry` in Rust – represents an installed extension. */
 export interface ExtensionIndexEntry {
 	readonly id: string;
@@ -48,6 +58,8 @@ export interface CatalogExtension {
 	readonly name: string;
 	readonly latestVersion: string;
 	readonly author: string;
+	/** Settings schema for the extension */
+	readonly settings?: ExtensionSetting[];
 	readonly description: string;
 	readonly type: ExtensionType;
 	/** Direct URL to the .zext bundle. */

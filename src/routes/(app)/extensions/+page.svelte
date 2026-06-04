@@ -1,21 +1,70 @@
 <script lang="ts">
+	import { ConfigService } from '$lib/services/config';
+	import type { ExtensionConfig } from '$lib/types/config';
+	import { toast } from 'svelte-sonner';
 	import { onMount } from 'svelte';
 	import { fade, slide } from 'svelte/transition';
 	import Icon from '@iconify/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import { extensionStore } from '$lib/stores/extensionStore.svelte';
-	import { EXTENSION_CATALOG } from '$lib/services/extensionCatalog';
 	import type { CatalogExtension } from '$lib/types/extensions';
+	import ExtensionSettingsDialog from '$lib/components/extensions/ExtensionSettingsDialog.svelte';
 
-	// Ensure store is ready (no-op if already initialized from layout)
-	onMount(() => extensionStore.init());
+	let config = $state<ExtensionConfig>({ repositories: [] });
+	let repoInput = $state('');
+	let isSaving = $state(false);
+	let settingsOpen = $state<string | null>(null);
+	onMount(async () => {
+		extensionStore.init();
+		try {
+			const appConfig = await ConfigService.getConfig();
+			config = appConfig.extensions || { repositories: [] };
+		} catch (e) {
+			console.error("Failed to load config", e);
+		}
+	});
+	async function addRepo() {
+		if (!repoInput) return;
+		try {
+			// Basic URL validation
+			new URL(repoInput);
+		} catch (e) {
+			toast.error('Invalid URL');
+			return;
+		}
+		if (config.repositories.includes(repoInput)) {
+			toast.error('Repository already exists');
+			return;
+		}
+		config.repositories.push(repoInput);
+		repoInput = '';
+		await saveConfig();
+	}
+	async function removeRepo(repo: string) {
+		config.repositories = config.repositories.filter((r) => r !== repo);
+		await saveConfig();
+	}
+	async function saveConfig() {
+		isSaving = true;
+		try {
+			await ConfigService.updateExtensionConfig(config);
+			toast.success('Extension repositories updated');
+			// Re-init extension store to fetch from new repos
+			await extensionStore.init();
+		} catch (e) {
+			toast.error('Failed to save repositories');
+			console.error(e);
+		} finally {
+			isSaving = false;
+		}
+	}
 
 	// ── Derived state ──────────────────────────────────────────────────────────
 
-	const installed = $derived(EXTENSION_CATALOG.filter((ext) => extensionStore.isInstalled(ext.id)));
+	const installed = $derived(extensionStore.catalog.filter((ext) => extensionStore.isInstalled(ext.id)));
 	const available = $derived(
-		EXTENSION_CATALOG.filter((ext) => !extensionStore.isInstalled(ext.id))
+		extensionStore.catalog.filter((ext) => !extensionStore.isInstalled(ext.id))
 	);
 
 	// ── Type helpers ──────────────────────────────────────────────────────────
@@ -42,6 +91,40 @@
 		</p>
 	</div>
 
+	<!-- Repositories section -->
+	<section class="space-y-4 rounded-xl border border-border/60 bg-card/40 p-5 backdrop-blur-sm">
+		<h2 class="text-base font-semibold text-foreground/80 flex items-center gap-2">
+			<Icon icon="solar:server-bold" class="h-4 w-4" />
+			Extension Repositories
+		</h2>
+		<div class="space-y-2">
+			{#each config.repositories as repo}
+				<div class="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm">
+					<span class="truncate">{repo}</span>
+					<Button
+						variant="ghost"
+						size="icon"
+						class="h-7 w-7 text-destructive hover:bg-destructive/10"
+						disabled={isSaving}
+						onclick={() => removeRepo(repo)}
+					>
+						<Icon icon="solar:trash-bin-trash-bold" class="h-4 w-4" />
+					</Button>
+				</div>
+			{/each}
+		</div>
+		<form class="flex items-center gap-2" onsubmit={(e) => { e.preventDefault(); addRepo(); }}>
+			<input
+				type="url"
+				bind:value={repoInput}
+				placeholder="https://example.com/api/registry.json"
+				class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+			/>
+			<Button type="submit" size="sm" disabled={isSaving || !repoInput} class="shrink-0">
+				Add Repository
+			</Button>
+		</form>
+	</section>
 	<!-- Installed section -->
 	{#if installed.length > 0}
 		<section class="space-y-4" in:slide={{ duration: 200 }}>
@@ -128,6 +211,17 @@
 										{/if}
 									</Button>
 								{/if}
+								{#if (status.kind === 'installed' || status.kind === 'ready') && ext.settings && ext.settings.length > 0}
+									<Button
+										size="sm"
+										variant="outline"
+										class="h-7 text-xs"
+										onclick={() => { settingsOpen = ext.id; }}
+									>
+										<Icon icon="solar:settings-bold" class="h-3.5 w-3.5 mr-1" />
+										Settings
+									</Button>
+								{/if}
 								{#if status.kind === 'loading' || status.kind === 'downloading'}
 									<div class="flex h-7 items-center gap-1.5 text-xs text-muted-foreground">
 										<Icon icon="solar:refresh-bold" class="h-3.5 w-3.5 animate-spin" />
@@ -175,7 +269,7 @@
 		</h2>
 
 		{#if available.length === 0}
-			<p class="text-sm text-muted-foreground">All available extensions are already installed.</p>
+			<p class="text-sm text-muted-foreground">{config.repositories.length === 0 ? "No repositories added. Add one above to find extensions." : "All available extensions are already installed or none found."}</p>
 		{:else}
 			<div class="grid gap-3 sm:grid-cols-2">
 				{#each available as ext (ext.id)}
@@ -276,3 +370,13 @@
 		They are only loaded when needed and run in the app's WebView context.
 	</p>
 </div>
+	{#if settingsOpen}
+		{@const ext = extensionStore.catalog.find((e) => e.id === settingsOpen)}
+		{#if ext}
+			<ExtensionSettingsDialog
+				open={true}
+				onOpenChange={(val) => { if (!val) settingsOpen = null; }}
+				extension={ext}
+			/>
+		{/if}
+	{/if}

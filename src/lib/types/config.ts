@@ -72,10 +72,17 @@ export interface NetworkConfig {
 }
 
 /**
+ * Extension configuration
+ */
+export interface ExtensionConfig {
+	repositories: string[];
+}
+/**
  * Application configuration structure
  */
 export interface AppConfig {
 	ui: UiConfig;
 	player: PlayerConfig;
 	network: NetworkConfig;
+	extensions: ExtensionConfig;
 }

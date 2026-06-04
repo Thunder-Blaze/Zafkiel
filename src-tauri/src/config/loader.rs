@@ -176,6 +176,18 @@ impl ConfigLoader {
         drop(config);
         self.save()
     }
+    /// Update Extension configuration
+    pub fn update_extension_config(
+        &self,
+        extension_config: super::types::ExtensionConfig,
+    ) -> Result<(), ConfigError> {
+        let mut config = self.config.write().map_err(|_| {
+            ConfigError::Deserialization("Failed to acquire write lock".to_string())
+        })?;
+        config.extensions = extension_config;
+        drop(config);
+        self.save()
+    }
 
     /// Get UI configuration
     pub fn get_ui_config(&self) -> Result<UiConfig, ConfigError> {
