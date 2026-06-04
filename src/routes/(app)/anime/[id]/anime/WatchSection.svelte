@@ -271,7 +271,7 @@
 		try {
 			await invoke('open_extension_auth_webview', {
 				windowLabel: `${activeExtId}-auth`,
-				url: 'https://animepahe.si',
+				url: 'https://animepahe.pw',
 				title: 'Sign in / Complete Challenge',
 			});
 		} catch (e) {
@@ -608,7 +608,7 @@
 				<p class="py-8 text-center text-sm text-muted-foreground">No results found.</p>
 			{:else}
 				<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-					{#each searchResults as result}
+					{#each searchResults as result (result.id)}
 						{@const isSelected = selectedResult?.id === result.id}
 						<button
 							class="group flex flex-col rounded-lg border bg-card p-2 transition-all duration-200 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5
@@ -620,13 +620,13 @@
 									<ProxiedImage
 										src={result.coverUrl}
 										alt={result.title}
-										class="aspect-[2/3] w-full object-cover"
+										class="aspect-2/3 w-full object-cover"
 										cookie={cookieStr}
-										referer="https://animepahe.si/"
+										referer="https://animepahe.pw/"
 									/>
 								{:else}
 									<div
-										class="flex aspect-[2/3] w-full items-center justify-center rounded-md bg-muted"
+										class="flex aspect-2/3 w-full items-center justify-center rounded-md bg-muted"
 									>
 										<Icon icon="solar:tv-bold" class="size-10 text-muted-foreground" />
 									</div>
@@ -778,7 +778,7 @@
 			<!-- Filter tags -->
 			{#if availableQualities.length > 0 || availableLanguages.length > 0 || availableSources.length > 0}
 				<div class="flex flex-wrap gap-1.5">
-					{#each availableLanguages as lang}
+					{#each availableLanguages as lang (lang)}
 						<button
 							class="cursor-pointer rounded-full border px-2.5 py-0.5 text-[10px] font-medium uppercase transition-colors
 								{activeFilters.language === lang
@@ -789,7 +789,7 @@
 							{lang}
 						</button>
 					{/each}
-					{#each availableQualities as q}
+					{#each availableQualities as q (q)}
 						<button
 							class="cursor-pointer rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-colors
 								{activeFilters.quality === q
@@ -800,7 +800,7 @@
 							{q}
 						</button>
 					{/each}
-					{#each availableSources as src}
+					{#each availableSources as src (src)}
 						<button
 							class="cursor-pointer rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-colors
 								{activeFilters.source === src
@@ -815,7 +815,7 @@
 			{/if}
 
 			<div class="space-y-2">
-				{#each filteredSources as source, i}
+				{#each filteredSources as source (source.id)}
 					{@const dl = downloadMap.get(source.id)}
 					{@const meta = parseSourceLabel({
 						label: source.label,
@@ -958,14 +958,14 @@
 			</div>
 		{:else}
 			<div
-				class="h-[32rem] overflow-y-auto pr-2"
+				class="h-128 overflow-y-auto pr-2"
 				data-lenis-prevent="true"
 				onwheel={(e) => e.stopPropagation()}
 			>
 				<!-- Grid View -->
 				{#if episodeView === 'grid'}
 					<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-						{#each episodes as ep}
+						{#each episodes as ep (ep.id)}
 							<button
 								class="group flex flex-col rounded-lg border bg-card p-2 transition-all duration-200 hover:border-primary/40 hover:shadow-lg
 									{selectedEpisode?.id === ep.id ? 'border-primary ring-1 ring-primary/30' : ''}"
@@ -978,7 +978,7 @@
 											alt={`Ep ${ep.number}`}
 											class="aspect-video w-full object-cover"
 											cookie={cookieStr}
-											referer="https://animepahe.si/"
+											referer="https://animepahe.pw/"
 										/>
 									{:else}
 										<div
@@ -1024,7 +1024,7 @@
 				{:else}
 					<!-- List View -->
 					<div class="space-y-1.5">
-						{#each episodes as ep}
+						{#each episodes as ep (ep.id)}
 							<button
 								class="group flex w-full items-center gap-3 rounded-lg border bg-card px-3 py-2 text-left transition-all duration-200 hover:border-primary/40
 									{selectedEpisode?.id === ep.id ? 'border-primary ring-1 ring-primary/30' : ''}"
@@ -1038,7 +1038,7 @@
 											alt={`Ep ${ep.number}`}
 											class="h-full w-full object-cover"
 											cookie={cookieStr}
-											referer="https://animepahe.si/"
+											referer="https://animepahe.pw/"
 										/>
 									{:else}
 										<div class="flex h-full w-full items-center justify-center bg-muted">

@@ -13,5 +13,5 @@
 		"network": true,
 		"storage": true
 	},
-	"allowedDomains": ["animepahe.si", "animepahe.com", "i.animepahe.si", "kwik.si", "kwik.cx"]
+	"allowedDomains": ["animepahe.pw", "animepahe.pw", "i.animepahe.pw", "kwik.si", "kwik.cx"]
 }

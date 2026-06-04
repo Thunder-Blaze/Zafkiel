@@ -34,7 +34,7 @@ extern "C" {
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-pub const BASE_URL: &str = "https://animepahe.si";
+pub const BASE_URL: &str = "https://animepahe.pw";
 const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) \
     AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 

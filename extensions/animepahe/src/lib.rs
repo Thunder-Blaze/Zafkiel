@@ -64,7 +64,7 @@ pub fn get_manifest() -> String {
     "network": true,
     "storage": true
   },
-  "allowedDomains": ["animepahe.si", "animepahe.com", "i.animepahe.si", "kwik.si", "kwik.cx"]
+  "allowedDomains": ["animepahe.pw", "animepahe.pw", "i.animepahe.pw", "kwik.si", "kwik.cx"]
 }"#
     .to_owned()
 }
@@ -156,7 +156,7 @@ pub async fn search(query: String) -> Result<String, String> {
                 if p.starts_with("http") {
                     p
                 } else {
-                    format!("https://i.animepahe.si/posters/{p}")
+                    format!("https://i.animepahe.pw/posters/{p}")
                 }
             }),
             anilist_id: None,
@@ -209,7 +209,7 @@ pub async fn get_episodes(anime_session: String, page: u32) -> Result<String, St
                 if s.starts_with("http") {
                     s.to_owned()
                 } else {
-                    format!("https://i.animepahe.si/snapshots/{s}")
+                    format!("https://i.animepahe.pw/snapshots/{s}")
                 }
             }),
             air_date: ep.created_at,

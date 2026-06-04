@@ -32,8 +32,8 @@ fn extract_title(html: &str) -> Option<String> {
 }
 
 fn extract_cover(html: &str) -> Option<String> {
-    find_between(html, r#"<a href="https://i.animepahe.si/posters/"#, r#"""#)
-        .map(|s| format!("https://i.animepahe.si/posters/{s}"))
+    find_between(html, r#"<a href="https://i.animepahe.pw/posters/"#, r#"""#)
+        .map(|s| format!("https://i.animepahe.pw/posters/{s}"))
         .or_else(|| {
             find_between(html, r#"<meta property="og:image" content=""#, r#"">"#)
                 .map(|s| s.to_owned())
