@@ -15,6 +15,7 @@
  * ```
  */
 
+import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import { invoke } from '@tauri-apps/api/core';
 import { toast } from 'svelte-sonner';
 import { ExtensionLoader, type ExtensionLoadError } from '$lib/services/ExtensionLoader';
@@ -54,13 +55,13 @@ class ExtensionStore {
 	/** Dynamically fetched catalog from configured repositories. */
 	catalog = $state<CatalogExtension[]>([]);
 	/** Status keyed by extension id. */
-	statuses = $state<Map<string, ExtensionStatus>>(new Map());
+	statuses = new SvelteMap<string, ExtensionStatus>();
 
 	/** Whether the initial load from index.json has completed. */
 	initialized = $state(false);
 
 	/** Ids of extensions that are currently being acted on (for spinner). */
-	busy = $state<Set<string>>(new Set());
+	busy = new SvelteSet<string>();
 
 	// ── Init ──────────────────────────────────────────────────────────────────
 

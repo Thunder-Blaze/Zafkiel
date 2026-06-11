@@ -6,7 +6,9 @@ use tauri::command;
 use std::sync::Arc;
 use std::time::Duration;
 
-const CHROME_USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+use std::sync::RwLock;
+pub static DYNAMIC_USER_AGENT: RwLock<String> = RwLock::new(String::new());
+pub const CHROME_USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
 /// Proxy-fetch a URL through the Rust backend, bypassing browser CORS restrictions.
 ///
@@ -14,8 +16,10 @@ const CHROME_USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Apple
 /// The default `User-Agent` is always applied unless overridden via `headers`.
 #[tauri::command]
 fn get_client_builder(config: &crate::config::AppConfig) -> reqwest::ClientBuilder {
+    let dynamic_ua = DYNAMIC_USER_AGENT.read().unwrap().clone();
+    let user_agent = if dynamic_ua.is_empty() { CHROME_USER_AGENT } else { &dynamic_ua };
     let mut builder = reqwest::Client::builder()
-        .user_agent(CHROME_USER_AGENT)
+        .user_agent(user_agent)
         .timeout(Duration::from_secs(30));
 
     if let Some(proxy_url) = &config.network.proxy_url {
@@ -33,21 +37,25 @@ fn get_client_builder(config: &crate::config::AppConfig) -> reqwest::ClientBuild
 
     builder
 }
-
 fn apply_standard_headers(req: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
-    req.header("User-Agent", CHROME_USER_AGENT)
+    let dynamic_ua = DYNAMIC_USER_AGENT.read().unwrap().clone();
+    let is_dynamic = !dynamic_ua.is_empty();
+    let user_agent = if is_dynamic { &dynamic_ua } else { CHROME_USER_AGENT };
+    let mut req = req.header("User-Agent", user_agent)
        .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
-       .header("Accept-Language", "en-US,en;q=0.9")
-       .header("Sec-Ch-Ua", "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"")
-       .header("Sec-Ch-Ua-Mobile", "?0")
-       .header("Sec-Ch-Ua-Platform", "\"Windows\"")
-       .header("Sec-Fetch-Dest", "document")
+       .header("Accept-Language", "en-US,en;q=0.9");
+    // If not using dynamic UA (so we are defaulting to Chrome), or if the dynamic UA is Chrome-based
+    if !is_dynamic || user_agent.contains("Chrome") {
+        req = req.header("Sec-Ch-Ua", "\"Chromium\";v=\"124\", \"Google Chrome\";v=\"124\", \"Not-A.Brand\";v=\"99\"")
+                 .header("Sec-Ch-Ua-Mobile", "?0")
+                 .header("Sec-Ch-Ua-Platform", "\"Windows\"");
+    }
+    req.header("Sec-Fetch-Dest", "document")
        .header("Sec-Fetch-Mode", "navigate")
        .header("Sec-Fetch-Site", "none")
        .header("Sec-Fetch-User", "?1")
        .header("Upgrade-Insecure-Requests", "1")
 }
-
 /// Proxy-fetch a URL through the Rust backend, bypassing browser CORS restrictions.
 #[tauri::command]
 pub async fn fetch_url(
@@ -57,16 +65,22 @@ pub async fn fetch_url(
 ) -> Result<String, String> {
     let cfg = config_loader.get_config().map_err(|e| e.to_string())?;
     let client = get_client_builder(&cfg).build().map_err(|e| e.to_string())?;
-
     let mut req = client.get(&url);
     req = apply_standard_headers(req);
-
-    if let Some(hdrs) = headers {
-        for (key, value) in &hdrs {
+    if let Some(hdrs) = &headers {
+        for (key, value) in hdrs {
+            let key_lower = key.to_lowercase();
+            // Block the extension from overriding the precise browser identity we enforce natively
+            if key_lower == "user-agent" || key_lower.starts_with("sec-ch-ua") {
+                log::info!("[fetch_url] Ignoring extension override for {}", key);
+                continue;
+            }
+            if key_lower == "referer" {
+                log::info!("[fetch_url] Using Referer: {}", value);
+            }
             req = req.header(key.as_str(), value.as_str());
         }
     }
-
     let response = req.send().await.map_err(|e| {
         let msg = format!(
             "Request failed: {} (connect={} timeout={} source={:?})",
@@ -75,7 +89,6 @@ pub async fn fetch_url(
         log::error!("{}", msg);
         msg
     })?;
-
     if !response.status().is_success() {
         return Err(format!("Request failed with status: {}", response.status()));
     }
@@ -97,8 +110,10 @@ pub async fn post_url(
     let mut req = client.post(&url).body(body);
     req = apply_standard_headers(req);
 
-    if let Some(hdrs) = headers {
-        for (key, value) in &hdrs {
+    if let Some(hdrs) = &headers {
+        for (key, value) in hdrs {
+            let key_lower = key.to_lowercase();
+            if key_lower == "user-agent" || key_lower.starts_with("sec-ch-ua") { continue; }
             req = req.header(key.as_str(), value.as_str());
         }
     }
@@ -159,8 +174,10 @@ pub async fn fetch_bytes_base64(
     let mut req = client.get(&url);
     req = apply_standard_headers(req);
 
-    if let Some(hdrs) = headers {
-        for (key, value) in &hdrs {
+    if let Some(hdrs) = &headers {
+        for (key, value) in hdrs {
+            let key_lower = key.to_lowercase();
+            if key_lower == "user-agent" || key_lower.starts_with("sec-ch-ua") { continue; }
             req = req.header(key.as_str(), value.as_str());
         }
     }

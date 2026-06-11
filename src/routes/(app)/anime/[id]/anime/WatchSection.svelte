@@ -167,8 +167,10 @@
 		// Listen for cookies from the auth webview
 		cookieUnlisten = await listen<string>(`${activeExtId}-auth-cookies-ready`, async (event) => {
 			const rawCookies = event.payload;
+			if (!rawCookies) {
+				return;
+			}
 			cookieStr = rawCookies;
-
 			if (ext?.onCookiesUpdated) {
 				const parsed = rawCookies
 					.split(';')
@@ -268,9 +270,26 @@
 	async function openAuthWebview() {
 		if (!activeExtId) return;
 		try {
+			let targetUrl = 'https://animepahe.pw';
+			const storedHost = await invoke<string | null>('ext_storage_get', {
+				extId: activeExtId,
+				key: 'setting:host',
+			});
+			if (storedHost) {
+				try {
+					const parsed = JSON.parse(storedHost);
+					if (typeof parsed === 'string' && parsed.trim().startsWith('http')) {
+						targetUrl = parsed.trim();
+					}
+				} catch {
+					if (storedHost.trim().startsWith('http')) {
+						targetUrl = storedHost.trim();
+					}
+				}
+			}
 			await invoke('open_extension_auth_webview', {
 				windowLabel: `${activeExtId}-auth`,
-				url: 'https://animepahe.pw',
+				url: targetUrl,
 				title: 'Sign in / Complete Challenge',
 			});
 		} catch (e) {

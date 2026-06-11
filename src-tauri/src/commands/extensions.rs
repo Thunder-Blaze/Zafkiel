@@ -544,87 +544,23 @@ pub async fn open_extension_auth_webview(
     title: String,
 ) -> Result<(), String> {
     use tauri::{WebviewUrl, WebviewWindowBuilder};
-    use tokio::io::AsyncWriteExt;
-    use tokio::net::TcpListener;
-
     if let Some(existing) = app.get_webview_window(&window_label) {
         let _ = existing.close();
     }
-
     let parsed_url: url::Url = url
         .parse()
         .map_err(|e: url::ParseError| format!("Invalid URL '{url}': {e}"))?;
-
-    // Bind on an OS-assigned port so we don't collide with other windows.
-    let listener = TcpListener::bind("127.0.0.1:0")
-        .await
-        .map_err(|e| format!("Failed to bind cookie-collect server: {e}"))?;
-    let port = listener
-        .local_addr()
-        .map_err(|e| format!("Cannot get local port: {e}"))?
-        .port();
-
-    // Background task: wait for the "Done" ping, then read cookies natively.
-    let app2 = app.clone();
-    let label2 = window_label.clone();
-    let url_for_cookies = url.clone();
-    tokio::spawn(async move {
-        // Accept the signal POST – body is irrelevant, we just need the ping.
-        if let Ok((mut stream, _)) = listener.accept().await {
-            let _ = stream
-                .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n")
-                .await;
-            drop(stream);
-        }
-
-        // Brief delay so WebKit flushes any in-flight Set-Cookie headers
-        // that arrived just before the user pressed "Done".
-        tokio::time::sleep(std::time::Duration::from_millis(400)).await;
-
-        // Read cookies from WebKit's native store (includes HttpOnly).
-        let cookies = read_webview_cookies(&app2, &label2, &url_for_cookies).await;
-
-        log::info!(
-            "[Extensions] '{label2}' cookies collected ({} chars): {}",
-            cookies.len(),
-            &cookies[..cookies.len().min(200)]
-        );
-
-        let event = format!("{label2}-cookies-ready");
-        let _ = app2.emit(&event, cookies);
-
-        if let Some(win) = app2.get_webview_window(&label2) {
-            let _ = win.close();
-        }
-    });
-
-    // Injected into every page load. The script only sends a *ping* to the
-    // local server — the actual cookies are read natively in Rust, so HttpOnly
-    // cookies are included even though JS cannot see them.
-    let cookie_script = format!(
-        r#"(function(){{
+    // Injected into every page load. The script triggers a redirect to zafkiel-done.local
+    // when the user clicks "Done". The host intercepts this navigation natively.
+    let cookie_script = r#"(function(){
   'use strict';
-  var PORT={port};
   var sent=false;
-
-  function ping(){{
+  function ping(){
     if(sent)return;
     sent=true;
-    if(navigator.sendBeacon){{
-      navigator.sendBeacon('http://127.0.0.1:'+PORT+'/collect','ping');
-    }}
-    try{{
-      fetch('http://127.0.0.1:'+PORT+'/collect',{{
-        method:'POST',mode:'no-cors',keepalive:true,
-        headers:{{'Content-Type':'text/plain'}},body:'ping'
-      }}).catch(function(){{}});
-    }}catch(e){{}}
-  }}
-
-  window.addEventListener('beforeunload',ping);
-  window.addEventListener('unload',ping);
-
-  function addButton(){{
+    window.location.href = 'https://zafkiel-done.local/?ua=' + encodeURIComponent(navigator.userAgent);
+  }
+  function addButton(){
     if(!document.body||document.getElementById('__zafkiel_done__'))return;
     var btn=document.createElement('div');
     btn.id='__zafkiel_done__';
@@ -633,36 +569,86 @@ pub async fn open_extension_auth_webview(
       'background:#22c55e;color:#fff;padding:10px 20px;border-radius:10px;'+
       'cursor:pointer;font:bold 14px/1.4 sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.55);'+
       'user-select:none;';
-    btn.addEventListener('click',function(){{
+    btn.addEventListener('click',function(){
       btn.textContent='\u23f3 Collecting\u2026';
       btn.style.background='#2563eb';
       ping();
-    }});
+    });
     document.body.appendChild(btn);
-  }}
-
-  if(document.readyState==='loading'){{
+  }
+  if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded',addButton);
-  }}else{{
+  }else{
     addButton();
-  }}
-  var _obs=new MutationObserver(function(){{addButton();}});
-  _obs.observe(document.documentElement,{{childList:true,subtree:false}});
-}})();"#,
-        port = port
-    );
-
-    WebviewWindowBuilder::new(&app, &window_label, WebviewUrl::External(parsed_url))
+  }
+  var _obs=new MutationObserver(function(){addButton();});
+  _obs.observe(document.documentElement,{childList:true,subtree:false});
+})();"#;
+    let app_close = app.clone();
+    let label_close = window_label.clone();
+    let url_close = url.clone();
+    let win = WebviewWindowBuilder::new(&app, &window_label, WebviewUrl::External(parsed_url))
         .title(&title)
         .inner_size(960.0, 720.0)
         .resizable(true)
         .decorations(true)
         .visible(true)
         .focused(true)
-        .initialization_script(&cookie_script)
+        .initialization_script(cookie_script)
+        .on_navigation({
+            let app2 = app.clone();
+            let label2 = window_label.clone();
+            let url_for_cookies = url.clone();
+            move |nav_url| {
+                if nav_url.host_str() == Some("zafkiel-done.local") {
+                    for (k, v) in nav_url.query_pairs() {
+                        if k == "ua" {
+                            if let Ok(mut guard) = crate::commands::utils::DYNAMIC_USER_AGENT.write() {
+                                *guard = v.into_owned();
+                            }
+                        }
+                    }
+                    let app = app2.clone();
+                    let label = label2.clone();
+                    let url = url_for_cookies.clone();
+                    tauri::async_runtime::spawn(async move {
+                        tokio::time::sleep(std::time::Duration::from_millis(400)).await;
+                        let cookies = read_webview_cookies(&app, &label, &url).await;
+                        if !cookies.is_empty() {
+                            log::info!(
+                                "[Extensions] '{label}' cookies collected natively via navigation intercept ({} chars)",
+                                cookies.len()
+                            );
+                            let event_name = format!("{label}-cookies-ready");
+                            let _ = app.emit(&event_name, cookies);
+                        }
+                        if let Some(w) = app.get_webview_window(&label) {
+                            let _ = w.close();
+                        }
+                    });
+                    false // Block actual navigation to the fake domain
+                } else {
+                    true // Allow other navigation
+                }
+            }
+        })
         .build()
         .map_err(|e| format!("Failed to open auth window '{window_label}': {e}"))?;
-
+    // Also listen to close requested to collect cookies if window is closed directly
+    win.on_window_event(move |event| {
+        if matches!(event, tauri::WindowEvent::CloseRequested { .. }) {
+            let app = app_close.clone();
+            let label = label_close.clone();
+            let url = url_close.clone();
+            tauri::async_runtime::spawn(async move {
+                let cookies = read_webview_cookies(&app, &label, &url).await;
+                if !cookies.is_empty() {
+                    let event_name = format!("{label}-cookies-ready");
+                    let _ = app.emit(&event_name, cookies);
+                }
+            });
+        }
+    });
     Ok(())
 }
 
