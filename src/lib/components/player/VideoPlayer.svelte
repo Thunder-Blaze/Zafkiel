@@ -60,7 +60,6 @@
 				varying vec2 texCoord;
 				void main() {
 					texCoord = position * 0.5 + 0.5;
-					texCoord.y = 1.0 - texCoord.y;
 					gl_Position = vec4(position, 0.0, 1.0);
 				}
 			`;
@@ -554,12 +553,38 @@
 			}
 
 			const onFrameChannel = new Channel<Uint8Array>();
-			onFrameChannel.onmessage = (chunk: Uint8Array) => {
+			onFrameChannel.onmessage = (chunk: any) => {
 				if (!canvasElement || !glPlayer) return;
-				const view = new DataView(chunk.buffer, chunk.byteOffset, 8);
+
+				let buffer: ArrayBufferLike;
+				let byteOffset = 0;
+				let byteLength = 0;
+
+				if (chunk instanceof Uint8Array) {
+					buffer = chunk.buffer;
+					byteOffset = chunk.byteOffset;
+					byteLength = chunk.byteLength;
+				} else if (chunk instanceof ArrayBuffer) {
+					buffer = chunk;
+					byteOffset = 0;
+					byteLength = chunk.byteLength;
+				} else if (Array.isArray(chunk)) {
+					const typedArray = new Uint8Array(chunk);
+					buffer = typedArray.buffer;
+					byteOffset = typedArray.byteOffset;
+					byteLength = typedArray.byteLength;
+				} else {
+					// Try to wrap or fallback
+					const typedArray = new Uint8Array(chunk);
+					buffer = typedArray.buffer;
+					byteOffset = typedArray.byteOffset;
+					byteLength = typedArray.byteLength;
+				}
+
+				const view = new DataView(buffer, byteOffset, 8);
 				const width = view.getUint32(0, true);
 				const height = view.getUint32(4, true);
-				const rgbaData = new Uint8Array(chunk.buffer, chunk.byteOffset + 8, chunk.byteLength - 8);
+				const rgbaData = new Uint8Array(buffer, byteOffset + 8, byteLength - 8);
 				glPlayer.render(width, height, rgbaData);
 			};
 

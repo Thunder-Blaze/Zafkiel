@@ -196,6 +196,38 @@ impl MpvApi {
 
 // ── Helper functions ──────────────────────────────────────────────────────────
 
+pub unsafe fn prop_to_json(format: c_int, data: *const c_void) -> Value {
+    if data.is_null() {
+        return Value::Null;
+    }
+    unsafe {
+        match format {
+            0 => Value::Null, // MPV_FORMAT_NONE
+            1 | 2 => { // MPV_FORMAT_STRING | MPV_FORMAT_OSD_STRING
+                let string_ptr = *(data as *const *const c_char);
+                if string_ptr.is_null() {
+                    Value::Null
+                } else {
+                    Value::String(CStr::from_ptr(string_ptr).to_string_lossy().into_owned())
+                }
+            }
+            3 => Value::Bool(*(data as *const c_int) != 0), // MPV_FORMAT_FLAG
+            4 => Value::Number((*(data as *const i64)).into()), // MPV_FORMAT_INT64
+            5 => { // MPV_FORMAT_DOUBLE
+                if let Some(n) = serde_json::Number::from_f64(*(data as *const f64)) {
+                    Value::Number(n)
+                } else {
+                    Value::Null
+                }
+            }
+            6 => { // MPV_FORMAT_NODE
+                node_to_json(data as *const MpvNode)
+            }
+            _ => Value::Null,
+        }
+    }
+}
+
 pub unsafe fn node_to_json(node: *const MpvNode) -> Value {
     if node.is_null() {
         return Value::Null;
@@ -420,7 +452,10 @@ pub fn init(
         return Err("Failed to create raw mpv handle".to_string());
     }
     
-    if let Some(initial_options) = mpvConfig.get("initialOptions").and_then(|o| o.as_object()) {
+    let initial_options = mpvConfig.get("properties")
+        .or_else(|| mpvConfig.get("initialOptions"))
+        .and_then(|o| o.as_object());
+    if let Some(initial_options) = initial_options {
         for (k, v) in initial_options {
             // DO NOT allow frontend to override `vo` or we break the Render API
             if k == "vo" { continue; }
@@ -432,6 +467,7 @@ pub fn init(
             } else {
                 match v {
                     Value::String(s) => s.clone(),
+                    Value::Bool(b) => if *b { "yes".to_string() } else { "no".to_string() },
                     other => other.to_string(),
                 }
             };
@@ -619,8 +655,8 @@ pub fn init(
                     // Update mpv render context
                     let update_flags = unsafe { (api_clone1.render_context_update)(render_ctx) };
                     
-                    // MPV_RENDER_UPDATE_FRAME is 1. Render if the flag is present or advanced control is off
-                    if update_flags != 0 && (update_flags & 1) == 0 {
+                    // MPV_RENDER_UPDATE_FRAME is 1. Render only if the frame update flag is set.
+                    if (update_flags & 1) == 0 {
                         continue;
                     }
                     
@@ -633,6 +669,14 @@ pub fn init(
                     }
                     
                     if w > 0 && h > 0 {
+                        // Cap maximum render resolution to 1920 width or height to preserve performance
+                        let max_dim = 1920;
+                        if w > max_dim || h > max_dim {
+                            let scale = max_dim as f64 / (w.max(h) as f64);
+                            w = (w as f64 * scale) as i64;
+                            h = (h as f64 * scale) as i64;
+                        }
+
                         if w != current_w || h != current_h {
                             log::info!("[MPV Render Thread] Re-allocating FBO/texture size: {}x{}", w, h);
                             current_w = w;
@@ -806,7 +850,7 @@ pub fn init(
                     let prop = unsafe { &*(event.data as *const MpvEventProperty) };
                     if !prop.name.is_null() {
                         let prop_name = unsafe { CStr::from_ptr(prop.name) }.to_string_lossy().into_owned();
-                        let json_val = unsafe { node_to_json(prop.data as *const MpvNode) };
+                        let json_val = unsafe { prop_to_json(prop.format, prop.data) };
                         payload.insert("event".to_string(), Value::String("property-change".to_string()));
                         payload.insert("name".to_string(), Value::String(prop_name));
                         payload.insert("data".to_string(), json_val);
