@@ -67,9 +67,10 @@ class ExtensionManagerService {
 		const ordered = this.prioritizedIds
 			.map((id) => this.providers.get(id))
 			.filter((p): p is TorrentProvider => !!p);
-		
-		const others = Array.from(this.providers.values())
-			.filter((p) => !this.prioritizedIds.includes(p.manifest.id));
+
+		const others = Array.from(this.providers.values()).filter(
+			(p) => !this.prioritizedIds.includes(p.manifest.id)
+		);
 
 		return [...ordered, ...others];
 	}

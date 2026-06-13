@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { useEpisodeTorrents, useSavedEpisodeTorrents } from '$lib/hooks/useEpisodeMetadata.svelte';
+	import {
+		useEpisodeTorrents,
+		useSavedEpisodeTorrents,
+	} from '$lib/hooks/useEpisodeMetadata.svelte';
 	import type { EpisodeMeta } from '$lib/services/EpisodeMetadataService';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
@@ -15,7 +18,7 @@
 
 	const torrentsQuery = $derived(useEpisodeTorrents(animeTitle, episode, 'all'));
 	const availableTorrents = $derived(torrentsQuery.data ?? []);
-	
+
 	const savedQuery = $derived(useSavedEpisodeTorrents(animeId, episode.number));
 	const savedTorrents = $derived(savedQuery.data ?? []);
 	const isLoading = $derived(torrentsQuery.isLoading || savedQuery.isLoading);
@@ -23,9 +26,13 @@
 	// Filter available torrents to exclude saved ones (by info hash if possible, or title)
 	const filteredAvailable = $derived(
 		availableTorrents.filter(
-			(avail) => !savedTorrents.some((saved) => 
-				avail.magnetUri && saved.info_hash && avail.magnetUri.toLowerCase().includes(saved.info_hash.toLowerCase())
-			)
+			(avail) =>
+				!savedTorrents.some(
+					(saved) =>
+						avail.magnetUri &&
+						saved.info_hash &&
+						avail.magnetUri.toLowerCase().includes(saved.info_hash.toLowerCase())
+				)
 		)
 	);
 </script>
@@ -56,7 +63,9 @@
 		>
 			{#if savedTorrents.length > 0}
 				<div class="space-y-2">
-					<h4 class="flex items-center gap-2 text-xs font-bold tracking-wider text-primary uppercase">
+					<h4
+						class="flex items-center gap-2 text-xs font-bold tracking-wider text-primary uppercase"
+					>
 						<Icon icon="solar:download-minimalistic-bold" class="size-3.5" />
 						Downloaded / Active
 					</h4>
@@ -69,7 +78,10 @@
 									{torrent.name || 'Torrent Release'}
 								</span>
 								<div class="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground">
-									<Badge variant="outline" class="h-4 px-1 text-[9px] border-primary/20 text-primary">Saved</Badge>
+									<Badge
+										variant="outline"
+										class="h-4 border-primary/20 px-1 text-[9px] text-primary">Saved</Badge
+									>
 									<span>{torrent.info_hash.slice(0, 8)}...</span>
 								</div>
 							</div>
@@ -91,7 +103,9 @@
 
 			{#if filteredAvailable.length > 0}
 				<div class="space-y-2">
-					<h4 class="flex items-center gap-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
+					<h4
+						class="flex items-center gap-2 text-xs font-bold tracking-wider text-muted-foreground uppercase"
+					>
 						<Icon icon="solar:globus-bold" class="size-3.5" />
 						Available Releases
 					</h4>
@@ -191,9 +205,11 @@
 									class="w-full text-xs font-bold shadow-sm transition-transform active:scale-95 sm:w-auto"
 									onclick={(e) => {
 										e.stopPropagation();
-										console.log('[EpisodeTorrentsList] Download clicked:', { 
-											title: torrent.title, 
-											magnet: torrent.magnetUri ? `${torrent.magnetUri.slice(0, 50)}...` : 'MISSING' 
+										console.log('[EpisodeTorrentsList] Download clicked:', {
+											title: torrent.title,
+											magnet: torrent.magnetUri
+												? `${torrent.magnetUri.slice(0, 50)}...`
+												: 'MISSING',
 										});
 										onDownload(torrent.magnetUri, torrent.title);
 									}}

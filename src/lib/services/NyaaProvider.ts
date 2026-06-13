@@ -19,7 +19,7 @@ export class NyaaProvider implements TorrentProvider {
 		try {
 			const xml = await invoke<string>('fetch_url', {
 				url,
-				headers: { 'Referer': 'https://nyaa.si/' }
+				headers: { Referer: 'https://nyaa.si/' },
 			});
 			return this.parseRSS(xml);
 		} catch (e) {
@@ -44,13 +44,21 @@ export class NyaaProvider implements TorrentProvider {
 	): Promise<TorrentInfo[]> {
 		const qualityStr = quality === 'all' ? '' : ` ${quality}`;
 		const epStr = episodeNumber < 10 ? `0${episodeNumber}` : `${episodeNumber}`;
-		const absEpStr = absoluteEpisodeNumber ? (absoluteEpisodeNumber < 10 ? `0${absoluteEpisodeNumber}` : `${absoluteEpisodeNumber}`) : null;
+		const absEpStr = absoluteEpisodeNumber
+			? absoluteEpisodeNumber < 10
+				? `0${absoluteEpisodeNumber}`
+				: `${absoluteEpisodeNumber}`
+			: null;
 
 		const animeTitle = anime.title?.english || anime.title?.romaji || '';
 		if (!animeTitle) return [];
 
 		// ── Clean base title ──
-		let baseTitle = animeTitle.replace(/【|】|［|］|\[|\]/g, ' ').replace(/[:’']/g, ' ').replace(/\s+/g, ' ').trim();
+		let baseTitle = animeTitle
+			.replace(/【|】|［|］|\[|\]/g, ' ')
+			.replace(/[:’']/g, ' ')
+			.replace(/\s+/g, ' ')
+			.trim();
 
 		const seasonMatch = baseTitle.match(/Season\s*(\d+)/i);
 		const seasonNum = seasonMatch ? parseInt(seasonMatch[1], 10) : 1;
@@ -62,7 +70,7 @@ export class NyaaProvider implements TorrentProvider {
 			`${titleNoSeason} S${seasonNum} - ${epStr}${qualityStr}`,
 			`${baseTitle} - ${epStr}${qualityStr}`,
 			`${titleNoSeason} S${sStr}E${epStr}${qualityStr}`,
-			`${baseTitle} ${epStr}${qualityStr}`
+			`${baseTitle} ${epStr}${qualityStr}`,
 		];
 
 		// Include absolute numbering variant if available (very common on Nyaa for sequels)
@@ -77,30 +85,36 @@ export class NyaaProvider implements TorrentProvider {
 		}
 
 		// De-duplicate queries to avoid hitting Nyaa with identical requests (prevents 10054 Connection Reset)
-		const queries = Array.from(new Set(queryVariants.map(q => q.trim()).filter(Boolean)));
+		const queries = Array.from(new Set(queryVariants.map((q) => q.trim()).filter(Boolean)));
 
 		const allResults = new Map<string, TorrentInfo>();
 
 		for (const q of queries) {
 			const results = await this.search(q);
-			const filtered = results.filter(r => {
+			const filtered = results.filter((r) => {
 				const t = r.title.toLowerCase();
 				// 1. Exclude obvious batches
 				if (t.includes('batch') || t.includes('complete') || t.includes('collection')) {
 					return false;
 				}
-				
+
 				// 2. Clear known noise that mimics episode numbers (e.g. 10-bit, 8-bit)
 				const cleanTitle = t.replace(/\d+(?:-?bit|bits)/g, '');
 
 				// 3. Strict episode number check
 				// Accepts relative or absolute numbering
-				const relativeRegex = new RegExp(`(?:[\\s\\[-]|^)${epStr}(?:[\\s\\](v-]|$)|(?:[\\s\\[-]|^)${episodeNumber}(?:[\\s\\](v-]|$)|[Ee]${epStr}`);
-				const absoluteRegex = absEpStr ? new RegExp(`(?:[\\s\\[-]|^)${absEpStr}(?:[\\s\\](v-]|$)|(?:[\\s\\[-]|^)${absoluteEpisodeNumber}(?:[\\s\\](v-]|$)|[Ee]${absEpStr}`) : null;
-				
+				const relativeRegex = new RegExp(
+					`(?:[\\s\\[-]|^)${epStr}(?:[\\s\\](v-]|$)|(?:[\\s\\[-]|^)${episodeNumber}(?:[\\s\\](v-]|$)|[Ee]${epStr}`
+				);
+				const absoluteRegex = absEpStr
+					? new RegExp(
+							`(?:[\\s\\[-]|^)${absEpStr}(?:[\\s\\](v-]|$)|(?:[\\s\\[-]|^)${absoluteEpisodeNumber}(?:[\\s\\](v-]|$)|[Ee]${absEpStr}`
+						)
+					: null;
+
 				const matchesRelative = relativeRegex.test(cleanTitle);
 				const matchesAbsolute = absoluteRegex ? absoluteRegex.test(cleanTitle) : false;
-				
+
 				if (!matchesRelative && !matchesAbsolute) return false;
 
 				// 4. Season consistency check
@@ -108,10 +122,10 @@ export class NyaaProvider implements TorrentProvider {
 					// If it strictly matches the relative episode (e.g. "01"), it MUST match the season if a season is mentioned
 					for (let i = 1; i <= 10; i++) {
 						if (i === seasonNum) continue;
-						
+
 						// Reject if it mentions Season X without mentioning current season
 						if (t.includes(`season ${i}`) && !t.includes(`season ${seasonNum}`)) return false;
-						
+
 						const sMatch = t.match(/[Ss](\d+)/);
 						if (sMatch && parseInt(sMatch[1], 10) !== seasonNum) {
 							// Check if it's a multi-season tag [S01-S02]
@@ -122,7 +136,7 @@ export class NyaaProvider implements TorrentProvider {
 
 				return true;
 			});
-			
+
 			for (const r of filtered) {
 				if (!allResults.has(r.magnet)) {
 					allResults.set(r.magnet, r);
@@ -130,7 +144,7 @@ export class NyaaProvider implements TorrentProvider {
 			}
 
 			// Stagger requests to avoid Nyaa rate limiting (Connection Reset)
-			await new Promise(resolve => setTimeout(resolve, 1500));
+			await new Promise((resolve) => setTimeout(resolve, 1500));
 		}
 
 		return Array.from(allResults.values());
@@ -143,9 +157,10 @@ export class NyaaProvider implements TorrentProvider {
 		const results: TorrentInfo[] = [];
 
 		const getTagText = (el: Element, tagName: string) => {
-			const tag = Array.from(el.children).find((c) => 
-				c.nodeName.toLowerCase() === tagName.toLowerCase() || 
-				c.nodeName.toLowerCase().endsWith(':' + tagName.toLowerCase())
+			const tag = Array.from(el.children).find(
+				(c) =>
+					c.nodeName.toLowerCase() === tagName.toLowerCase() ||
+					c.nodeName.toLowerCase().endsWith(':' + tagName.toLowerCase())
 			);
 			return tag?.textContent ?? '';
 		};
@@ -157,18 +172,23 @@ export class NyaaProvider implements TorrentProvider {
 			const peers = parseInt(getTagText(item, 'leechers') || '0', 10);
 			const size = getTagText(item, 'size') || '0 B';
 			const infoHash = getTagText(item, 'infoHash');
-			const magnet = infoHash ? `magnet:?xt=urn:btih:${infoHash}&dn=${encodeURIComponent(title)}` : '';
+			const magnet = infoHash
+				? `magnet:?xt=urn:btih:${infoHash}&dn=${encodeURIComponent(title)}`
+				: '';
 
 			// ── Subgroup (Fansub) Parsing ──
 			let fansub: string | undefined = undefined;
-			
+
 			// 1. Try leading brackets: [Subgroup]
 			const subgroupMatch = title.match(/^\[(.*?)\]/);
 			if (subgroupMatch) {
 				fansub = subgroupMatch[1];
 			} else {
 				// 2. Try trailing tags: ... -Subgroup-Raws (CR)
-				const trailingMatch = title.match(/-(.*?)\s*\(CR\)/) || title.match(/-(.*?)\s*\(DSNP\)/) || title.match(/-(.*?)$/);
+				const trailingMatch =
+					title.match(/-(.*?)\s*\(CR\)/) ||
+					title.match(/-(.*?)\s*\(DSNP\)/) ||
+					title.match(/-(.*?)$/);
 				if (trailingMatch) {
 					const pot = trailingMatch[1].trim();
 					if (pot.length > 2 && pot.length < 25 && !pot.includes(' ')) {

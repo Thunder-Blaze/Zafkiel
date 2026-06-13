@@ -150,7 +150,10 @@
 									<div class="flex min-w-0 flex-1 items-center gap-3">
 										<!-- Cover image from DB -->
 										{#if torrent.anime_cover}
-											<a href={torrent.anime_id ? `/anime/${torrent.anime_id}` : '#'} class="shrink-0">
+											<a
+												href={torrent.anime_id ? `/anime/${torrent.anime_id}` : '#'}
+												class="shrink-0"
+											>
 												<img
 													src={torrent.anime_cover}
 													alt={torrent.anime_title || 'cover'}
@@ -187,7 +190,7 @@
 														</span>
 													{/if}
 													<h3
-														class="truncate text-base font-semibold leading-tight"
+														class="truncate text-base leading-tight font-semibold"
 														title={torrent.anime_title}
 													>
 														{torrent.anime_title}
@@ -211,19 +214,27 @@
 
 											<!-- Stats row -->
 											<div class="flex flex-wrap gap-3 text-xs font-medium text-muted-foreground">
-												<span class="flex items-center gap-1 rounded-full bg-secondary/50 px-2 py-0.5">
+												<span
+													class="flex items-center gap-1 rounded-full bg-secondary/50 px-2 py-0.5"
+												>
 													<Icon icon="solar:download-bold" class="text-green-500" />
 													{formatBytes(torrent.speed)}/s
 												</span>
-												<span class="flex items-center gap-1 rounded-full bg-secondary/50 px-2 py-0.5">
+												<span
+													class="flex items-center gap-1 rounded-full bg-secondary/50 px-2 py-0.5"
+												>
 													<Icon icon="solar:upload-bold" class="text-blue-500" />
 													{formatBytes(torrent.upload_speed)}/s
 												</span>
-												<span class="flex items-center gap-1 rounded-full bg-secondary/50 px-2 py-0.5">
+												<span
+													class="flex items-center gap-1 rounded-full bg-secondary/50 px-2 py-0.5"
+												>
 													<Icon icon="solar:users-group-rounded-bold" />
 													{torrent.peers} peers
 												</span>
-												<span class="flex items-center gap-1 rounded-full bg-secondary/50 px-2 py-0.5">
+												<span
+													class="flex items-center gap-1 rounded-full bg-secondary/50 px-2 py-0.5"
+												>
 													<Icon icon="solar:database-bold" />
 													{formatBytes(torrent.downloaded)} / {formatBytes(torrent.total_size)}
 												</span>

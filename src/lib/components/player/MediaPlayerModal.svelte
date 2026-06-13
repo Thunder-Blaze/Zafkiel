@@ -31,16 +31,24 @@
 		animeId?: number;
 	}>();
 
-	const mockEpisode = $derived(episodeNumber !== undefined ? { number: episodeNumber, id: 'torrent-ep' } : null);
+	const mockEpisode = $derived(
+		episodeNumber !== undefined ? { number: episodeNumber, id: 'torrent-ep' } : null
+	);
 
 	let files: TorrentFile[] = $state([]);
 	let currentFileId: number | undefined = $state(undefined);
 	let showPlaylist = $state(true);
 	let loadingFiles = $state(false);
+	// svelte-ignore state_referenced_locally
 	let currentSrc = $state(src);
 	let currentSubtitleTracks: { id: string; label: string; src: string; lang: string }[] = $state(
 		[]
 	);
+
+	// Reset src when prop changes
+	$effect(() => {
+		currentSrc = src;
+	});
 
 	type PlayerMode = 'internal' | 'libmpv';
 	// Initialise from the prop (set by the caller's button choice), falling back
@@ -95,11 +103,6 @@
 		}
 	});
 
-	// Reset src when prop changes
-	$effect(() => {
-		currentSrc = src;
-	});
-
 	function formatSize(bytes: number) {
 		if (bytes === 0) return '0 B';
 		const k = 1024;
@@ -113,13 +116,13 @@
 	<!-- libmpv uses a fixed full-screen transparent overlay over the native
 	     video layer. Wrapping it in a Dialog breaks that by constraining the
 	     viewport hole — render it directly at the top level instead. -->
-	<VideoPlayer 
-		url={currentSrc} 
-		{title} 
+	<VideoPlayer
+		url={currentSrc}
+		{title}
 		image={poster}
 		currentEpisode={mockEpisode}
 		{animeId}
-		onBack={() => (open = false)} 
+		onBack={() => (open = false)}
 	/>
 	<!-- Mode switcher floats above the VideoPlayer's z-[100] overlay -->
 	<div
@@ -162,13 +165,13 @@
 						showPlaylist && files.length > 1 ? 'w-[75%]' : 'w-full'
 					)}
 				>
-					<InternalPlayer 
-						src={currentSrc} 
-						{title} 
+					<InternalPlayer
+						src={currentSrc}
+						{title}
 						image={poster}
 						currentEpisode={mockEpisode}
 						{animeId}
-						onBack={() => (open = false)} 
+						onBack={() => (open = false)}
 					/>
 
 					<!-- Player mode switcher overlay -->
@@ -215,7 +218,7 @@
 						</div>
 						<ScrollArea class="flex-1">
 							<div class="flex flex-col gap-1 p-2">
-								{#each files as file}
+								{#each files as file (file.id)}
 									<button
 										class={clsx(
 											'flex w-full flex-col items-start rounded p-3 text-left transition-colors',

@@ -3,10 +3,10 @@
 	import { Button } from '$lib/components/ui/button';
 	import Icon from '@iconify/svelte';
 
-	let { 
-		open = $bindable(false), 
+	let {
+		open = $bindable(false),
 		animeTitle,
-		onSelect 
+		onSelect,
 	} = $props<{
 		open: boolean;
 		animeTitle: string;
@@ -28,45 +28,57 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<div class="grid gap-4 py-4">
-			<Button 
-				variant="outline" 
+			<Button
+				variant="outline"
 				class="flex h-16 items-center justify-start gap-4 px-4 text-left"
 				onclick={() => handleSelection('yes')}
 			>
-				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+				<div
+					class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary"
+				>
 					<Icon icon="solar:check-read-linear" class="h-6 w-6" />
 				</div>
 				<div>
 					<div class="font-semibold">Always Sync</div>
-					<div class="text-xs text-muted-foreground text-pretty">Automatically update progress at threshold</div>
+					<div class="text-xs text-pretty text-muted-foreground">
+						Automatically update progress at threshold
+					</div>
 				</div>
 			</Button>
 
-			<Button 
-				variant="outline" 
+			<Button
+				variant="outline"
 				class="flex h-16 items-center justify-start gap-4 px-4 text-left"
 				onclick={() => handleSelection('ask')}
 			>
-				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
+				<div
+					class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10 text-amber-500"
+				>
 					<Icon icon="solar:question-square-linear" class="h-6 w-6" />
 				</div>
 				<div>
 					<div class="font-semibold">Ask for Each Episode</div>
-					<div class="text-xs text-muted-foreground text-pretty">Show a prompt when you finish an episode</div>
+					<div class="text-xs text-pretty text-muted-foreground">
+						Show a prompt when you finish an episode
+					</div>
 				</div>
 			</Button>
 
-			<Button 
-				variant="outline" 
+			<Button
+				variant="outline"
 				class="flex h-16 items-center justify-start gap-4 px-4 text-left"
 				onclick={() => handleSelection('no')}
 			>
-				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+				<div
+					class="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground"
+				>
 					<Icon icon="solar:close-circle-linear" class="h-6 w-6" />
 				</div>
 				<div>
 					<div class="font-semibold">Never Sync</div>
-					<div class="text-xs text-muted-foreground text-pretty">Don't update AniList for this anime</div>
+					<div class="text-xs text-pretty text-muted-foreground">
+						Don't update AniList for this anime
+					</div>
 				</div>
 			</Button>
 		</div>

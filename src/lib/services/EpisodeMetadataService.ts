@@ -194,12 +194,12 @@ export async function fetchToshoEpisode(
 	console.log(`Searching Tosho: ${url}`);
 
 	try {
-		const raw = await invoke<string>('fetch_url', { 
-			url, 
-			headers: { 
-				'Referer': 'https://animetosho.org/',
-				'Accept': 'application/json'
-			} 
+		const raw = await invoke<string>('fetch_url', {
+			url,
+			headers: {
+				Referer: 'https://animetosho.org/',
+				Accept: 'application/json',
+			},
 		});
 		const data: ToshoRawEntry[] = JSON.parse(raw);
 		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho'));
@@ -209,11 +209,9 @@ export async function fetchToshoEpisode(
 	}
 }
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Cascaded Provider Search
 // ─────────────────────────────────────────────────────────────────────────────
-
 
 /**
  * Perform a cascaded search across all registered providers in priority order.
@@ -228,14 +226,21 @@ export async function searchEpisodeCascaded(
 	absoluteEpisodeNumber?: number
 ): Promise<EpisodeTorrentEntry[]> {
 	const providers = ExtensionManager.getProviders();
-	
+
 	for (const p of providers) {
 		console.log(`[Cascade] Trying provider: ${p.manifest.name}`);
 		try {
-			const results = await p.searchEpisode(anime, episodeNumber, anidbId, anidbEpisodeId, quality, absoluteEpisodeNumber);
+			const results = await p.searchEpisode(
+				anime,
+				episodeNumber,
+				anidbId,
+				anidbEpisodeId,
+				quality,
+				absoluteEpisodeNumber
+			);
 			if (results.length > 0) {
 				console.log(`[Cascade] Found ${results.length} results from ${p.manifest.name}`);
-				return results.map(r => ({
+				return results.map((r) => ({
 					title: r.title,
 					magnetUri: r.magnet,
 					size: r.size,
@@ -248,7 +253,7 @@ export async function searchEpisodeCascaded(
 					fansub: r.fansub,
 					anidbId: r.anidbId,
 					anidbEpisodeId: r.anidbEpisodeId,
-					provider: r.provider as any
+					provider: r.provider as any,
 				}));
 			}
 		} catch (e) {
@@ -265,12 +270,12 @@ export async function searchEpisodeCascaded(
 export async function searchTosho(query: string, page = 1): Promise<EpisodeTorrentEntry[]> {
 	const url = `${TOSHO_BASE}/json?qx=1&q=${encodeURIComponent(query)}&page=${page}`;
 	try {
-		const raw = await invoke<string>('fetch_url', { 
-			url, 
-			headers: { 
-				'Referer': 'https://animetosho.org/',
-				'Accept': 'application/json'
-			} 
+		const raw = await invoke<string>('fetch_url', {
+			url,
+			headers: {
+				Referer: 'https://animetosho.org/',
+				Accept: 'application/json',
+			},
 		});
 		const data: ToshoRawEntry[] = JSON.parse(raw);
 		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho'));
@@ -286,12 +291,12 @@ export async function fetchToshoBatches(animeTitle: string): Promise<EpisodeTorr
 	const query = `${animeTitle} Batch`;
 	const url = `${TOSHO_BASE}/json?qx=1&q=${encodeURIComponent(query)}`;
 	try {
-		const raw = await invoke<string>('fetch_url', { 
-			url, 
-			headers: { 
-				'Referer': 'https://animetosho.org/',
-				'Accept': 'application/json'
-			} 
+		const raw = await invoke<string>('fetch_url', {
+			url,
+			headers: {
+				Referer: 'https://animetosho.org/',
+				Accept: 'application/json',
+			},
 		});
 		const data: ToshoRawEntry[] = JSON.parse(raw);
 		return data.map((e) => normalizeToshoEntry(e, 'Anime Tosho'));
@@ -402,18 +407,22 @@ function parseNyaaRss(xml: string): EpisodeTorrentEntry[] {
 function parseSizeToBytes(sizeStr: string): number {
 	const match = sizeStr.match(/^(\d+(?:\.\d+)?)\s*([KMGT]i?B)$/i);
 	if (!match) return 0;
-	
+
 	const value = parseFloat(match[1]);
 	const unit = match[2].toUpperCase();
-	
+
 	const multipliers: Record<string, number> = {
-		'B': 1,
-		'KB': 1024, 'KIB': 1024,
-		'MB': 1024**2, 'MIB': 1024**2,
-		'GB': 1024**3, 'GIB': 1024**3,
-		'TB': 1024**4, 'TIB': 1024**4
+		B: 1,
+		KB: 1024,
+		KIB: 1024,
+		MB: 1024 ** 2,
+		MIB: 1024 ** 2,
+		GB: 1024 ** 3,
+		GIB: 1024 ** 3,
+		TB: 1024 ** 4,
+		TIB: 1024 ** 4,
 	};
-	
+
 	return value * (multipliers[unit] || 0);
 }
 

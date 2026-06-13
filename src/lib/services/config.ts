@@ -65,8 +65,12 @@ export class ConfigService {
 	/**
 	 * Update extension configuration
 	 */
-	static async updateExtensionConfig(extensionConfig: import('$lib/types/config').ExtensionConfig): Promise<void> {
-		const response = await invoke<ConfigResponse<void>>('update_extension_config', { extensionConfig });
+	static async updateExtensionConfig(
+		extensionConfig: import('$lib/types/config').ExtensionConfig
+	): Promise<void> {
+		const response = await invoke<ConfigResponse<void>>('update_extension_config', {
+			extensionConfig,
+		});
 		if (!response.success) {
 			throw new Error(response.error || 'Failed to update extension config');
 		}

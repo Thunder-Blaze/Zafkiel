@@ -1,0 +1,99 @@
+warning: Missing auto-load script at offset 0 in section .debug_gdb_scripts
+of file /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/Zafkiel.
+Use `info auto-load python-scripts [REGEXP]' to list them.
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.archlinux.org>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/usr/lib/libthread_db.so.1".
+[New Thread 0x7fffdffb56c0 (LWP 110165)]
+[New Thread 0x7fffdf9cb6c0 (LWP 110166)]
+[New Thread 0x7fffdf7ca6c0 (LWP 110167)]
+[Thread 0x7fffdf7ca6c0 (LWP 110167) exited]
+[New Thread 0x7fffdf7ca6c0 (LWP 110168)]
+[New Thread 0x7fffdebff6c0 (LWP 110169)]
+[New Thread 0x7fffde3fe6c0 (LWP 110170)]
+[New Thread 0x7fffddbfd6c0 (LWP 110171)]
+[New Thread 0x7fffdd3fc6c0 (LWP 110172)]
+[New Thread 0x7fffdcf706c0 (LWP 110178)]
+[New Thread 0x7fffc5fff6c0 (LWP 110180)]
+[New Thread 0x7fffc57fe6c0 (LWP 110182)]
+[Thread 0x7fffc57fe6c0 (LWP 110182) exited]
+[Detaching after vfork from child process 110184]
+[New Thread 0x7fffc57fe6c0 (LWP 110193)]
+[New Thread 0x7fffc4bff6c0 (LWP 110194)]
+[New Thread 0x7fff5d9ff6c0 (LWP 110196)]
+[New Thread 0x7fff5d1fe6c0 (LWP 110197)]
+[New Thread 0x7fff5c9fd6c0 (LWP 110199)]
+[New Thread 0x7fff4ffff6c0 (LWP 110200)]
+[Thread 0x7fff4ffff6c0 (LWP 110200) exited]
+[Thread 0x7fff5c9fd6c0 (LWP 110199) exited]
+[New Thread 0x7fff5c9fd6c0 (LWP 110201)]
+[New Thread 0x7fff4ffff6c0 (LWP 110202)]
+[Detaching after vfork from child process 110203]
+warning: the debug information found in "/usr/lib/debug/usr/lib/libmpv.so.2.5.0.debug" does not match "/usr/lib/libmpv.so.2" (CRC mismatch).
+warning: the debug information found in "/usr/lib/debug/usr/lib/libmpv.so.2.5.0.debug" does not match "/usr/lib/libmpv.so.2" (CRC mismatch).
+warning: the debug information found in "/usr/lib/debug/usr/lib/libmpv.so.2.5.0.debug" does not match "/usr/lib/libmpv.so.2" (CRC mismatch).
+warning: the debug information found in "/usr/lib/debug/usr/lib/libmpv.so.2.5.0.debug" does not match "/usr/lib/libmpv.so.2" (CRC mismatch).
+[New Thread 0x7fff42bff6c0 (LWP 110209)]
+[New Thread 0x7fff3a7ff6c0 (LWP 110210)]
+[New Thread 0x7fff429fe6c0 (LWP 110211)]
+[New Thread 0x7fff427fd6c0 (LWP 110212)]
+[New Thread 0x7fff425fc6c0 (LWP 110213)]
+[New Thread 0x7fff423fb6c0 (LWP 110214)]
+[New Thread 0x7fff421fa6c0 (LWP 110215)]
+[New Thread 0x7fff41ff96c0 (LWP 110216)]
+[New Thread 0x7fff41df86c0 (LWP 110217)]
+[New Thread 0x7fff41bf76c0 (LWP 110218)]
+[New Thread 0x7fff419f66c0 (LWP 110219)]
+[New Thread 0x7fff417f56c0 (LWP 110220)]
+[New Thread 0x7fff415f46c0 (LWP 110221)]
+[New Thread 0x7fff413f36c0 (LWP 110222)]
+[New Thread 0x7fff411f26c0 (LWP 110223)]
+[New Thread 0x7fff40ff16c0 (LWP 110224)]
+[New Thread 0x7fff40df06c0 (LWP 110225)]
+[New Thread 0x7fff40bef6c0 (LWP 110226)]
+[New Thread 0x7fff409ee6c0 (LWP 110227)]
+[New Thread 0x7fff3bfff6c0 (LWP 110228)]
+[New Thread 0x7fff3b7fe6c0 (LWP 110229)]
+[New Thread 0x7fff407ed6c0 (LWP 110230)]
+[New Thread 0x7fff405ec6c0 (LWP 110234)]
+[New Thread 0x7fff403eb6c0 (LWP 110236)]
+[New Thread 0x7fff3a5fe6c0 (LWP 110298)]
+[New Thread 0x7fff39dfd6c0 (LWP 110299)]
+[New Thread 0x7fff395fc6c0 (LWP 110300)]
+[New Thread 0x7fff38dfb6c0 (LWP 110301)]
+[New Thread 0x7fff03fff6c0 (LWP 110302)]
+[Config] Resolved ~~/shaders/Anime4K_Clamp_Highlights.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Clamp_Highlights.glsl
+[Config] Resolved ~~/shaders/Anime4K_Restore_CNN_M.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Restore_CNN_M.glsl
+[Config] Resolved ~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Upscale_CNN_x2_M.glsl
+[Config] Resolved ~~/shaders/Anime4K_AutoDownscalePre_x2.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_AutoDownscalePre_x2.glsl
+[Config] Resolved ~~/shaders/Anime4K_AutoDownscalePre_x4.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_AutoDownscalePre_x4.glsl
+[Config] Resolved ~~/shaders/Anime4K_Upscale_CNN_x2_S.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Upscale_CNN_x2_S.glsl
+[Config] Resolved ~~/shaders/Anime4K_Clamp_Highlights.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Clamp_Highlights.glsl
+[Config] Resolved ~~/shaders/Anime4K_Restore_CNN_M.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Restore_CNN_M.glsl
+[Config] Resolved ~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Upscale_CNN_x2_M.glsl
+[Config] Resolved ~~/shaders/Anime4K_AutoDownscalePre_x2.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_AutoDownscalePre_x2.glsl
+[Config] Resolved ~~/shaders/Anime4K_AutoDownscalePre_x4.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_AutoDownscalePre_x4.glsl
+[Config] Resolved ~~/shaders/Anime4K_Upscale_CNN_x2_S.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Upscale_CNN_x2_S.glsl
+[New Thread 0x7fff385fa6c0 (LWP 110365)]
+[Thread 0x7fff4ffff6c0 (LWP 110202) exited]
+[Detaching after vfork from child process 110493]
+[New Thread 0x7fff4ffff6c0 (LWP 110499)]
+[Detaching after vfork from child process 110546]
+[New Thread 0x7fff019fe6c0 (LWP 110547)]
+[Thread 0x7fff4ffff6c0 (LWP 110499) exited]
+[Thread 0x7fff409ee6c0 (LWP 110227) exited]
+[Thread 0x7fff40bef6c0 (LWP 110226) exited]
+[Thread 0x7fff403eb6c0 (LWP 110236) exited]
+[Thread 0x7fff413f36c0 (LWP 110222) exited]
+[Thread 0x7fff411f26c0 (LWP 110223) exited]
+[Thread 0x7fff385fa6c0 (LWP 110365) exited]
+[Detaching after vfork from child process 110673]
+[New Thread 0x7fff4ffff6c0 (LWP 110674)]
+[Thread 0x7fff019fe6c0 (LWP 110547) exited]
+[Thread 0x7fff4ffff6c0 (LWP 110674) exited]
+[New Thread 0x7fff411f26c0 (LWP 110909)]

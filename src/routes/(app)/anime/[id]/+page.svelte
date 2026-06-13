@@ -11,11 +11,11 @@
 	import TrailerPill from '$lib/components/TrailerPill.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
-	import { 
-		useAddAnimeToList, 
-		useUpdateListStatus, 
-		useUpdateListProgress, 
-		useDeleteListEntry 
+	import {
+		useAddAnimeToList,
+		useUpdateListStatus,
+		useUpdateListProgress,
+		useDeleteListEntry,
 	} from '$lib/hooks/useAnilist.svelte';
 	import type { MediaListStatus } from '$lib/types/anilist';
 
@@ -104,28 +104,31 @@
 					<div class="flex items-center gap-2">
 						<DropdownMenu.Root>
 							<DropdownMenu.Trigger>
-								<Button 
-									variant="outline" 
-									class="flex gap-2 rounded-md bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+								<Button
+									variant="outline"
+									class="flex gap-2 rounded-md border-primary/20 bg-primary/10 text-primary hover:bg-primary/20"
 								>
 									<Icon icon="lucide:list" class="size-4" />
-									<span class="text-xs font-bold uppercase tracking-wider">
+									<span class="text-xs font-bold tracking-wider uppercase">
 										{getStatusLabel(animeData.mediaListEntry.status || '')}
 									</span>
 									{#if animeData.mediaListEntry.progress}
 										<span class="mx-1 h-3 w-[1px] bg-primary/20"></span>
-										<span class="text-sm font-black italic">EP {animeData.mediaListEntry.progress}</span>
+										<span class="text-sm font-black italic"
+											>EP {animeData.mediaListEntry.progress}</span
+										>
 									{/if}
 								</Button>
 							</DropdownMenu.Trigger>
 							<DropdownMenu.Content align="start" class="z-[100] bg-background/95 backdrop-blur-md">
 								{#each statusOptions as status}
-									<DropdownMenu.Item 
-										onclick={() => updateStatusMutation.mutate({ 
-											entryId: animeData.mediaListEntry!.id, 
-											status 
-										})}
-										class="flex items-center justify-between gap-4 cursor-pointer"
+									<DropdownMenu.Item
+										onclick={() =>
+											updateStatusMutation.mutate({
+												entryId: animeData.mediaListEntry!.id,
+												status,
+											})}
+										class="flex cursor-pointer items-center justify-between gap-4"
 									>
 										<span class="text-xs font-semibold">{getStatusLabel(status)}</span>
 										{#if animeData.mediaListEntry.status === status}
@@ -140,9 +143,9 @@
 							class="cursor-pointer rounded-md bg-accent text-accent-foreground hover:bg-accent/90"
 							onclick={() => {
 								const newProgress = (animeData.mediaListEntry!.progress || 0) + 1;
-								updateProgressMutation.mutate({ 
-									entryId: animeData.mediaListEntry!.id, 
-									progress: newProgress 
+								updateProgressMutation.mutate({
+									entryId: animeData.mediaListEntry!.id,
+									progress: newProgress,
 								});
 							}}
 							disabled={updateProgressMutation.isPending}
@@ -150,7 +153,7 @@
 							<Icon icon="lucide:chevron-up" class="-ml-1 size-4" />
 							Update
 						</Button>
-						
+
 						<Button
 							class="cursor-pointer rounded-md border-destructive/50 text-destructive hover:bg-destructive/10"
 							variant="outline"

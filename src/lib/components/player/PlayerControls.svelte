@@ -151,7 +151,9 @@
 	}
 
 	const oneBasedIndex = $derived(currentIndex !== -1 ? currentIndex + 1 : currentEpisode?.number);
-	const showOneBased = $derived(oneBasedIndex !== undefined && oneBasedIndex !== currentEpisode?.number);
+	const showOneBased = $derived(
+		oneBasedIndex !== undefined && oneBasedIndex !== currentEpisode?.number
+	);
 </script>
 
 <Tooltip.Provider>
@@ -794,7 +796,8 @@
 											<div class="mx-2 my-1 h-px bg-border/50"></div>
 
 											{#each config.shaderConfig.selected_shaders as shader}
-												{@const shaderName = shader.split('/').pop()?.replace('.glsl', '') || shader}
+												{@const shaderName =
+													shader.split('/').pop()?.replace('.glsl', '') || shader}
 												<button
 													class={cn(
 														'flex w-full items-center rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted',
@@ -815,12 +818,15 @@
 												</button>
 											{/each}
 
-											<div class="my-1.5 px-3 text-[10px] font-bold text-muted-foreground uppercase">
+											<div
+												class="my-1.5 px-3 text-[10px] font-bold text-muted-foreground uppercase"
+											>
 												Available
 											</div>
 
 											{#each availableShaders.filter((s) => !config.shaderConfig.selected_shaders.includes(s)) as shader}
-												{@const shaderName = shader.split('/').pop()?.replace('.glsl', '') || shader}
+												{@const shaderName =
+													shader.split('/').pop()?.replace('.glsl', '') || shader}
 												<button
 													class="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
 													onclick={(e) => {

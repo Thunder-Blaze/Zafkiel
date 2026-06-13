@@ -167,7 +167,7 @@ export const useConfigState = () => {
 					auto_update_progress: true,
 					auto_update_threshold: 0.8,
 					default_update_mode: 'ask',
-					shaders: { enabled: false, selected_shaders: [] }
+					shaders: { enabled: false, selected_shaders: [] },
 				} as PlayerConfig)
 			);
 		},
@@ -179,7 +179,7 @@ export const useConfigState = () => {
 			return (
 				configState?.network ||
 				({
-					proxy_url: null
+					proxy_url: null,
 				} as import('$lib/types/config').NetworkConfig)
 			);
 		},

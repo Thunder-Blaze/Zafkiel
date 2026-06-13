@@ -151,7 +151,7 @@ export function useAnimeTorrents(anidbId: number | null) {
 }
 /**
  * Fetches already-downloaded torrents for a specific episode from the local database.
- * 
+ *
  * @param animeId      AniList media ID
  * @param episodeNumber Episode number
  */

@@ -1,0 +1,19 @@
+--- src-tauri/src/lib.rs
++++ src-tauri/src/lib.rs
+@@ -200,6 +200,16 @@
+             let session_clone = session.clone();
+             tauri::async_runtime::spawn(async move {
+                 commands::torrent::restore_torrents(&app_handle, &session_clone).await;
++                
++                tokio::time::sleep(std::time::Duration::from_secs(2)).await;
++                println!("[TEST] Triggering mpv_render::init manually...");
++                let state = app_handle.state::<commands::mpv_render::MpvPlayerState>();
++                let _ = commands::mpv_render::init(
++                    serde_json::json!({"vo": "gpu-next", "hwdec": "auto", "fbo-format": "rgba16hf"}),
++                    "main".to_string(),
++                    state,
++                    app_handle.clone()
++                );
+             });
+ 
+             Ok(())

@@ -29,7 +29,7 @@ export const filterTitle = (title: TitleType) => {
  */
 export const cleanSearchTitle = (title: string) => {
 	return title
-		.replace(/【|】|［|］|\[|\]/g, ' ')           // Japanese/ASCII brackets
+		.replace(/【|】|［|］|\[|\]/g, ' ') // Japanese/ASCII brackets
 		.replace(/\s+/g, ' ')
 		.trim();
 };

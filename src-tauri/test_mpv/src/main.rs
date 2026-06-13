@@ -1,0 +1,1 @@
+use std::ffi::c_void; fn main() { let lib = unsafe { libloading::Library::new("libmpv.so.2").unwrap() }; let create: libloading::Symbol<unsafe extern "C" fn() -> *mut c_void> = unsafe { lib.get(b"mpv_create\0").unwrap() }; let handle = unsafe { create() }; println!("Handle: {:?}", handle); }

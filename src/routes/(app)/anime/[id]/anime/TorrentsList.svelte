@@ -14,7 +14,11 @@
 	import { TorrentService } from '$lib/services/TorrentService';
 	import { invoke } from '@tauri-apps/api/core';
 
-	let { anime, mode = 'all', enabled = true }: { anime: AnimeLarge; mode?: 'all' | 'batches'; enabled?: boolean } = $props();
+	let {
+		anime,
+		mode = 'all',
+		enabled = true,
+	}: { anime: AnimeLarge; mode?: 'all' | 'batches'; enabled?: boolean } = $props();
 	let selectedTorrent = $state<TorrentInfo | null>(null);
 	let isPlayerOpen = $state(false);
 	let playerModalMode = $state<'internal' | 'libmpv'>('libmpv');
@@ -91,7 +95,9 @@
 
 <div class="space-y-4">
 	<div class="flex items-center justify-between">
-		<h3 class="text-lg font-semibold">{mode === 'batches' ? 'Batch Releases' : 'Available Torrents'}</h3>
+		<h3 class="text-lg font-semibold">
+			{mode === 'batches' ? 'Batch Releases' : 'Available Torrents'}
+		</h3>
 		<Button
 			variant="outline"
 			size="sm"

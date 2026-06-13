@@ -82,9 +82,11 @@
 
 	$effect(() => {
 		if (animeId) {
-			invoke<{ data: string | null }>('get_local_update_mode', { mediaId: animeId }).then((res: any) => {
-				updateMode = (res.data as 'yes' | 'no' | 'ask' | null) || null;
-			});
+			invoke<{ data: string | null }>('get_local_update_mode', { mediaId: animeId }).then(
+				(res: any) => {
+					updateMode = (res.data as 'yes' | 'no' | 'ask' | null) || null;
+				}
+			);
 		}
 	});
 
@@ -131,7 +133,9 @@
 				},
 			});
 
-			console.log(`[Player] Progress updated to episode ${oneBasedIndex} (local: ${currentEpisode.number})`);
+			console.log(
+				`[Player] Progress updated to episode ${oneBasedIndex} (local: ${currentEpisode.number})`
+			);
 		} catch (e) {
 			console.error('[Player] Failed to update progress:', e);
 			hasUpdatedProgress = false;
@@ -152,11 +156,11 @@
 				},
 			});
 		}
-		
+
 		if (mode === 'yes') {
 			await performUpdate();
 		}
-		
+
 		// Resume playback
 		videoElement.play().catch(console.error);
 	}
@@ -778,19 +782,23 @@
 			transition:fade
 		>
 			<div class="flex items-center gap-3">
-				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary">
+				<div
+					class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary"
+				>
 					<Icon icon="solar:check-read-linear" class="h-6 w-6" />
 				</div>
 				<div>
-					<div class="text-sm font-bold text-white uppercase tracking-tight">Sync Progress?</div>
-					<div class="text-xs text-white/70">Update AniList to episode {currentEpisode?.number}</div>
+					<div class="text-sm font-bold tracking-tight text-white uppercase">Sync Progress?</div>
+					<div class="text-xs text-white/70">
+						Update AniList to episode {currentEpisode?.number}
+					</div>
 				</div>
 			</div>
 			<div class="flex gap-2 pt-1">
 				<Button
 					size="sm"
 					variant="default"
-					class="flex-1 rounded-lg h-8 text-xs font-bold uppercase tracking-wider"
+					class="h-8 flex-1 rounded-lg text-xs font-bold tracking-wider uppercase"
 					onclick={async () => {
 						await performUpdate();
 						showAskPrompt = false;
@@ -801,7 +809,7 @@
 				<Button
 					size="sm"
 					variant="ghost"
-					class="flex-1 rounded-lg h-8 text-xs font-bold uppercase tracking-wider text-white/50 hover:text-white"
+					class="h-8 flex-1 rounded-lg text-xs font-bold tracking-wider text-white/50 uppercase hover:text-white"
 					onclick={() => {
 						showAskPrompt = false;
 						hasUpdatedProgress = true; // Don't ask again for this ep

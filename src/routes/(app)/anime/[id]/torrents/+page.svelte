@@ -59,17 +59,25 @@
 	});
 
 	async function handleDownload(magnetUri: string, episodeNumber: number, title?: string) {
-		console.log('[+page.svelte] handleDownload triggered:', { magnetUri: `${magnetUri.slice(0, 50)}...`, episodeNumber, title });
+		console.log('[+page.svelte] handleDownload triggered:', {
+			magnetUri: `${magnetUri.slice(0, 50)}...`,
+			episodeNumber,
+			title,
+		});
 		try {
 			// Stream torrent implicitly adds it
 			const { url, infoHash } = await TorrentService.streamTorrent(magnetUri);
-			
+
 			// Open player immediately
 			streamUrl = url;
 			selectedTorrentId = undefined;
 			selectedMagnet = magnetUri;
 			selectedEpisodeNumber = episodeNumber;
-			playerTitle = title || (animeData?.title?.english || animeData?.title?.romaji) || `Episode ${episodeNumber}`;
+			playerTitle =
+				title ||
+				animeData?.title?.english ||
+				animeData?.title?.romaji ||
+				`Episode ${episodeNumber}`;
 			isPlayerOpen = true;
 
 			toast.success(`Started downloading Episode ${episodeNumber}`);
@@ -79,13 +87,13 @@
 					anime_id: animeId,
 					episode_number: episodeNumber,
 					anime_title: animeData.title?.english || animeData.title?.romaji,
-					anime_cover: animeData.coverImage?.extraLarge || animeData.coverImage?.large
+					anime_cover: animeData.coverImage?.extraLarge || animeData.coverImage?.large,
 				};
 				console.log('Saving torrent metadata:', metadata);
 				await TorrentService.saveTorrentMetadata(infoHash, metadata);
 				console.log('Metadata saved successfully');
 			}
-			
+
 			// Re-fetch to update linking after a short delay for rqbit to process
 			setTimeout(async () => {
 				const activeTorrents = await TorrentService.getTorrents();
@@ -178,8 +186,8 @@
 						/>
 						<h3 class="text-lg font-semibold text-foreground">No Episodes Found</h3>
 						<p class="mt-1 max-w-sm text-sm text-muted-foreground">
-							We couldn't find episode metadata for this anime on AniDB. Try the "Batches" tab
-							for manual torrent browsing.
+							We couldn't find episode metadata for this anime on AniDB. Try the "Batches" tab for
+							manual torrent browsing.
 						</p>
 					</div>
 				{:else}

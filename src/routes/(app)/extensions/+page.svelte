@@ -21,7 +21,7 @@
 			const appConfig = await ConfigService.getConfig();
 			config = appConfig.extensions || { repositories: [] };
 		} catch (e) {
-			console.error("Failed to load config", e);
+			console.error('Failed to load config', e);
 		}
 	});
 	async function addRepo() {
@@ -62,7 +62,9 @@
 
 	// ── Derived state ──────────────────────────────────────────────────────────
 
-	const installed = $derived(extensionStore.catalog.filter((ext) => extensionStore.isInstalled(ext.id)));
+	const installed = $derived(
+		extensionStore.catalog.filter((ext) => extensionStore.isInstalled(ext.id))
+	);
 	const available = $derived(
 		extensionStore.catalog.filter((ext) => !extensionStore.isInstalled(ext.id))
 	);
@@ -93,7 +95,7 @@
 
 	<!-- Repositories section -->
 	<section class="space-y-4 rounded-xl border border-border/60 bg-card/40 p-5 backdrop-blur-sm">
-		<h2 class="text-base font-semibold text-foreground/80 flex items-center gap-2">
+		<h2 class="flex items-center gap-2 text-base font-semibold text-foreground/80">
 			<Icon icon="solar:server-bold" class="h-4 w-4" />
 			Extension Repositories
 		</h2>
@@ -113,12 +115,18 @@
 				</div>
 			{/each}
 		</div>
-		<form class="flex items-center gap-2" onsubmit={(e) => { e.preventDefault(); addRepo(); }}>
+		<form
+			class="flex items-center gap-2"
+			onsubmit={(e) => {
+				e.preventDefault();
+				addRepo();
+			}}
+		>
 			<input
 				type="url"
 				bind:value={repoInput}
 				placeholder="https://example.com/api/registry.json"
-				class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+				class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 			/>
 			<Button type="submit" size="sm" disabled={isSaving || !repoInput} class="shrink-0">
 				Add Repository
@@ -216,9 +224,11 @@
 										size="sm"
 										variant="outline"
 										class="h-7 text-xs"
-										onclick={() => { settingsOpen = ext.id; }}
+										onclick={() => {
+											settingsOpen = ext.id;
+										}}
 									>
-										<Icon icon="solar:settings-bold" class="h-3.5 w-3.5 mr-1" />
+										<Icon icon="solar:settings-bold" class="mr-1 h-3.5 w-3.5" />
 										Settings
 									</Button>
 								{/if}
@@ -269,7 +279,11 @@
 		</h2>
 
 		{#if available.length === 0}
-			<p class="text-sm text-muted-foreground">{config.repositories.length === 0 ? "No repositories added. Add one above to find extensions." : "All available extensions are already installed or none found."}</p>
+			<p class="text-sm text-muted-foreground">
+				{config.repositories.length === 0
+					? 'No repositories added. Add one above to find extensions.'
+					: 'All available extensions are already installed or none found.'}
+			</p>
 		{:else}
 			<div class="grid gap-3 sm:grid-cols-2">
 				{#each available as ext (ext.id)}
@@ -370,13 +384,15 @@
 		They are only loaded when needed and run in the app's WebView context.
 	</p>
 </div>
-	{#if settingsOpen}
-		{@const ext = extensionStore.catalog.find((e) => e.id === settingsOpen)}
-		{#if ext}
-			<ExtensionSettingsDialog
-				open={true}
-				onOpenChange={(val) => { if (!val) settingsOpen = null; }}
-				extension={ext}
-			/>
-		{/if}
+{#if settingsOpen}
+	{@const ext = extensionStore.catalog.find((e) => e.id === settingsOpen)}
+	{#if ext}
+		<ExtensionSettingsDialog
+			open={true}
+			onOpenChange={(val) => {
+				if (!val) settingsOpen = null;
+			}}
+			extension={ext}
+		/>
 	{/if}
+{/if}

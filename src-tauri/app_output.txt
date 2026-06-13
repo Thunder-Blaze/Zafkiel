@@ -1,0 +1,126 @@
+warning: unused import: `reqwest::Client`
+ --> src/commands/utils.rs:2:5
+  |
+2 | use reqwest::Client;
+  |     ^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable does not need to be mutable
+   --> src/commands/mpv_render.rs:402:23
+    |
+402 |     let (shutdown_tx, mut shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+    |                       ----^^^^^^^^^^^
+    |                       |
+    |                       help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `shutdown_rx`
+   --> src/commands/mpv_render.rs:402:23
+    |
+402 |     let (shutdown_tx, mut shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+    |                       ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_shutdown_rx`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `SendDisplay` is never constructed
+  --> src/commands/mpv_render.rs:90:8
+   |
+90 | struct SendDisplay(RawDisplayHandle);
+   |        ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `SendWindow` is never constructed
+  --> src/commands/mpv_render.rs:94:8
+   |
+94 | struct SendWindow(RawWindowHandle);
+   |        ^^^^^^^^^^
+
+warning: field `set_property` is never read
+   --> src/commands/mpv_render.rs:111:9
+    |
+105 | pub struct MpvApi {
+    |            ------ field in this struct
+...
+111 |     pub set_property: unsafe extern "C" fn(*mut c_void, *const c_char, c_int, *mut c_void) -> c_int,
+    |         ^^^^^^^^^^^^
+
+warning: field `context` is never read
+   --> src/commands/mpv_render.rs:268:9
+    |
+266 | pub struct GlContext {
+    |            --------- field in this struct
+267 |     pub display: Display,
+268 |     pub context: PossiblyCurrentContext,
+    |         ^^^^^^^
+
+warning: field `signal_tx` is never read
+   --> src/commands/mpv_render.rs:330:9
+    |
+327 | pub struct ActiveMpvPlayer {
+    |            --------------- field in this struct
+...
+330 |     pub signal_tx: std::sync::mpsc::SyncSender<()>,
+    |         ^^^^^^^^^
+
+warning: variable `mpvConfig` should have a snake case name
+   --> src/commands/mpv_render.rs:365:5
+    |
+365 |     mpvConfig: Value,
+    |     ^^^^^^^^^ help: convert the identifier to snake case: `mpv_config`
+    |
+    = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: variable `windowLabel` should have a snake case name
+   --> src/commands/mpv_render.rs:366:5
+    |
+366 |     windowLabel: String,
+    |     ^^^^^^^^^^^ help: convert the identifier to snake case: `window_label`
+
+warning: variable `windowLabel` should have a snake case name
+   --> src/commands/mpv_render.rs:783:5
+    |
+783 |     windowLabel: String,
+    |     ^^^^^^^^^^^ help: convert the identifier to snake case: `window_label`
+
+warning: variable `windowLabel` should have a snake case name
+   --> src/commands/mpv_render.rs:817:5
+    |
+817 |     windowLabel: String,
+    |     ^^^^^^^^^^^ help: convert the identifier to snake case: `window_label`
+
+warning: variable `windowLabel` should have a snake case name
+   --> src/commands/mpv_render.rs:852:5
+    |
+852 |     windowLabel: String,
+    |     ^^^^^^^^^^^ help: convert the identifier to snake case: `window_label`
+
+warning: variable `_windowLabel` should have a snake case name
+   --> src/commands/mpv_render.rs:882:5
+    |
+882 |     _windowLabel: String,
+    |     ^^^^^^^^^^^^ help: convert the identifier to snake case: `_window_label`
+
+warning: variable `onFrame` should have a snake case name
+   --> src/commands/mpv_render.rs:919:5
+    |
+919 |     onFrame: Channel<Vec<u8>>,
+    |     ^^^^^^^ help: convert the identifier to snake case: `on_frame`
+
+warning: `Zafkiel` (lib) generated 15 warnings (run `cargo fix --lib -p Zafkiel` to apply 3 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.47s
+     Running `target/debug/Zafkiel`
+[Config] Resolved ~~/shaders/Anime4K_Clamp_Highlights.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Clamp_Highlights.glsl
+[Config] Resolved ~~/shaders/Anime4K_Restore_CNN_M.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Restore_CNN_M.glsl
+[Config] Resolved ~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Upscale_CNN_x2_M.glsl
+[Config] Resolved ~~/shaders/Anime4K_AutoDownscalePre_x2.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_AutoDownscalePre_x2.glsl
+[Config] Resolved ~~/shaders/Anime4K_AutoDownscalePre_x4.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_AutoDownscalePre_x4.glsl
+[Config] Resolved ~~/shaders/Anime4K_Upscale_CNN_x2_S.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Upscale_CNN_x2_S.glsl
+[Config] Resolved ~~/shaders/Anime4K_Clamp_Highlights.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Clamp_Highlights.glsl
+[Config] Resolved ~~/shaders/Anime4K_Restore_CNN_M.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Restore_CNN_M.glsl
+[Config] Resolved ~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Upscale_CNN_x2_M.glsl
+[Config] Resolved ~~/shaders/Anime4K_AutoDownscalePre_x2.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_AutoDownscalePre_x2.glsl
+[Config] Resolved ~~/shaders/Anime4K_AutoDownscalePre_x4.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_AutoDownscalePre_x4.glsl
+[Config] Resolved ~~/shaders/Anime4K_Upscale_CNN_x2_S.glsl -> /home/ThunderBlaze/Documents/Projects/AiGen/Zafkiel/src-tauri/target/debug/shaders/Anime4K_Upscale_CNN_x2_S.glsl

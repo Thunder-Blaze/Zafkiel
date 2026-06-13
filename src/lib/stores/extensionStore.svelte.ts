@@ -79,7 +79,7 @@ class ExtensionStore {
 				try {
 					const res = await fetch(repoUrl);
 					if (res.ok) {
-						const data = await res.json() as CatalogExtension[];
+						const data = (await res.json()) as CatalogExtension[];
 						// Handle merging/deduplication if needed, for now just append
 						// the repoUrl might be relative paths for downloadUrl, let's resolve them
 						const baseUrl = new URL(repoUrl);
@@ -87,7 +87,7 @@ class ExtensionStore {
 							if (ext.downloadUrl && ext.downloadUrl.startsWith('/')) {
 								ext = { ...ext, downloadUrl: new URL(ext.downloadUrl, baseUrl).toString() };
 							}
-							const existingIdx = fetchedCatalog.findIndex(e => e.id === ext.id);
+							const existingIdx = fetchedCatalog.findIndex((e) => e.id === ext.id);
 							if (existingIdx !== -1) {
 								// Only replace if version is higher (simple check, or just overwrite for now)
 								fetchedCatalog[existingIdx] = ext;

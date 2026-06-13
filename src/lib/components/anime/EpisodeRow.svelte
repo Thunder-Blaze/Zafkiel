@@ -139,7 +139,12 @@
 			class="mt-3 w-full border-t border-border/30 pt-4 pl-2"
 			transition:slide={{ duration: 250 }}
 		>
-			<EpisodeTorrentsList {episode} {animeTitle} {animeId} onDownload={(magnet, title) => onDownload(magnet, episode.number, title)} />
+			<EpisodeTorrentsList
+				{episode}
+				{animeTitle}
+				{animeId}
+				onDownload={(magnet, title) => onDownload(magnet, episode.number, title)}
+			/>
 		</div>
 	{/if}
 </div>

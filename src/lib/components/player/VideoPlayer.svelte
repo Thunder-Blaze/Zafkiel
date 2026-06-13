@@ -17,7 +17,7 @@
 	 * authentication headers (Referer, Cookie) directly from mpv's HTTP client.
 	 */
 	import { onMount, onDestroy } from 'svelte';
-	import { invoke } from '@tauri-apps/api/core';
+	import { invoke, Channel } from '@tauri-apps/api/core';
 	import { fade } from 'svelte/transition';
 	import { playerStore } from '$lib/stores/player.svelte';
 	import PlayerControls from './PlayerControls.svelte';
@@ -36,6 +36,130 @@
 	import type { Episode, StreamSource } from '$lib/types/extensions';
 	import { useConfigState } from '$lib/stores/config.svelte';
 	import { discordStore } from '$lib/stores/discord.svelte';
+
+	class WebGLPlayer {
+		private gl: WebGLRenderingContext | null = null;
+		private program: WebGLProgram | null = null;
+		private texture: WebGLTexture | null = null;
+		private width: number = 0;
+		private height: number = 0;
+
+		constructor(canvas: HTMLCanvasElement) {
+			const gl = canvas.getContext('webgl', {
+				alpha: false,
+				depth: false,
+				antialias: false,
+				premultipliedAlpha: false,
+				preserveDrawingBuffer: false,
+			});
+			if (!gl) return;
+			this.gl = gl;
+
+			const vsSource = `
+				attribute vec2 position;
+				varying vec2 texCoord;
+				void main() {
+					texCoord = position * 0.5 + 0.5;
+					texCoord.y = 1.0 - texCoord.y;
+					gl_Position = vec4(position, 0.0, 1.0);
+				}
+			`;
+			const fsSource = `
+				precision mediump float;
+				varying vec2 texCoord;
+				uniform sampler2D u_texture;
+				void main() {
+					gl_FragColor = texture2D(u_texture, texCoord);
+				}
+			`;
+
+			const vs = gl.createShader(gl.VERTEX_SHADER)!;
+			gl.shaderSource(vs, vsSource);
+			gl.compileShader(vs);
+
+			const fs = gl.createShader(gl.FRAGMENT_SHADER)!;
+			gl.shaderSource(fs, fsSource);
+			gl.compileShader(fs);
+
+			const program = gl.createProgram()!;
+			gl.attachShader(program, vs);
+			gl.attachShader(program, fs);
+			gl.linkProgram(program);
+			this.program = program;
+
+			gl.useProgram(program);
+
+			const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]);
+			const buffer = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+			gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+			const positionLocation = gl.getAttribLocation(program, 'position');
+			gl.enableVertexAttribArray(positionLocation);
+			gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+			const texture = gl.createTexture();
+			gl.bindTexture(gl.TEXTURE_2D, texture);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+			this.texture = texture;
+		}
+
+		render(width: number, height: number, rgbaData: Uint8Array) {
+			const gl = this.gl;
+			if (!gl || !this.texture) return;
+
+			if (gl.canvas.width !== width || gl.canvas.height !== height) {
+				gl.canvas.width = width;
+				gl.canvas.height = height;
+				gl.viewport(0, 0, width, height);
+				this.width = width;
+				this.height = height;
+
+				gl.bindTexture(gl.TEXTURE_2D, this.texture);
+				gl.texImage2D(
+					gl.TEXTURE_2D,
+					0,
+					gl.RGBA,
+					width,
+					height,
+					0,
+					gl.RGBA,
+					gl.UNSIGNED_BYTE,
+					rgbaData
+				);
+			} else {
+				gl.bindTexture(gl.TEXTURE_2D, this.texture);
+				gl.texSubImage2D(
+					gl.TEXTURE_2D,
+					0,
+					0,
+					0,
+					width,
+					height,
+					gl.RGBA,
+					gl.UNSIGNED_BYTE,
+					rgbaData
+				);
+			}
+
+			gl.drawArrays(gl.TRIANGLES, 0, 6);
+		}
+
+		destroy() {
+			const gl = this.gl;
+			if (gl) {
+				if (this.texture) gl.deleteTexture(this.texture);
+				if (this.program) gl.deleteProgram(this.program);
+			}
+			this.gl = null;
+		}
+	}
+
+	let canvasElement = $state<HTMLCanvasElement | null>(null);
+	let glPlayer: WebGLPlayer | null = null;
 
 	let {
 		url,
@@ -91,7 +215,7 @@
 	let showSyncPreferenceModal = $state(false);
 	let hasUpdatedProgress = $state(false);
 	let showAskPrompt = $state(false);
-	
+
 	let mpvTracks = $state<any[]>([]);
 	let currentSid = $state<number | string>('no');
 
@@ -135,8 +259,8 @@
 				options: {
 					mediaId: animeId,
 					progress: oneBasedIndex,
-					status: 'CURRENT'
-				}
+					status: 'CURRENT',
+				},
 			});
 
 			// Update local DB
@@ -150,7 +274,9 @@
 				},
 			});
 
-			console.log(`[Player] Progress updated to episode ${oneBasedIndex} (local: ${currentEpisode.number})`);
+			console.log(
+				`[Player] Progress updated to episode ${oneBasedIndex} (local: ${currentEpisode.number})`
+			);
 		} catch (e) {
 			console.error('[Player] Failed to update progress:', e);
 			hasUpdatedProgress = false;
@@ -171,11 +297,11 @@
 				},
 			});
 		}
-		
+
 		if (mode === 'yes') {
 			await performUpdate();
 		}
-		
+
 		// Resume playback
 		isPlaying = true;
 		await command('set_property', ['pause', 'no'], MPV_WINDOW_LABEL);
@@ -423,17 +549,28 @@
 			isInitialized = true;
 			resetControlsTimeout();
 
-			// On Linux, mpv's X11 sub-window is created on top of the WebKit window.
-			// Lower it so the controls overlay (inside the WebView) sits above the video.
-			try {
-				await invoke('lower_mpv_subwindow');
-			} catch (e) {
-				console.warn('[mpv] lower_mpv_subwindow:', e);
+			if (canvasElement) {
+				glPlayer = new WebGLPlayer(canvasElement);
 			}
+
+			const onFrameChannel = new Channel<Uint8Array>();
+			onFrameChannel.onmessage = (chunk: Uint8Array) => {
+				if (!canvasElement || !glPlayer) return;
+				const view = new DataView(chunk.buffer, chunk.byteOffset, 8);
+				const width = view.getUint32(0, true);
+				const height = view.getUint32(4, true);
+				const rgbaData = new Uint8Array(chunk.buffer, chunk.byteOffset + 8, chunk.byteLength - 8);
+				glPlayer.render(width, height, rgbaData);
+			};
+
+			await invoke('start_mpv_frame_stream', { onFrame: onFrameChannel });
+
+			// We use offscreen rendering, so there is no mpv sub-window to lower!
 		} catch (e) {
 			console.error('[mpv] init error:', e);
 			hasError = true;
-			errorMessage = e instanceof Error ? e.message : 'Failed to initialize player';
+			errorMessage =
+				typeof e === 'string' ? e : e instanceof Error ? e.message : 'Failed to initialize player';
 		}
 	});
 
@@ -503,9 +640,7 @@
 		}))
 	);
 
-	const currentTrackIndex = $derived(
-		mappedTracks.findIndex((t) => t.id === String(currentSid))
-	);
+	const currentTrackIndex = $derived(mappedTracks.findIndex((t) => t.id === String(currentSid)));
 
 	async function handleTrackChange(index: number) {
 		if (!isInitialized) return;
@@ -530,6 +665,10 @@
 		clearTimeout(controlsTimeout);
 		unlistenProps?.();
 		unlistenEvents?.();
+		if (glPlayer) {
+			glPlayer.destroy();
+			glPlayer = null;
+		}
 		try {
 			await destroy(MPV_WINDOW_LABEL);
 		} catch {}
@@ -555,6 +694,10 @@
 	role="application"
 	aria-label="Video player"
 >
+	<canvas
+		bind:this={canvasElement}
+		class="pointer-events-none absolute inset-0 z-0 size-full bg-black"
+	></canvas>
 	{#if hasError}
 		<div class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80">
 			<Icon icon="lucide:alert-circle" class="mb-2 h-12 w-12 text-red-500" />
@@ -644,19 +787,23 @@
 			transition:fade
 		>
 			<div class="flex items-center gap-3">
-				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary">
+				<div
+					class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary"
+				>
 					<Icon icon="solar:check-read-linear" class="h-6 w-6" />
 				</div>
 				<div>
-					<div class="text-sm font-bold text-white uppercase tracking-tight">Sync Progress?</div>
-					<div class="text-xs text-white/70">Update AniList to episode {currentEpisode?.number}</div>
+					<div class="text-sm font-bold tracking-tight text-white uppercase">Sync Progress?</div>
+					<div class="text-xs text-white/70">
+						Update AniList to episode {currentEpisode?.number}
+					</div>
 				</div>
 			</div>
 			<div class="flex gap-2 pt-1">
 				<Button
 					size="sm"
 					variant="default"
-					class="flex-1 rounded-lg h-8 text-xs font-bold uppercase tracking-wider"
+					class="h-8 flex-1 rounded-lg text-xs font-bold tracking-wider uppercase"
 					onclick={async () => {
 						await performUpdate();
 						showAskPrompt = false;
@@ -667,7 +814,7 @@
 				<Button
 					size="sm"
 					variant="ghost"
-					class="flex-1 rounded-lg h-8 text-xs font-bold uppercase tracking-wider text-white/50 hover:text-white"
+					class="h-8 flex-1 rounded-lg text-xs font-bold tracking-wider text-white/50 uppercase hover:text-white"
 					onclick={() => {
 						showAskPrompt = false;
 						hasUpdatedProgress = true; // Don't ask again for this ep

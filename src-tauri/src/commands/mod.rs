@@ -9,3 +9,4 @@ pub mod image_cache;
 pub mod mpv_window;
 pub mod torrent;
 pub mod utils;
+pub mod mpv_render;

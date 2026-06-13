@@ -140,7 +140,7 @@ export class TorrentService {
 		try {
 			return await invoke<PersistTorrent[]>('get_saved_torrents_for_episode', {
 				animeId,
-				episodeNumber
+				episodeNumber,
 			});
 		} catch (e) {
 			console.error('Failed to get saved torrents for episode:', e);

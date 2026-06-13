@@ -48,7 +48,7 @@
 			}
 			settingsValues = newValues;
 		} catch (e) {
-			console.error("Failed to load settings:", e);
+			console.error('Failed to load settings:', e);
 		} finally {
 			isLoading = false;
 		}
@@ -104,7 +104,7 @@
 							<select
 								id={setting.id}
 								bind:value={settingsValues[setting.id]}
-								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 							>
 								{#each setting.options || [] as opt}
 									<option value={opt.value}>{opt.label}</option>
@@ -112,11 +112,7 @@
 							</select>
 						{:else if setting.type === 'boolean'}
 							<div class="flex items-center gap-2">
-								<input
-									type="checkbox"
-									id={setting.id}
-									bind:checked={settingsValues[setting.id]}
-								/>
+								<input type="checkbox" id={setting.id} bind:checked={settingsValues[setting.id]} />
 								<span class="text-sm text-muted-foreground">{setting.description || ''}</span>
 							</div>
 						{:else}

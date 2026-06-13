@@ -59,7 +59,11 @@ zip = { version = "2.1", default-features = false, features = ["deflate"] }
 tauri-plugin-libmpv = "0.3.2"
 raw-window-handle = "0.6"
 discord-rich-presence = "1.1.0"
-
+glutin = { version = "0.32", default-features = false, features = ["egl", "wgl"] }
+gl = "0.14"
+libloading = "0.8"
+parking_lot = "0.12"
+libc = "0.2"
 [target.'cfg(target_os = "linux")'.dependencies]
 webkit2gtk = "2.0"
 glib = "0.18"

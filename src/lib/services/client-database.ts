@@ -81,8 +81,8 @@ export class ClientDatabaseService {
 	 * Add media to recently viewed via Tauri command
 	 */
 	static async addToRecentlyViewed(media_id: number): Promise<void> {
-		await invoke('add_to_recently_viewed', { 
-			params: { media_id } satisfies RecentlyViewedParams 
+		await invoke('add_to_recently_viewed', {
+			params: { media_id } satisfies RecentlyViewedParams,
 		});
 	}
 

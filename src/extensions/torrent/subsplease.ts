@@ -89,5 +89,5 @@ export const SubsPleaseExtension: TorrentProvider = {
 		const epStr = episodeNumber.toString().padStart(2, '0');
 		const query = `${title} - ${epStr}`;
 		return this.search(query);
-	}
+	},
 };

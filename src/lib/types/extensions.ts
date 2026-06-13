@@ -34,7 +34,6 @@ export interface ExtensionSetting {
 	default: any;
 	options?: { label: string; value: any }[];
 	description?: string;
-
 }
 /** Mirrors `ExtensionIndexEntry` in Rust – represents an installed extension. */
 export interface ExtensionIndexEntry {

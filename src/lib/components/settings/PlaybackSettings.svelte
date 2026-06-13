@@ -210,7 +210,7 @@
 			<div class="h-px bg-border/50"></div>
 
 			<div class="space-y-1">
-				<h3 class="text-sm font-semibold uppercase tracking-wider text-foreground/50">
+				<h3 class="text-sm font-semibold tracking-wider text-foreground/50 uppercase">
 					AniList Progress Sync
 				</h3>
 			</div>
@@ -221,9 +221,7 @@
 			>
 				<div class="space-y-0.5">
 					<Label class="text-base font-medium">Auto-update AniList Progress</Label>
-					<p class="text-sm text-foreground/70">
-						Automatically increment episode count on AniList
-					</p>
+					<p class="text-sm text-foreground/70">Automatically increment episode count on AniList</p>
 				</div>
 				<Switch
 					checked={config.autoUpdateProgress}
