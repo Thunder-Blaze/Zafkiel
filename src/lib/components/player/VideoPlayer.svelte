@@ -470,7 +470,7 @@
 						// 'auto' selects the best hardware decoder per platform:
 						// vaapi/nvdec on Linux, d3d11va/nvdec on Windows, VideoToolbox on macOS.
 						vo: 'gpu-next',
-						hwdec: 'auto',
+						hwdec: 'auto-safe',
 						'keep-open': 'yes',
 						'osd-level': '0',
 						'input-default-bindings': 'no',
@@ -556,35 +556,19 @@
 			onFrameChannel.onmessage = (chunk: any) => {
 				if (!canvasElement || !glPlayer) return;
 
-				let buffer: ArrayBufferLike;
-				let byteOffset = 0;
-				let byteLength = 0;
+				let uint8: Uint8Array;
 
 				if (chunk instanceof Uint8Array) {
-					buffer = chunk.buffer;
-					byteOffset = chunk.byteOffset;
-					byteLength = chunk.byteLength;
+					uint8 = chunk;
 				} else if (chunk instanceof ArrayBuffer) {
-					buffer = chunk;
-					byteOffset = 0;
-					byteLength = chunk.byteLength;
-				} else if (Array.isArray(chunk)) {
-					const typedArray = new Uint8Array(chunk);
-					buffer = typedArray.buffer;
-					byteOffset = typedArray.byteOffset;
-					byteLength = typedArray.byteLength;
+					uint8 = new Uint8Array(chunk);
 				} else {
-					// Try to wrap or fallback
-					const typedArray = new Uint8Array(chunk);
-					buffer = typedArray.buffer;
-					byteOffset = typedArray.byteOffset;
-					byteLength = typedArray.byteLength;
+					uint8 = new Uint8Array(chunk);
 				}
 
-				const view = new DataView(buffer, byteOffset, 8);
-				const width = view.getUint32(0, true);
-				const height = view.getUint32(4, true);
-				const rgbaData = new Uint8Array(buffer, byteOffset + 8, byteLength - 8);
+				const width = uint8[0] | (uint8[1] << 8) | (uint8[2] << 16) | (uint8[3] << 24);
+				const height = uint8[4] | (uint8[5] << 8) | (uint8[6] << 16) | (uint8[7] << 24);
+				const rgbaData = uint8.subarray(8);
 				glPlayer.render(width, height, rgbaData);
 			};
 

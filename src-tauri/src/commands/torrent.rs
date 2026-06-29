@@ -17,16 +17,16 @@ use tokio::net::TcpListener;
 use tokio::process::Command;
 use tokio_util::io::ReaderStream;
 
+use crate::database::Database;
 use axum::extract::{Path, State as AxumState};
 use lazy_static::lazy_static;
+use rusqlite::params;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Mutex;
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use tower_http::cors::{Any, CorsLayer};
-use crate::database::Database;
-use rusqlite::params;
 
 #[derive(Serialize, Debug)]
 pub struct TorrentState {
@@ -816,7 +816,7 @@ pub struct PersistTorrent {
 fn add_to_persistence(app: &AppHandle, magnet: &str, info_hash: &str) {
     let db = app.state::<Database>();
     let conn = db.get();
-    
+
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
@@ -835,7 +835,7 @@ fn add_to_persistence(app: &AppHandle, magnet: &str, info_hash: &str) {
         ) VALUES (?1, 0, 0.0, ?2, '', ?3, ?4, ?5, ?6, ?7)",
         params![
             info_hash,
-            anime_name,   // raw dn= from magnet, used as torrent name fallback only
+            anime_name, // raw dn= from magnet, used as torrent name fallback only
             magnet,
             "downloading",
             0.0,
@@ -849,12 +849,15 @@ fn update_persistence_state(app: &AppHandle, info_hash: &str, paused: bool) {
     let db = app.state::<Database>();
     let conn = db.get();
     let status = if paused { "paused" } else { "downloading" };
-    
+
     let _ = conn.execute(
         "UPDATE torrents SET status = ?1, updated_at = ?2 WHERE info_hash = ?3",
         params![
             status,
-            SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64,
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs() as i64,
             info_hash
         ],
     );
@@ -863,18 +866,25 @@ fn update_persistence_state(app: &AppHandle, info_hash: &str, paused: bool) {
 fn remove_from_persistence(app: &AppHandle, info_hash: &str) {
     let db = app.state::<Database>();
     let conn = db.get();
-    let _ = conn.execute("DELETE FROM torrents WHERE info_hash = ?1", params![info_hash]);
+    let _ = conn.execute(
+        "DELETE FROM torrents WHERE info_hash = ?1",
+        params![info_hash],
+    );
 }
 
 pub async fn restore_torrents(app: &AppHandle, session: &Arc<Session>) {
     let db = app.state::<Database>();
     let conn = db.get();
-    
+
     let torrents_to_restore = {
-        let mut stmt = conn.prepare("SELECT magnet_uri, status FROM torrents").unwrap();
-        let rows = stmt.query_map([], |row| {
-            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
-        }).unwrap();
+        let mut stmt = conn
+            .prepare("SELECT magnet_uri, status FROM torrents")
+            .unwrap();
+        let rows = stmt
+            .query_map([], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+            })
+            .unwrap();
 
         let mut list = Vec::new();
         for row in rows {
@@ -885,7 +895,10 @@ pub async fn restore_torrents(app: &AppHandle, session: &Arc<Session>) {
         list
     };
 
-    log::info!("Restoring {} torrents from persistence...", torrents_to_restore.len());
+    log::info!(
+        "Restoring {} torrents from persistence...",
+        torrents_to_restore.len()
+    );
     for (magnet, status) in torrents_to_restore {
         let _ = session
             .add_torrent(
@@ -908,37 +921,42 @@ pub async fn save_torrent_metadata(
 ) -> Result<(), String> {
     let db = app.state::<Database>();
     let conn = db.get();
-    
+
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_secs() as i64;
 
     // Use UPDATE with WHERE to preserve magnet/status if row exists, or do INSERT if not
-    let updated = conn.execute(
-        "UPDATE torrents SET 
+    let updated = conn
+        .execute(
+            "UPDATE torrents SET 
             anime_id = ?1, 
             episode_number = ?2, 
             anime_title = ?3, 
             anime_cover = ?4,
             updated_at = ?5
          WHERE LOWER(info_hash) = LOWER(?6)",
-        params![
-            metadata.anime_id,
-            metadata.episode_number,
-            metadata.anime_title,
-            metadata.anime_cover,
-            now,
-            info_hash
-        ],
-    ).map_err(|e| e.to_string())?;
+            params![
+                metadata.anime_id,
+                metadata.episode_number,
+                metadata.anime_title,
+                metadata.anime_cover,
+                now,
+                info_hash
+            ],
+        )
+        .map_err(|e| e.to_string())?;
 
     log::info!("[Metadata] Updated {} rows for hash {}", updated, info_hash);
 
     // If no row was updated (race: metadata saved before stream_torrent INSERT),
     // insert a minimal row with just the metadata
     if updated == 0 {
-        log::info!("[Metadata] No existing row for hash {}, inserting new row", info_hash);
+        log::info!(
+            "[Metadata] No existing row for hash {}, inserting new row",
+            info_hash
+        );
         conn.execute(
             "INSERT OR IGNORE INTO torrents (info_hash, anime_id, episode_number, anime_title, anime_cover, magnet_uri, status, progress, created_at, updated_at)
              VALUES (?1, ?2, ?3, ?4, ?5, '', 'downloading', 0.0, ?6, ?6)",
@@ -964,26 +982,32 @@ pub async fn get_saved_torrents_for_episode(
 ) -> Result<Vec<PersistTorrent>, String> {
     let db = app.state::<Database>();
     let conn = db.get();
-    
-    log::info!("[SavedTorrents] Querying: anime_id={}, episode_number={}", anime_id, episode_number);
+
+    log::info!(
+        "[SavedTorrents] Querying: anime_id={}, episode_number={}",
+        anime_id,
+        episode_number
+    );
     let mut stmt = conn.prepare(
         "SELECT magnet_uri, info_hash, anime_title, status, anime_id, episode_number, anime_cover 
          FROM torrents 
          WHERE anime_id = ?1 AND episode_number = ?2"
     ).map_err(|e| e.to_string())?;
 
-    let rows = stmt.query_map(params![anime_id, episode_number], |row| {
-        Ok(PersistTorrent {
-            magnet: row.get(0)?,
-            info_hash: row.get(1)?,
-            name: row.get(2).ok(),
-            paused: row.get::<_, String>(3)? == "paused",
-            anime_id: Some(row.get(4)?),
-            episode_number: Some(row.get(5)?),
-            anime_title: row.get(2).ok(),
-            anime_cover: row.get(6).ok(),
+    let rows = stmt
+        .query_map(params![anime_id, episode_number], |row| {
+            Ok(PersistTorrent {
+                magnet: row.get(0)?,
+                info_hash: row.get(1)?,
+                name: row.get(2).ok(),
+                paused: row.get::<_, String>(3)? == "paused",
+                anime_id: Some(row.get(4)?),
+                episode_number: Some(row.get(5)?),
+                anime_title: row.get(2).ok(),
+                anime_cover: row.get(6).ok(),
+            })
         })
-    }).map_err(|e| e.to_string())?;
+        .map_err(|e| e.to_string())?;
 
     let mut results = Vec::new();
     for row in rows {
@@ -991,7 +1015,7 @@ pub async fn get_saved_torrents_for_episode(
             results.push(t);
         }
     }
-    
+
     Ok(results)
 }
 

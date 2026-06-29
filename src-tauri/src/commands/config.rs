@@ -358,10 +358,7 @@ pub fn update_auto_update_threshold(
 
 /// Update default update mode setting
 #[tauri::command]
-pub fn update_default_update_mode(
-    mode: String,
-    config: State<ConfigState>,
-) -> ConfigResponse<()> {
+pub fn update_default_update_mode(mode: String, config: State<ConfigState>) -> ConfigResponse<()> {
     match config.update_default_update_mode(mode) {
         Ok(_) => ConfigResponse::success(()),
         Err(e) => ConfigResponse::error(e.to_string()),

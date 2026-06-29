@@ -6,7 +6,7 @@ pub mod discord;
 pub mod downloads;
 pub mod extensions;
 pub mod image_cache;
+pub mod mpv_render;
 pub mod mpv_window;
 pub mod torrent;
 pub mod utils;
-pub mod mpv_render;

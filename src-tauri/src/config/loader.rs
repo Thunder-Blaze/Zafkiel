@@ -339,7 +339,11 @@ impl ConfigLoader {
     }
 
     /// Update shader configuration
-    pub fn update_shader_config(&self, enabled: bool, selected_shaders: Vec<String>) -> Result<(), ConfigError> {
+    pub fn update_shader_config(
+        &self,
+        enabled: bool,
+        selected_shaders: Vec<String>,
+    ) -> Result<(), ConfigError> {
         let mut config = self.config.write().map_err(|_| {
             ConfigError::Deserialization("Failed to acquire write lock".to_string())
         })?;
