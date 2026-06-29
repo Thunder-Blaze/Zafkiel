@@ -16,35 +16,40 @@
 ## 🏗️ Architecture
 
 ```mermaid
-graph TB
-    subgraph Frontend [🖥️ Frontend - SvelteKit + TS + Bun]
-        UI[UI / Svelte Components] -->|Svelte Runes & Stores| Stores[State & Settings Stores]
-        Stores -->|Tauri API / invoke| IPC_Client[Tauri IPC Bridge]
-        Player[Video Player / HLS.js] -->|HTTP Range Requests| HLS_Proxy[Rust HLS/Torrent Proxy]
+graph TD
+    %% Layer 1: Frontend
+    subgraph Frontend [🖥️ SvelteKit Frontend]
+        direction LR
+        UI[User Interface] --> Stores[State Stores]
+        Stores --> Client[Tauri IPC Bridge]
+        Player[Video Player]
     end
 
-    subgraph Backend [🦀 Backend - Tauri v2 + Rust]
-        IPC_Client -->|IPC Protocol| Handlers[Tauri Command Handlers]
-        
-        Handlers -->|AES-256-GCM| Config[Secure Config Manager]
-        Handlers -->|SQLite Driver| DB[(SQLite Database<br/>zafkiel.db)]
-        Handlers -->|File System API| Cache[Local Disk Storage<br/>~/.local/share/...]
-        Handlers -->|Discord SDK| Discord[Discord Rich Presence]
-        Handlers -->|libmpv-sys| MPV[libmpv Native Player]
-        Handlers -->|librqbit| TorrentEngine[librqbit Engine]
-        
-        TorrentEngine --> HLS_Proxy
+    %% Layer 2: Tauri Backend
+    subgraph Backend [🦀 Tauri / Rust Backend]
+        direction LR
+        Handlers[Tauri Commands] --> Services[App Services]
+        Services --> DB[(SQLite Database)]
+        Services --> Config[Encrypted Settings]
+        Services --> Torrent[librqbit Engine]
     end
 
-    subgraph External [🌐 External Services & APIs]
-        Handlers -->|GraphQL + OAuth| AniList[AniList GraphQL API]
-        Handlers -->|HTTP Fetch| Extensions[JS/WASM Extensions]
-        Extensions -->|Web Scrapers| Sources[Streaming Sources<br/>Animepahe / Kwik / Nyaa]
-        
-        UI -->|AniZip API| AniZip[AniZip Metadata API]
-        UI -->|Tosho API| Tosho[Anime Tosho Magnet Feed]
+    %% Layer 3: External Integration
+    subgraph External [🌐 External APIs & Sources]
+        direction LR
+        AniList[AniList API]
+        AniZip[AniZip / Tosho]
+        Sources[Streaming Sources]
     end
-```
+
+    %% Connections between layers
+    Client -->|IPC Protocol| Handlers
+    Torrent -.->|HTTP Streams| Player
+    
+    %% API connections
+    UI -->|Metadata| AniZip
+    Handlers -->|GraphQL| AniList
+    Handlers -->|Plugin Scrapers| Sources
 
 Zafkiel uses a split-process client architecture. The user interface runs on a lightweight SvelteKit frontend bundled using Vite. The Svelte application interacts with the native OS via **Tauri v2 IPC (Inter-Process Communication)**. High-performance operations such as decryption, local SQLite database management, Discord Rich Presence, native libmpv bindings, and torrent streaming (via the **librqbit** engine) are delegated to the Rust backend.
 
