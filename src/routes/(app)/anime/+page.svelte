@@ -5,15 +5,9 @@
 
 	const trendingQuery = useTrendingAnime();
 
-	let animeData: Media[] = $state([]);
-	let isLoading = $state(true);
-	let error = $state<string | null>(null);
-
-	$effect(() => {
-		isLoading = trendingQuery.isLoading;
-		error = trendingQuery.error ? String(trendingQuery.error) : null;
-		animeData = trendingQuery.data?.data || [];
-	});
+	const animeData = $derived<Media[]>(trendingQuery.data?.data || []);
+	const isLoading = $derived(trendingQuery.isLoading);
+	const error = $derived(trendingQuery.error ? String(trendingQuery.error) : null);
 
 	$inspect(() => {
 		console.log('Trending anime data:', animeData);

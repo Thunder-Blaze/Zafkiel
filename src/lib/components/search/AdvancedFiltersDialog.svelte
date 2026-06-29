@@ -5,6 +5,7 @@
 	import Icon from '@iconify/svelte';
 	import { ADVANCED_TAGS, ANIME_STREAMING_ON, MANGA_READABLE_ON } from '$lib/constants/search';
 	import { createVirtualizer } from '@tanstack/svelte-virtual';
+	import { untrack } from 'svelte';
 
 	let {
 		open = $bindable(false),
@@ -80,11 +81,14 @@
 	});
 
 	$effect(() => {
-		$virtualizer.setOptions({
-			count: filterGroups.length,
-			getScrollElement: () => scrollEl ?? null,
-			estimateSize: () => 150,
-			overscan: 2,
+		const count = filterGroups.length;
+		untrack(() => {
+			$virtualizer.setOptions({
+				count,
+				getScrollElement: () => scrollEl ?? null,
+				estimateSize: () => 150,
+				overscan: 2,
+			});
 		});
 	});
 

@@ -16,6 +16,7 @@
 	import { toast } from 'svelte-sonner';
 	import { gsapReveal, gsapStagger } from '$lib/utils/gsap-animations';
 
+	import { untrack } from 'svelte';
 	// ── Search & Filter State ────────────────────────────────────────────────
 	const urlParams = $derived(page.url.searchParams);
 
@@ -30,14 +31,24 @@
 
 	// Sync state from URL
 	$effect(() => {
-		searchQuery = urlParams.get('search') || '';
-		selectedGenre = urlParams.get('genre') || 'Any';
-		selectedYear = urlParams.get('year') || 'Any';
-		selectedFormat = urlParams.get('format') || 'Any';
-		selectedStatus = urlParams.get('status') || 'Any';
-		selectedCountry = urlParams.get('country') || 'Any';
+		const search = urlParams.get('search') || '';
+		const genre = urlParams.get('genre') || 'Any';
+		const year = urlParams.get('year') || 'Any';
+		const format = urlParams.get('format') || 'Any';
+		const status = urlParams.get('status') || 'Any';
+		const country = urlParams.get('country') || 'Any';
 		const pageParam = urlParams.get('page');
-		currentPage = pageParam ? parseInt(pageParam) : 1;
+		const pageNum = pageParam ? parseInt(pageParam) : 1;
+
+		untrack(() => {
+			if (searchQuery !== search) searchQuery = search;
+			if (selectedGenre !== genre) selectedGenre = genre;
+			if (selectedYear !== year) selectedYear = year;
+			if (selectedFormat !== format) selectedFormat = format;
+			if (selectedStatus !== status) selectedStatus = status;
+			if (selectedCountry !== country) selectedCountry = country;
+			if (currentPage !== pageNum) currentPage = pageNum;
+		});
 	});
 
 	// Check if active filters exist
@@ -53,17 +64,40 @@
 
 	// Update URL when filters change
 	$effect(() => {
-		const params = new URLSearchParams();
-		if (searchQuery) params.set('search', searchQuery);
-		if (selectedGenre !== 'Any') params.set('genre', selectedGenre);
-		if (selectedYear !== 'Any') params.set('year', selectedYear);
-		if (selectedFormat !== 'Any') params.set('format', selectedFormat);
-		if (selectedStatus !== 'Any') params.set('status', selectedStatus);
-		if (selectedCountry !== 'Any') params.set('country', selectedCountry);
-		if (currentPage > 1) params.set('page', currentPage.toString());
+		const search = searchQuery;
+		const genre = selectedGenre;
+		const year = selectedYear;
+		const format = selectedFormat;
+		const status = selectedStatus;
+		const country = selectedCountry;
+		const pageNum = currentPage;
 
-		const url = `/search/manga${params.toString() ? '?' + params.toString() : ''}`;
-		goto(url, { replaceState: true, noScroll: true, keepFocus: true });
+		untrack(() => {
+			const params = new URLSearchParams();
+			if (search) params.set('search', search);
+			if (genre !== 'Any') params.set('genre', genre);
+			if (year !== 'Any') params.set('year', year);
+			if (format !== 'Any') params.set('format', format);
+			if (status !== 'Any') params.set('status', status);
+			if (country !== 'Any') params.set('country', country);
+			if (pageNum > 1) params.set('page', pageNum.toString());
+
+			const currentParams = new URLSearchParams(page.url.searchParams);
+			// Compare parameters to see if anything actually changed
+			let hasChanged = false;
+			const allKeys = new Set([...params.keys(), ...currentParams.keys()]);
+			for (const key of allKeys) {
+				if (params.get(key) !== currentParams.get(key)) {
+					hasChanged = true;
+					break;
+				}
+			}
+
+			if (hasChanged) {
+				const url = `${page.url.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+				goto(url, { replaceState: true, noScroll: true, keepFocus: true });
+			}
+		});
 	});
 
 	// Build query params
