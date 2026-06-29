@@ -50,7 +50,7 @@ graph TD
     UI -->|Metadata| AniZip
     Handlers -->|GraphQL| AniList
     Handlers -->|Plugin Scrapers| Sources
-
+```
 Zafkiel uses a split-process client architecture. The user interface runs on a lightweight SvelteKit frontend bundled using Vite. The Svelte application interacts with the native OS via **Tauri v2 IPC (Inter-Process Communication)**. High-performance operations such as decryption, local SQLite database management, Discord Rich Presence, native libmpv bindings, and torrent streaming (via the **librqbit** engine) are delegated to the Rust backend.
 
 ---
